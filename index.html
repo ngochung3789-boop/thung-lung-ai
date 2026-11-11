@@ -219,8 +219,9 @@ body:not(.mo-luyen-giong) #ghi-chu-cua, body.lop-hoc #ghi-chu-cua{display:none}
 #the-dia-diem span{display:block}
 #the-dia-diem .td-gio{color:#9AA8C2; font-size:14px}
 /* Panel Nhiem vu (kieu anh mau: checkbox tien do, ben trai, thu gon duoc) */
-#panel-nhiem-vu{position:fixed; left:12px; top:122px; z-index:14; display:none; width:min(240px,80vw); max-height:40vh; overflow:auto; background:rgba(11,18,32,.92); border:2px solid #C9A227; border-radius:14px; padding:10px 12px; color:#FDF6E3; font-size:15px; box-shadow:0 4px 16px rgba(0,0,0,.45)}
-#panel-nhiem-vu .nv-dau{display:flex; justify-content:space-between; align-items:center; gap:8px; font-weight:800; color:#E8C95A; font-size:16px}
+#panel-nhiem-vu{position:fixed; left:12px; top:122px; z-index:14; display:none; width:min(340px,85vw); /* fix7-5loi: rong hon de hien du ten bai */ max-height:40vh; overflow:auto; background:rgba(11,18,32,.92); border:2px solid #C9A227; border-radius:14px; padding:10px 12px; color:#FDF6E3; font-size:15px; box-shadow:0 4px 16px rgba(0,0,0,.45)}
+#panel-nhiem-vu .nv-dau{display:flex; flex-wrap:wrap; justify-content:space-between; align-items:center; gap:8px; font-weight:800; color:#E8C95A; font-size:16px}
+#panel-nhiem-vu .nv-dau span{flex:1 1 160px; min-width:0} /* fix7-5loi: ten bai duoc xuong dong */
 #panel-nhiem-vu .nv-dau button{font-family:inherit; font-size:13px; font-weight:800; padding:4px 10px; border-radius:999px; border:2px solid #C9A227; background:#fff; color:#1A2340; cursor:pointer; white-space:nowrap}
 #panel-nhiem-vu .nv-tien-do{font-weight:700; color:#9AA8C2; margin:4px 0 6px; font-size:14px}
 #panel-nhiem-vu .nv-danh-sach{list-style:none; margin:0; padding:0}
@@ -245,6 +246,50 @@ body:not(.mo-luyen-giong) #ghi-chu-cua, body.lop-hoc #ghi-chu-cua{display:none}
 /* Phan hoi khi bam nut */
 .nut:active, .pill:active, #danh-sach-bai button:active{transform:scale(.95)}
 .nut, .pill, #danh-sach-bai button{transition:transform .08s ease}
+
+/* --- fix7: chip thu gon panel phong + bong bong gioi thieu cua le tan --- */
+#thanh-chip-phong{position:fixed; left:50%; transform:translateX(-50%); bottom:12px; z-index:27; display:none; gap:8px; flex-wrap:wrap; justify-content:center; max-width:96vw}
+#thanh-chip-phong button{font-family:inherit; font-size:15px; font-weight:800; padding:8px 14px; border-radius:999px; border:2px solid #C9A227; background:rgba(11,18,32,.92); color:#FDF6E3; cursor:pointer; box-shadow:0 4px 16px rgba(0,0,0,.45); white-space:nowrap}
+#thanh-chip-phong button.mo{background:#C9A227; color:#0B1220}
+#thanh-chip-phong button.nghe-lai{border-style:dashed}
+#nut-da-ro{position:fixed; left:50%; transform:translateX(-50%); bottom:64px; z-index:28; display:none; font-family:inherit; font-size:16px; font-weight:800; padding:10px 18px; border-radius:999px; border:2px solid #C9A227; background:#E8C95A; color:#0B1220; cursor:pointer; box-shadow:0 4px 16px rgba(0,0,0,.5); white-space:nowrap}
+body #khu-vuc-cua.mo-chip{display:block; left:50%; right:auto; transform:translateX(-50%); bottom:64px; width:min(680px,94vw); max-height:50vh; z-index:26; grid-template-columns:1fr} /* fix7b: 35vh -> 50vh de hang "Thu tieng on nen" hien duoc */
+/* fix7-dock: panel Luyen giong dock phai (thay modal giua man hinh) — rong ~430px, cao toi da 80vh, top duoi top-bar, phai cach le 12px; noi dung hien du, khong cuon. */
+body #khu-vuc-cua.mo-chip.chi-luyen{left:auto; right:12px; transform:none; top:64px; bottom:auto; width:min(430px, calc(100vw - 24px)); max-height:80vh; z-index:26; padding:8px 12px; margin-top:0}
+#khu-vuc-cua.mo-chip.chi-luyen .dong-chip{padding:0 2px 4px; margin-bottom:4px; font-size:14px}
+#khu-vuc-cua.mo-chip.chi-luyen .the{padding:8px 12px}
+#khu-vuc-cua.mo-chip.chi-luyen .the + .the{margin-top:8px}
+#khu-vuc-cua.mo-chip.chi-luyen .the h2{font-size:17px; margin:0 0 4px}
+#khu-vuc-cua.mo-chip.chi-luyen .trang-thai{font-size:14px; padding:5px 10px; min-height:0; margin:4px 0; line-height:1.35}
+#khu-vuc-cua.mo-chip.chi-luyen #panel-train .hang{flex-wrap:nowrap; gap:8px; margin:4px 0}
+#khu-vuc-cua.mo-chip.chi-luyen #panel-train .hang .nut{flex:1 1 auto; min-width:0; font-size:14px; padding:6px 8px; min-height:36px}
+#khu-vuc-cua.mo-chip.chi-luyen #panel-train .hang .bo-dem{white-space:nowrap; font-size:13px}
+#khu-vuc-cua.mo-chip.chi-luyen #song-am, #khu-vuc-cua.mo-chip.chi-luyen #panel-train > p, #khu-vuc-cua.mo-chip.chi-luyen #panel-train .thanh-tien-do{display:none} /* fix7-dock4: bo '#panel-nghe label' — label co inline display:flex nen khong an duoc; giu checkbox 'Hieu ung nhe' cho thay dung khi may yeu */
+#khu-vuc-cua.mo-chip.chi-luyen #panel-nghe .hang{margin:4px 0}
+#khu-vuc-cua.mo-chip.chi-luyen #panel-nghe .hang .nut{font-size:14px; padding:6px 10px; min-height:36px}
+#khu-vuc-cua.mo-chip.chi-luyen #panel-nghe > p{display:inline; margin-right:8px; font-size:14px}
+#khu-vuc-cua.mo-chip.chi-luyen #nguong{display:inline-block; width:52%; vertical-align:middle; height:24px}
+#khu-vuc-cua.mo-chip.chi-luyen .hang-thanh{grid-template-columns:150px 1fr 44px; gap:8px; margin:4px 0; font-size:13px}
+#khu-vuc-cua.mo-chip.chi-luyen .ray{height:20px}
+/* fix7-dock2: man hinh thap (cao < 820px) — an them hang nguong + tieu de BUOC de panel van vua 80vh (nguong mac dinh 0,75 van dung). */
+@media (max-height:820px){
+#khu-vuc-cua.mo-chip.chi-luyen #panel-nghe > p, #khu-vuc-cua.mo-chip.chi-luyen #nguong{display:none}
+#khu-vuc-cua.mo-chip.chi-luyen .the h2{display:none}
+#khu-vuc-cua.mo-chip.chi-luyen{padding:6px 12px}
+#khu-vuc-cua.mo-chip.chi-luyen .the{padding:6px 12px}
+#khu-vuc-cua.mo-chip.chi-luyen .hang-thanh{margin:2px 0}
+}
+#khu-vuc-cua.mo-chip.chi-van-de .cot-phai, #khu-vuc-cua.mo-chip.chi-van-de .ket-qua, #khu-vuc-cua.mo-chip.chi-van-de .hop-hoc{display:none}
+#khu-vuc-cua.mo-chip.chi-cua .cot-phai, #khu-vuc-cua.mo-chip.chi-cua .khung-van-de{display:none}
+#khu-vuc-cua.mo-chip.chi-luyen .cot-trai{display:none}
+body.lop-hoc #khu-vuc-cua.mo-chip .cot-phai, body.lop-hoc #khu-vuc-cua.mo-chip .hop-hoc, body.lop-hoc #khu-vuc-cua.mo-chip .khung-van-de{display:block}
+body #ghi-chu-cua.mo-chip{display:block; bottom:64px; max-height:50vh; z-index:26} /* fix7b: khop 50vh */
+body.lop-hoc #ghi-chu-cua.mo-chip{display:block}
+#khu-vuc-cua .dong-chip{display:none}
+#khu-vuc-cua.mo-chip .dong-chip{display:flex; position:sticky; top:0; z-index:3; justify-content:space-between; align-items:center; gap:8px; background:rgba(5,8,15,.96); padding:6px 4px 8px; margin-bottom:6px; font-weight:800; color:#E8C95A; font-size:16px}
+#khu-vuc-cua .dong-chip button{font-family:inherit; font-size:14px; font-weight:800; padding:6px 12px; border-radius:999px; border:2px solid #C9A227; background:#FDF6E3; color:#1A2340; cursor:pointer; white-space:nowrap}
+#ghi-chu-cua .dong-chip-gc{display:none}
+#ghi-chu-cua.mo-chip .dong-chip-gc{display:block; float:right; font-family:inherit; font-size:14px; font-weight:800; padding:6px 12px; border-radius:999px; border:2px solid #C9A227; background:#fff; color:#1A2340; cursor:pointer}
 </style>
 </head>
 <body class="dang-mo-dau">
@@ -357,6 +402,8 @@ body:not(.mo-luyen-giong) #ghi-chu-cua, body.lop-hoc #ghi-chu-cua{display:none}
   <div id="panel-nhiem-vu" style="display:none"></div>
   <div id="chon-tang" style="display:none"><div class="hop-chon-tang"><h3 id="chon-tang-tieu-de">🏛️ Chọn tầng</h3><div id="chon-tang-danh-sach"></div><button class="nut nut-xanh nut-nho" id="btn-dong-chon-tang">Đóng</button></div></div>
   <div id="thong-bao-lop"></div>
+  <div id="thanh-chip-phong" style="display:none"></div>
+  <button id="nut-da-ro" type="button" style="display:none">✅ Đã rõ — bắt đầu học</button>
   <div id="chuyen-canh"></div>
 </div>
 
@@ -408,7 +455,7 @@ body:not(.mo-luyen-giong) #ghi-chu-cua, body.lop-hoc #ghi-chu-cua{display:none}
         <button class="nut nut-xanh nut-nho" id="btn-nap">📂 Nạp lại model đã lưu</button>
         <button class="nut nut-xanh nut-nho" id="btn-tai">⬇ Tải model về máy</button>
       </div>
-      <div class="trang-thai" id="trang-thai-model">Chưa có model. Thầy dạy AI học xong rồi bấm “Lưu model”.</div>
+      <div class="trang-thai" id="trang-thai-model">Chưa có model — dạy AI học rồi bấm Lưu model.</div>
     </div>
 
     <div class="the" id="panel-nghe">
@@ -419,7 +466,7 @@ body:not(.mo-luyen-giong) #ghi-chu-cua, body.lop-hoc #ghi-chu-cua{display:none}
         <button class="nut nut-vang" id="btn-nghe">▶ Bắt đầu nghe</button>
         <button class="nut nut-rong" id="btn-dung-nghe">⏸ Dừng nghe</button>
       </div>
-      <div class="trang-thai" id="trang-thai-nghe">Chưa nghe. Thầy dạy AI học xong (bước 1) rồi bấm “Bắt đầu nghe”.</div>
+      <div class="trang-thai" id="trang-thai-nghe">Chưa nghe — dạy AI học xong rồi bấm Bắt đầu nghe.</div>
       <div class="hang-thanh"><span>Giọng thầy — mở cửa</span><div class="ray"><div id="bar-thay"></div></div><span id="pct-thay">0%</span></div>
       <div class="hang-thanh"><span>Giọng khác</span><div class="ray khac"><div id="bar-khac"></div></div><span id="pct-khac">0%</span></div>
       <div class="hang-thanh"><span>Tiếng ồn nền</span><div class="ray on"><div id="bar-on"></div></div><span id="pct-on">0%</span></div>
@@ -1166,7 +1213,15 @@ function dungCanhCua(){
   const matGhe = new THREE.Mesh(new THREE.BoxGeometry(2.6, 0.12, 0.7), new THREE.MeshStandardMaterial({color:0x5C3618, roughness:0.5}));
   matGhe.position.y = 0.45; matGhe.castShadow = true; gheDai.add(matGhe);
   [[-1.1],[1.1]].forEach(p=>{ const ch = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.45, 0.6), new THREE.MeshStandardMaterial({color:0x3A2410, roughness:0.6})); ch.position.set(p[0], 0.22, 0); gheDai.add(ch); });
-  gheDai.position.set(-3.9, 0, 4.6); sceneDoor.add(gheDai);
+  gheDai.position.set(-6.2, 0, 8.8); /* fix7b: doi ghe dai ve goc tay-nam de nhuong cho day ban doi (tranh de len ban (-3.6, 4.0)) */
+  sceneDoor.add(gheDai);
+  /* fix7b: 8 ban doi cho doan lop o phong cua — 4 day x 2 hang, quay ve cua/bang phia truoc. */
+  [[-3.6,4.0],[-1.2,4.0],[1.2,4.0],[3.6,4.0],[-3.6,6.4],[-1.2,6.4],[1.2,6.4],[3.6,6.4]].forEach(p=>{
+    const b = taoBanHocFix7(); b.position.set(p[0], 0, p[1]); sceneDoor.add(b);
+    [-0.45, 0.45].forEach(dx=>{
+      const gh = taoGheNgoiFix7(); gh.position.set(p[0] + dx, 0, p[1] + 0.85); sceneDoor.add(gh);
+    });
+  });
   const thamCua = new THREE.Mesh(new THREE.PlaneGeometry(2.4, 1.1), new THREE.MeshStandardMaterial({color:0x7A3A2A, roughness:0.95}));
   thamCua.rotation.x = -Math.PI/2; thamCua.position.set(0, 0.02, 1.7); thamCua.receiveShadow = true; sceneDoor.add(thamCua);
   robotCua = taoRobot(0.55);
@@ -1245,7 +1300,9 @@ function datCuaDongLyDo(lyDo){
 
 function chuyenSangCua(hienBang){
   activeScene = 'door';
+  anThanhChipPhong(); anBongBongGioiThieu(); /* fix7 */
   anNoiDungPhong();
+  if(phongHienTai) datNoiDungPhong(phongHienTai); /* fix7-5loi: doi phong la cap nhat ngay noi dung (dang an) */
   $('mo-dau').style.display = 'none';
   $('btn-bo-qua-noi').style.display = 'none';
   const kv = $('khu-vuc-cua'); if(kv) kv.style.display = hienBang ? 'none' : '';
@@ -1258,8 +1315,8 @@ function chuyenSangCua(hienBang){
   const pl = $('panel-le-tan'); if(pl) pl.style.display = 'none';
   const dmlCua = $('dong-moi-len'); if(dmlCua) dmlCua.style.display = 'none';
   const ql = $('btn-quay-lai-thanh-pho'); if(ql) ql.style.display = '';
-  camDoor.position.set(3.0, 4.8, 9.2); /* fix4: camera lui xa/cao hon de thay duoc phong kin */
-  camDoor.lookAt(0, 1.3, 0);
+  camDoor.position.set(3.0, 5.4, 9.8); /* fix7b: cao/xa hon chut de thay du ten HS hang ghe sau (ban doi phong cua) */
+  camDoor.lookAt(0, 1.0, 0.5);
   document.body.classList.remove('dang-mo-dau'); document.body.classList.add('dang-choi');
   anChonTang();
   if(phongHienTai){ capNhatTheDiaDiem(phongHienTai); khoiTaoNhiemVu(phongHienTai); }
@@ -1292,6 +1349,7 @@ function xemLaiMoDau(){
   const ql = $('btn-quay-lai-thanh-pho'); if(ql) ql.style.display = 'none';
   anChonTang(); khoiTaoNhiemVu(null); capNhatTheDiaDiem(null);
   document.body.classList.remove('mo-luyen-giong');
+  anThanhChipPhong(); anBongBongGioiThieu(); /* fix7 */
   const kv = $('khu-vuc-cua'); if(kv) kv.style.display = '';
   const gc = $('ghi-chu-cua'); if(gc) gc.style.display = '';
 }
@@ -1363,8 +1421,8 @@ function vongLap(){
     robotCua.userData.matT.scale.y = nhay; robotCua.userData.matP.scale.y = nhay;
     capNhatHat(hatCua, dt, 1);
     camDoor.position.x = 3.0 + Math.sin(t*0.22)*0.09;
-    camDoor.position.z = 9.2 - doMo*0.7;
-    camDoor.lookAt(0, 1.3, 0);
+    camDoor.position.z = 9.8 - doMo*0.7; /* fix7b: khop vi tri moi o chuyenSangCua */
+    camDoor.lookAt(0, 1.0, 0.5);
     capNhatDoan(dt);
     capNhatPhanUng(dt, t);
     if(!tietKiem) veCanh(sceneDoor, camDoor);
@@ -2512,6 +2570,7 @@ function dungThanhPho(){
   capNhatNgayDem();
   apDungHieuUngNheThanhPho();
   ganNutThanhPho();
+  khoiTaoChipPhong(); /* fix7 */
 }
 let demTween = null;
 function capNhatNgayDem(){
@@ -2805,6 +2864,38 @@ function datCameraPhong(){
   camPhong.position.set(Math.sin(gocPhong)*banPhongXa, caoPhong, 0.4 + Math.cos(gocPhong)*banPhongXa);
   camPhong.lookAt(0, 1.05, -0.2);
 }
+/* fix7b: ban/ghe dung chung cho phong cua (taoBanHoc/taoGheNgoi goc la ham CUC BO trong dungPhongThucHanh).
+   Hinh hoc copy y ban goc: ban 1.7x0.95, mat y=0.78; ghe dem y=0.45, tua o phia +z (sau lung khi ngoi quay ve bang). */
+function taoBanHocFix7(){
+  const goBanHoc = new THREE.MeshStandardMaterial({color:0x8A5A2A, roughness:0.55});
+  const goChanBan = new THREE.MeshStandardMaterial({color:0x4A2C14, roughness:0.6});
+  const g = new THREE.Group();
+  const mat = new THREE.Mesh(new THREE.BoxGeometry(1.7, 0.09, 0.95), goBanHoc);
+  mat.position.y = 0.78; mat.castShadow = true; mat.receiveShadow = true; g.add(mat);
+  [[-0.75,-0.38],[0.75,-0.38],[-0.75,0.38],[0.75,0.38]].forEach(p=>{
+    const c = new THREE.Mesh(new THREE.BoxGeometry(0.09, 0.78, 0.09), goChanBan);
+    c.position.set(p[0], 0.39, p[1]); g.add(c);
+  });
+  const sach = new THREE.Mesh(new THREE.BoxGeometry(0.4, 0.06, 0.3), new THREE.MeshStandardMaterial({color:0x2E7D6B, roughness:0.7}));
+  sach.position.set(-0.3, 0.86, 0); sach.rotation.y = 0.2; g.add(sach);
+  const vo = new THREE.Mesh(new THREE.BoxGeometry(0.34, 0.05, 0.26), new THREE.MeshStandardMaterial({color:0xE8C95A, roughness:0.7}));
+  vo.position.set(0.35, 0.85, 0.1); vo.rotation.y = -0.15; g.add(vo);
+  return g;
+}
+function taoGheNgoiFix7(){
+  const goGhe = new THREE.MeshStandardMaterial({color:0x5A7AB8, roughness:0.7});
+  const goChanBan = new THREE.MeshStandardMaterial({color:0x4A2C14, roughness:0.6});
+  const g = new THREE.Group();
+  const demGhe = new THREE.Mesh(new THREE.BoxGeometry(0.55, 0.08, 0.5), goGhe);
+  demGhe.position.y = 0.45; demGhe.castShadow = true; g.add(demGhe);
+  const tua = new THREE.Mesh(new THREE.BoxGeometry(0.55, 0.6, 0.08), goGhe);
+  tua.position.set(0, 0.78, 0.24); g.add(tua);
+  [[-0.22,-0.2],[0.22,-0.2],[-0.22,0.2],[0.22,0.2]].forEach(p=>{
+    const c = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.45, 0.06), goChanBan);
+    c.position.set(p[0], 0.22, p[1]); g.add(c);
+  });
+  return g;
+}
 function dungPhongThucHanh(){
   scenePhong = new THREE.Scene();
   /* v4: phong khong con noi trong khoang toi — nen la bau troi sang + suong cung mau,
@@ -2890,9 +2981,7 @@ function dungPhongThucHanh(){
   });
   const xaCua = new THREE.Mesh(new THREE.BoxGeometry(2.66, 0.35, 0.3), goDamMat);
   xaCua.position.set(0, 3.25, 5.0); scenePhong.add(xaCua);
-  /* v4b-fix3: xa truoc mong lai (0.45 -> 0.18) + sat tran — anh fix2_09/1080: dai go day nay che phan tren khung hinh. (2 dam tran trong phong da mong san tu v4b: 13x0.12x0.18, y=5.0.) */
-  const xaTren = new THREE.Mesh(new THREE.BoxGeometry(13.4, 0.18, 0.2), goDamMat);
-  xaTren.position.set(0, 5.0, 5.0); xaTren.castShadow = true; scenePhong.add(xaTren);
+  /* fix7b: BO xa tren (13.4x0.18 o y=5.0, z=5.0) — anh image-63: thanh go nay che bang SAP MO/ap phich khi nhin tu tren cao. */
   /* Chan tuong + chi vang tren dinh tuong (3 tuong trong). */
   const chanMat = new THREE.MeshStandardMaterial({color:0x2A1A0C, roughness:0.7});
   const chanSau = new THREE.Mesh(new THREE.BoxGeometry(13, 0.24, 0.1), chanMat);
@@ -2907,12 +2996,7 @@ function dungPhongThucHanh(){
   chiT.position.set(-6.46, 4.92, 0.5); scenePhong.add(chiT);
   const chiP = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.14, 9), vienSanMat);
   chiP.position.set(6.46, 4.92, 0.5); scenePhong.add(chiP);
-  /* Dam tran + 2 den treo (goi y tran nha ma khong che camera). */
-  const damMat = new THREE.MeshStandardMaterial({color:0x5C3618, roughness:0.6});
-  [-2.5, 3.5].forEach(z=>{
-    const dam = new THREE.Mesh(new THREE.BoxGeometry(13, 0.12, 0.18), damMat);
-    dam.position.set(0, 5.0, z); scenePhong.add(dam);
-  });
+  /* fix7b: BO 2 dam tran (13x0.12x0.18 o y=5.0, z=-2.5/3.5) — anh image-63: dam che tam nhin. Chi giu 2 den treo + chi vang tren dinh tuong. */
   function denTreo(x, z){
     const g = new THREE.Group();
     const day = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.03, 0.85, 8), new THREE.MeshStandardMaterial({color:0x1A2340, roughness:0.6}));
@@ -3088,6 +3172,13 @@ function dungPhongThucHanh(){
   [[-5.2,-0.5],[5.2,-0.5]].forEach(p=>{
     const b = taoBanHoc(); b.position.set(p[0], 0, p[1]); b.rotation.y = Math.PI/2; scenePhong.add(b);
   });
+  /* fix7b: 8 ban doi cho doan lop — 4 day x 2 hang, quay ve bang phia truoc (moi ban 2 ghe). */
+  [[-3.6,0.0],[-1.2,0.0],[1.2,0.0],[3.6,0.0],[-3.6,3.2],[-1.2,3.2],[1.2,3.2],[3.6,3.2]].forEach(p=>{
+    const b = taoBanHoc(); b.position.set(p[0], 0, p[1]); scenePhong.add(b);
+    [-0.45, 0.45].forEach(dx=>{
+      const gh = taoGheNgoi(); gh.position.set(p[0] + dx, 0, p[1] + 0.85); scenePhong.add(gh);
+    });
+  });
   /* --- 4 ban ngoi: moi ban 1 ban, xoay cheo ve phia camera de thay ro mat + ten nhom --- */
   nhomNgoiPhong = new THREE.Group();
   const cauNgoi = [['Sẵn sàng!', 'Tới lượt em nhé!'], ['Em hiểu rồi!', 'Cô giảng tiếp đi ạ!'], ['Em ghi chép đây!', 'Vở nhóm sẵn sàng!'], ['Tới lượt em!', 'Em lên bảng nhé!']];
@@ -3178,9 +3269,10 @@ function capNhatPhong(dt, t){
   if(denThoMat) denThoMat.forEach(mm=>{ mm.emissiveIntensity = dem ? 2.4 : 0.8; });
   datCameraPhong();
   if(doanNhom && doanNhom.visible && doanNhom.userData.canh === 'phong' && doanRobot && doanRobot.visible && !doanRobot.userData.diChuyen){
+    /* fix7b: robot di doc loi giua 2 hang ban (x~0.15, z -0.2..3.0) thay vi vong tron tren tham — tranh di xuyen ban ghe. */
     const g = t*0.22;
-    doanRobot.position.set(0.3 + Math.sin(g)*2.6, 0.9 + Math.sin(t*2.2)*0.1, -0.3 + Math.cos(g)*1.0);
-    doanRobot.rotation.y = Math.atan2(Math.cos(g)*2.6, -Math.sin(g)*1.0);
+    doanRobot.position.set(0.15 + Math.sin(g)*0.15, 0.9 + Math.sin(t*2.2)*0.1, 1.4 + Math.cos(g)*1.6);
+    doanRobot.rotation.y = Math.atan2(Math.cos(g)*0.15, -Math.sin(g)*1.6);
   }
 }
 
@@ -3189,7 +3281,7 @@ function taoNhanVatTen(tenDayDu, chiSo){
   const g = taoHocSinh(AO_MAU[chiSo % AO_MAU.length], TOC_MAU[chiSo % TOC_MAU.length]);
   const tenGoi = tenDayDu.indexOf('Bạn mẫu') === 0 ? tenDayDu : tenDayDu.trim().split(/\s+/).pop(); /* v4b-fix2: ten giu cho hien day du, khong chi lay chu so cuoi. */
   const sp = new THREE.Sprite(new THREE.SpriteMaterial({map:textureTen(tenGoi), transparent:true, depthWrite:false}));
-  sp.scale.set(0.95, 0.24, 1); sp.position.y = 2.15; g.add(sp); /* fix4: ten nho lai chut de khoi chong */
+  sp.scale.set(0.95, 0.24, 1); sp.position.y = 2.15 + (chiSo % 3) * 0.28; g.add(sp); /* fix4: ten nho lai chut de khoi chong; fix7-5loi: nhan lech cao theo chi so de khong de nhau khi di sat */
   g.userData.tenDayDu = tenDayDu; g.userData.tenGoi = tenGoi;
   const vong = taoVongSang(0x2FA84F); g.add(vong);
   const bb = new THREE.Sprite(new THREE.SpriteMaterial({map:textureBongBong('Sẵn sàng!', 'Tới lượt em nhé!'), transparent:true, depthWrite:false, depthTest:false} /* fix4: bong bong luon ve tren dam/xa — khong bi dam go che */));
@@ -3210,6 +3302,36 @@ function xayDungDoan(){
   });
   banDuocMoi = null;
 }
+/* fix7b: vi tri ban doi — 4 day (cot x) x 2 hang (z), moi ban 2 ghe (trai/phai theo i chan/le). */
+const COT_BAN_FIX7B = [-3.6, -1.2, 1.2, 3.6];
+const HANG_PHONG_FIX7B = [0.0, 3.2];
+const HANG_CUA_FIX7B = [4.0, 6.4];
+function viTriGheFix7b(i, canh){
+  const ban = Math.floor(i/2);
+  const cot = ban % 4;
+  const hang = Math.min(1, Math.floor(ban/4));
+  const xBan = COT_BAN_FIX7B[cot];
+  const zBan = (canh === 'door' ? HANG_CUA_FIX7B : HANG_PHONG_FIX7B)[hang];
+  return {xBan:xBan, zBan:zBan, hang:hang, xGhe: xBan + (i % 2 === 0 ? -0.45 : 0.45), zGhe: zBan + 0.85};
+}
+/* fix7b: di chuyen nhieu doan qua cac diem — tranh di xuyen ban ghe.
+   Dung dc.xong + setTimeout de noi doan (capNhatDoan gan diChuyen=null ngay sau khi goi xong nen khong gan doan moi truc tiep trong xong).
+   ngoiKhiToi=true: doan cuoi ngoi xuong (vao phong thuc hanh); false: dung yen (moi len / phong cua). */
+function datDiChuyenNhieuDoan(m, diem, tre, xoayCuoi, ngoiKhiToi){
+  if(!m || !diem || !diem.length) return;
+  let idx = 0;
+  const diTiep = ()=>{
+    if(idx >= diem.length) return;
+    const den = diem[idx];
+    const cuoi = idx === diem.length - 1;
+    m.userData.errand = !(cuoi && ngoiKhiToi);
+    const dist = Math.hypot(den.x - m.position.x, den.z - m.position.z);
+    const dur = Math.min(1.0, Math.max(0.3, dist/8));
+    m.userData.diChuyen = {tu: new THREE.Vector3(m.position.x, 0, m.position.z), den: den.clone(), batDauMs: performance.now(), dur: dur, tre: idx === 0 ? (tre || 0) : 0, xoay: cuoi ? xoayCuoi : 0, xong: cuoi ? null : ()=>{ setTimeout(diTiep, 40); }};
+    idx++;
+  };
+  diTiep();
+}
 function datDoanVaoPhong(canh){
   if(!doanNhom) return;
   /* Vào phòng mới: trả bạn được mời về trạng thái thường (bong bóng mặc định, ẩn dòng mời). */
@@ -3225,25 +3347,29 @@ function datDoanVaoPhong(canh){
   const loiVao = canh === 'door' ? 6.8 : 4.6;
   doanRobot.visible = true;
   doanRobot.position.set(0, 0.9, loiVao + 0.6);
-  doanRobot.userData.diChuyen = {tu:new THREE.Vector3(0, 0.9, loiVao + 0.6), den: canh === 'door' ? new THREE.Vector3(1.7, 0.9, 2.4) : new THREE.Vector3(-2.6, 0.9, -2.0), batDauMs:performance.now(), dur:1.4, tre:0, xoay: canh === 'door' ? 0.37 : Math.PI};
+  doanRobot.userData.diChuyen = {tu:new THREE.Vector3(0, 0.9, loiVao + 0.6), den: canh === 'door' ? new THREE.Vector3(0, 0.9, 2.4) : new THREE.Vector3(0, 0.9, -0.6), batDauMs:performance.now(), dur:1.4, tre:0, xoay: canh === 'door' ? 0 : Math.PI}; /* fix7b: robot ve giua loi di truoc bang */
   amRobot();
   doanThanhVien.forEach((m, i)=>{
     const cot = i % 2, hang = Math.floor(i/2);
-    let den, xoay;
-    if(canh === 'door'){ den = new THREE.Vector3(-2.5 + (i%6)*1.0, 0, 5.2 + Math.floor(i/6)*1.2); xoay = Math.PI; }
-    else {
-      const n = doanThanhVien.length || 1;
-      const gocVong = Math.PI * (0.1 + 0.8 * (n <= 1 ? 0.5 : i/(n-1)));
-      den = new THREE.Vector3(Math.cos(gocVong)*2.4, 0, 1.6 + Math.sin(gocVong)*2.2);
-      xoay = Math.atan2(0 - den.x, 0.8 - den.z);
+    /* fix7b: moi ban ngoi vao 1 ban doi — 4 day x 2 hang, quay ve phia truoc (bang/cua). */
+    const g = viTriGheFix7b(i, canh);
+    const tuZ = loiVao + 0.4 + hang*0.7;
+    m.position.set(cot===0 ? -0.9 : 0.9, 0, tuZ);
+    const diem = [new THREE.Vector3(0, 0, tuZ)];
+    if(canh === 'door'){
+      if(g.hang === 0){ diem.push(new THREE.Vector3(0, 0, 5.5), new THREE.Vector3(g.xGhe, 0, 5.5), new THREE.Vector3(g.xGhe, 0, g.zGhe)); }
+      else { const zLui = Math.max(tuZ, 8.2); diem.push(new THREE.Vector3(0, 0, zLui), new THREE.Vector3(g.xGhe, 0, zLui), new THREE.Vector3(g.xGhe, 0, g.zGhe)); }
+    } else {
+      if(g.hang === 0){ diem.push(new THREE.Vector3(0, 0, 4.85), new THREE.Vector3(0, 0, 2.0), new THREE.Vector3(g.xGhe, 0, 2.0), new THREE.Vector3(g.xGhe, 0, g.zGhe)); }
+      else { diem.push(new THREE.Vector3(0, 0, 4.85), new THREE.Vector3(g.xGhe, 0, 4.85), new THREE.Vector3(g.xGhe, 0, g.zGhe)); }
     }
     m.visible = false;
-    m.userData.diChuyen = {tu:new THREE.Vector3(cot===0 ? -0.9 : 0.9, 0, loiVao + 0.4 + hang*0.7), den:den, batDauMs:performance.now(), dur:1.1, tre:0.5 + i*0.22, xoay:xoay};
     m.userData.daChao = false;
     m.userData.daNgoi = false;
     m.userData.dungLenT0 = 0; m.userData.errand = false; m.userData.voTayT0 = 0; m.userData.ngangLenT0 = 0;
     if(m.userData.bongBong) m.userData.bongBong.visible = false;
     if(m.userData.vongSang) m.userData.vongSang.material.color.set(0x2FA84F);
+    datDiChuyenNhieuDoan(m, diem, 0.3 + i*0.15, Math.PI, canh === 'phong');
   });
 }
 function capNhatDoan(dt){
@@ -3423,7 +3549,7 @@ function noiDungPhongSapMo(b){
 /* ================= PANEL NHIỆM VỤ (kiểu ảnh mẫu vietnam3d: checkbox tiến độ) =================
    Chỉ dùng đúng các bước đã có trong 3 phòng chức năng — KHÔNG bịa thêm nhiệm vụ. */
 const NHIEM_VU = {
-  '7-b3-1': {tieuDe:'7.B3.1 · Cam kết + khai báo', muc:[
+  '7-b3-1': {tieuDe:'7.B3.1 · Cam kết + khai báo trung thực', muc:[
     {id:'khao-sat', ten:'Khảo sát ẩn danh — giơ tay vote', tong:1, da:0},
     {id:'the', ten:'Thẻ tình huống Nam / Hoa / Minh', tong:3, da:0},
     {id:'ranh-gioi', ten:'Bảng ranh giới phù hợp / không phù hợp', tong:1, da:0},
@@ -3435,7 +3561,7 @@ const NHIEM_VU = {
     {id:'bot', ten:'Thử Chatbot Nội Quy Khối 8', tong:1, da:0},
     {id:'phieu1', ten:'Phiếu 1 — 5 khía cạnh', tong:1, da:0},
     {id:'phieu2', ten:'Phiếu 2 — rà soát dự án', tong:1, da:0}]},
-  '7-c4-1': {tieuDe:'7.C4.1 · Đạo đức dữ liệu', muc:[
+  '7-c4-1': {tieuDe:'7.C4.1 · Đạo đức dữ liệu huấn luyện', muc:[
     {id:'van-de', ten:'2 vấn đề đạo đức (thiếu đa dạng, riêng tư)', tong:2, da:0},
     {id:'luyen-giong', ten:'Luyện cửa bằng giọng thầy', tong:1, da:0},
     {id:'cau-chot', ten:'Câu chốt: AI chỉ nhận ra dữ liệu đã dạy', tong:1, da:0}]}
@@ -3458,8 +3584,8 @@ function khoiTaoNhiemVu(b){
   }
   nhiemVuHienTai = {phongId:b.id, tieuDe:nv.tieuDe, muc:nv.muc.map(m=>({id:m.id, ten:m.ten, tong:m.tong, da:0}))};
   nhiemVuKhoa.clear(); theDaDung.clear();
-  capNhatPanelNhiemVu();
   if(p){ p.style.display = 'block'; p.classList.add('thu-gon'); /* fix4: Nhiem vu mac dinh thu gon de khung 3D rong */ }
+  capNhatPanelNhiemVu(); /* fix7-5loi: them class thu-gon TRUOC khi ve lai de nut hien dung 'Mo ra' */
 }
 function capNhatPanelNhiemVu(){
   const nv = nhiemVuHienTai, p = $('panel-nhiem-vu');
@@ -3473,6 +3599,7 @@ function capNhatPanelNhiemVu(){
   if(bn) bn.addEventListener('click', ()=>{
     const thu = p.classList.toggle('thu-gon');
     bn.textContent = thu ? 'Mở ra ▸' : 'Thu gọn ▾';
+    if(!thu) dongChipPhong(); /* fix7-dock: mo panel Nhiem vu thi dong panel Luyen giong (chi 1 panel mo) */
   });
   if(bn) bn.textContent = p.classList.contains('thu-gon') ? 'Mở ra ▸' : 'Thu gọn ▾'; /* fix4: nut hien dung trang thai sau khi panel duoc ve lai */
 }
@@ -3500,18 +3627,23 @@ function capNhatTheDiaDiem(b){
   o.style.display = 'block';
 }
 
-function hienNoiDungPhong(b){
+/* fix7-5loi: tach dat noi dung (khong doi display) ra khoi hien — de doi phong la cap nhat ngay ca khi panel dang an. */
+function datNoiDungPhong(b){
   const p = $('noi-dung-phong'); if(!p || !b) return;
   const idCu = ID_CU[b.id] || b.id;
   if(idCu === '7-b3-1') p.innerHTML = noiDungPhong7B31();
   else if(idCu === '8-b3-1') p.innerHTML = noiDungPhong8B31();
   else if(idCu === '7-c4-1') p.innerHTML = noiDungPhong7C41();
   else p.innerHTML = noiDungPhongSapMo(b);
-  p.style.display = 'block';
   p.scrollTop = 0;
   p.classList.add('da-thu-gon'); /* fix4: Noi dung bai mac dinh thu gon */
   if(!p.querySelector('.ndp-dau')) p.insertAdjacentHTML('afterbegin', '<div class="ndp-dau"><span>📖 Nội dung bài</span><button type="button" id="btn-thu-gon-ndp">Thu gọn ▾</button></div>');
-    const bnd = p.querySelector('#btn-thu-gon-ndp'); if(bnd) bnd.textContent = 'Mở ra ▸'; /* fix4: nut hien dung trang thai thu gon */
+  const bnd = p.querySelector('#btn-thu-gon-ndp'); if(bnd) bnd.textContent = 'Mở ra ▸'; /* fix4: nut hien dung trang thai thu gon */
+}
+function hienNoiDungPhong(b){
+  const p = $('noi-dung-phong'); if(!p || !b) return;
+  datNoiDungPhong(b);
+  p.style.display = 'block';
 }
 function anNoiDungPhong(){ const p = $('noi-dung-phong'); if(p) p.style.display = 'none'; }
 function ganSuKienNoiDungPhong(){
@@ -3521,6 +3653,7 @@ function ganSuKienNoiDungPhong(){
     if(nutThu){
       const daThu = p.classList.toggle('da-thu-gon');
       nutThu.textContent = daThu ? 'Mở ra ▸' : 'Thu gọn ▾';
+      if(daThu && chipDangMo === 'noi-dung'){ chipDangMo = null; danhDauChip(null); } /* fix7: thu gon bang nut rieng thi bo danh dau chip */
       return;
     }
     const nutVote = e.target.closest('[data-vote]');
@@ -3577,10 +3710,7 @@ function ganSuKienNoiDungPhong(){
     if(nutBot){ danhDauNhiemVu('8-b3-1', 'bot', 'mo'); return; }
     const nutHanhDong = e.target.closest('[data-hanh-dong="luyen-giong"]');
     if(nutHanhDong){
-      const kv = $('khu-vuc-cua'); if(kv) kv.style.display = '';
-      const gc = $('ghi-chu-cua'); if(gc) gc.style.display = '';
-      document.body.classList.add('mo-luyen-giong');
-      const blg = $('btn-luyen-giong'); if(blg) blg.style.display = '';
+      moChipPhong('luyen'); /* fix7: mo o nho vua khung nhin, khong mo toan bo panel */
       return;
     }
     const nut2 = e.target.closest('[data-phieu2]');
@@ -3606,6 +3736,7 @@ function ganSuKienNoiDungPhong(){
 let panelLeTanDaMo = false;
 function hienPanelLeTan(){
   const b = phongHienTai; if(!b) return;
+  dongChipPhong(); /* fix7-dock: mo panel Le tan thi dong panel Luyen giong (chi 1 panel mo) */
   panelLeTanDaMo = true;
   const ml0 = $('btn-mo-le-tan'); if(ml0) ml0.style.display = 'none';
   const idCuLT = ID_CU[b.id] || b.id;
@@ -3625,6 +3756,170 @@ function anPanelLeTan(){
   const ml = $('btn-mo-le-tan');
   if(ml) ml.style.display = (panelLeTanDaMo && (activeScene === 'phong' || activeScene === 'door')) ? 'block' : 'none';
 }
+
+/* ================= FIX7: chip thu gon panel phong + le tan gioi thieu muc tieu =================
+   Quy tac: vao phong, moi panel deu thu gon thanh chip o mep duoi; bam 1 chip mo 1 o nho
+   (cao toi da 35vh, cuon trong, co nut dong, nam tron trong khung nhin). Le tan chao bang
+   bong bong 3D gan vao co ay (chu trong game chi hien o nhan vat dang noi); noi dung chi
+   lay tu YCCD/BANG48/the da co trong phong — KHONG bia them. */
+let chipDangMo = null;
+let gioiThieuDangHien = false;
+const phongDaGioiThieu = new Set();
+function rutGonYCCD(s){
+  let t = (s || '').split(';')[0].split(' (')[0].trim();
+  if(t.length > 95){ t = t.slice(0, 95); const k = t.lastIndexOf(' '); if(k > 40) t = t.slice(0, k); t += '…'; }
+  return t;
+}
+function layGioiThieuPhong(b){
+  const idCu = ID_CU[b.id] || b.id;
+  if(idCu === '7-b3-1') return {tieuDe:'7.B3.1 — Cam kết + khai báo trung thực', dong:['Chào cả lớp!','• Cam kết dùng AI có trách nhiệm.','• Khai báo trung thực khi dùng AI.']};
+  if(idCu === '8-b3-1') return {tieuDe:'8.B3.1 — Nguyên tắc đạo đức AI', dong:['Chào cả lớp!','• 5 khía cạnh đạo đức khi làm AI.','• Cả 5 bên cùng chịu trách nhiệm.']};
+  if(idCu === '7-c4-1') return {tieuDe:'7.C4.1 — Đạo đức dữ liệu huấn luyện', dong:['Chào cả lớp!','• Dữ liệu thiếu đa dạng → AI phân biệt đối xử.','• Dữ liệu riêng tư bị thu trái phép.']};
+  const dong = ['Chào cả lớp!'];
+  if(b.yccd) dong.push('• ' + rutGonYCCD(b.yccd));
+  dong.push('🔒 Phòng này sắp mở.');
+  return {tieuDe: b.maBai + ' — ' + b.ten, dong};
+}
+function textureBongBongGioiThieu(ten, tieuDe, dong){
+  const c = document.createElement('canvas'); c.width = 1024; c.height = 640;
+  const g = c.getContext('2d');
+  g.fillStyle = '#FDF6E3'; g.fillRect(8,8,1008,560);
+  g.strokeStyle = '#C9A227'; g.lineWidth = 12; g.strokeRect(8,8,1008,560);
+  g.beginPath(); g.moveTo(460, 568); g.lineTo(512, 604); g.lineTo(564, 568); g.closePath();
+  g.fillStyle = '#FDF6E3'; g.fill(); g.stroke();
+  g.textAlign = 'center'; g.textBaseline = 'middle';
+  const vua = (txt, coChu, y, mau)=>{ let fs = coChu; g.font = '800 ' + fs + 'px "Be Vietnam Pro", Arial, sans-serif'; while(g.measureText(txt).width > 940 && fs > 30){ fs -= 2; g.font = '800 ' + fs + 'px "Be Vietnam Pro", Arial, sans-serif'; } g.fillStyle = mau; g.fillText(txt, 512, y); };
+  vua('👋 ' + ten, 46, 58, '#8A6D1B');
+  vua(tieuDe, 56, 148, '#1A2340');
+  dong.forEach((d, i)=>{ vua(d, 48, 252 + i*92, '#1A2340'); });
+  return new THREE.CanvasTexture(c);
+}
+function capNhatViTriNutDaRo(){
+  const nr = $('nut-da-ro'); if(!nr || !gioiThieuDangHien) return;
+  nr.style.bottom = chipDangMo ? 'calc(50vh + 76px)' : '132px'; /* fix7b: 132px de khong de len hang chip (chip bar cao ~110px khi xuong 2 hang) */
+}
+function hienBongBongGioiThieu(b, hienLai){
+  const lt = (activeScene === 'door') ? leTanCua : leTanPhong;
+  if(!lt || !b) return;
+  if(!hienLai && phongDaGioiThieu.has(b.id)) return;
+  phongDaGioiThieu.add(b.id);
+  const gt = layGioiThieuPhong(b);
+  if(!lt.userData.bongBong){
+    const bb = new THREE.Sprite(new THREE.SpriteMaterial({map:textureBongBongGioiThieu('Cô lễ tân', gt.tieuDe, gt.dong), transparent:true, depthWrite:false, depthTest:false}));
+    bb.scale.set(3.1, 1.94, 1); bb.position.set(0, 3.1, 0); /* fix7b: bong bong gioi thieu to hon de doc duoc tren TV */ bb.visible = false;
+    const ban = lt.parent;
+    if(ban) ban.add(bb);
+    lt.userData.bongBong = bb;
+  }
+  const bb = lt.userData.bongBong;
+  bb.material.map = textureBongBongGioiThieu('Cô lễ tân', gt.tieuDe, gt.dong);
+  bb.material.needsUpdate = true;
+  bb.scale.set(3.1, 1.94, 1); bb.position.set(0, 3.1, 0); /* fix7b: bong bong gioi thieu to hon de doc duoc tren TV */ /* fix7: bong bong gioi thieu cao hon bong bong 2 dong */
+  bb.visible = true;
+  clearTimeout(bb._hen); /* fix7: bong bong gioi thieu khong tu tat sau 6s — chi tat khi thay bam */
+  gioiThieuDangHien = true;
+  const nr = $('nut-da-ro'); if(nr) nr.style.display = 'block';
+  capNhatViTriNutDaRo();
+  noiGiong('Chào cả lớp! Hôm nay chúng ta học bài ' + gt.tieuDe + '.');
+}
+function anBongBongGioiThieu(){
+  if(!gioiThieuDangHien) return;
+  gioiThieuDangHien = false;
+  const lt = (activeScene === 'door') ? leTanCua : leTanPhong;
+  if(lt && lt.userData.bongBong) lt.userData.bongBong.visible = false;
+  const nr = $('nut-da-ro'); if(nr) nr.style.display = 'none';
+}
+function chaoMungPhong(){
+  const b = phongHienTai; if(!b) return;
+  hienBongBongGioiThieu(b, false);
+}
+function danhDauChip(loai){
+  const bar = $('thanh-chip-phong'); if(!bar) return;
+  bar.querySelectorAll('button[data-chip]').forEach(x=>x.classList.toggle('mo', x.dataset.chip === loai));
+}
+function moChipPhong(loai){
+  if(chipDangMo === loai){ dongChipPhong(); return; }
+  dongChipPhong();
+  chipDangMo = loai;
+  const kv = $('khu-vuc-cua'), gc = $('ghi-chu-cua'), ndp = $('noi-dung-phong');
+  if(loai === 'noi-dung'){
+    if(phongHienTai) datNoiDungPhong(phongHienTai); /* fix7-5loi: mo chip la nap lai noi dung phong hien tai */
+    if(ndp){ ndp.style.display = 'block'; ndp.classList.remove('da-thu-gon'); const bnd = ndp.querySelector('#btn-thu-gon-ndp'); if(bnd) bnd.textContent = 'Thu gọn ▾'; }
+    danhDauChip(loai); capNhatViTriNutDaRo(); return;
+  }
+  if(loai === 'ghi-chu'){
+    if(gc){ gc.style.display = ''; gc.classList.add('mo-chip'); gc.open = true; }
+    document.body.classList.add('mo-luyen-giong');
+    danhDauChip(loai); capNhatViTriNutDaRo(); return;
+  }
+  if(kv){
+    kv.style.display = '';
+    kv.classList.add('mo-chip');
+    kv.classList.remove('chi-van-de', 'chi-cua', 'chi-luyen');
+    kv.classList.add(loai === 'van-de' ? 'chi-van-de' : loai === 'cua' ? 'chi-cua' : 'chi-luyen');
+    const td = $('tieu-de-chip'); if(td) td.textContent = loai === 'van-de' ? '⚠️ 2 vấn đề đạo đức của dữ liệu huấn luyện' : loai === 'cua' ? '🚪 Cửa giọng nói' : '🎙️ Luyện giọng — Dạy AI học giọng thầy';
+    if(loai === 'luyen'){
+      /* fix7-dock: mo panel Luyen giong thi dong cac panel khac (chi 1 panel mo) */
+      if(ndp) ndp.style.display = 'none'; /* ndp cung dock phai — an han, mo lai bang chip 'Noi dung bai' */
+      const pnv = $('panel-nhiem-vu');
+      if(pnv && !pnv.classList.contains('thu-gon')){ pnv.classList.add('thu-gon'); const bnv = $('btn-thu-gon-nv'); if(bnv) bnv.textContent = 'Mở ra ▸'; }
+      anPanelLeTan(); /* an panel Le tan — mo lai bang nut 'Ai muon thuc hanh?' */
+    }
+    document.body.classList.add('mo-luyen-giong');
+  }
+  danhDauChip(loai); capNhatViTriNutDaRo();
+}
+function dongChipPhong(){
+  const kv = $('khu-vuc-cua'), gc = $('ghi-chu-cua'), ndp = $('noi-dung-phong');
+  if(kv){ kv.classList.remove('mo-chip', 'chi-van-de', 'chi-cua', 'chi-luyen'); kv.style.display = 'none'; }
+  if(gc){ gc.classList.remove('mo-chip'); gc.open = false; gc.style.display = 'none'; }
+  if(ndp && chipDangMo === 'noi-dung'){ ndp.classList.add('da-thu-gon'); const bnd = ndp.querySelector('#btn-thu-gon-ndp'); if(bnd) bnd.textContent = 'Mở ra ▸'; }
+  chipDangMo = null;
+  document.body.classList.remove('mo-luyen-giong');
+  danhDauChip(null); capNhatViTriNutDaRo();
+}
+function capNhatChipPhong(b){
+  const bar = $('thanh-chip-phong'); if(!bar || !b) return;
+  const idCu = ID_CU[b.id] || b.id;
+  let chips = '';
+  if(idCu === '7-c4-1'){
+    chips = '<button type="button" data-chip="van-de">⚠️ 2 vấn đề đạo đức</button>' +
+      '<button type="button" data-chip="cua">🚪 Cửa giọng nói</button>' +
+      '<button type="button" data-chip="luyen">🎙️ Luyện giọng</button>' +
+      '<button type="button" data-chip="ghi-chu">📝 Ghi chú cho thầy</button>';
+  } else {
+    chips = '<button type="button" data-chip="noi-dung">📖 Nội dung bài</button>';
+  }
+  chips += '<button type="button" data-chip="nghe-lai" class="nghe-lai">👋 Nghe lại giới thiệu</button>';
+  bar.innerHTML = chips;
+  bar.style.display = 'flex';
+}
+function anThanhChipPhong(){
+  dongChipPhong();
+  const bar = $('thanh-chip-phong'); if(bar){ bar.style.display = 'none'; bar.innerHTML = ''; }
+}
+function khoiTaoChipPhong(){
+  const kv = $('khu-vuc-cua');
+  if(kv && !kv.querySelector('.dong-chip')){
+    kv.insertAdjacentHTML('afterbegin', '<div class="dong-chip"><span id="tieu-de-chip"></span><button type="button" id="btn-dong-chip">✕ Đóng</button></div>');
+    const bdc = $('btn-dong-chip'); if(bdc) bdc.addEventListener('click', dongChipPhong);
+  }
+  const gc = $('ghi-chu-cua');
+  if(gc && !gc.querySelector('.dong-chip-gc')){
+    gc.insertAdjacentHTML('afterbegin', '<button type="button" class="dong-chip-gc" id="btn-dong-ghi-chu">✕ Đóng</button>');
+    const bdg = $('btn-dong-ghi-chu'); if(bdg) bdg.addEventListener('click', dongChipPhong);
+  }
+  const bar = $('thanh-chip-phong');
+  if(bar) bar.addEventListener('click', (e)=>{
+    const b = e.target.closest('button[data-chip]'); if(!b) return;
+    const loai = b.dataset.chip;
+    if(loai === 'nghe-lai'){ if(phongHienTai) hienBongBongGioiThieu(phongHienTai, true); return; }
+    moChipPhong(loai);
+  });
+  const nr = $('nut-da-ro');
+  if(nr) nr.addEventListener('click', anBongBongGioiThieu);
+}
+
 function chuanHoaKhongDau(s){
   return (s || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/đ/g, 'd').replace(/Đ/g, 'D').toLowerCase();
 }
@@ -3687,7 +3982,9 @@ function moiBanLen(){
   /* v4b-fix3 (BS13/my-office): dang ngoi thi DUNG LEN truoc (0.65s) roi moi di len. */
   const dangNgoi = !!m.userData.daNgoi;
   if(dangNgoi){ m.userData.dungLenT0 = performance.now(); m.userData.daNgoi = false; m.userData.ngoiT0 = 0; }
-  m.userData.diChuyen = {tu: m.position.clone(), den: den, batDauMs:performance.now(), dur:1.4, tre: dangNgoi ? 0.65 : 0, xoay:0};
+  /* fix7b: di len theo loi di — lui ra khoi ghe, sang loi giua, tien len phia truoc (khong xuyen ban). */
+  const sxMoi = m.position.x, szMoi = m.position.z, zLuiMoi = szMoi + 0.45;
+  datDiChuyenNhieuDoan(m, [new THREE.Vector3(sxMoi, 0, zLuiMoi), new THREE.Vector3(0, 0, zLuiMoi), den], dangNgoi ? 0.65 : 0, 0, false);
   $('goi-y-ten').style.display = 'none';
 }
 
@@ -3863,6 +4160,7 @@ function moDanChuyenCanh(){
 function chuyenSangThanhPho(){
   if(!sceneCity) return;
   activeScene = 'city';
+  anThanhChipPhong(); anBongBongGioiThieu(); /* fix7 */
   anBangGioiThieu(); anPanelLeTan(); anNoiDungPhong();
   anChonTang(); khoiTaoNhiemVu(null); capNhatTheDiaDiem(null);
   document.body.classList.remove('mo-luyen-giong');
@@ -3896,6 +4194,7 @@ function chuyenSangPhong(b){
   if(!scenePhong) return;
   phongHienTai = b;
   activeScene = 'phong';
+  anThanhChipPhong(); anBongBongGioiThieu(); /* fix7 */
   $('mo-dau').style.display = 'none';
   $('btn-bo-qua-noi').style.display = 'none';
   const kv = $('khu-vuc-cua'); if(kv) kv.style.display = 'none';
@@ -3906,7 +4205,7 @@ function chuyenSangPhong(b){
   const nh = $('nhac-vao-nha'); if(nh) nh.style.display = 'none';
   const cd = $('can-dieu-khien'); if(cd) cd.style.display = 'none';
   const ql = $('btn-quay-lai-thanh-pho'); if(ql) ql.style.display = '';
-  anPanelLeTan(); anNoiDungPhong();
+  anPanelLeTan(); anNoiDungPhong(); datNoiDungPhong(b); /* fix7-5loi: doi phong la cap nhat ngay noi dung (dang an) */
   document.body.classList.remove('dang-mo-dau'); document.body.classList.add('dang-choi');
   anChonTang(); capNhatTheDiaDiem(b); khoiTaoNhiemVu(b);
   const dmlPhong = $('dong-moi-len'); if(dmlPhong) dmlPhong.style.display = 'none';
@@ -3957,7 +4256,7 @@ function kiemTraNhanVat(e){
   let obj = trung.length ? trung[0].object : null;
   while(obj && !obj.userData.moTa) obj = obj.parent;
   if(!obj){ o.style.display = 'none'; return; }
-  if(obj.userData.moTa && obj.userData.moTa.indexOf('Cô lễ tân') === 0){ hienBongBongLeTan(); o.style.display = 'none'; return; } /* fix4: bam le tan -> bong bong 3D o co ay, khong thanh co dinh goc trai */
+  if(obj.userData.moTa && obj.userData.moTa.indexOf('Cô lễ tân') === 0){ if(gioiThieuDangHien) anBongBongGioiThieu(); else hienBongBongLeTan(); o.style.display = 'none'; return; } /* fix7: dang hien bong bong gioi thieu thi bam le tan de dong; fix4: bam le tan -> bong bong 3D o co ay, khong thanh co dinh goc trai */
   if(obj.userData.bongBong){
     const cau = obj.userData.cauNgoi || ['Sẵn sàng!', 'Tới lượt em nhé!'];
     hienBongBongHocSinh(obj, cau[0], cau[1], 4000);
@@ -4010,14 +4309,14 @@ function ganNutThanhPho(){
   $('btn-quay-lai-thanh-pho').addEventListener('click', quayLaiThanhPho);
   $('btn-vao-thuc-hanh').addEventListener('click', ()=>{
     anBangGioiThieu();
+    if(phongHienTai && !phongHienTai.mo) hienThongBao('🔒 Bài chưa mở — bài này đang được chuẩn bị.'); /* fix7-5loi: phong Sap mo phai bao ro, khong de bam ma khong thay gi */
     if(phongHienTai && (ID_CU[phongHienTai.id] || phongHienTai.id) === '7-c4-1'){
-      const kv = $('khu-vuc-cua'); if(kv) kv.style.display = '';
-      const gc = $('ghi-chu-cua'); if(gc) gc.style.display = '';
-      document.body.classList.add('mo-luyen-giong');
       const blg = $('btn-luyen-giong'); if(blg) blg.style.display = '';
     }
     hienPanelLeTan();
     if(phongHienTai) hienNoiDungPhong(phongHienTai);
+    if(phongHienTai) capNhatChipPhong(phongHienTai); /* fix7: panel thu gon thanh chip, khong mo san */
+    chaoMungPhong(); /* fix7: le tan gioi thieu muc tieu bai */
   });
   $('btn-bang-quay-lai').addEventListener('click', ()=>{ anBangGioiThieu(); quayLaiThanhPho(); });
   $('btn-dong-le-tan').addEventListener('click', anPanelLeTan);
@@ -4089,9 +4388,8 @@ function ganNutThanhPho(){
   if(nutMoLop) nutMoLop.addEventListener('click', ()=>{ document.body.classList.toggle('mo-lop'); });
   const nutLuyenGiong = $('btn-luyen-giong');
   if(nutLuyenGiong) nutLuyenGiong.addEventListener('click', ()=>{
-    const mo = document.body.classList.toggle('mo-luyen-giong');
-    const kv = $('khu-vuc-cua'); if(kv) kv.style.display = mo ? '' : 'none';
-    const gc = $('ghi-chu-cua'); if(gc) gc.style.display = mo ? '' : 'none';
+    if(phongHienTai && (ID_CU[phongHienTai.id] || phongHienTai.id) === '7-c4-1') moChipPhong('luyen'); /* fix7: mo o nho vua khung nhin */
+    else if(activeScene === 'door' || activeScene === 'phong') hienThongBao('Khu vực luyện giọng chỉ có ở phòng 7.C4.1 — Đạo đức dữ liệu huấn luyện.');
   });
   const nutDongTang = $('btn-dong-chon-tang');
   if(nutDongTang) nutDongTang.addEventListener('click', anChonTang);
@@ -4232,7 +4530,7 @@ async function damBaoMoHinh(){
     await recognizer.ensureModelLoaded();
     transfer = recognizer.createTransfer('cua-mo-giong-thay');
     baseReady = true;
-    datTrangThai('trang-thai-mo-hinh', 'Mô hình sẵn sàng. Thầy thu mẫu giọng để dạy AI nhé.', 'tot');
+    datTrangThai('trang-thai-mo-hinh', 'Mô hình sẵn sàng — thu mẫu giọng để dạy AI.', 'tot');
     try{
       await transfer.load(IDB_MODEL);
       const meta = docMeta();
@@ -4965,9 +5263,46 @@ function datBongBongRobot(dong1, dong2, ms){
   const bb = doanRobot.userData.bongBongRobot;
   bb.material.map = textureBongBong(dong1, dong2, '🤖 Robot AI');
   bb.material.needsUpdate = true;
+  bb.scale.set(3.4, 1.05, 1); bb.position.set(0, 2.6, 0); /* fix7b: tra lai co bong bong 2 dong (bong bong dan doan 3 dong doi scale) */
   bb.visible = true;
   clearTimeout(bb._hen);
   bb._hen = setTimeout(()=>{ if(bb) bb.visible = false; }, ms || 6000);
+}
+/* fix7b: bong bong dan doan — robot chao moi vao bai (khoi + ten bai dung tu BANG48). */
+function textureBongBongDanDoan(dong){
+  const c = document.createElement('canvas'); c.width = 1024; c.height = 480;
+  const g = c.getContext('2d');
+  g.fillStyle = '#FDF6E3'; g.fillRect(8,8,1008,400);
+  g.strokeStyle = '#C9A227'; g.lineWidth = 12; g.strokeRect(8,8,1008,400);
+  g.beginPath(); g.moveTo(460, 408); g.lineTo(512, 444); g.lineTo(564, 408); g.closePath();
+  g.fillStyle = '#FDF6E3'; g.fill(); g.stroke();
+  g.textAlign = 'center'; g.textBaseline = 'middle';
+  const vua = (txt, coChu, y, mau)=>{ let fs = coChu; g.font = '800 ' + fs + 'px "Be Vietnam Pro", Arial, sans-serif'; while(g.measureText(txt).width > 940 && fs > 28){ fs -= 2; g.font = '800 ' + fs + 'px "Be Vietnam Pro", Arial, sans-serif'; } g.fillStyle = mau; g.fillText(txt, 512, y); };
+  vua('🤖 Robot AI', 44, 52, '#8A6D1B');
+  dong.forEach((d, i)=>{ vua(d, 50, 148 + i*96, '#1A2340'); });
+  return new THREE.CanvasTexture(c);
+}
+const phongDaDanDoan = new Set();
+function datBongBongDanDoan(phong){
+  if(!doanRobot || !phong) return;
+  if(phongDaDanDoan.has(phong.id)) return;
+  phongDaDanDoan.add(phong.id);
+  const ten = phong.ten || phong.maBai || '';
+  const dong = ['Nào, các bạn lớp ' + phong.khoi + ' hãy cùng mình', 'vào khám phá nội dung', ten + ' nhé!'];
+  if(!doanRobot.userData.bongBongRobot){
+    const bb = new THREE.Sprite(new THREE.SpriteMaterial({map:textureBongBongDanDoan(dong), transparent:true, depthWrite:false, depthTest:false}));
+    bb.scale.set(3.4, 1.59, 1); bb.position.set(0, 2.6, 0); bb.visible = false;
+    doanRobot.add(bb);
+    doanRobot.userData.bongBongRobot = bb;
+  }
+  const bb = doanRobot.userData.bongBongRobot;
+  bb.material.map = textureBongBongDanDoan(dong);
+  bb.material.needsUpdate = true;
+  bb.scale.set(3.4, 1.59, 1); bb.position.set(0, 2.6, 0);
+  bb.visible = true;
+  clearTimeout(bb._hen);
+  bb._hen = setTimeout(()=>{ if(bb) bb.visible = false; }, 7000);
+  noiGiong('Nào, các bạn lớp ' + phong.khoi + ' hãy cùng mình vào khám phá nội dung ' + ten + ' nhé!');
 }
 /* Bong bóng câu hỏi của lễ tân: hiện khi mời thực hành, ẩn sau 6s. */
 function hienBongBongLeTan(){
@@ -4981,6 +5316,10 @@ function hienBongBongLeTan(){
     lt.userData.bongBong = bb;
   }
   const bb = lt.userData.bongBong;
+  bb.material.map = textureBongBong('Ai muốn thực hành', 'trải nghiệm?', 'Cô lễ tân'); /* fix7: bong bong gioi thieu da doi map/scale — tra lai */
+  bb.material.needsUpdate = true;
+  bb.scale.set(2.6, 0.85, 1); bb.position.set(0, 2.75, 0);
+  if(gioiThieuDangHien){ gioiThieuDangHien = false; const nr = $('nut-da-ro'); if(nr) nr.style.display = 'none'; }
   bb.visible = true;
   clearTimeout(bb._hen);
   bb._hen = setTimeout(()=>{ if(bb) bb.visible = false; }, 6000);
@@ -5057,7 +5396,9 @@ function batDauDiBo(phong){
   diBoBuocCuoi = performance.now();
   dangDiBo = true;
   amWhoosh();
-  datBongBongRobot('Đi theo robot nào!', 'Vào Tòa ' + toaDich.bai + ' · Tầng ' + phong.tang, 6000);
+  /* fix7b: lan dau vao bai moi, robot chao moi bang bong bong dan doan (khoi + ten bai dung); vao lai thi cau cu. */
+  if(phongDaDanDoan.has(phong.id)){ datBongBongRobot('Đi theo robot nào!', 'Vào Tòa ' + toaDich.bai + ' · Tầng ' + phong.tang, 6000); }
+  else { datBongBongDanDoan(phong); }
 }
 function capNhatDiBo(dt, t){
   if(!dangDiBo || !duongDiBo) return;
