@@ -342,6 +342,15 @@ body.dang-choi header h1{font-size:17px}
 #noi-dung-phong.da-thu-gon{width:auto; max-height:none; overflow:visible; padding:10px 12px}
 #noi-dung-phong.da-thu-gon > :not(.ndp-dau){display:none}
 #noi-dung-phong.da-thu-gon .ndp-dau{padding:0; margin:0}
+/* BUILD 18 do hoa: khi canh 8.B3.1 dang dien, panel thu thanh dai mong duoi cung — san khau 3D chiem gan het man hinh; an nut "Mo minh hoa" trong luc dien */
+body.dang-choi #noi-dung-phong.sk8b31-dang-dien{width:min(680px,94vw); max-height:92px; padding:6px 12px; overflow:hidden}
+body.dang-choi #noi-dung-phong.sk8b31-dang-dien .nut-minh-hoa{display:none}
+body.dang-choi #noi-dung-phong.sk8b31-dang-dien .ndp-cuon{padding-bottom:0; overflow:hidden}
+#noi-dung-phong .sk8b31-luot-mong{margin:0; padding:4px 6px; display:flex; align-items:center; gap:12px; border:none; background:transparent}
+#noi-dung-phong .sk8b31-luot-mong #sk8b31-tien-do{margin:0; font-size:16px; white-space:nowrap}
+#noi-dung-phong .sk8b31-luot-mong .thanh-am-luong{flex:1 1 auto; margin:0}
+#noi-dung-phong .sk8b31-luot-mong .nut-the{margin:0; padding:6px 12px; font-size:15px; white-space:nowrap}
+
 #btn-mo-le-tan{position:absolute; left:12px; bottom:12px; z-index:8; display:none; font-family:inherit; font-size:17px; font-weight:800; padding:10px 16px; border-radius:999px; border:3px solid #C9A227; background:rgba(253,246,227,.97); color:#1A2340; cursor:pointer; box-shadow:0 4px 16px rgba(0,0,0,.4)}
 /* --- v3: mo dau lonh lanh ngay (3D toan man hinh, chu chi la lop phu nho) --- */
 body.dang-mo-dau header, body.dang-mo-dau #panel-lop, body.dang-mo-dau #khu-vuc-cua, body.dang-mo-dau #ghi-chu-cua, body.dang-mo-dau .chan-trang{display:none}
@@ -472,12 +481,12 @@ body.dang-choi header .nut{font-size:13px; padding:5px 9px; min-height:30px}
 #ban-do-hanh-trinh.mo-rong{width:236px; background:rgba(11,18,32,.93); border:3px solid #C9A227; border-radius:14px; padding:8px}
 #ban-do-hanh-trinh.mo-rong .tieu-de-ban-do, #ban-do-hanh-trinh.mo-rong #la-ban, #ban-do-hanh-trinh.mo-rong #danh-sach-bai, #ban-do-hanh-trinh.mo-rong #danh-sach-tro{display:block}
 #ban-do-hanh-trinh.mo-rong #ban-do-nho{margin:0 auto}
-/* 4. Cum am thanh: 2 nut tron mo goc phai duoi; thanh truot am luong chi hien khi re chuot/focus. */
+/* 4. Cum am thanh: 2 nut tron mo goc phai duoi; thanh truot am luong LUON hien (BUILD 18: thay van ngay trong gio day — truoc day chi hien khi re chuot/focus, man cam ung khong co hover nen kho thay). */
 #am-thanh{background:transparent; border:none; border-radius:0; padding:0; box-shadow:none; gap:10px}
 #am-thanh button{width:44px; height:44px; padding:0; border-radius:50%; font-size:19px; background:rgba(11,18,32,.55); color:#FDF6E3; border:1px solid rgba(255,255,255,.25); box-shadow:0 4px 14px rgba(0,0,0,.4); backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px)}
 #am-thanh button.tat{background:rgba(91,107,122,.75)}
-#am-thanh input[type=range]{width:0; opacity:0; pointer-events:none; margin:0} /* KHONG transition: tren may yeu, transition chi chay khi co khung hinh moi (0.8fps) nen slider nhu bi ket o 0 — hien ngay khi hover moi dung */
-#am-thanh:hover input[type=range], #am-thanh:focus-within input[type=range]{width:90px; opacity:1; pointer-events:auto}
+#am-thanh input[type=range]{width:120px; opacity:1; pointer-events:auto; margin:0; background:rgba(11,18,32,.55); border:1px solid rgba(255,255,255,.25); border-radius:999px} /* BUILD 18: LUON hien, rong 120px de van duoc ngay trong gio — KHONG transition: tren may yeu, transition chi chay khi co khung hinh moi (0.8fps) nen slider nhu bi ket o 0 */
+#am-thanh:hover input[type=range], #am-thanh:focus-within input[type=range]{width:120px; opacity:1; pointer-events:auto}
 </style>
 </head>
 <body class="dang-mo-dau">
@@ -2025,8 +2034,8 @@ function phatTiengDongCo(id){
     const coi = amCtx.createOscillator(); coi.type = 'sine'; coi.frequency.value = 1150;
     const gCoi = amCtx.createGain(); gCoi.gain.value = 0.035;
     coi.connect(gCoi); gCoi.connect(ra); coi.start(t0); nodes.push(coi); nodes.push(gCoi);
-    ra.gain.linearRampToValueAtTime(0.85, t0 + 1.5);
-    ra.gain.linearRampToValueAtTime(0.38, t0 + 3.0);
+    ra.gain.linearRampToValueAtTime(0.45, t0 + 1.5); /* BUILD 18: 0.85 -> 0.45 (thay bao tieng xe on) */
+    ra.gain.linearRampToValueAtTime(0.22, t0 + 3.0);
   } else if(id === 'tau-dien'){
     notRieng(622, 'triangle', 1.6, 0.5);
     notRieng(784, 'triangle', 1.6, 0.4);
@@ -2035,20 +2044,20 @@ function phatTiengDongCo(id){
     n.loc.disconnect(); n.loc.connect(gChug); gChug.connect(ra); nodes.push(gChug);
     lfo(gChug.gain, 2.4, 0.22);
     dao(48, 'sine');
-    ra.gain.linearRampToValueAtTime(0.5, t0 + 1.0);
-    ra.gain.linearRampToValueAtTime(0.3, t0 + 2.5);
+    ra.gain.linearRampToValueAtTime(0.25, t0 + 1.0); /* BUILD 18: 0.5 -> 0.25 (thay bao tieng xe on) */
+    ra.gain.linearRampToValueAtTime(0.15, t0 + 2.5);
   } else if(id === 'xe-buyt'){
     dao(62); dao(31, 'sine');
     nhieuLoc('lowpass', 320, 0.7);
-    ra.gain.linearRampToValueAtTime(0.6, t0 + 1.2);
-    ra.gain.linearRampToValueAtTime(0.3, t0 + 2.5);
+    ra.gain.linearRampToValueAtTime(0.3, t0 + 1.2); /* BUILD 18: 0.6 -> 0.3 (thay bao tieng xe on) */
+    ra.gain.linearRampToValueAtTime(0.15, t0 + 2.5);
   } else if(id === 'o-to'){
     const o1 = dao(95); const o2 = dao(143);
     o1.frequency.linearRampToValueAtTime(150, t0 + 1.2);
     o2.frequency.linearRampToValueAtTime(214, t0 + 1.2);
     nhieuLoc('lowpass', 900, 0.7);
-    ra.gain.linearRampToValueAtTime(0.5, t0 + 1.2);
-    ra.gain.linearRampToValueAtTime(0.26, t0 + 2.5);
+    ra.gain.linearRampToValueAtTime(0.25, t0 + 1.2); /* BUILD 18: 0.5 -> 0.25 (thay bao tieng xe on) */
+    ra.gain.linearRampToValueAtTime(0.13, t0 + 2.5);
   } else if(id === 'khinh-khi-cau'){
     const n = nhieuLoc('bandpass', 850, 1.0);
     const gLua = amCtx.createGain(); gLua.gain.value = 0.05;
@@ -2056,20 +2065,20 @@ function phatTiengDongCo(id){
     dao(42, 'sine');
     const dot = ()=>{ const a = amCtx.currentTime; try{ gLua.gain.cancelScheduledValues(a); gLua.gain.setValueAtTime(gLua.gain.value, a); gLua.gain.linearRampToValueAtTime(0.75, a + 0.15); gLua.gain.linearRampToValueAtTime(0.75, a + 1.0); gLua.gain.linearRampToValueAtTime(0.05, a + 1.5); }catch(e){} };
     dot(); hens.push(setInterval(dot, 2600));
-    ra.gain.linearRampToValueAtTime(0.4, t0 + 0.8);
-    ra.gain.linearRampToValueAtTime(0.15, t0 + 2.0);
+    ra.gain.linearRampToValueAtTime(0.2, t0 + 0.8); /* BUILD 18: 0.4 -> 0.2 (thay bao tieng xe on) */
+    ra.gain.linearRampToValueAtTime(0.08, t0 + 2.0);
   } else if(id === 'thuyen'){
     [174, 220, 262].forEach(f=>notRieng(f, 'sawtooth', 2.4, 0.22));
     const o = dao(46, 'square');
     const gP = amCtx.createGain(); gP.gain.value = 0.16;
     o.disconnect(); o.connect(gP); gP.connect(ra); nodes.push(gP);
     lfo(gP.gain, 5.5, 0.12);
-    ra.gain.linearRampToValueAtTime(0.4, t0 + 1.0);
-    ra.gain.linearRampToValueAtTime(0.22, t0 + 2.5);
+    ra.gain.linearRampToValueAtTime(0.2, t0 + 1.0); /* BUILD 18: 0.4 -> 0.2 (thay bao tieng xe on) */
+    ra.gain.linearRampToValueAtTime(0.11, t0 + 2.5);
   } else {
     dao(70); nhieuLoc('lowpass', 400, 0.7);
-    ra.gain.linearRampToValueAtTime(0.5, t0 + 1.0);
-    ra.gain.linearRampToValueAtTime(0.28, t0 + 2.5);
+    ra.gain.linearRampToValueAtTime(0.25, t0 + 1.0); /* BUILD 18: 0.5 -> 0.25 (thay bao tieng xe on) */
+    ra.gain.linearRampToValueAtTime(0.14, t0 + 2.5);
   }
   tiengDongCo = {xe:id, moTa, nodes, hens};
   console.log('[TIENG-DONG-CO] ' + id + ': ' + moTa + ' — đã phát (Web Audio tổng hợp, không file ngoài)' + (amTatTieng ? ' (đang tắt tiếng — không nghe thấy)' : ''));
@@ -4757,6 +4766,11 @@ function taoVongSang(mauHex){
 }
 function datCameraPhong(){
   if(!camPhong) return;
+  if(typeof sk8B31DangDien !== 'undefined' && sk8B31DangDien){ /* BUILD 18 do hoa: camera san khau gan khi canh 8.B3.1 dang dien — TV 3,9m + dien vien 1,5m chiem gan het man hinh (guard o day vi capNhatPhong goi ham nay MOI KHUNG HINH) */
+    camPhong.position.set(0, 2.6, 2.4); /* BUILD 18 do hoa 2: cao hon + lui lai de nhin QUA dau HS ngoi, khong bi dau che giua man hinh */
+    camPhong.lookAt(0, 1.4, -3.1);
+    return;
+  }
   const banXa = clamp(banPhongXa * zoomHien, 6.5, 18); /* v5: zoom lan chuot trong phong (6.5..18m) */
   camPhong.position.set(Math.sin(gocPhong)*banXa, caoPhong, 0.4 + Math.cos(gocPhong)*banXa);
   camPhong.lookAt(0, 1.3, -0.5); /* 12/11: tam nhin ha xuong de san khau nam trong vung nhin thay tren panel */
@@ -5619,11 +5633,15 @@ async function micNgheDoTo(i, cauHo){ /* đợt 1: cauHo = câu cả lớp hô, 
   }
 }
 function noiDungPhong8B31(){
+  if(!skCanh8B31DaXem){
+    if(skCanh8B31CauHoi) return skCanh8B31TheCauHoi();
+    return skCanh8B31TheCanh();
+  } /* BUILD 18 link chatbot (thay chot 21:42, CHI 8.B3.1): xem canh 3D truoc, mo link chatbot xem/thu, tra loi 3 cau hoi, roi moi vao bang chon 2 tro */
   const chon8 = pmChon['8-b3-1'] || null;
   if(!chon8){
     let h0 = '<h3>8.B3.1 — Nguyên tắc đạo đức AI</h3><p class="ma-phong">✅ ĐÃ MỞ · Tòa 9 · Tầng 3 · Khối 8</p>' +
     '<p class="canh-bao-mo-phong">BOT MÔ PHỎNG — không phải AI thật.</p>';
-    return h0 + pmVeBangChon({id:'8-b3-1'}, {ma:'8.B3.1'});
+    return h0 + pmVeBangChon({id:'8-b3-1'}, {ma:'8.B3.1'}) + skCanh8B31NutXemLai();
   }
   if(chon8 === 'du') return noiDungPhong8B31Du();
   const st = bot8State;
@@ -11589,6 +11607,30 @@ function bot8DuXuLy(nut){
 function bot8ChonXuLy(nut){
   const K = '8-b3-1';
   const hanhDong = nut.dataset.pm;
+  if(hanhDong === '8b31-bo-qua-canh'){ try{ skCanh8B31KetThuc(true); }catch(e){} return; } /* BUILD 18: bo qua canh -> sang 1 cau hoi */
+  if(hanhDong === '8b31-xem-lai-canh'){ skCanh8B31DaXem = false; skCanh8B31CauHoi = false; skCanh8B31DaBatDau = false; sk8B31CauHoiHien = 1; sk8B31GhiChu = ''; /* BUILD 18 link chatbot: xem lai thi hoi lai tu cau 1; link giu da xem de tranh mo trung tab */ if(phongHienTai) datNoiDungPhong(phongHienTai); setTimeout(function(){ try{ skCanh8B31BatDau(); }catch(e){} }, 60); return; }
+  if(hanhDong === '8b31-hoi'){
+    const cau8 = nut.dataset.cau; const gt8 = nut.dataset.giaTri;
+    const dung8 = (cau8 === '1' && (gt8 === 'sdt' || gt8 === 'kiem-tra' || gt8 === 'ngoai-hinh')) || (cau8 === '2' && gt8 === 'chi-biet') || (cau8 === '3' && gt8 === 'nam-ben');
+    if(dung8){
+      try{ amDing(); }catch(e){}
+      if(cau8 === '1'){ sk8B31GhiChu = '✅ Câu 1 đúng: cả 3 câu đều có vấn đề — câu lộ SĐT nguy hiểm nhất vì lộ thông tin riêng tư.'; sk8B31CauHoiHien = 2; }
+      else if(cau8 === '2'){ sk8B31GhiChu = '✅ Câu 2 đúng: bot chỉ biết những gì người ta nhập vào — dữ liệu sai thì bot trả lời sai.'; sk8B31CauHoiHien = 3; }
+      else { skCanh8B31DaXem = true; skCanh8B31CauHoi = false; sk8B31GhiChu = ''; try{ skGatDau(skRobot); }catch(e){} }
+      if(phongHienTai) datNoiDungPhong(phongHienTai);
+    } else {
+      try{ amSai(); }catch(e){}
+      if(cau8 === '1') hienThongBao('Câu này bot trả lời đúng nội quy — chọn lại câu nào có vấn đề nhé!');
+      else if(cau8 === '2') hienThongBao('Chưa đúng — nghĩ lại xem: bot biết được những gì?');
+      else hienThongBao('Chưa đúng — nghĩ lại xem: một bên có gánh hết được không?');
+    }
+    return;
+  }
+  if(hanhDong === '8b31-cau-hoi'){
+    if(nut.dataset.giaTri === 'nam-ben'){ skCanh8B31DaXem = true; skCanh8B31CauHoi = false; try{ amDing(); }catch(e){} try{ skGatDau(skRobot); }catch(e){} if(phongHienTai) datNoiDungPhong(phongHienTai); }
+    else { try{ amSai(); }catch(e){} hienThongBao('Ch\u01B0a \u0111\u00FAng \u2014 ngh\u0129 l\u1EA1i xem: m\u1ED9t b\u00EAn c\u00F3 g\u00E1nh h\u1EBFt \u0111\u01B0\u1EE3c kh\u00F4ng?'); }
+    return;
+  }
   if(hanhDong === 'chon-tam'){ pmChonTam[K] = nut.dataset.tro; if(phongHienTai) datNoiDungPhong(phongHienTai); return; }
   if(hanhDong === 'chon-tro'){
     const tro = nut.dataset.tro;
@@ -11949,6 +11991,8 @@ function anNoiDungPhong(){ const p = $('noi-dung-phong'); if(p) p.style.display 
 function ganSuKienNoiDungPhong(){
   const p = $('noi-dung-phong'); if(!p) return;
   p.addEventListener('click', (e)=>{
+    const nutMH = e.target.closest('.nut-minh-hoa');
+    if(nutMH && phongHienTai && phongHienTai.id === '8-b3-1' && skCanh8B31CauHoi && !sk8B31DaMoLink){ sk8B31DaMoLink = true; sk8B31CauHoiHien = 1; sk8B31GhiChu = ''; setTimeout(function(){ try{ if(phongHienTai) datNoiDungPhong(phongHienTai); }catch(err){} }, 800); } /* BUILD 18 link chatbot: bam 'Mo minh hoa' mo link chatbot (tab moi) roi hien 3 cau hoi — chi phong 8.B3.1, chi sau khi xem xong canh */
     const nutPm = e.target.closest('[data-pm]');
     if(nutPm){ pmXuLy(nutPm); return; } /* đợt 1: nút 12 phòng Tòa 1–3 */
     const nutThu = e.target.closest('#btn-thu-gon-ndp');
@@ -12647,6 +12691,7 @@ function chuyenSangThanhPho(){
   anThanhChipPhong(); anBongBongGioiThieu(); /* fix7 */
   anBangGioiThieu(); anPanelLeTan(); anNoiDungPhong();
   try{ if(sk741DangDien){ sk741DangDien = false; sk741XuLy = false; skHanhDong = skHanhDong.filter(function(h){ return !h.c741; }); if(sk741Nhom) sk741Nhom.visible = false; } }catch(e){} /* 12/11: roi phong thi dung canh du lieu */
+  try{ if(sk8B31DangDien){ sk8B31DangDien = false; skHanhDong = skHanhDong.filter(function(h){ return !h.c8b31; }); if(sk8B31Nhom) sk8B31Nhom.visible = false; try{ skCanhBao(false); }catch(e){} try{ if(skHS && sk8B31BongHS){ skHS.remove(sk8B31BongHS); sk8B31BongHS = null; } }catch(e){} var _p8r=document.getElementById('noi-dung-phong'); if(_p8r) _p8r.classList.remove('sk8b31-dang-dien'); } }catch(e){} /* BUILD 18: roi phong thi dung canh mo dau 8.B3.1 */
   anChonTang(); khoiTaoNhiemVu(null); capNhatTheDiaDiem(null);
   document.body.classList.remove('mo-luyen-giong');
   const blgTP = $('btn-luyen-giong'); if(blgTP) blgTP.style.display = 'none';
@@ -12738,7 +12783,7 @@ function chuyenSangPhong(b){
   const nh = $('nhac-vao-nha'); if(nh) nh.style.display = 'none';
   const cd = $('can-dieu-khien'); if(cd) cd.style.display = 'none';
   const ql = $('btn-quay-lai-thanh-pho'); if(ql) ql.style.display = '';
-  if((ID_CU[b.id] || b.id) === '8-b3-1'){ bot8Reset(); bot8DuReset(); pmChon['8-b3-1'] = null; traDiemState.batDau = false; traDiemState.step = ''; traDiemState.log = []; } /* v5: vao phong 8.B3.1 la choi lai tu dau + mo bang chon 2 tro */
+  if((ID_CU[b.id] || b.id) === '8-b3-1'){ bot8Reset(); bot8DuReset(); pmChon['8-b3-1'] = null; traDiemState.batDau = false; traDiemState.step = ''; traDiemState.log = []; try{ if(sk8B31Nhom) sk8B31Nhom.visible = false; sk8B31DangDien = false; skHanhDong = skHanhDong.filter(function(h){ return !h.c8b31; }); }catch(e){} skCanh8B31DaXem = false; skCanh8B31CauHoi = false; skCanh8B31DaBatDau = false; setTimeout(function(){ try{ skCanh8B31BatDau(); }catch(e){} }, 1200); } /* v5: vao phong 8.B3.1 la choi lai tu dau + mo bang chon 2 tro; BUILD 18: dien canh mo dau 3D truoc bang chon */
   if((ID_CU[b.id] || b.id) === '7-b3-1'){ bot7Reset(); bot7DuReset(); pmChon['7-b3-1'] = null; } /* đợt 3: vao phong 7.B3.1 la choi lai tu dau + mo bang chon 2 tro */
   if((ID_CU[b.id] || b.id) === '7-c4-1'){ bot7C41Reset(); bot7C41DuReset(); pmChon['7-c4-1'] = null; try{ if(sk741Nhom) sk741Nhom.visible = false; sk741DangDien = false; sk741XuLy = false; skHanhDong = skHanhDong.filter(function(h){ return !h.c741; }); }catch(e){} skCanh741DaXem = false; } /* đợt 4: vao phong 7.C4.1 la choi lai tu dau + mo bang chon 2 tro */
   if(PHONG_MOI[b.id]){ pmReset(b.id); pmChon[b.id] = null; pmDuReset(b.id); } /* đợt 1: vào phòng mới là chơi lại từ đầu + mở bảng chọn 2 trò */
@@ -15207,6 +15252,427 @@ function skCanh741PhanUng(kieu){
     skThemHanhDong({ms: 1200, c741:true, cap:function(){}, ket:function(){ skCanhBao(false); }});
   }
 }
+
+/* BUILD 18 (12/11) — hoat canh mo dau 3D phong 8.B3.1 "BOT NOI DOI" (mau sk_canh741.js).
+   Quy tac dung 19:38 12/11: xem canh dien TRUOC, tra loi SAU — canh dien khi VAO PHONG,
+   TRUOC bang chon 2 tro. Thu tu: (1) ban hoi bot -> bot lo SDT Lan + khung do;
+   (2) 5 ben lan luot lam phan viec cua minh; (3) xong canh moi hien 1 cau hoi duy nhat
+   "Vay ai phai chiu trach nhiem?" — tra loi dung moi vao bang chon 2 tro.
+   Moc tay vao noiDungPhong8B31 + chuyenSangPhong + bot8ChonXuLy (phong co ham rieng,
+   khong qua PHONG_MOI/noiDungPhongMoi nen KHONG ep khung SK_CANH).
+   DO HOA BUILD 18 (12/11 toi): nhan vat GLB do bong mem PCFSoft + bong tiep xuc duoi chan;
+   man hinh chatbot phat sang (emissive) + khung vien TV kim loai + chan de; ban go van go
+   ve tay + chong giay + coc nuoc; laptop co de + man hinh phat sang; may 2 lop co chieu sau;
+   bang noi quy khung go; hop app phat sang + quanh sang; anh sang ban ngay HemisphereLight
+   + den man hinh. Tat ca den them nam trong sk8B31Nhom nen chi tac dung khi canh dang dien. */
+let skCanh8B31DaXem = false;
+let skCanh8B31CauHoi = false;
+let sk8B31DaMoLink = false; /* BUILD 18 link chatbot: da bam 'Mo minh hoa' mo link chatbot chua — chi phong 8.B3.1 (thay chot 21:42) */
+let sk8B31CauHoiHien = 1; /* BUILD 18 link chatbot: cau hoi dang hien (1..3) sau khi xem link */
+let sk8B31GhiChu = ''; /* BUILD 18 link chatbot: dong giai thich cau vua tra loi dung, hien tren the cau tiep theo */
+let skCanh8B31DaBatDau = false;
+let sk8B31Nhom = null, sk8B31DangDien = false;
+let sk8B31Hinh = [];
+let sk8B31ManHinh = null, sk8B31CauHoi = null, sk8B31TraLoi = null, sk8B31KhungDo = null, sk8B31CanhBaoDo = null, sk8B31DauSai = null;
+let sk8B31DenManHinh = null, sk8B31BongHS = null;
+let sk8B31Ban = null, sk8B31May = null, sk8B31AppBox = null, sk8B31Bang = null, sk8B31BongCD = null;
+
+function sk8B31TaoHinh(mauAo, toi, cao){
+  const goc = layActorGLB('hoc-sinh', cao || 1.5); /* BUILD 18 do hoa: dien vien cao 1,5m ti le nguoi that (truoc 0,62m nhu bup be) */
+  goc.traverse(function(o){
+    if(o.isMesh){
+      o.material = o.material.clone();
+      if(o.material && o.material.name === 'ao' && mauAo != null) o.material.color.setHex(mauAo);
+      if(toi) o.material.color.multiplyScalar(0.22);
+      o.castShadow = true; /* BUILD 18 do hoa: nhan vat GLB do bong mem PCFSoft (den chinh phong da castShadow, shadowMap cap nhat 10 khung/lan) */
+    }
+  });
+  goc.add(sk8B31BongChan(0.45)); /* BUILD 18 do hoa: bong tiep xuc 0,45m cho dien vien 1,5m */
+  return goc;
+}
+function sk8B31TaoDauSai(){
+  const g = new THREE.Group();
+  const m = new THREE.MeshStandardMaterial({color:0xDC2626, emissive:0xDC2626, emissiveIntensity:1.2, roughness:0.4});
+  [-0.7, 0.7].forEach(function(r){
+    const a = new THREE.Mesh(new THREE.BoxGeometry(0.9, 0.14, 0.07), m);
+    a.rotation.z = r; g.add(a);
+  });
+  return g;
+}
+function sk8B31VanGo(){
+  /* BUILD 18 do hoa: van go ve tay bang canvas — nen nau + soc van sam/nhat + mat go.
+     Dung cho mat ban, chan ban, khung bang noi quy (thay mau phang). */
+  const c = document.createElement('canvas'); c.width = 512; c.height = 256;
+  const g = c.getContext('2d');
+  g.fillStyle = '#8B5E34'; g.fillRect(0, 0, 512, 256);
+  for(let i = 0; i < 46; i++){
+    const y = Math.random() * 256;
+    g.strokeStyle = (i % 2) ? 'rgba(107,68,35,0.55)' : 'rgba(166,124,82,0.5)';
+    g.lineWidth = 1 + Math.random() * 3;
+    g.beginPath(); g.moveTo(0, y);
+    g.bezierCurveTo(170, y + (Math.random() * 14 - 7), 340, y + (Math.random() * 14 - 7), 512, y + (Math.random() * 10 - 5));
+    g.stroke();
+  }
+  g.fillStyle = 'rgba(90,55,25,0.5)';
+  g.beginPath(); g.ellipse(380, 90, 16, 7, 0, 0, Math.PI * 2); g.fill();
+  g.beginPath(); g.ellipse(120, 190, 12, 5, 0, 0, Math.PI * 2); g.fill();
+  const t = new THREE.CanvasTexture(c);
+  t.wrapS = t.wrapT = THREE.RepeatWrapping;
+  return t;
+}
+function sk8B31BongChan(r){
+  /* BUILD 18 do hoa: bong tiep xuc — hinh tron gradient den mo dan ra ngoai, dat sat san duoi chan nhan vat. */
+  const c = document.createElement('canvas'); c.width = c.height = 128;
+  const g = c.getContext('2d');
+  const grd = g.createRadialGradient(64, 64, 4, 64, 64, 64);
+  grd.addColorStop(0, 'rgba(0,0,0,0.55)'); grd.addColorStop(0.6, 'rgba(0,0,0,0.28)'); grd.addColorStop(1, 'rgba(0,0,0,0)');
+  g.fillStyle = grd; g.fillRect(0, 0, 128, 128);
+  const m = new THREE.Mesh(new THREE.CircleGeometry(r || 0.35, 32),
+    new THREE.MeshBasicMaterial({map: new THREE.CanvasTexture(c), transparent: true, opacity: 0.85, depthWrite: false}));
+  m.rotation.x = -Math.PI / 2; m.position.y = 0.015;
+  return m;
+}
+function sk8B31MatManHinh(tex, cuongDo){
+  /* BUILD 18 do hoa: man hinh phat sang — map + emissiveMap cung texture, sang deu ca khi den phong mo. */
+  return new THREE.MeshStandardMaterial({map: tex, transparent: true,
+    emissive: 0xFFFFFF, emissiveMap: tex, emissiveIntensity: cuongDo || 0.7,
+    roughness: 0.25, metalness: 0.05});
+}
+function sk8B31Cho(ms, sau){
+  skThemHanhDong({ms: ms, c8b31:true, cap:function(){}, ket:function(){ if(sk8B31DangDien && sau) sau(); }});
+}
+function skCanh8B31TienDo(txt, pct){
+  const t = document.getElementById('sk8b31-tien-do');
+  if(t) t.textContent = txt;
+  const th = document.getElementById('sk8b31-thanh');
+  if(th) th.style.width = (pct || 0) + '%';
+}
+function sk8B31TaoNguoi(mauAo, x, z, nhan){
+  const h = sk8B31TaoHinh(mauAo, false, 1.5); /* BUILD 18 do hoa: cao 1,5m */
+  h.position.set(x + 1.8, 0, z);
+  h.visible = true;
+  if(nhan) sk8B31NhanTen(h, nhan); /* BUILD 18 do hoa: nhan ten tren dau */
+  sk8B31Nhom.add(h); sk8B31Hinh.push(h);
+  return h;
+}
+function sk8B31NhanTen(actor, txt){
+  /* BUILD 18 do hoa: nhan ten tren dau dien vien — HS nhin la biet ai la ben nao (chuan Skoolagent: name tag tren avatar). Sprite luon quay ve camera nen doc duoc moi goc; canvas rieng, co chu tu thu nho cho vua khung. */
+  const c = document.createElement('canvas'); c.width = 1024; c.height = 320;
+  const g = c.getContext('2d');
+  g.fillStyle = '#0B1220'; g.fillRect(0, 0, 1024, 320);
+  g.strokeStyle = '#C9A227'; g.lineWidth = 16; g.strokeRect(10, 10, 1004, 300);
+  g.textAlign = 'center'; g.textBaseline = 'middle';
+  g.fillStyle = '#E8C95A';
+  let fs = 104; g.font = '800 ' + fs + 'px "Be Vietnam Pro", Arial, sans-serif';
+  while(g.measureText(txt).width > 940 && fs > 40){ fs -= 4; g.font = '800 ' + fs + 'px "Be Vietnam Pro", Arial, sans-serif'; }
+  g.fillText(txt, 512, 164);
+  const nhan = new THREE.Sprite(new THREE.SpriteMaterial({map: new THREE.CanvasTexture(c), transparent: true, depthWrite: false}));
+  nhan.scale.set(1.05, 0.33, 1); /* BUILD 18 do hoa 2: nho lai de 5 nhan khong chong nhau khi dung sat */
+  sk8B31NhanTen._dem = (sk8B31NhanTen._dem || 0) + 1;
+  nhan.position.set(0, 1.82 + ((sk8B31NhanTen._dem % 2) * 0.35), 0); /* BUILD 18 do hoa 2: nhan le so le cao hon 0,35m — khong de len nhau */
+  actor.add(nhan);
+  return nhan;
+}
+
+function sk8B31GoPhim(h, ms){
+  const y0 = h.position.y;
+  skThemHanhDong({ms: ms, c8b31:true, cap:function(k){ h.position.y = y0 + Math.abs(Math.sin(k * Math.PI * 6)) * 0.05; }, ket:function(){ h.position.y = y0; }});
+}
+function dungCanh8B31(){
+  if(sk8B31Nhom) return;
+  sk8B31Nhom = new THREE.Group();
+  sk8B31Nhom.visible = false;
+  /* BUILD 18 do hoa: anh sang ban ngay am ap rieng cho canh — den nam trong nhom an
+     thi three.js bo qua, nen chi tac dung khi canh dang dien. */
+  sk8B31Nhom.add(new THREE.HemisphereLight(0xBFD9FF, 0x8A6B4A, 0.35));
+  sk8B31DenManHinh = new THREE.PointLight(0x7DD3FC, 0.55, 7, 1.6);
+  sk8B31DenManHinh.position.set(0, 1.6, -2.0);
+  sk8B31Nhom.add(sk8B31DenManHinh);
+  /* Man hinh lon chatbot o cuoi san khau (z=-3.4) — khung vien TV + chan de + man hinh phat sang */
+  sk8B31ManHinh = new THREE.Group();
+  const vienTV = new THREE.MeshStandardMaterial({color:0x1F2937, roughness:0.35, metalness:0.45});
+  const vangTV = new THREE.MeshStandardMaterial({color:0xC9A227, roughness:0.3, metalness:0.7});
+  const khungTV = new THREE.Mesh(new THREE.BoxGeometry(3.9, 2.4, 0.12), vienTV);
+  khungTV.position.set(0, 2.11, -0.08); khungTV.castShadow = true; sk8B31ManHinh.add(khungTV);
+  [-1.93, 1.93].forEach(function(x){ const nep = new THREE.Mesh(new THREE.BoxGeometry(0.07, 2.4, 0.03), vangTV); nep.position.set(x, 2.11, -0.015); sk8B31ManHinh.add(nep); });
+  const chanTV = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.95, 0.12), vienTV);
+  chanTV.position.set(0, 0.45, -0.08); sk8B31ManHinh.add(chanTV);
+  const deTV = new THREE.Mesh(new THREE.BoxGeometry(0.9, 0.08, 0.4), vienTV);
+  deTV.position.set(0, 0.04, -0.05); sk8B31ManHinh.add(deTV);
+  const tieuDe = new THREE.Mesh(new THREE.PlaneGeometry(3.6, 1.12), sk8B31MatManHinh(textureBien('\uD83E\uDD16 CHATBOT NOI QUY', 'Hoi gi cung tra loi?'), 0.45));
+  tieuDe.position.set(0, 2.7, 0); sk8B31ManHinh.add(tieuDe);
+  sk8B31KhungDo = new THREE.Mesh(new THREE.PlaneGeometry(3.7, 1.3), new THREE.MeshStandardMaterial({color:0xDC2626, emissive:0xDC2626, emissiveIntensity:0.9, roughness:0.4}));
+  sk8B31KhungDo.position.set(0, 1.5, -0.02); sk8B31KhungDo.visible = false; sk8B31ManHinh.add(sk8B31KhungDo);
+  sk8B31CauHoi = new THREE.Mesh(new THREE.PlaneGeometry(3.4, 1.06), sk8B31MatManHinh(textureBien('\uD83D\uDE4B \u201CSĐT cua Lan la gi?\u201D', ''), 0.7));
+  sk8B31CauHoi.position.set(0, 1.5, 0); sk8B31CauHoi.visible = false; sk8B31ManHinh.add(sk8B31CauHoi);
+  sk8B31TraLoi = new THREE.Mesh(new THREE.PlaneGeometry(3.4, 1.06), sk8B31MatManHinh(textureBien('\uD83E\uDD16 SĐT Lan: 0912-xxx-xxx', '', '#7F1D1D'), 0.7));
+  sk8B31TraLoi.position.set(0, 1.5, 0); sk8B31TraLoi.visible = false; sk8B31ManHinh.add(sk8B31TraLoi);
+  sk8B31DauSai = sk8B31TaoDauSai();
+  sk8B31DauSai.position.set(-2.0, 1.5, 0.02); sk8B31DauSai.scale.setScalar(0.01); sk8B31DauSai.visible = false; sk8B31ManHinh.add(sk8B31DauSai);
+  sk8B31CanhBaoDo = new THREE.Mesh(new THREE.PlaneGeometry(3.4, 1.06), sk8B31MatManHinh(textureBien('\u26A0\uFE0F C\u00C2U N\u00C0Y C\u00D3 V\u1EA4N \u0110\u1EC0!', ''), 0.7));
+  sk8B31CanhBaoDo.position.set(0, 0.4, 0); sk8B31CanhBaoDo.visible = false; sk8B31ManHinh.add(sk8B31CanhBaoDo);
+  sk8B31ManHinh.position.set(0, 0, -3.4);
+  sk8B31Nhom.add(sk8B31ManHinh);
+  /* Ban + laptop cua nguoi phat trien (truoc mat, z=-1.9; nguoi dung sau ban z=-2.4) */
+  sk8B31Ban = new THREE.Group();
+  const matBan = new THREE.MeshStandardMaterial({map: sk8B31VanGo(), roughness:0.55, metalness:0.05});
+  const ban = new THREE.Mesh(new THREE.BoxGeometry(1.2, 0.08, 0.6), matBan); ban.position.y = 0.72; ban.castShadow = true; ban.receiveShadow = true; sk8B31Ban.add(ban);
+  [[-0.5,-0.25],[0.5,-0.25],[-0.5,0.25],[0.5,0.25]].forEach(function(p){ const chan = new THREE.Mesh(new THREE.BoxGeometry(0.07,0.72,0.07), matBan); chan.position.set(p[0],0.36,p[1]); chan.castShadow = true; sk8B31Ban.add(chan); });
+  /* Chong giay + coc nuoc tren ban cho co do that */
+  const giay = new THREE.Mesh(new THREE.BoxGeometry(0.42, 0.03, 0.3), new THREE.MeshStandardMaterial({color:0xF8FAFC, roughness:0.9}));
+  giay.position.set(0.28, 0.78, 0.08); giay.rotation.y = 0.15; giay.castShadow = true; sk8B31Ban.add(giay);
+  const coc = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.05, 0.13, 20), new THREE.MeshStandardMaterial({color:0x0E7490, roughness:0.3, metalness:0.1}));
+  coc.position.set(-0.38, 0.83, 0.12); coc.castShadow = true; sk8B31Ban.add(coc);
+  const lapDe = new THREE.Mesh(new THREE.BoxGeometry(0.55, 0.03, 0.34), new THREE.MeshStandardMaterial({color:0x1F2A44, roughness:0.3, metalness:0.3}));
+  lapDe.position.set(0, 0.78, -0.08); lapDe.castShadow = true; sk8B31Ban.add(lapDe);
+  const lap = new THREE.Mesh(new THREE.BoxGeometry(0.55,0.36,0.04), new THREE.MeshStandardMaterial({color:0x1F2A44, roughness:0.3, metalness:0.3}));
+  lap.position.set(0,0.95,-0.05); lap.rotation.x = -0.25; lap.castShadow = true; sk8B31Ban.add(lap);
+  const lapMh = new THREE.Mesh(new THREE.PlaneGeometry(0.48,0.3), sk8B31MatManHinh(textureBien('CODE', 'app.py'), 0.8));
+  lapMh.position.set(0,0.95,-0.025); lapMh.rotation.x = -0.25; sk8B31Ban.add(lapMh);
+  sk8B31Ban.position.set(-2.6, 0, -1.9); sk8B31Ban.visible = false; sk8B31Nhom.add(sk8B31Ban);
+  /* Dam may + hop app bay len cua nha cung cap */
+  sk8B31May = new THREE.Group();
+  const matMay = new THREE.MeshStandardMaterial({color:0xF8FAFC, roughness:0.9});
+  const matMayXa = new THREE.MeshStandardMaterial({color:0xDCE6F2, roughness:0.95});
+  /* Dam may chinh 9 khoi cau lech nhau + dam may xa nho hon, hoi xam xanh de co chieu sau */
+  [[0,0,0,0.34],[0.55,0.12,0,0.3],[-0.55,0.1,0,0.3],[0.2,0.35,0,0.3],[-0.25,0.3,0,0.28],[0.85,-0.05,0,0.24],[-0.85,-0.02,0,0.24],[0.45,-0.12,0.1,0.26],[-0.45,-0.1,0.1,0.26]].forEach(function(p){ const c = new THREE.Mesh(new THREE.SphereGeometry(p[3], 16, 16), matMay); c.position.set(p[0],p[1],p[2]); c.castShadow = true; sk8B31May.add(c); });
+  [[-0.95,0.35,-0.7,0.22],[-0.45,0.45,-0.7,0.18],[0.95,0.3,-0.6,0.2],[0.5,0.42,-0.7,0.16]].forEach(function(p){ const c = new THREE.Mesh(new THREE.SphereGeometry(p[3], 14, 14), matMayXa); c.position.set(p[0],p[1],p[2]); sk8B31May.add(c); });
+  const nhanMay = new THREE.Mesh(new THREE.PlaneGeometry(1.5, 0.47), new THREE.MeshBasicMaterial({map: textureBien('\u2601\uFE0F L\u00CAN M\u1EA0NG', ''), transparent:true}));
+  nhanMay.position.set(0, -0.55, 0); sk8B31May.add(nhanMay);
+  sk8B31May.position.set(-1.3, 2.4, -2.7); sk8B31May.visible = false; sk8B31Nhom.add(sk8B31May);
+  sk8B31AppBox = new THREE.Mesh(new THREE.BoxGeometry(0.32,0.32,0.05), new THREE.MeshStandardMaterial({color:0x22D3EE, roughness:0.25, metalness:0.1, emissive:0x22D3EE, emissiveIntensity:0.55}));
+  sk8B31AppBox.position.set(-1.3, 1.0, -2.2); sk8B31AppBox.visible = false; sk8B31AppBox.castShadow = true; sk8B31Nhom.add(sk8B31AppBox);
+  /* Quanh sang xanh mo quanh hop app — gan theo hop nen bay len cung hop */
+  const cvApp = document.createElement('canvas'); cvApp.width = cvApp.height = 128;
+  const gApp = cvApp.getContext('2d');
+  const grdApp = gApp.createRadialGradient(64, 64, 4, 64, 64, 64);
+  grdApp.addColorStop(0, 'rgba(34,211,238,0.8)'); grdApp.addColorStop(1, 'rgba(34,211,238,0)');
+  gApp.fillStyle = grdApp; gApp.fillRect(0, 0, 128, 128);
+  const quangApp = new THREE.Sprite(new THREE.SpriteMaterial({map: new THREE.CanvasTexture(cvApp), transparent: true, opacity: 0.55, depthWrite: false}));
+  quangApp.scale.set(1.1, 1.1, 1); quangApp.position.set(0, 0, -0.1);
+  sk8B31AppBox.add(quangApp);
+  /* Bang noi quy cua don vi trien khai (nha truong) */
+  sk8B31Bang = new THREE.Group();
+  const bang = new THREE.Mesh(new THREE.PlaneGeometry(1.7, 1.06), new THREE.MeshBasicMaterial({map: textureBien('NOI QUY LOP', 'Di hoc dung gio'), transparent:true}));
+  bang.position.set(0, 1.7, 0); sk8B31Bang.add(bang);
+  const matCot = new THREE.MeshStandardMaterial({map: sk8B31VanGo(), roughness:0.55, metalness:0.05});
+  /* Khung go quanh bang noi quy */
+  [[0, 2.27, 1.86, 0.09], [0, 1.13, 1.86, 0.09]].forEach(function(f){ const th = new THREE.Mesh(new THREE.BoxGeometry(f[2], f[3], 0.06), matCot); th.position.set(f[0], f[1], 0.01); th.castShadow = true; sk8B31Bang.add(th); });
+  [[-0.89, 1.7], [0.89, 1.7]].forEach(function(f){ const th = new THREE.Mesh(new THREE.BoxGeometry(0.09, 1.23, 0.06), matCot); th.position.set(f[0], f[1], 0.01); th.castShadow = true; sk8B31Bang.add(th); });
+  [-0.75, 0.75].forEach(function(x){ const c = new THREE.Mesh(new THREE.BoxGeometry(0.08, 1.1, 0.08), matCot); c.position.set(x, 0.55, -0.05); sk8B31Bang.add(c); });
+  sk8B31Bang.position.set(0, 0, -2.9); sk8B31Bang.visible = false; sk8B31Nhom.add(sk8B31Bang);
+  /* Bong bong cua cong dong */
+  sk8B31BongCD = new THREE.Mesh(new THREE.PlaneGeometry(2.6, 0.81), new THREE.MeshBasicMaterial({map: textureBien('\uD83D\uDCAC C\u1ED8NG \u0110\u1ED2NG', 'Cung phan hoi!'), transparent:true}));
+  sk8B31BongCD.position.set(0, 3.1, -2.9); sk8B31BongCD.visible = false; sk8B31Nhom.add(sk8B31BongCD);
+  scenePhong.add(sk8B31Nhom);
+}
+function skCanh8B31TheCanh(){
+  /* BUILD 18 do hoa: the canh mong — chi tien do + nut bo qua; san khau 3D chiem gan het man hinh, khong chu chen vao */
+  let h = '<div class="bot-luot sk8b31-luot-mong"><p id="sk8b31-tien-do">\uD83C\uDFAC \u0110ang di\u1EC5n ho\u1EA1t c\u1EA3nh\u2026</p>'
+    + '<div class="thanh-am-luong"><div id="sk8b31-thanh" style="width:10%"></div></div>'
+    + '<button class="nut-the" data-pm="8b31-bo-qua-canh">\u23ED B\u1ECF qua</button></div>';
+  return h;
+}
+function skCanh8B31TheCauHoi(){
+  /* BUILD 18 link chatbot (thay chot 21:42, CHI phong 8.B3.1): xem canh xong -> mo link chatbot xem/thu -> moi hien 3 cau hoi. Cau hoi khong hien truoc khi bam link. */
+  let dau = '<h3>8.B3.1 — Nguyên tắc đạo đức AI</h3>'
+    + '<p class="ma-phong">✅ ĐÃ MỞ · Tòa 9 · Tầng 3 · Khối 8</p>'
+    + '<div class="bot-trich-dan">🎬 <b>Đã xem xong hoạt cảnh!</b></div>';
+  if(!sk8B31DaMoLink){
+    return dau + '<div class="bot-luot"><h4 style="font-size:28px">🔗 Giờ thầy mở chatbot cho cả lớp xem/thử:</h4>'
+      + '<p>Bấm nút <b>“🔗 Mở minh họa: Chatbot Nội Quy Lớp”</b> ở trên để mở chatbot — xem/thử xong, quay lại đây sẽ có 3 câu hỏi.</p></div>';
+  }
+  let ghi = sk8B31GhiChu ? '<p style="color:#1E7B34"><b>' + sk8B31GhiChu + '</b></p>' : '';
+  if(sk8B31CauHoiHien === 1){
+    return dau + ghi + '<div class="bot-luot"><h4 style="font-size:28px">🤔 Câu 1/3: Câu nào của bot có vấn đề?</h4>'
+      + '<p>Chỉ chọn 1 đáp án — cả lớp bàn rồi thầy bấm:</p>'
+      + '<button class="nut-the" data-pm="8b31-hoi" data-cau="1" data-gia-tri="sdt">📱 Lộ SĐT của Lan</button> '
+      + '<button class="nut-the" data-pm="8b31-hoi" data-cau="1" data-gia-tri="kiem-tra">📅 “Mai không có kiểm tra đâu”</button> '
+      + '<button class="nut-the" data-pm="8b31-hoi" data-cau="1" data-gia-tri="ngoai-hinh">🪞 Chấm điểm ngoại hình Hà 8 điểm</button> '
+      + '<button class="nut-the" data-pm="8b31-hoi" data-cau="1" data-gia-tri="dung">📋 Bot nhắc đúng nội quy lớp</button></div>';
+  }
+  if(sk8B31CauHoiHien === 2){
+    return dau + ghi + '<div class="bot-luot"><h4 style="font-size:28px">🤔 Câu 2/3: Vì sao bot trả lời sai?</h4>'
+      + '<p>Chỉ chọn 1 đáp án — cả lớp bàn rồi thầy bấm:</p>'
+      + '<button class="nut-the" data-pm="8b31-hoi" data-cau="2" data-gia-tri="chi-biet">🧠 Bot chỉ biết những gì người ta nhập vào</button> '
+      + '<button class="nut-the" data-pm="8b31-hoi" data-cau="2" data-gia-tri="co-tinh">😈 Bot cố tình nói dối</button> '
+      + '<button class="nut-the" data-pm="8b31-hoi" data-cau="2" data-gia-tri="mang-yeu">📶 Mạng yếu nên bot đoán bừa</button></div>';
+  }
+  return dau + ghi + '<div class="bot-luot"><h4 style="font-size:28px">🤔 Câu 3/3: Ai chịu trách nhiệm khi bot trả lời sai?</h4>'
+    + '<p>Chỉ chọn 1 đáp án — cả lớp bàn rồi thầy bấm:</p>'
+    + '<button class="nut-the" data-pm="8b31-hoi" data-cau="3" data-gia-tri="mot-ben">👨‍💻 Chỉ người viết app</button> '
+    + '<button class="nut-the" data-pm="8b31-hoi" data-cau="3" data-gia-tri="nam-ben">👥 Cả 5 bên cùng có phần</button> '
+    + '<button class="nut-the" data-pm="8b31-hoi" data-cau="3" data-gia-tri="do-ai">🤖 Chỉ do AI</button></div>';
+}
+function skCanh8B31NutXemLai(){
+  return '<button class="nut-the" data-pm="8b31-xem-lai-canh" style="margin-top:10px">\uD83C\uDFAC Xem l\u1EA1i ho\u1EA1t c\u1EA3nh</button>';
+}
+function skCanh8B31BatDau(){
+  if(skCanh8B31DaXem || skCanh8B31DaBatDau) return;
+  if(!scenePhong){ setTimeout(function(){ try{ skCanh8B31BatDau(); }catch(e){} }, 800); return; }
+  skCanh8B31DaBatDau = true;
+  try{ dungSanKhauPhong(); }catch(e){}
+  try{ dungCanh8B31(); }catch(e){}
+  if(!sk8B31Nhom){ skCanh8B31DaBatDau = false; return; }
+  sk8B31Hinh.forEach(function(h){ sk8B31Nhom.remove(h); });
+  sk8B31Hinh = [];
+  sk8B31ManHinh.visible = true;
+  sk8B31CauHoi.visible = false; sk8B31TraLoi.visible = false; sk8B31KhungDo.visible = false; sk8B31CanhBaoDo.visible = false; sk8B31DauSai.visible = false;
+  sk8B31Ban.visible = false; sk8B31May.visible = false; sk8B31AppBox.visible = false; sk8B31Bang.visible = false; sk8B31BongCD.visible = false;
+  sk8B31Nhom.visible = true;
+  sk8B31DangDien = true;
+  var _p8=document.getElementById('noi-dung-phong'); if(_p8) _p8.classList.add('sk8b31-dang-dien'); /* BUILD 18 do hoa: thu panel thanh dai mong khi canh dang dien */
+  try{ anBangGioiThieu(); }catch(e){} /* BUILD 18 do hoa: an bang gioi thieu khi canh bat dau — khong de board che san khau; thay chi can xem canh, khong can bam 'Vao thuc hanh' */
+  try{ if(phongHienTai) hienNoiDungPhong(phongHienTai); }catch(e){}
+  try{ const _ndp2=document.getElementById('noi-dung-phong'); if(_ndp2) _ndp2.classList.remove('da-thu-gon'); }catch(e){} /* BUILD 18 do hoa: mo panel (bo thu gon) de dai tien do hien duoc */
+  try{ if(typeof doanThanhVien !== 'undefined' && doanThanhVien){ doanThanhVien.forEach(function(m){ if(m && m.children) m.children.forEach(function(c){ if(c.isSprite && c.scale.x > 0.9 && c.scale.x < 1.0) c.visible = false; }); }); } }catch(e){} /* BUILD 18 do hoa 2: an ten HS doan lop khi canh dien — sprite ten 0,95m o gan camera san khau se choan het man hinh */
+  if(skHS){ skHS.visible = true; }
+  if(skHS && !sk8B31BongHS){ sk8B31BongHS = sk8B31BongChan(0.6); skHS.add(sk8B31BongHS); } /* BUILD 18 do hoa: bong tiep xuc duoi chan HS chinh */
+  skCanh8B31TienDo('\uD83C\uDFAC \u0110ang di\u1EC5n ho\u1EA1t c\u1EA3nh\u2026', 5);
+  sk8B31Pha1();
+}
+function skCanh8B31KetThuc(boQua){
+  sk8B31DangDien = false;
+  var _p8k=document.getElementById('noi-dung-phong'); if(_p8k) _p8k.classList.remove('sk8b31-dang-dien'); try{ datCameraPhong(); }catch(e){} /* BUILD 18 do hoa: mo lai panel + tra camera phong ve mac dinh */
+  try{ if(typeof doanThanhVien !== 'undefined' && doanThanhVien){ doanThanhVien.forEach(function(m){ if(m && m.children) m.children.forEach(function(c){ if(c.isSprite && c.scale.x > 0.9 && c.scale.x < 1.0) c.visible = true; }); }); } }catch(e){} /* BUILD 18 do hoa 2: tra lai ten HS doan lop khi canh xong */
+  skHanhDong = skHanhDong.filter(function(h){ return !h.c8b31; });
+  if(sk8B31Nhom) sk8B31Nhom.visible = false;
+  try{ skCanhBao(false); }catch(e){}
+  try{ skDatViTriGoc(); }catch(e){}
+  if(skHS){ skHS.visible = false; skHS.position.set(0, 0, 4.3); } /* 8.B3.1: HS an nhu luc vao phong, chi hien khi duoc moi len hoi bot */
+  if(skHS && sk8B31BongHS){ skHS.remove(sk8B31BongHS); sk8B31BongHS = null; } /* BUILD 18 do hoa: go bong tiep xuc, keo sang phong khac */
+  skCanh8B31CauHoi = true;
+  if(phongHienTai) datNoiDungPhong(phongHienTai);
+}
+/* Canh 1/6 — ban hoi bot so dien thoai cua Lan -> bot lo so + khung do nhap nhay */
+function sk8B31Pha1(){
+  if(!sk8B31DangDien) return;
+  skCanh8B31TienDo('\uD83C\uDFAC C\u1EA3nh 1/6: b\u1EA1n h\u1ECFi bot \u2014 bot tr\u1EA3 l\u1EDDi sao?', 5);
+  if(skHS){ skHS.visible = true; skHS.position.set(-3.4, 0, -1.2); }
+  skDiToi(skHS, -2.2, -1.2, 1100, function(){
+    if(!sk8B31DangDien) return;
+    skGioTay(skHS);
+    sk8B31CauHoi.visible = true;
+    sk8B31CauHoi.scale.setScalar(0.01);
+    skThemHanhDong({ms:450, c8b31:true, cap:function(k){ sk8B31CauHoi.scale.setScalar(0.01 + k * 0.99); }, ket:function(){
+      if(!sk8B31DangDien) return;
+      sk8B31Cho(900, function(){
+        if(!sk8B31DangDien) return;
+        sk8B31CauHoi.visible = false;
+        sk8B31TraLoi.visible = true;
+        sk8B31TraLoi.scale.setScalar(0.01);
+        sk8B31DauSai.visible = true;
+        skThemHanhDong({ms:450, c8b31:true, cap:function(k){ sk8B31TraLoi.scale.setScalar(0.01 + k * 0.99); sk8B31DauSai.scale.setScalar(0.01 + k * 0.99); }, ket:function(){
+          if(!sk8B31DangDien) return;
+          skLacDau(skRobot);
+          skNoi(skRobot, 'Bot l\u1ED9 s\u1ED1 \u0111i\u1EC7n tho\u1EA1i!', 'C\u00E2u n\u00E0y c\u00F3 v\u1EA5n \u0111\u1EC1!');
+          sk8B31NhayKhungDo(0);
+        }});
+      });
+    }});
+  });
+}
+function sk8B31NhayKhungDo(lan){
+  if(!sk8B31DangDien) return;
+  const bat = (lan % 2 === 0);
+  sk8B31KhungDo.visible = bat;
+  sk8B31CanhBaoDo.visible = bat;
+  try{ skCanhBao(bat); }catch(e){}
+  if(lan >= 5){
+    sk8B31KhungDo.visible = false; sk8B31CanhBaoDo.visible = false;
+    try{ skCanhBao(false); }catch(e){}
+    sk8B31Cho(500, function(){
+      if(!sk8B31DangDien) return;
+      sk8B31TraLoi.visible = false; sk8B31DauSai.visible = false;
+      skDiToi(skHS, -1.7, -2.3, 900, function(){ sk8B31Pha2(); });
+    });
+    return;
+  }
+  sk8B31Cho(350, function(){ sk8B31NhayKhungDo(lan + 1); });
+}
+/* Canh 2/6 — nguoi phat trien: ngoi go code viet app */
+function sk8B31Pha2(){
+  if(!sk8B31DangDien) return;
+  skCanh8B31TienDo('\uD83C\uDFAC C\u1EA3nh 2/6: ng\u01B0\u1EDDi ph\u00E1t tri\u1EC3n vi\u1EBFt app\u2026', 25);
+  sk8B31Ban.visible = true;
+  const dev = sk8B31TaoNguoi(0x1D4ED8, -2.6, -2.4, 'NGƯỜI PHÁT TRIỂN');
+  skDiToi(dev, -2.6, -2.4, 900, function(){
+    if(!sk8B31DangDien) return;
+    sk8B31GoPhim(dev, 1600);
+    skNoi(skRobot, 'Ng\u01B0\u1EDDi ph\u00E1t tri\u1EC3n vi\u1EBFt app.', 'Vi\u1EBFt code + l\u1ECDc s\u1EA1ch d\u1EEF li\u1EC7u.');
+    sk8B31Cho(1900, sk8B31Pha3);
+  });
+}
+/* Canh 3/6 — nha cung cap: dua app len mang (dam may) */
+function sk8B31Pha3(){
+  if(!sk8B31DangDien) return;
+  skCanh8B31TienDo('\uD83C\uDFAC C\u1EA3nh 3/6: nh\u00E0 cung c\u1EA5p \u0111\u01B0a app l\u00EAn m\u1EA1ng\u2026', 40);
+  sk8B31May.visible = true;
+  sk8B31AppBox.visible = true;
+  const ncc = sk8B31TaoNguoi(0x7C3AED, -1.3, -1.6, 'NHÀ CUNG CẤP');
+  skDiToi(ncc, -1.3, -1.6, 900, function(){
+    if(!sk8B31DangDien) return;
+    skGioTay(ncc);
+    const y0 = sk8B31AppBox.position.y;
+    skThemHanhDong({ms: 1300, c8b31:true, cap:function(k){ sk8B31AppBox.position.set(-1.3, y0 + 1.0 * k, -2.2 + (-2.6 + 2.2) * k); }, ket:function(){}});
+    skNoi(skRobot, 'Nh\u00E0 cung c\u1EA5p \u0111\u01B0a app l\u00EAn m\u1EA1ng.', 'C\u00F4ng b\u1ED1 ch\u00EDnh s\u00E1ch + c\u1EA3nh b\u00E1o.');
+    sk8B31Cho(1900, sk8B31Pha4);
+  });
+}
+/* Canh 4/6 — don vi trien khai (nha truong): dua app vao lop, treo bang noi quy */
+function sk8B31Pha4(){
+  if(!sk8B31DangDien) return;
+  skCanh8B31TienDo('\uD83C\uDFAC C\u1EA3nh 4/6: \u0111\u01A1n v\u1ECB tri\u1EC3n khai \u0111\u01B0a app v\u00E0o l\u1EDBp\u2026', 55);
+  sk8B31Bang.visible = true;
+  const tk = sk8B31TaoNguoi(0x047857, 0, -1.6, 'ĐƠN VỊ TRIỂN KHAI');
+  skDiToi(tk, 0, -1.6, 900, function(){
+    if(!sk8B31DangDien) return;
+    skGioTay(tk);
+    skNoi(skRobot, '\u0110\u01A1n v\u1ECB tri\u1EC3n khai \u0111\u01B0a app v\u00E0o l\u1EDBp.', 'Treo n\u1ED9i quy + gi\u00E1m s\u00E1t.');
+    sk8B31Cho(1900, sk8B31Pha5);
+  });
+}
+/* Canh 5/6 — nguoi su dung: HS go cau hoi dung app */
+function sk8B31Pha5(){
+  if(!sk8B31DangDien) return;
+  skCanh8B31TienDo('\uD83C\uDFAC C\u1EA3nh 5/6: ng\u01B0\u1EDDi s\u1EED d\u1EE5ng g\u00F5 c\u00E2u h\u1ECFi\u2026', 70);
+  const sd = sk8B31TaoNguoi(0xB45309, 1.3, -1.6, 'NGƯỜI SỬ DỤNG');
+  skDiToi(sd, 1.3, -1.6, 900, function(){
+    if(!sk8B31DangDien) return;
+    skGioTay(sd);
+    sk8B31GoPhim(sd, 1400);
+    skNoi(skRobot, 'Ng\u01B0\u1EDDi s\u1EED d\u1EE5ng g\u00F5 c\u00E2u h\u1ECFi.', 'Kh\u00F4ng h\u1ECFi th\u00F4ng tin nh\u1EA1y c\u1EA3m.');
+    sk8B31Cho(1900, sk8B31Pha6);
+  });
+}
+/* Canh 6/6 — cong dong: nhieu HS cung gio tay phan hoi */
+function sk8B31Pha6(){
+  if(!sk8B31DangDien) return;
+  skCanh8B31TienDo('\uD83C\uDFAC C\u1EA3nh 6/6: c\u1ED9ng \u0111\u1ED3ng c\u00F9ng ph\u1EA3n h\u1ED3i\u2026', 85);
+  sk8B31ManHinh.visible = false;
+  sk8B31BongCD.visible = true;
+  const cd = sk8B31TaoNguoi(0xDB2777, 2.6, -1.6, 'CỘNG ĐỒNG');
+  const cd2 = sk8B31TaoNguoi(0x2E7D6B, 2.0, -2.5);
+  const cd3 = sk8B31TaoNguoi(0x3B82F6, 3.1, -2.5);
+  skDiToi(cd2, 2.0, -2.5, 900);
+  skDiToi(cd3, 3.1, -2.5, 900);
+  skDiToi(cd, 2.6, -1.6, 900, function(){
+    if(!sk8B31DangDien) return;
+    skGioTay(cd); skGioTay(cd2); skGioTay(cd3);
+    skNhay(cd); skNhay(cd2);
+    skNoi(skRobot, 'C\u1ED9ng \u0111\u1ED3ng c\u00F9ng ph\u1EA3n h\u1ED3i.', 'Ai th\u1EA5y sai th\u00EC b\u00E1o l\u1EA1i!');
+    sk8B31Cho(2400, sk8B31PhaKet);
+  });
+}
+/* Ket — xem xong, moi hoc sinh tra loi */
+function sk8B31PhaKet(){
+  if(!sk8B31DangDien) return;
+  skCanh8B31TienDo('\uD83C\uDFAC Xong c\u1EA3nh! Gi\u1EDD c\u1EA3 l\u1EDBp tr\u1EA3 l\u1EDDi nh\u00E9\u2026', 100);
+  skVayTay(skRobot);
+  skNoi(skRobot, 'Xem xong r\u1ED3i!', 'Gi\u1EDD c\u1EA3 l\u1EDBp tr\u1EA3 l\u1EDDi nh\u00E9.');
+  sk8B31Cho(1800, function(){ skCanh8B31KetThuc(false); });
+}
+
 /* sk_world.js — CHUẨN SKOOLAGENT 07:36 (đợt Blender 12/11): vật trang trí thung lũng
    cho cảnh hành trình bay vào cổng: hồ nước xanh, đèn lồng đỏ dọc lối, chậu hoa vàng,
    cây thân mảnh tán tròn. Tất cả đặt LỆCH làn bay (các cổng gx=-9/0/9, thuyền x=-42)
