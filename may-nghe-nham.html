@@ -1,0 +1,1251 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Máy Nghe Nhầm — Máy đọc, nghe, nhìn như thế nào?</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{
+    background:#FFFBE6; /* vàng nhạt, sáng */
+    color:#111111;
+    font-family:"Segoe UI",Arial,Helvetica,sans-serif;
+    font-size:32px;line-height:1.35;
+    overflow:hidden;
+  }
+  .screen{
+    display:none;
+    height:100vh;width:100vw;
+    padding:1.5vh 5vw;
+    flex-direction:column;align-items:center;justify-content:center;
+    text-align:center;
+  }
+  .screen.active{display:flex}
+  .kicker{font-size:min(28px,3.4vh);font-weight:800;letter-spacing:2px;color:#B26A00;margin-bottom:0.6vh}
+  h1{font-size:min(64px,8vh);line-height:1.12;margin-bottom:1.2vh}
+  h2{font-size:min(50px,6.2vh);line-height:1.15;margin-bottom:1.2vh}
+  p.big{font-size:min(36px,4.4vh);margin-bottom:1.2vh}
+  p.mid{font-size:min(32px,4vh);margin-bottom:1.2vh}
+  p.small{font-size:24px;color:#444;margin-top:1vh}
+  .bigbtn{
+    display:inline-block;background:#FF9800;color:#111;
+    border:5px solid #111;border-radius:22px;
+    font-size:min(32px,4vh);font-weight:800;
+    padding:16px 48px;cursor:pointer;
+    box-shadow:0 6px 0 #111;
+    margin-top:1vh;
+  }
+  .bigbtn:active{transform:translateY(4px);box-shadow:0 2px 0 #111}
+  .bigbtn.green{background:#66BB6A}
+  .bigbtn:disabled{background:#D7CCC8;color:#777;cursor:default;box-shadow:none}
+  .ghostbtn{
+    background:none;border:none;color:#555;
+    font-size:24px;text-decoration:underline;cursor:pointer;
+    margin-top:1.5vh;
+  }
+  .card{
+    background:#FFFFFF;border:4px solid #111;border-radius:24px;
+    padding:18px 32px;margin:1vh auto;max-width:1150px;width:100%;
+  }
+  .sentence{font-size:min(46px,5.6vh);font-weight:700}
+  .prog{position:fixed;top:14px;right:22px;font-size:22px;color:#888;font-weight:700}
+  /* 3 thẻ mở đầu */
+  .trio{display:flex;gap:28px;margin:1.2vh 0}
+  .trio .tile{
+    background:#fff;border:4px solid #111;border-radius:24px;
+    width:300px;padding:20px 10px;
+  }
+  .tile .ic{font-size:min(84px,10vh);line-height:1}
+  .tile .nm{font-size:min(40px,4.8vh);font-weight:800;margin-top:8px}
+  .tile .ds{font-size:26px;color:#444;margin-top:4px}
+  /* token */
+  .tokens{display:flex;flex-wrap:wrap;gap:14px;justify-content:center;margin:1.2vh 0;min-height:120px}
+  .tok{
+    background:#fff;border:4px solid #111;border-radius:18px;
+    min-width:108px;padding:10px 10px 8px;
+    opacity:0;transform:scale(.6);
+    transition:opacity .25s,transform .25s;
+  }
+  .tok.show{opacity:1;transform:scale(1)}
+  .tok .w{font-size:min(42px,5vh);font-weight:800;display:block}
+  .tok .n{font-size:26px;font-weight:700;color:#555;display:block;margin-top:2px}
+  .tok.time{background:#BBDEFB}
+  .tok.feel{background:#FFE0B2}
+  .tok.why{background:#C8E6C9}
+  .legend{display:flex;gap:14px;flex-wrap:wrap;justify-content:center;margin-top:0.6vh}
+  .legend span{font-size:26px;font-weight:700;border:3px solid #111;border-radius:14px;padding:6px 16px;background:#fff}
+  .legend .t{background:#BBDEFB}.legend .f{background:#FFE0B2}.legend .w{background:#C8E6C9}
+  /* kết quả đọc */
+  .row3{display:flex;flex-direction:column;gap:12px;width:100%;max-width:1000px;margin:1vh auto}
+  .row3 .r{display:flex;align-items:center;gap:20px;background:#fff;border:4px solid #111;border-radius:18px;padding:10px 24px;text-align:left}
+  .row3 .tag{font-size:28px;font-weight:800;min-width:210px}
+  .row3 .val{font-size:min(38px,4.6vh);font-weight:700}
+  .tag.t{background:#BBDEFB;border-radius:12px;padding:6px 12px}
+  .tag.f{background:#FFE0B2;border-radius:12px;padding:6px 12px}
+  .tag.w{background:#C8E6C9;border-radius:12px;padding:6px 12px}
+  /* câu hỏi 2 lựa chọn */
+  .quiz{display:flex;gap:22px;justify-content:center;margin-top:0.8vh;flex-wrap:wrap}
+  .opt{
+    background:#fff;border:4px solid #111;border-radius:20px;
+    font-size:min(32px,4vh);font-weight:700;padding:13px 30px;cursor:pointer;min-width:340px;
+  }
+  .opt.right{background:#66BB6A}
+  .opt.wrong{background:#EF9A9A}
+  .feedback{font-size:min(40px,4.8vh);font-weight:800;margin-top:0.6vh;min-height:40px}
+  .feedback.ok{color:#2E7D32}
+  .feedback.no{color:#C62828}
+  /* nghe */
+  .micbtn{
+    width:min(220px,24vh);height:min(220px,24vh);border-radius:50%;
+    background:#FF9800;border:6px solid #111;
+    font-size:min(110px,12vh);cursor:pointer;box-shadow:0 8px 0 #111;
+    display:flex;align-items:center;justify-content:center;margin:1.2vh auto;
+  }
+  .micbtn:active{transform:translateY(5px);box-shadow:0 3px 0 #111}
+  .micbtn.listening{background:#EF5350;animation:pulse 1s infinite}
+  @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(239,83,80,.6)}70%{box-shadow:0 0 0 34px rgba(239,83,80,0)}100%{box-shadow:0 0 0 0 rgba(239,83,80,0)}}
+  .wave{display:flex;gap:10px;justify-content:center;align-items:flex-end;height:48px;margin:0.6vh 0}
+  .wave i{width:16px;background:#FF9800;border:3px solid #111;border-radius:8px;height:20px}
+  .wave.on i{animation:wv .7s infinite ease-in-out}
+  .wave.on i:nth-child(2){animation-delay:.1s}.wave.on i:nth-child(3){animation-delay:.2s}
+  .wave.on i:nth-child(4){animation-delay:.3s}.wave.on i:nth-child(5){animation-delay:.15s}
+  @keyframes wv{0%,100%{height:18px}50%{height:64px}}
+  .heard{font-size:min(44px,5.4vh);font-weight:800}
+  .heard.bad{color:#C62828}
+  .badge{
+    display:inline-block;background:#C62828;color:#fff;
+    font-size:28px;font-weight:800;border-radius:12px;padding:6px 18px;margin-bottom:0.5vh;
+  }
+  .chips{display:flex;gap:16px;justify-content:center;flex-wrap:wrap;margin:1vh 0}
+  .chip{
+    background:#fff;border:4px solid #111;border-radius:18px;
+    font-size:min(34px,4.2vh);font-weight:700;padding:12px 22px;
+  }
+  .chip b{color:#B26A00}
+  /* nhìn */
+  .picwrap{background:#fff;border:4px solid #111;border-radius:24px;padding:12px;display:inline-block}
+  .picwrap svg{display:block;width:auto;height:min(360px,40vh)}
+  .picwrap.small svg{height:min(260px,23vh)}
+  .confbar{width:100%;max-width:800px;height:40px;background:#fff;border:4px solid #111;border-radius:16px;overflow:hidden;margin:0.6vh auto}
+  .confbar .fill{height:100%;background:#66BB6A;width:96%;transition:width .3s,background .3s}
+  .confnum{font-size:min(40px,4.8vh);font-weight:800}
+  input[type=range]{
+    -webkit-appearance:none;appearance:none;
+    width:100%;max-width:820px;height:30px;border-radius:22px;
+    background:#FFE0B2;border:4px solid #111;outline:none;margin:0.8vh 0;
+  }
+  input[type=range]::-webkit-slider-thumb{
+    -webkit-appearance:none;appearance:none;
+    width:48px;height:48px;border-radius:50%;
+    background:#FF9800;border:5px solid #111;cursor:pointer;
+  }
+  input[type=range]::-moz-range-thumb{
+    width:44px;height:44px;border-radius:50%;
+    background:#FF9800;border:5px solid #111;cursor:pointer;
+  }
+  .sliderlabels{display:flex;justify-content:space-between;max-width:820px;width:100%;font-size:26px;font-weight:800}
+  .hidden{display:none !important}
+  /* ---- THỰC HÀNH ---- */
+  .stars{position:fixed;top:14px;left:22px;font-size:28px;font-weight:800;background:#fff;border:4px solid #111;border-radius:14px;padding:6px 16px;z-index:5}
+  .rowbtns{display:flex;gap:22px;justify-content:center;flex-wrap:wrap;margin-top:1vh}
+  .biginput{font-family:inherit;font-size:min(36px,4.4vh);font-weight:700;padding:14px 22px;border:4px solid #111;border-radius:18px;width:100%;max-width:920px;background:#fff;color:#111;margin:1vh 0}
+  .paintbtns{display:flex;gap:16px;justify-content:center;flex-wrap:wrap;margin:1vh 0}
+  .paint{font-family:inherit;font-size:min(30px,3.8vh);font-weight:800;border:4px solid #111;border-radius:18px;padding:12px 24px;cursor:pointer;background:#fff}
+  .paint.time{background:#BBDEFB}.paint.feel{background:#FFE0B2}.paint.why{background:#C8E6C9}
+  #th1-tokens .tok{cursor:pointer}
+  #th1-tokens .tok.sel{outline:6px solid #111;transform:scale(1.08)}
+  .opt.sel{background:#FFE0B2}
+  button.chip{font-family:inherit;cursor:pointer}
+  .pick{display:flex;gap:20px;justify-content:center;flex-wrap:wrap;margin:1vh 0}
+  .pickcard{background:#fff;border:4px solid #111;border-radius:24px;padding:12px 10px;width:240px;cursor:pointer}
+  .pickcard.sel{background:#FFE0B2;outline:6px solid #111}
+  .pickcard svg{height:170px;width:auto;display:block;margin:0 auto}
+  .pickcard .nm{font-size:30px;font-weight:800;margin-top:6px}
+  #cam{width:min(560px,84vw);border:4px solid #111;border-radius:24px;background:#fff;display:block;margin:1vh auto}
+  #camshot{display:none}
+</style>
+</head>
+<body>
+<div class="prog" id="prog"></div>
+<div class="stars hidden" id="stars">⭐ 0/4</div>
+
+<!-- 1. MỞ ĐẦU -->
+<section class="screen active" id="s-mo">
+  <div class="kicker">TIẾT 8 · LỚP 8</div>
+  <h1>🤖 MÁY NGHE NHẦM</h1>
+  <p class="big">Máy đọc, nghe, nhìn như thế nào?</p>
+  <div class="trio">
+    <div class="tile"><div class="ic">📖</div><div class="nm">ĐỌC</div><div class="ds">Tách câu thành<br>mảnh nhỏ</div></div>
+    <div class="tile"><div class="ic">🎙️</div><div class="nm">NGHE</div><div class="ds">Nghe giọng<br>thành chữ</div></div>
+    <div class="tile"><div class="ic">👁️</div><div class="nm">NHÌN</div><div class="ds">Nhìn ảnh<br>tìm đặc điểm</div></div>
+  </div>
+  <div class="rowbtns">
+    <button class="bigbtn" onclick="go('s-doc1')">BẮT ĐẦU ▶</button>
+    <button class="bigbtn green" onclick="go('th-menu')">✋ THỰC HÀNH</button>
+  </div>
+</section>
+
+<!-- 2. ĐỌC — BƯỚC 1: CÂU MẪU -->
+<section class="screen" id="s-doc1">
+  <div class="kicker">TRẠM 1 · ĐỌC</div>
+  <h2>Máy đọc câu này ra sao?</h2>
+  <div class="card"><div class="sentence">“Hôm nay em rất vui<br>vì được điểm tốt.”</div></div>
+  <p class="mid">Bấm nút, xem máy tách câu thành từng mảnh nhỏ.</p>
+  <button class="bigbtn" onclick="go('s-doc2')">TÁCH RA ✂️</button>
+  <button class="ghostbtn" onclick="go('s-mo')">← Quay lại đầu</button>
+</section>
+
+<!-- 3. ĐỌC — BƯỚC 2: TÁCH MẢNH -->
+<section class="screen" id="s-doc2">
+  <div class="kicker">TRẠM 1 · ĐỌC — BƯỚC 1</div>
+  <h2>Câu tách thành mảnh nhỏ</h2>
+  <div class="tokens" id="tokens"></div>
+  <div class="legend">
+    <span class="t">🕐 Thời gian</span>
+    <span class="f">😊 Cảm xúc</span>
+    <span class="w">🌱 Nguyên nhân</span>
+    <span class="o">🤍 Còn lại: em · rất · .</span>
+  </div>
+  <p class="small">Còn 'em' là người nói, 'rất' làm 'vui' mạnh hơn, '.' là dấu hết câu — máy vẫn tách và đánh số cả 3 mảnh này.</p>
+  <p class="small">Mỗi mảnh có 1 số minh họa — máy chỉ làm việc với số, không đọc chữ như mình.</p>
+  <button class="bigbtn" id="doc2-next" onclick="go('s-doc3')">TIẾP ▶</button>
+  <button class="ghostbtn" onclick="go('s-doc1')">← Quay lại</button>
+</section>
+
+<!-- 4. ĐỌC — BƯỚC 3: KẾT QUẢ + HỎI -->
+<section class="screen" id="s-doc3">
+  <div class="kicker">TRẠM 1 · ĐỌC — BƯỚC 2</div>
+  <h2>Máy rút ra được gì?</h2>
+  <div class="row3">
+    <div class="r"><span class="tag t">🕐 Thời gian</span><span class="val">Hôm nay</span></div>
+    <div class="r"><span class="tag f">😊 Cảm xúc</span><span class="val">vui</span></div>
+    <div class="r"><span class="tag w">🌱 Nguyên nhân</span><span class="val">được điểm tốt</span></div>
+  </div>
+  <p class="small">Còn 'em' (người nói), 'rất' (mức độ), '.' (hết câu) máy vẫn tách ra, chỉ là không thuộc 3 ý chính trên.</p>
+  <p class="big" style="margin-top:1vh">Máy tách câu ra để làm gì?</p>
+  <div class="quiz" id="q-doc">
+    <button class="opt" data-ok="1">Để đổi thành số<br>rồi xử lí</button>
+    <button class="opt" data-ok="0">Để đọc to<br>cho hay</button>
+  </div>
+  <div class="feedback" id="fb-doc"></div>
+  <button class="bigbtn green hidden" id="doc3-next" onclick="go('s-nghe1')">SANG TRẠM NGHE ▶</button>
+  <button class="ghostbtn" onclick="go('s-doc2')">← Quay lại</button>
+</section>
+
+<!-- 5. NGHE — BƯỚC 1: NÓI -->
+<section class="screen" id="s-nghe1">
+  <div class="kicker">TRẠM 2 · NGHE</div>
+  <h2>Nói với máy nghe thử</h2>
+  <p class="big">Mời 1 bạn nói to câu này:</p>
+  <div class="card"><div class="sentence">“Đặt báo thức<br>lúc sáu giờ sáng mai.”</div></div>
+  <button class="micbtn" id="micbtn" onclick="startListen()">🎙️</button>
+  <div class="wave" id="wave"><i></i><i></i><i></i><i></i><i></i></div>
+  <p class="mid" id="listen-status">Bấm vào cái loa rồi nói.</p>
+  <button class="bigbtn" id="sample-btn" onclick="useSample()">DÙNG CÂU MẪU</button>
+  <p class="small">Nhận giọng nói cần có mạng. Không có mạng thì bấm “Dùng câu mẫu”.</p>
+  <button class="ghostbtn" onclick="go('s-doc3')">← Quay lại trạm Đọc</button>
+</section>
+
+<!-- 6. NGHE — BƯỚC 2: HIỂU Ý -->
+<section class="screen" id="s-nghe2">
+  <div class="kicker">TRẠM 2 · NGHE — BƯỚC 2</div>
+  <h2>Máy nghe được:</h2>
+  <div class="card"><div class="heard" id="heard-text">“Đặt báo thức lúc sáu giờ sáng mai.”</div></div>
+  <p class="big">Máy hiểu ý thế này:</p>
+  <div class="chips">
+    <div class="chip">Việc làm:<br><b>Đặt báo thức</b></div>
+    <div class="chip">Giờ:<br><b>6:00</b></div>
+    <div class="chip">Ngày:<br><b>ngày mai</b></div>
+  </div>
+  <p class="mid">Nghe thành chữ khác với hiểu ý — nghe được chữ chưa chắc đã hiểu đúng ý.</p>
+  <button class="bigbtn" onclick="go('s-nghe3')">TIẾP ▶</button>
+  <button class="ghostbtn" onclick="go('s-nghe1')">← Nói lại</button>
+</section>
+
+<!-- 7. NGHE — BƯỚC 3: TIẾNG ỒN + HỎI -->
+<section class="screen" id="s-nghe3">
+  <div class="kicker">TRẠM 2 · NGHE — BƯỚC 3</div>
+  <h2>Lớp ồn thì máy nghe ra sao?</h2>
+  <button class="bigbtn" id="noise-btn" onclick="toggleNoise()">🔊 BẬT TIẾNG ỒN</button>
+  <div id="noise-result" class="hidden" style="margin-top:1vh">
+    <span class="badge">MÔ PHỎNG</span>
+    <div class="card"><div class="heard bad">“Đặt báo thức lúc sáu giờ <u>sáng nay</u>.”</div></div>
+    <p class="mid">Tiếng ồn làm máy nghe sai ngay lúc nghe thành chữ.</p>
+  </div>
+  <div id="noise-quiz" class="hidden">
+    <p class="big">Máy sai ở đâu?</p>
+    <div class="quiz" id="q-nghe">
+      <button class="opt" data-ok="1">Lúc nghe<br>thành chữ</button>
+      <button class="opt" data-ok="0">Lúc đặt<br>báo thức</button>
+    </div>
+    <div class="feedback" id="fb-nghe"></div>
+  </div>
+  <button class="bigbtn green hidden" id="nghe3-next" onclick="go('s-nhin1')">SANG TRẠM NHÌN ▶</button>
+  <button class="ghostbtn" onclick="go('s-nghe2')">← Quay lại</button>
+</section>
+
+<!-- 8. NHÌN — MÈO -->
+<section class="screen" id="s-nhin1">
+  <div class="kicker">TRẠM 3 · NHÌN — BƯỚC 1</div>
+  <h2>Máy nhìn con mèo ra sao?</h2>
+  <div class="picwrap">
+    <svg width="380" height="360" viewBox="0 0 400 380" role="img" aria-label="Con mèo">
+      <!-- đuôi -->
+      <path d="M305 300 Q 375 290 360 215" fill="none" stroke="#111" stroke-width="34" stroke-linecap="round"/>
+      <path d="M305 300 Q 375 290 360 215" fill="none" stroke="#FFA726" stroke-width="24" stroke-linecap="round"/>
+      <!-- thân -->
+      <ellipse cx="200" cy="300" rx="115" ry="68" fill="#FFA726" stroke="#111" stroke-width="5"/>
+      <!-- vằn thân -->
+      <path d="M150 255 l-12 34 M200 245 l0 38 M250 255 l12 34" stroke="#8D4E00" stroke-width="8" stroke-linecap="round"/>
+      <!-- chân trước -->
+      <ellipse cx="160" cy="358" rx="26" ry="16" fill="#FFA726" stroke="#111" stroke-width="4"/>
+      <ellipse cx="240" cy="358" rx="26" ry="16" fill="#FFA726" stroke="#111" stroke-width="4"/>
+      <!-- tai -->
+      <polygon points="118,88 138,8 192,62" fill="#FFA726" stroke="#111" stroke-width="5" stroke-linejoin="round"/>
+      <polygon points="282,88 262,8 208,62" fill="#FFA726" stroke="#111" stroke-width="5" stroke-linejoin="round"/>
+      <polygon points="136,72 146,32 176,58" fill="#F48FB1"/>
+      <polygon points="264,72 254,32 224,58" fill="#F48FB1"/>
+      <!-- đầu -->
+      <circle cx="200" cy="140" r="98" fill="#FFA726" stroke="#111" stroke-width="5"/>
+      <!-- vằn trán -->
+      <path d="M170 58 l-8 26 M200 50 l0 28 M230 58 l8 26" stroke="#8D4E00" stroke-width="7" stroke-linecap="round"/>
+      <!-- mắt -->
+      <circle cx="162" cy="132" r="20" fill="#fff" stroke="#111" stroke-width="4"/>
+      <circle cx="238" cy="132" r="20" fill="#fff" stroke="#111" stroke-width="4"/>
+      <circle cx="164" cy="134" r="10" fill="#111"/>
+      <circle cx="240" cy="134" r="10" fill="#111"/>
+      <circle cx="168" cy="130" r="3.5" fill="#fff"/>
+      <circle cx="244" cy="130" r="3.5" fill="#fff"/>
+      <!-- mũi + miệng -->
+      <polygon points="188,168 212,168 200,184" fill="#EC407A" stroke="#111" stroke-width="3" stroke-linejoin="round"/>
+      <path d="M200 184 Q 200 198 184 198 M200 184 Q 200 198 216 198" fill="none" stroke="#111" stroke-width="4" stroke-linecap="round"/>
+      <!-- ria mép -->
+      <path d="M96 158 L150 168 M98 182 L150 176 M304 158 L250 168 M302 182 L250 176" stroke="#111" stroke-width="4" stroke-linecap="round"/>
+    </svg>
+  </div>
+  <p class="mid">Ảnh là nhiều chấm nhỏ ghép lại. Máy tìm đặc điểm, rồi so với mẫu đã lưu.</p>
+  <button class="bigbtn" id="cat-btn" onclick="showCat()">MÁY NHÌN THẤY GÌ?</button>
+  <div class="chips hidden" id="cat-chips">
+    <div class="chip">👂 Tai nhọn</div>
+    <div class="chip">👀 Mắt to</div>
+    <div class="chip">〰️ Ria mép</div>
+    <div class="chip">🐾 Lông cam</div>
+  </div>
+  <div id="cat-result" class="hidden">
+    <div class="confnum">Đây là mèo — 96%</div>
+  </div>
+  <button class="bigbtn green hidden" id="cat-next" onclick="go('s-nhin2')">XEM CHIẾC LÁ ▶</button>
+  <button class="ghostbtn" onclick="go('s-nghe3')">← Quay lại trạm Nghe</button>
+</section>
+
+<!-- 9. NHÌN — LÁ SÂU BỆNH -->
+<section class="screen" id="s-nhin2">
+  <div class="kicker">TRẠM 3 · NHÌN — BƯỚC 2</div>
+  <h2>Máy nhìn chiếc lá ra sao?</h2>
+  <div class="picwrap">
+    <svg width="380" height="360" viewBox="0 0 400 380" role="img" aria-label="Chiếc lá sâu bệnh">
+      <!-- cuống -->
+      <path d="M200 330 L200 368" stroke="#5D4037" stroke-width="12" stroke-linecap="round"/>
+      <!-- lá -->
+      <path d="M200 20 C 330 90 350 230 200 330 C 50 230 70 90 200 20 Z" fill="#66BB6A" stroke="#111" stroke-width="5"/>
+      <!-- gân -->
+      <path d="M200 30 L200 325 M200 110 L140 160 M200 110 L260 160 M200 190 L130 240 M200 190 L270 240 M200 265 L155 300 M200 265 L245 300" stroke="#2E7D32" stroke-width="5" stroke-linecap="round" fill="none"/>
+      <!-- đốm nâu -->
+      <circle cx="150" cy="130" r="18" fill="#8D4E00"/>
+      <circle cx="255" cy="175" r="24" fill="#8D4E00"/>
+      <circle cx="180" cy="235" r="14" fill="#8D4E00"/>
+      <circle cx="245" cy="265" r="12" fill="#8D4E00"/>
+      <!-- lỗ thủng -->
+      <circle cx="225" cy="120" r="14" fill="#FFFBE6" stroke="#111" stroke-width="4"/>
+      <circle cx="160" cy="200" r="11" fill="#FFFBE6" stroke="#111" stroke-width="4"/>
+    </svg>
+  </div>
+  <button class="bigbtn" id="leaf-btn" onclick="showLeaf()">MÁY NHÌN THẤY GÌ?</button>
+  <div class="chips hidden" id="leaf-chips">
+    <div class="chip">🟤 Đốm nâu</div>
+    <div class="chip">🕳️ Lỗ thủng</div>
+    <div class="chip">🍃 Viền lá</div>
+  </div>
+  <div id="leaf-result" class="hidden">
+    <div class="confnum">Lá sâu bệnh — 90%</div>
+  </div>
+  <button class="bigbtn green hidden" id="leaf-next" onclick="go('s-nhin3')">THỬ ẢNH TỐI ▶</button>
+  <button class="ghostbtn" onclick="go('s-nhin1')">← Quay lại con mèo</button>
+</section>
+
+<!-- 10. NHÌN — TỐI / MỜ + HỎI -->
+<section class="screen" id="s-nhin3">
+  <div class="kicker">TRẠM 3 · NHÌN — BƯỚC 3</div>
+  <h2>Kéo cho ảnh tối dần, xem máy đoán ra sao</h2>
+  <div class="picwrap small" id="dim-wrap" style="filter:brightness(1) blur(0px)">
+    <svg width="330" height="310" viewBox="0 0 400 380" role="img" aria-label="Chiếc lá để thử độ sáng">
+      <path d="M200 330 L200 368" stroke="#5D4037" stroke-width="12" stroke-linecap="round"/>
+      <path d="M200 20 C 330 90 350 230 200 330 C 50 230 70 90 200 20 Z" fill="#66BB6A" stroke="#111" stroke-width="5"/>
+      <path d="M200 30 L200 325 M200 110 L140 160 M200 110 L260 160 M200 190 L130 240 M200 190 L270 240 M200 265 L155 300 M200 265 L245 300" stroke="#2E7D32" stroke-width="5" stroke-linecap="round" fill="none"/>
+      <circle cx="150" cy="130" r="18" fill="#8D4E00"/>
+      <circle cx="255" cy="175" r="24" fill="#8D4E00"/>
+      <circle cx="180" cy="235" r="14" fill="#8D4E00"/>
+      <circle cx="245" cy="265" r="12" fill="#8D4E00"/>
+      <circle cx="225" cy="120" r="14" fill="#FFFBE6" stroke="#111" stroke-width="4"/>
+      <circle cx="160" cy="200" r="11" fill="#FFFBE6" stroke="#111" stroke-width="4"/>
+    </svg>
+  </div>
+  <div class="sliderlabels"><span>☀️ Sáng</span><span id="bright-label">Đủ sáng 100%</span><span>🌙 Tối</span></div>
+  <input type="range" id="bright" min="30" max="100" value="100" oninput="updateBright()">
+  <div class="confbar"><div class="fill" id="conf-fill"></div></div>
+  <div class="confnum" id="conf-num">Độ chắc chắn: 96%</div>
+  <div class="feedback" id="dim-msg">Lá sâu bệnh — 90%</div>
+  <div id="dim-quiz" class="hidden">
+    <p class="big">Vì sao máy đoán sai?</p>
+    <div class="quiz" id="q-nhin">
+      <button class="opt" data-ok="1">Vì ảnh tối<br>và mờ</button>
+      <button class="opt" data-ok="0">Vì máy<br>mệt</button>
+    </div>
+    <div class="feedback" id="fb-nhin"></div>
+  </div>
+  <button class="bigbtn green hidden" id="nhin3-next" onclick="go('s-ket')">XEM KẾT LUẬN ▶</button>
+  <button class="ghostbtn" id="nhin3-back" onclick="go('s-nhin2')">← Quay lại chiếc lá</button>
+</section>
+
+<!-- THỰC HÀNH — BẢNG CHỌN -->
+<section class="screen" id="th-menu">
+  <div class="kicker">✋ THỰC HÀNH</div>
+  <h2>Chọn 1 thử thách — 1 bạn lên làm,<br>cả lớp đoán trước rồi mới xem kết quả</h2>
+  <p class="big" id="menu-stars">⭐ 0/4</p>
+  <div class="trio">
+    <div class="tile" onclick="go('th1a')" style="cursor:pointer"><div class="ic">✂️</div><div class="nm">THỬ 1</div><div class="ds">Tách câu của em</div><div class="ds" id="st-t1">Chưa làm</div></div>
+    <div class="tile" onclick="go('th2a')" style="cursor:pointer"><div class="ic">🎙️</div><div class="nm">THỬ 2</div><div class="ds">Nói để máy làm</div><div class="ds" id="st-t2">Chưa làm</div></div>
+    <div class="tile" onclick="go('th3a')" style="cursor:pointer"><div class="ic">👁️</div><div class="nm">THỬ 3</div><div class="ds">Đố máy nhìn</div><div class="ds" id="st-t3">Chưa làm</div></div>
+  </div>
+  <button class="bigbtn" onclick="go('th-sum')">XEM TỔNG KẾT ▶</button>
+  <button class="ghostbtn" onclick="go('s-mo')">← Về đầu</button>
+</section>
+
+<!-- THỬ 1 — GÕ CÂU -->
+<section class="screen" id="th1a">
+  <div class="kicker">THỬ 1 · TÁCH CÂU CỦA EM</div>
+  <h2>Nói 1 câu của em, rồi gõ vào đây</h2>
+  <input type="text" class="biginput" id="th1-input" placeholder="Ví dụ: Chiều nay em đá bóng với bạn." maxlength="80">
+  <p class="mid">Bí câu? Bấm 1 câu có sẵn:</p>
+  <div class="chips">
+    <button class="chip" onclick="fillSug(0)">Chiều nay em đá bóng với bạn.</button>
+    <button class="chip" onclick="fillSug(1)">Hôm nay em rất vui vì được điểm tốt.</button>
+    <button class="chip" onclick="fillSug(2)">Sáng mai em đi học lúc bảy giờ.</button>
+  </div>
+  <button class="bigbtn" onclick="startTh1()">TÁCH RA ✂️</button>
+  <button class="ghostbtn" onclick="go('th-menu')">← Về bảng thực hành</button>
+</section>
+
+<!-- THỬ 1 — TÔ MÀU -->
+<section class="screen" id="th1b">
+  <div class="kicker">THỬ 1 · TÔ MÀU TỪNG MẢNH</div>
+  <h2>Bấm 1 mảnh, rồi bấm màu cho nó</h2>
+  <div class="tokens" id="th1-tokens"></div>
+  <div class="paintbtns">
+    <button class="paint time" onclick="paintSel('time')">🕐 Thời gian</button>
+    <button class="paint feel" onclick="paintSel('feel')">😊 Cảm xúc</button>
+    <button class="paint why" onclick="paintSel('why')">🌱 Nguyên nhân</button>
+    <button class="paint" onclick="paintSel('')">🧽 Xóa màu</button>
+  </div>
+  <p class="small">Mảnh nào không phải thời gian, cảm xúc hay nguyên nhân thì để trắng, không cần tô — VD 'em' là người nói, 'rất' làm 'vui' mạnh hơn, '.' là dấu hết câu.</p>
+  <div class="feedback" id="fb-th1"></div>
+  <button class="bigbtn" id="th1-check" onclick="checkTh1()">KIỂM TRA ✓</button>
+  <button class="bigbtn green hidden" id="th1-next" onclick="go('th-menu')">XONG — VỀ BẢNG THỰC HÀNH</button>
+  <button class="ghostbtn" onclick="nextTurn(1)">👤 Bạn khác làm tiếp</button>
+</section>
+
+<!-- THỬ 2 — CHỌN LỆNH + NÓI -->
+<section class="screen" id="th2a">
+  <div class="kicker">THỬ 2 · NÓI ĐỂ MÁY LÀM</div>
+  <h2>Chọn 1 lệnh, rồi nói to vào mic</h2>
+  <div class="quiz" id="th2-cmds">
+    <button class="opt" data-cmd="0">⏰ Đặt báo thức<br>lúc bảy giờ tối nay</button>
+    <button class="opt" data-cmd="1">🎵 Mở nhạc</button>
+    <button class="opt" data-cmd="2">🌧️ Hôm nay<br>trời mưa to</button>
+  </div>
+  <p class="mid">Hoặc nói câu của mình cũng được.</p>
+  <button class="micbtn" id="micbtn2" onclick="startListen2()">🎙️</button>
+  <div class="wave" id="wave2"><i></i><i></i><i></i><i></i><i></i></div>
+  <p class="mid" id="listen2-status">Chọn 1 lệnh rồi bấm vào cái loa.</p>
+  <button class="bigbtn" onclick="useSample2()">DÙNG CÂU MẪU</button>
+  <p class="small">Nhận giọng nói cần có mạng. Không có mạng thì bấm “Dùng câu mẫu”.</p>
+  <button class="ghostbtn" onclick="go('th-menu')">← Về bảng thực hành</button>
+</section>
+
+<!-- THỬ 2 — KẾT QUẢ NGHE -->
+<section class="screen" id="th2b">
+  <div class="kicker">THỬ 2 · MÁY NGHE ĐƯỢC</div>
+  <h2>Máy nghe được:</h2>
+  <div class="card"><div class="heard" id="heard2-text"></div></div>
+  <p class="big">Máy hiểu ý thế này:</p>
+  <div class="chips" id="heard2-chips"></div>
+  <div class="feedback" id="fb-th2"></div>
+  <button class="bigbtn" onclick="go('th2c')">THỬ LÚC ỒN ▶</button>
+  <button class="ghostbtn" onclick="go('th2a')">🔄 Nói lại</button>
+  <button class="ghostbtn" onclick="nextTurn(2)">👤 Bạn khác làm tiếp</button>
+</section>
+
+<!-- THỬ 2 — LÚC ỒN -->
+<section class="screen" id="th2c">
+  <div class="kicker">THỬ 2 · LÚC ỒN</div>
+  <h2>Bật tiếng ồn lên, xem máy nghe ra sao</h2>
+  <button class="bigbtn" id="noise2-btn" onclick="toggleNoise2()">🔊 BẬT TIẾNG ỒN</button>
+  <div id="noise2-result" class="hidden" style="margin-top:1vh">
+    <span class="badge">MÔ PHỎNG</span>
+    <div class="card"><div class="heard bad" id="noise2-text"></div></div>
+    <p class="mid">Tiếng ồn làm máy nghe sai ngay lúc nghe thành chữ.</p>
+  </div>
+  <div id="noise2-quiz" class="hidden">
+    <p class="big">Máy sai ở bước nào?</p>
+    <div class="quiz" id="q-th2">
+      <button class="opt" data-ok="1">Lúc nghe<br>thành chữ</button>
+      <button class="opt" data-ok="0">Lúc hiểu ý</button>
+    </div>
+    <div class="feedback" id="fb-th2n"></div>
+  </div>
+  <button class="bigbtn green hidden" id="th2c-next" onclick="go('th-menu')">XONG — VỀ BẢNG THỰC HÀNH</button>
+  <button class="ghostbtn" onclick="nextTurn(2)">👤 Bạn khác làm tiếp</button>
+</section>
+
+<!-- THỬ 3 — CHỌN ẢNH + VOTE -->
+<section class="screen" id="th3a">
+  <div class="kicker">THỬ 3 · ĐỐ MÁY NHÌN</div>
+  <h2>Chọn 1 ảnh — cả lớp đoán trước:<br>máy đoán đúng hay sai?</h2>
+  <div class="pick" id="th3-picks">
+    <div class="pickcard" data-img="cat">
+      <svg width="200" height="190" viewBox="0 0 400 380" role="img" aria-label="Con mèo">
+        <path d="M305 300 Q 375 290 360 215" fill="none" stroke="#111" stroke-width="34" stroke-linecap="round"/>
+        <path d="M305 300 Q 375 290 360 215" fill="none" stroke="#FFA726" stroke-width="24" stroke-linecap="round"/>
+        <ellipse cx="200" cy="300" rx="115" ry="68" fill="#FFA726" stroke="#111" stroke-width="5"/>
+        <path d="M150 255 l-12 34 M200 245 l0 38 M250 255 l12 34" stroke="#8D4E00" stroke-width="8" stroke-linecap="round"/>
+        <ellipse cx="160" cy="358" rx="26" ry="16" fill="#FFA726" stroke="#111" stroke-width="4"/>
+        <ellipse cx="240" cy="358" rx="26" ry="16" fill="#FFA726" stroke="#111" stroke-width="4"/>
+        <polygon points="118,88 138,8 192,62" fill="#FFA726" stroke="#111" stroke-width="5" stroke-linejoin="round"/>
+        <polygon points="282,88 262,8 208,62" fill="#FFA726" stroke="#111" stroke-width="5" stroke-linejoin="round"/>
+        <polygon points="136,72 146,32 176,58" fill="#F48FB1"/>
+        <polygon points="264,72 254,32 224,58" fill="#F48FB1"/>
+        <circle cx="200" cy="140" r="98" fill="#FFA726" stroke="#111" stroke-width="5"/>
+        <path d="M170 58 l-8 26 M200 50 l0 28 M230 58 l8 26" stroke="#8D4E00" stroke-width="7" stroke-linecap="round"/>
+        <circle cx="162" cy="132" r="20" fill="#fff" stroke="#111" stroke-width="4"/>
+        <circle cx="238" cy="132" r="20" fill="#fff" stroke="#111" stroke-width="4"/>
+        <circle cx="164" cy="134" r="10" fill="#111"/>
+        <circle cx="240" cy="134" r="10" fill="#111"/>
+        <circle cx="168" cy="130" r="3.5" fill="#fff"/>
+        <circle cx="244" cy="130" r="3.5" fill="#fff"/>
+        <polygon points="188,168 212,168 200,184" fill="#EC407A" stroke="#111" stroke-width="3" stroke-linejoin="round"/>
+        <path d="M200 184 Q 200 198 184 198 M200 184 Q 200 198 216 198" fill="none" stroke="#111" stroke-width="4" stroke-linecap="round"/>
+        <path d="M96 158 L150 168 M98 182 L150 176 M304 158 L250 168 M302 182 L250 176" stroke="#111" stroke-width="4" stroke-linecap="round"/>
+      </svg>
+      <div class="nm">🐱 Con mèo</div>
+    </div>
+    <div class="pickcard" data-img="dog">
+      <svg width="200" height="190" viewBox="0 0 400 380" role="img" aria-label="Con chó">
+        <path d="M300 300 Q 370 290 355 220" fill="none" stroke="#111" stroke-width="30" stroke-linecap="round"/>
+        <path d="M300 300 Q 370 290 355 220" fill="none" stroke="#A1887F" stroke-width="20" stroke-linecap="round"/>
+        <ellipse cx="200" cy="300" rx="115" ry="68" fill="#BCAAA4" stroke="#111" stroke-width="5"/>
+        <ellipse cx="160" cy="358" rx="26" ry="16" fill="#BCAAA4" stroke="#111" stroke-width="4"/>
+        <ellipse cx="240" cy="358" rx="26" ry="16" fill="#BCAAA4" stroke="#111" stroke-width="4"/>
+        <ellipse cx="108" cy="130" rx="26" ry="62" fill="#8D6E63" stroke="#111" stroke-width="5" transform="rotate(12 108 130)"/>
+        <ellipse cx="292" cy="130" rx="26" ry="62" fill="#8D6E63" stroke="#111" stroke-width="5" transform="rotate(-12 292 130)"/>
+        <circle cx="200" cy="140" r="96" fill="#BCAAA4" stroke="#111" stroke-width="5"/>
+        <circle cx="162" cy="130" r="18" fill="#fff" stroke="#111" stroke-width="4"/>
+        <circle cx="238" cy="130" r="18" fill="#fff" stroke="#111" stroke-width="4"/>
+        <circle cx="164" cy="132" r="9" fill="#111"/>
+        <circle cx="240" cy="132" r="9" fill="#111"/>
+        <ellipse cx="200" cy="185" rx="52" ry="36" fill="#D7CCC8" stroke="#111" stroke-width="4"/>
+        <ellipse cx="200" cy="168" rx="20" ry="13" fill="#111"/>
+        <path d="M200 182 Q 200 196 184 196 M200 182 Q 200 196 216 196" fill="none" stroke="#111" stroke-width="4" stroke-linecap="round"/>
+      </svg>
+      <div class="nm">🐶 Con chó</div>
+    </div>
+    <div class="pickcard" data-img="leafok">
+      <svg width="200" height="190" viewBox="0 0 400 380" role="img" aria-label="Lá khỏe">
+        <path d="M200 330 L200 368" stroke="#5D4037" stroke-width="12" stroke-linecap="round"/>
+        <path d="M200 20 C 330 90 350 230 200 330 C 50 230 70 90 200 20 Z" fill="#66BB6A" stroke="#111" stroke-width="5"/>
+        <path d="M200 30 L200 325 M200 110 L140 160 M200 110 L260 160 M200 190 L130 240 M200 190 L270 240 M200 265 L155 300 M200 265 L245 300" stroke="#2E7D32" stroke-width="5" stroke-linecap="round" fill="none"/>
+      </svg>
+      <div class="nm">🍃 Lá khỏe</div>
+    </div>
+    <div class="pickcard" data-img="leafsick">
+      <svg width="200" height="190" viewBox="0 0 400 380" role="img" aria-label="Lá sâu bệnh">
+        <path d="M200 330 L200 368" stroke="#5D4037" stroke-width="12" stroke-linecap="round"/>
+        <path d="M200 20 C 330 90 350 230 200 330 C 50 230 70 90 200 20 Z" fill="#66BB6A" stroke="#111" stroke-width="5"/>
+        <path d="M200 30 L200 325 M200 110 L140 160 M200 110 L260 160 M200 190 L130 240 M200 190 L270 240 M200 265 L155 300 M200 265 L245 300" stroke="#2E7D32" stroke-width="5" stroke-linecap="round" fill="none"/>
+        <circle cx="150" cy="130" r="18" fill="#8D4E00"/>
+        <circle cx="255" cy="175" r="24" fill="#8D4E00"/>
+        <circle cx="180" cy="235" r="14" fill="#8D4E00"/>
+        <circle cx="245" cy="265" r="12" fill="#8D4E00"/>
+        <circle cx="225" cy="120" r="14" fill="#FFFBE6" stroke="#111" stroke-width="4"/>
+        <circle cx="160" cy="200" r="11" fill="#FFFBE6" stroke="#111" stroke-width="4"/>
+      </svg>
+      <div class="nm">🍂 Lá sâu bệnh</div>
+    </div>
+  </div>
+  <div class="quiz" id="th3-vote">
+    <button class="opt" data-v="dung">👍 Máy đoán ĐÚNG</button>
+    <button class="opt" data-v="sai">👎 Máy đoán SAI</button>
+  </div>
+  <p class="mid" id="vote-note">Cả lớp giơ tay vote trước đã nhé.</p>
+  <button class="bigbtn" id="th3-look" onclick="goTh3b()" disabled>CHO MÁY NHÌN ▶</button>
+  <button class="ghostbtn" onclick="go('th-menu')">← Về bảng thực hành</button>
+</section>
+
+<!-- THỬ 3 — MÁY NHÌN -->
+<section class="screen" id="th3b">
+  <div class="kicker">THỬ 3 · MÁY NHÌN</div>
+  <h2 id="th3b-title">Máy nhìn thấy gì?</h2>
+  <div class="picwrap" id="th3b-pic"></div>
+  <div class="chips" id="th3b-chips"></div>
+  <div class="confnum" id="th3b-guess"></div>
+  <div class="feedback" id="fb-th3"></div>
+  <button class="bigbtn" onclick="go('th3c')">THỬ ẢNH TỐI ▶</button>
+  <button class="ghostbtn" onclick="nextTurn(3)">👤 Bạn khác làm tiếp</button>
+</section>
+
+<!-- THỬ 3 — ẢNH TỐI -->
+<section class="screen" id="th3c">
+  <div class="kicker">THỬ 3 · ẢNH TỐI</div>
+  <h2>Kéo cho ảnh tối dần, xem máy đoán ra sao</h2>
+  <div class="picwrap small" id="dim3-wrap"></div>
+  <div class="sliderlabels"><span>☀️ Sáng</span><span id="bright3-label">Đủ sáng 100%</span><span>🌙 Tối</span></div>
+  <input type="range" id="bright3" min="30" max="100" value="100" oninput="updateBright3()">
+  <div class="confbar"><div class="fill" id="conf3-fill"></div></div>
+  <div class="confnum" id="conf3-num">Độ chắc chắn: 96%</div>
+  <div class="feedback" id="dim3-msg"></div>
+  <button class="bigbtn" onclick="go('th3d')">THỬ BẰNG WEBCAM ▶</button>
+  <button class="ghostbtn" onclick="nextTurn(3)">👤 Bạn khác làm tiếp</button>
+  <button class="ghostbtn" onclick="go('th-menu')">← Về bảng thực hành</button>
+</section>
+
+<!-- THỬ 3 — WEBCAM -->
+<section class="screen" id="th3d">
+  <div class="kicker">THỬ 3 · WEBCAM</div>
+  <h2>Giơ đồ vật trước camera, bấm chụp</h2>
+  <video id="cam" autoplay playsinline class="hidden"></video>
+  <canvas id="camshot"></canvas>
+  <p class="mid" id="cam-status">Bấm “Bật camera” rồi giơ đồ vật hoặc mặt trước camera.</p>
+  <div class="rowbtns">
+    <button class="bigbtn" id="cam-on" onclick="startCam()">📷 BẬT CAMERA</button>
+    <button class="bigbtn" id="cam-shot" onclick="snapCam()" disabled>CHỤP 📸</button>
+  </div>
+  <div id="cam-result" class="hidden">
+    <div class="card"><div class="heard" id="cam-guess"></div></div>
+    <p class="small">Máy đoán bằng cách so màu với mẫu đã lưu — chỉ là cách so đơn giản, không phải mạng nơ-ron thật.</p>
+  </div>
+  <button class="bigbtn green" onclick="go('th-menu')">XONG — VỀ BẢNG THỰC HÀNH</button>
+  <button class="ghostbtn" onclick="go('th3c')">← Quay lại ảnh tối</button>
+</section>
+
+<!-- THỰC HÀNH — TỔNG KẾT -->
+<section class="screen" id="th-sum">
+  <div class="kicker">✋ THỰC HÀNH · TỔNG KẾT</div>
+  <h1 style="font-size:min(52px,6.5vh)">Em đã tự tay thử cả 3 việc:<br>tách câu, nói để máy làm,<br>đố máy nhìn.</h1>
+  <p class="big" id="sum-stars">⭐ 0/4</p>
+  <p class="big">Về nhóm vẽ sơ đồ 3 việc này<br>lên giấy A3 nhé.</p>
+  <button class="bigbtn" onclick="resetPractice()">CHƠI LẠI TỪ ĐẦU ↺</button>
+  <button class="ghostbtn" onclick="go('s-mo')">← Về đầu</button>
+</section>
+
+<!-- 11. KẾT LUẬN -->
+<section class="screen" id="s-ket">
+  <div class="kicker">KẾT LUẬN</div>
+  <h1 style="font-size:min(52px,6.5vh)">Máy không đọc, nghe, nhìn<br>như con người.</h1>
+  <p class="big">Máy đổi mọi thứ thành số,<br>rồi so với mẫu đã học.</p>
+  <div class="rowbtns">
+    <button class="bigbtn" onclick="go('s-mo')">CHƠI LẠI TỪ ĐẦU ↺</button>
+    <button class="bigbtn green" onclick="go('th-menu')">✋ VÀO THỰC HÀNH</button>
+  </div>
+</section>
+
+<script>
+var ORDER=['s-mo','s-doc1','s-doc2','s-doc3','s-nghe1','s-nghe2','s-nghe3','s-nhin1','s-nhin2','s-nhin3','s-ket'];
+var tokTimers=[];
+function go(id){
+  stopNoise(); stopNoise2();
+  var cur=document.querySelector('.screen.active');
+  if(cur && cur.id==='th3d') stopCam();
+  document.querySelectorAll('.screen').forEach(function(s){s.classList.remove('active')});
+  var el=document.getElementById(id);
+  el.classList.add('active');
+  var pi=PORDER.indexOf(id);
+  if(pi>=0){
+    document.getElementById('prog').textContent='THỰC HÀNH '+(pi+1)+' / '+PORDER.length;
+    document.getElementById('stars').classList.remove('hidden');
+    updateStars();
+  }else{
+    var i=ORDER.indexOf(id);
+    document.getElementById('prog').textContent=(i+1)+' / '+ORDER.length;
+    document.getElementById('stars').classList.add('hidden');
+  }
+  if(id==='s-doc2') animateTokens();
+  if(id==='th3c') fillTh3c();
+  if(location.hash!=='#'+id) history.replaceState(null,'','#'+id);
+  window.scrollTo(0,0);
+}
+var TOKENS=[
+  ['Hôm','125','time'],['nay','86','time'],['em','247',''],
+  ['rất','531',''],['vui','920','feel'],['vì','394','why'],
+  ['được','411','why'],['điểm','182','why'],['tốt','751','why'],['.','146','']
+];
+function animateTokens(){
+  tokTimers.forEach(clearTimeout); tokTimers=[];
+  var box=document.getElementById('tokens');
+  box.innerHTML='';
+  TOKENS.forEach(function(t,i){
+    var d=document.createElement('div');
+    d.className='tok '+t[2];
+    d.innerHTML='<span class="w">'+t[0]+'</span><span class="n">'+t[1]+'</span>';
+    box.appendChild(d);
+    tokTimers.push(setTimeout(function(){d.classList.add('show')}, 350*(i+1)));
+  });
+  var next=document.getElementById('doc2-next');
+  next.disabled=true;
+  tokTimers.push(setTimeout(function(){next.disabled=false}, 350*TOKENS.length+400));
+}
+function wireQuiz(qid, fbid, nextid){
+  var q=document.getElementById(qid);
+  q.querySelectorAll('.opt').forEach(function(b){
+    b.addEventListener('click',function(){
+      q.querySelectorAll('.opt').forEach(function(x){x.classList.remove('right','wrong')});
+      var fb=document.getElementById(fbid);
+      if(b.dataset.ok==='1'){
+        b.classList.add('right');
+        fb.textContent='✅ Đúng rồi!'; fb.className='feedback ok';
+        document.getElementById(nextid).classList.remove('hidden');
+      }else{
+        b.classList.add('wrong');
+        fb.textContent='❌ Chưa đúng — thử lại nhé.'; fb.className='feedback no';
+      }
+    });
+  });
+}
+wireQuiz('q-doc','fb-doc','doc3-next');
+wireQuiz('q-nghe','fb-nghe','nghe3-next');
+wireQuiz('q-nhin','fb-nhin','nhin3-next');
+
+/* ---- NGHE: mic thật ---- */
+var recog=null, listening=false, listenTry=0;
+function startListen(){
+  var SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  var st=document.getElementById('listen-status');
+  var btn=document.getElementById('micbtn');
+  var wave=document.getElementById('wave');
+  if(!SR){
+    st.textContent='Trình duyệt này không nghe được — bấm “Dùng câu mẫu” nhé.';
+    return;
+  }
+  var myTry=++listenTry;
+  try{
+    recog=new SR();
+    recog.lang='vi-VN'; recog.interimResults=false; recog.maxAlternatives=1;
+    recog.onstart=function(){listening=true;btn.classList.add('listening');wave.classList.add('on');st.textContent='Đang nghe… nói đi!';};
+    recog.onresult=function(e){
+      var txt=e.results[0][0].transcript;
+      document.getElementById('heard-text').textContent='“'+txt+'”';
+      stopListenUI();
+      go('s-nghe2');
+    };
+    recog.onerror=function(){
+      stopListenUI();
+      st.textContent='Chưa nghe được (cần mạng). Bấm “Dùng câu mẫu” nhé.';
+    };
+    recog.onend=function(){ if(listening) stopListenUI(); };
+    recog.start();
+    /* nếu 4 giây mà mic vẫn chưa mở được thì báo rõ, đừng để im lặng */
+    setTimeout(function(){
+      if(myTry===listenTry && !listening && document.querySelector('.screen.active').id==='s-nghe1'){
+        stopListenUI();
+        st.textContent='Chưa mở được mic (cần mạng hoặc chưa cho phép). Bấm “Dùng câu mẫu” nhé.';
+      }
+    },4000);
+  }catch(err){
+    st.textContent='Chưa nghe được. Bấm “Dùng câu mẫu” nhé.';
+  }
+}
+function stopListenUI(){
+  listening=false;
+  document.getElementById('micbtn').classList.remove('listening');
+  document.getElementById('wave').classList.remove('on');
+}
+function useSample(){
+  stopListenUI();
+  document.getElementById('heard-text').textContent='“Đặt báo thức lúc sáu giờ sáng mai.”';
+  go('s-nghe2');
+}
+
+/* ---- NGHE: tiếng ồn (Web Audio, chỉ phát khi bấm) ---- */
+var audioCtx=null, noiseNode=null, noiseOn=false;
+function toggleNoise(){
+  var btn=document.getElementById('noise-btn');
+  if(!noiseOn){
+    try{
+      audioCtx=audioCtx||new (window.AudioContext||window.webkitAudioContext)();
+      var len=audioCtx.sampleRate*2;
+      var buf=audioCtx.createBuffer(1,len,audioCtx.sampleRate);
+      var d=buf.getChannelData(0);
+      for(var i=0;i<len;i++) d[i]=Math.random()*2-1;
+      noiseNode=audioCtx.createBufferSource();
+      noiseNode.buffer=buf; noiseNode.loop=true;
+      var g=audioCtx.createGain(); g.gain.value=0.12;
+      noiseNode.connect(g); g.connect(audioCtx.destination);
+      noiseNode.start();
+    }catch(e){}
+    noiseOn=true;
+    btn.textContent='🔇 TẮT TIẾNG ỒN';
+    document.getElementById('noise-result').classList.remove('hidden');
+    document.getElementById('noise-quiz').classList.remove('hidden');
+  }else{
+    stopNoise();
+    btn.textContent='🔊 BẬT TIẾNG ỒN';
+  }
+}
+function stopNoise(){
+  if(noiseNode){try{noiseNode.stop()}catch(e){} noiseNode=null;}
+  noiseOn=false;
+  var b=document.getElementById('noise-btn');
+  if(b) b.textContent='🔊 BẬT TIẾNG ỒN';
+}
+
+/* ---- NHÌN ---- */
+function showCat(){
+  document.getElementById('cat-chips').classList.remove('hidden');
+  document.getElementById('cat-result').classList.remove('hidden');
+  document.getElementById('cat-btn').classList.add('hidden');
+  document.getElementById('cat-next').classList.remove('hidden');
+}
+function showLeaf(){
+  document.getElementById('leaf-chips').classList.remove('hidden');
+  document.getElementById('leaf-result').classList.remove('hidden');
+  document.getElementById('leaf-btn').classList.add('hidden');
+  document.getElementById('leaf-next').classList.remove('hidden');
+}
+function updateBright(){
+  var b=+document.getElementById('bright').value; /* 30..100 */
+  var blur=((100-b)/12).toFixed(1);
+  document.getElementById('dim-wrap').style.filter='brightness('+(b/100)+') blur('+blur+'px)';
+  document.getElementById('bright-label').textContent = b>=90 ? 'Đủ sáng '+b+'%' : (b>=60 ? 'Hơi tối '+b+'%' : 'Rất tối '+b+'%');
+  var conf=Math.round(28+(b-30)*0.97);
+  var fill=document.getElementById('conf-fill');
+  fill.style.width=conf+'%';
+  fill.style.background = conf>=70 ? '#66BB6A' : (conf>=45 ? '#FFCA28' : '#EF5350');
+  document.getElementById('conf-num').textContent='Độ chắc chắn: '+conf+'%';
+  var msg=document.getElementById('dim-msg');
+  if(b<=55){
+    msg.textContent='⚠️ Đoán sai rồi! Ảnh tối, mờ làm máy đoán sai.';
+    msg.className='feedback no';
+    msg.classList.add('hidden'); /* ẩn dòng này khi hỏi, vì nó đã lộ đáp án */
+    document.getElementById('dim-quiz').classList.remove('hidden');
+    document.getElementById('nhin3-back').classList.add('hidden');
+  }else{
+    msg.textContent='Lá sâu bệnh — 90%';
+    msg.className='feedback';
+    msg.classList.remove('hidden');
+    document.getElementById('nhin3-back').classList.remove('hidden');
+  }
+}
+
+/* ---- THỰC HÀNH: sao ---- */
+var PORDER=['th-menu','th1a','th1b','th2a','th2b','th2c','th3a','th3b','th3c','th3d','th-sum'];
+var stars={t1:false,t2a:false,t2b:false,t3:false};
+function starCount(){return (stars.t1?1:0)+(stars.t2a?1:0)+(stars.t2b?1:0)+(stars.t3?1:0);}
+function updateStars(){
+  var t='⭐ '+starCount()+'/4';
+  document.getElementById('stars').textContent=t;
+  var m=document.getElementById('menu-stars'); if(m) m.textContent=t;
+  var s=document.getElementById('sum-stars'); if(s) s.textContent=t;
+  var n2=(stars.t2a?1:0)+(stars.t2b?1:0);
+  document.getElementById('st-t1').textContent=stars.t1?'✅ Xong — ⭐ 1':'Chưa làm';
+  document.getElementById('st-t2').textContent=n2>0?'✅ Xong — ⭐ '+n2:'Chưa làm';
+  document.getElementById('st-t3').textContent=stars.t3?'✅ Xong — ⭐ 1':'Chưa làm';
+}
+function award(k){ if(!stars[k]){stars[k]=true; updateStars();} }
+function nextTurn(n){
+  if(n===1){
+    document.getElementById('th1-input').value='';
+    th1Toks=[]; th1Sel=-1; th1Tries=0;
+    document.getElementById('th1-tokens').innerHTML='';
+    document.getElementById('fb-th1').textContent='';
+    document.getElementById('th1-check').classList.remove('hidden');
+    document.getElementById('th1-next').classList.add('hidden');
+    go('th1a');
+  }
+  if(n===2){
+    selCmd=-1; heard2='';
+    document.querySelectorAll('#th2-cmds .opt').forEach(function(x){x.classList.remove('sel');});
+    document.getElementById('listen2-status').textContent='Chọn 1 lệnh rồi bấm vào cái loa.';
+    document.getElementById('fb-th2').textContent='';
+    go('th2a');
+  }
+  if(n===3){
+    selImg=''; vote3='';
+    document.querySelectorAll('#th3-picks .pickcard').forEach(function(x){x.classList.remove('sel');});
+    document.querySelectorAll('#th3-vote .opt').forEach(function(x){x.classList.remove('sel');});
+    document.getElementById('vote-note').textContent='Cả lớp giơ tay vote trước đã nhé.';
+    document.getElementById('th3-look').disabled=true;
+    go('th3a');
+  }
+}
+function resetPractice(){
+  stars={t1:false,t2a:false,t2b:false,t3:false};
+  updateStars();
+  document.getElementById('th1-input').value='';
+  th1Toks=[]; th1Sel=-1; th1Tries=0;
+  var t1=document.getElementById('th1-tokens'); if(t1) t1.innerHTML='';
+  document.getElementById('fb-th1').textContent='';
+  selCmd=-1; heard2='';
+  document.querySelectorAll('#th2-cmds .opt').forEach(function(x){x.classList.remove('sel');});
+  selImg=''; vote3='';
+  document.querySelectorAll('#th3-picks .pickcard').forEach(function(x){x.classList.remove('sel');});
+  document.querySelectorAll('#th3-vote .opt').forEach(function(x){x.classList.remove('sel');});
+  document.getElementById('vote-note').textContent='Cả lớp giơ tay vote trước đã nhé.';
+  document.getElementById('th3-look').disabled=true;
+  go('th-menu');
+}
+
+/* ---- THỬ 1: tách câu của em + tô màu ---- */
+var SUG=['Chiều nay em đá bóng với bạn.','Hôm nay em rất vui vì được điểm tốt.','Sáng mai em đi học lúc bảy giờ.'];
+function fillSug(i){document.getElementById('th1-input').value=SUG[i];}
+var TIME_W=['hôm','nay','chiều','sáng','tối','mai','đêm','trưa','lúc','giờ','ngày'];
+var FEEL_W=['vui','buồn','mệt','thích','sợ','giận','lo','chán','hào','hứng'];
+var th1Toks=[], th1Sel=-1, th1Tries=0;
+function hashNum(w){var h=0;for(var i=0;i<w.length;i++)h=(h*31+w.charCodeAt(i))%900;return 100+h;}
+function tokenize(txt){
+  var out=[];
+  txt.trim().split(/\s+/).forEach(function(w){
+    var m=w.match(/^(.*?)([.,!?])$/);
+    if(m&&m[1]){out.push(m[1]);out.push(m[2]);}
+    else out.push(w);
+  });
+  return out;
+}
+function th1Exp(w,idx,arr){
+  var lw=w.toLowerCase();
+  if(/^[.,!?]$/.test(w)) return ''; /* dấu câu không cần tô màu */
+  if(FEEL_W.indexOf(lw)>=0) return 'feel';
+  if(TIME_W.indexOf(lw)>=0) return 'time';
+  var vi=-1;
+  for(var j=0;j<arr.length;j++){if(arr[j].toLowerCase()==='vì'){vi=j;break;}}
+  if(vi>=0 && idx>=vi) return 'why';
+  return '';
+}
+function startTh1(){
+  var txt=document.getElementById('th1-input').value.trim();
+  if(!txt){document.getElementById('th1-input').focus();return;}
+  var words=tokenize(txt);
+  th1Toks=words.map(function(w,i){var fx=null;for(var k=0;k<TOKENS.length;k++){if(TOKENS[k][0].toLowerCase()===w.toLowerCase()){fx=TOKENS[k][1];break;}}return {w:w,n:fx||hashNum(w),exp:th1Exp(w,i,words),col:''};});
+  th1Sel=-1; th1Tries=0;
+  renderTh1();
+  document.getElementById('fb-th1').textContent='';
+  document.getElementById('th1-check').classList.remove('hidden');
+  document.getElementById('th1-next').classList.add('hidden');
+  go('th1b');
+}
+function renderTh1(){
+  var box=document.getElementById('th1-tokens');
+  box.innerHTML='';
+  th1Toks.forEach(function(t,i){
+    var d=document.createElement('div');
+    d.className='tok show '+t.col+(i===th1Sel?' sel':'');
+    d.innerHTML='<span class="w">'+t.w+'</span><span class="n">'+t.n+'</span>';
+    d.onclick=function(){th1Sel=i;renderTh1();};
+    box.appendChild(d);
+  });
+}
+function paintSel(c){
+  if(th1Sel<0){
+    var f=document.getElementById('fb-th1');
+    f.textContent='Bấm 1 mảnh trước đã nhé.'; f.className='feedback no';
+    return;
+  }
+  th1Toks[th1Sel].col=c;
+  document.getElementById('fb-th1').textContent='';
+  renderTh1();
+}
+var COLNAME={time:'thời gian (xanh)',feel:'cảm xúc (cam)',why:'nguyên nhân (lá)','':'không cần tô màu'};
+function checkTh1(){
+  var wrong=[];
+  th1Toks.forEach(function(t){ if(t.col!==t.exp) wrong.push(t); });
+  var fb=document.getElementById('fb-th1');
+  if(wrong.length===0){
+    fb.textContent='✅ Đúng rồi! +1 ⭐'; fb.className='feedback ok';
+    award('t1');
+    document.getElementById('th1-check').classList.add('hidden');
+    document.getElementById('th1-next').classList.remove('hidden');
+    return;
+  }
+  th1Tries++;
+  var w0=wrong[0];
+  if(th1Tries>=2){
+    th1Toks.forEach(function(t){t.col=t.exp;});
+    renderTh1();
+    fb.textContent='Đã hiện màu đúng cho em xem — thử lại với bạn khác nhé.'; fb.className='feedback no';
+    document.getElementById('th1-check').classList.add('hidden');
+    document.getElementById('th1-next').classList.remove('hidden');
+  }else{
+    fb.textContent='Chưa đúng — gợi ý: mảnh “'+w0.w+'” là '+COLNAME[w0.exp]+'. Tô lại nhé.'; fb.className='feedback no';
+  }
+}
+
+/* ---- THỬ 2: nói để máy làm ---- */
+var CMDS=[
+ {text:'Đặt báo thức lúc bảy giờ tối nay',job:'Đặt báo thức',time:'7:00',day:'tối nay',keys:['báo thức','bảy giờ','tối nay'],wrong:'Đặt báo thức lúc bảy giờ tối qua.'},
+ {text:'Mở nhạc',job:'Mở nhạc',time:'—',day:'—',keys:['mở nhạc'],wrong:'Mở nhà.'},
+ {text:'Hôm nay trời mưa to',job:'Nói về thời tiết',time:'Hôm nay',day:'—',keys:['trời mưa','mưa to'],wrong:'Hôm nay trời mưa nhỏ.'}
+];
+var selCmd=-1, heard2='';
+document.querySelectorAll('#th2-cmds .opt').forEach(function(b){
+  b.addEventListener('click',function(){
+    document.querySelectorAll('#th2-cmds .opt').forEach(function(x){x.classList.remove('sel');});
+    b.classList.add('sel');
+    selCmd=+b.dataset.cmd;
+    document.getElementById('listen2-status').textContent='Lệnh đã chọn: “'+CMDS[selCmd].text+'” — bấm loa rồi nói.';
+  });
+});
+function norm(s){return s.toLowerCase().replace(/[.,!?“”"]/g,'').replace(/\s+/g,' ').trim();}
+function parseHeard(txt){
+  var n=' '+norm(txt)+' ';
+  var job='—',time='—',day='—';
+  if(n.indexOf('báo thức')>=0) job='Đặt báo thức';
+  else if(n.indexOf('mở nhạc')>=0||n.indexOf('nghe nhạc')>=0) job='Mở nhạc';
+  else if(n.indexOf('trời mưa')>=0||n.indexOf('thời tiết')>=0) job='Nói về thời tiết';
+  var tm=n.match(/(\S+) giờ/);
+  if(tm) time=tm[1]+' giờ';
+  if(n.indexOf('tối nay')>=0) day='tối nay';
+  else if(n.indexOf('sáng mai')>=0) day='sáng mai';
+  else if(n.indexOf('ngày mai')>=0) day='ngày mai';
+  else if(n.indexOf('hôm nay')>=0) time='Hôm nay';
+  return {job:job,time:time,day:day};
+}
+function showHeard2(txt){
+  heard2=txt;
+  document.getElementById('heard2-text').textContent='“'+txt+'”';
+  var n=norm(txt);
+  var ok=false, chips;
+  if(selCmd>=0){
+    var c=CMDS[selCmd];
+    ok=c.keys.every(function(k){return n.indexOf(k)>=0;});
+    chips=ok?{job:c.job,time:c.time,day:c.day}:parseHeard(txt);
+  }else{
+    chips=parseHeard(txt);
+    ok=chips.job!=='—';
+  }
+  document.getElementById('heard2-chips').innerHTML=
+    '<div class="chip">Việc làm:<br><b>'+chips.job+'</b></div>'+
+    '<div class="chip">Giờ:<br><b>'+chips.time+'</b></div>'+
+    '<div class="chip">Ngày:<br><b>'+chips.day+'</b></div>';
+  var fb=document.getElementById('fb-th2');
+  if(ok){fb.textContent='✅ Máy nghe đúng rồi! +1 ⭐';fb.className='feedback ok';award('t2a');}
+  else{fb.textContent='Máy nghe chưa đúng — nói lại nhé.';fb.className='feedback no';}
+  go('th2b');
+}
+var recog2=null, listening2=false, listenTry2=0;
+function startListen2(){
+  var SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  var st=document.getElementById('listen2-status');
+  var btn=document.getElementById('micbtn2');
+  var wave=document.getElementById('wave2');
+  if(!SR){st.textContent='Trình duyệt này không nghe được — bấm “Dùng câu mẫu” nhé.';return;}
+  var myTry=++listenTry2;
+  try{
+    recog2=new SR(); recog2.lang='vi-VN'; recog2.interimResults=false; recog2.maxAlternatives=1;
+    recog2.onstart=function(){listening2=true;btn.classList.add('listening');wave.classList.add('on');st.textContent='Đang nghe… nói đi!';};
+    recog2.onresult=function(e){var t=e.results[0][0].transcript;stopListen2UI();showHeard2(t);};
+    recog2.onerror=function(){stopListen2UI();st.textContent='Chưa nghe được (cần mạng). Bấm “Dùng câu mẫu” nhé.';};
+    recog2.onend=function(){if(listening2)stopListen2UI();};
+    recog2.start();
+    /* nếu 4 giây mà mic vẫn chưa mở được thì báo rõ, đừng để im lặng */
+    setTimeout(function(){
+      if(myTry===listenTry2 && !listening2 && document.querySelector('.screen.active').id==='th2a'){
+        stopListen2UI();
+        st.textContent='Chưa mở được mic (cần mạng hoặc chưa cho phép). Bấm “Dùng câu mẫu” nhé.';
+      }
+    },4000);
+  }catch(err){st.textContent='Chưa nghe được. Bấm “Dùng câu mẫu” nhé.';}
+}
+function stopListen2UI(){listening2=false;document.getElementById('micbtn2').classList.remove('listening');document.getElementById('wave2').classList.remove('on');}
+function useSample2(){
+  stopListen2UI();
+  var t=selCmd>=0?CMDS[selCmd].text:CMDS[0].text;
+  showHeard2(t);
+}
+/* thử 2 — tiếng ồn riêng (không đụng nút ồn ở trạm Nghe) */
+var noise2On=false, noise2Node=null;
+function toggleNoise2(){
+  var btn=document.getElementById('noise2-btn');
+  var c=selCmd>=0?CMDS[selCmd]:CMDS[0];
+  if(!noise2On){
+    try{
+      audioCtx=audioCtx||new (window.AudioContext||window.webkitAudioContext)();
+      var len=audioCtx.sampleRate*2;
+      var buf=audioCtx.createBuffer(1,len,audioCtx.sampleRate);
+      var d=buf.getChannelData(0);
+      for(var i=0;i<len;i++) d[i]=Math.random()*2-1;
+      noise2Node=audioCtx.createBufferSource();
+      noise2Node.buffer=buf; noise2Node.loop=true;
+      var g=audioCtx.createGain(); g.gain.value=0.12;
+      noise2Node.connect(g); g.connect(audioCtx.destination);
+      noise2Node.start();
+    }catch(e){}
+    noise2On=true;
+    btn.textContent='🔇 TẮT TIẾNG ỒN';
+    document.getElementById('noise2-text').textContent='“'+c.wrong+'”';
+    document.getElementById('noise2-result').classList.remove('hidden');
+    document.getElementById('noise2-quiz').classList.remove('hidden');
+  }else{
+    stopNoise2();
+    btn.textContent='🔊 BẬT TIẾNG ỒN';
+  }
+}
+function stopNoise2(){
+  if(noise2Node){try{noise2Node.stop()}catch(e){} noise2Node=null;}
+  noise2On=false;
+  var b=document.getElementById('noise2-btn');
+  if(b) b.textContent='🔊 BẬT TIẾNG ỒN';
+}
+wireQuiz('q-th2','fb-th2n','th2c-next');
+document.querySelectorAll('#q-th2 .opt').forEach(function(b){
+  b.addEventListener('click',function(){
+    if(b.dataset.ok==='1'){
+      award('t2b');
+      setTimeout(function(){
+        var f=document.getElementById('fb-th2n');
+        if(f.textContent.indexOf('⭐')<0) f.textContent=f.textContent+' +1 ⭐';
+      },50);
+    }
+  });
+});
+
+/* ---- THỬ 3: đố máy nhìn ---- */
+var IMGS={
+ cat:{label:'Con mèo',guess:'Đây là mèo',conf:96,feats:['👂 Tai nhọn','👀 Mắt to','〰️ Ria mép','🐾 Lông cam'],wrong:'Đây là chó',wrongConf:31,avg:[255,167,38]},
+ dog:{label:'Con chó',guess:'Đây là chó',conf:93,feats:['👂 Tai cụp','👃 Mõm dài','🐾 Lông nâu','🦴 Đuôi vẫy'],wrong:'Đây là mèo',wrongConf:34,avg:[176,141,87]},
+ leafok:{label:'Lá khỏe',guess:'Lá khỏe',conf:94,feats:['🍃 Viền đều','🌿 Gân rõ','💚 Màu xanh đều'],wrong:'Lá sâu bệnh',wrongConf:30,avg:[102,187,106]},
+ leafsick:{label:'Lá sâu bệnh',guess:'Lá sâu bệnh',conf:90,feats:['🟤 Đốm nâu','🕳️ Lỗ thủng','🍃 Viền lá'],wrong:'Lá khỏe',wrongConf:32,avg:[120,165,90]}
+};
+var selImg='', vote3='';
+document.querySelectorAll('#th3-picks .pickcard').forEach(function(card){
+  card.addEventListener('click',function(){
+    document.querySelectorAll('#th3-picks .pickcard').forEach(function(x){x.classList.remove('sel');});
+    card.classList.add('sel');
+    selImg=card.dataset.img;
+    checkTh3Ready();
+  });
+});
+document.querySelectorAll('#th3-vote .opt').forEach(function(b){
+  b.addEventListener('click',function(){
+    document.querySelectorAll('#th3-vote .opt').forEach(function(x){x.classList.remove('sel');});
+    b.classList.add('sel');
+    vote3=b.dataset.v;
+    document.getElementById('vote-note').textContent='Đã ghi: lớp đoán máy '+(vote3==='dung'?'ĐÚNG':'SAI')+' — lát xem đúng không nhé.';
+    checkTh3Ready();
+  });
+});
+function checkTh3Ready(){document.getElementById('th3-look').disabled=!(selImg&&vote3);}
+function svgFor(k){
+  var card=document.querySelector('#th3-picks .pickcard[data-img="'+k+'"] svg');
+  return card?card.outerHTML:'';
+}
+function goTh3b(){
+  if(!selImg) return;
+  var im=IMGS[selImg];
+  document.getElementById('th3b-pic').innerHTML=svgFor(selImg);
+  document.getElementById('th3b-title').textContent='Máy nhìn '+im.label.toLowerCase()+' ra sao?';
+  document.getElementById('th3b-chips').innerHTML=im.feats.map(function(f){return '<div class="chip">'+f+'</div>';}).join('');
+  document.getElementById('th3b-guess').textContent=im.guess+' — '+im.conf+'%';
+  var fb=document.getElementById('fb-th3');
+  if(vote3==='dung'){fb.textContent='✅ Lớp đoán đúng — máy đoán đúng thật! +1 ⭐';fb.className='feedback ok';}
+  else{fb.textContent='Lớp đoán sai — nhưng máy đoán đúng rồi! +1 ⭐';fb.className='feedback ok';}
+  award('t3');
+  go('th3b');
+}
+function fillTh3c(){
+  if(!selImg) selImg='leafsick';
+  document.getElementById('dim3-wrap').innerHTML=svgFor(selImg);
+  document.getElementById('bright3').value=100;
+  updateBright3();
+}
+function updateBright3(){
+  var b=+document.getElementById('bright3').value;
+  var blur=((100-b)/12).toFixed(1);
+  var im=IMGS[selImg]||IMGS.leafsick;
+  document.getElementById('dim3-wrap').style.filter='brightness('+(b/100)+') blur('+blur+'px)';
+  document.getElementById('bright3-label').textContent=b>=90?'Đủ sáng '+b+'%':(b>=60?'Hơi tối '+b+'%':'Rất tối '+b+'%');
+  var conf=Math.round(28+(b-30)*0.97);
+  var fill=document.getElementById('conf3-fill');
+  fill.style.width=conf+'%';
+  fill.style.background=conf>=70?'#66BB6A':(conf>=45?'#FFCA28':'#EF5350');
+  document.getElementById('conf3-num').textContent='Độ chắc chắn: '+conf+'%';
+  var msg=document.getElementById('dim3-msg');
+  if(b<=55){msg.textContent='⚠️ Đoán sai rồi! '+im.wrong+' — '+im.wrongConf+'%. Ảnh tối và mờ làm máy đoán sai.';msg.className='feedback no';}
+  else{msg.textContent=im.guess+' — '+im.conf+'%';msg.className='feedback';}
+}
+/* thử 3 — webcam */
+var camStream=null;
+function startCam(){
+  var st=document.getElementById('cam-status');
+  if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia){
+    st.textContent='Máy này không mở được camera. Không sao, quay lại thử ảnh mẫu nhé.';
+    return;
+  }
+  navigator.mediaDevices.getUserMedia({video:true}).then(function(stream){
+    camStream=stream;
+    var v=document.getElementById('cam');
+    v.srcObject=stream; v.classList.remove('hidden');
+    document.getElementById('cam-shot').disabled=false;
+    document.getElementById('cam-on').classList.add('hidden');
+    st.textContent='Camera đã bật — giơ đồ vật rồi bấm “Chụp”.';
+  }).catch(function(){
+    st.textContent='Không mở được camera — máy này không có camera hoặc chưa cho phép. Không sao, quay lại thử ảnh mẫu nhé.';
+  });
+}
+function stopCam(){
+  if(camStream){camStream.getTracks().forEach(function(t){t.stop();});camStream=null;}
+  var v=document.getElementById('cam');
+  if(v){v.srcObject=null;v.classList.add('hidden');}
+  var on=document.getElementById('cam-on');
+  if(on) on.classList.remove('hidden');
+  var sh=document.getElementById('cam-shot');
+  if(sh) sh.disabled=true;
+}
+function snapCam(){
+  var v=document.getElementById('cam');
+  if(!v||!v.videoWidth) return;
+  var cv=document.getElementById('camshot');
+  cv.width=160; cv.height=120;
+  var ctx=cv.getContext('2d');
+  ctx.drawImage(v,0,0,160,120);
+  var d=ctx.getImageData(0,0,160,120).data;
+  var r=0,g=0,b=0,n=d.length/4;
+  for(var i=0;i<d.length;i+=4){r+=d[i];g+=d[i+1];b+=d[i+2];}
+  r/=n;g/=n;b/=n;
+  var best=null,bestD=1e9;
+  Object.keys(IMGS).forEach(function(k){
+    var a=IMGS[k].avg;
+    var dd=Math.sqrt((r-a[0])*(r-a[0])+(g-a[1])*(g-a[1])+(b-a[2])*(b-a[2]));
+    if(dd<bestD){bestD=dd;best=k;}
+  });
+  var conf=Math.max(30,Math.round(95-bestD/6));
+  document.getElementById('cam-guess').textContent='Giống '+IMGS[best].label.toLowerCase()+' nhất — '+conf+'%';
+  document.getElementById('cam-result').classList.remove('hidden');
+  document.getElementById('cam-status').textContent='Đã chụp xong — máy so màu với mẫu đã lưu rồi đoán.';
+}
+
+/* phím mũi tên: sang trang kế */
+document.addEventListener('keydown',function(e){
+  if(e.key==='ArrowRight'){
+    var cur=document.querySelector('.screen.active');
+    var list=PORDER.indexOf(cur.id)>=0?PORDER:ORDER;
+    var i=list.indexOf(cur.id);
+    var nextBtn=cur.querySelector('.bigbtn:not(.hidden):not(:disabled)');
+    if(nextBtn && i<list.length-1){ nextBtn.click(); }
+  }
+});
+/* mở đúng trang nếu có #... trong link (để thầy/kiểm tra nhảy thẳng tới 1 trạm) */
+(function(){
+  var h=(location.hash||'').replace('#','');
+  if(ORDER.indexOf(h)>=0||PORDER.indexOf(h)>=0) go(h); else go('s-mo');
+})();
+</script>
+</body>
+</html>
