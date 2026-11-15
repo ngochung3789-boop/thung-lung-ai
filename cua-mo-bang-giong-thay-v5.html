@@ -269,7 +269,7 @@ body.dang-choi #panel-lop, body.dang-choi .chan-trang{display:none}
 body.dang-choi .khung-canh{height:100vh}
 /* Đợt Blender 12/11 — sân khấu giữa màn hình: bảng trò chơi to ở giữa, cảnh 3D
    vẫn thấy 2 bên + phía trên; panel phải không còn chứa nội dung trò chơi nữa. */
-body.dang-choi #noi-dung-phong{left:50%; right:auto; transform:translateX(-50%); top:auto; bottom:60px; width:min(880px,94vw); max-height:44vh; z-index:12; font-size:20px; border-width:4px; box-shadow:0 12px 40px rgba(0,0,0,.55); overflow:hidden; display:flex; flex-direction:column}
+body.dang-choi #noi-dung-phong{left:50%; right:auto; transform:translateX(-50%); top:auto; bottom:54px; width:min(800px,92vw); max-height:40vh; /* LOP-RONG 15/11: panel nho lai cho canh 3D rong hon */ z-index:12; font-size:20px; border-width:4px; box-shadow:0 12px 40px rgba(0,0,0,.55); overflow:hidden; display:flex; flex-direction:column}
 /* Build 14 (12/11) — MẸP DƯỚI PANEL NẰM TRÊN THANH CHIP (CÒN LẠI (3), sửa dứt điểm):
    thanh chip cố định (#thanh-chip-phong, bottom:12px, cao ~40px) có mép trên cách
    đáy viewport ~52px; panel cũ bottom:10px nên 42px cuối panel (kể cả vùng cuộn)
@@ -330,8 +330,8 @@ body.dang-choi #noi-dung-phong .bot-luot{scroll-margin-top:90px}
 body.dang-choi #nut-da-ro{top:70px !important; bottom:auto !important; height:auto !important}
 #dang-tai-bay{position:absolute; left:50%; top:42%; transform:translate(-50%,-50%); z-index:30; display:none; background:rgba(11,18,32,.94); color:#E8C95A; border:3px solid #C9A227; border-radius:16px; padding:18px 28px; font-size:24px; font-weight:900; text-align:center; box-shadow:0 10px 40px rgba(0,0,0,.6)}
 /* 12/11 bổ sung 07:24 — thanh ngang trên (header) thành lớp phủ trong suốt, không che cảnh 3D ở giữa; khung cảnh chiếm trọn màn hình */
-body.dang-choi header{position:absolute; top:0; left:0; right:0; z-index:25; background:rgba(11,18,32,.55); margin:0; padding:4px 10px; border-radius:0 0 14px 14px; backdrop-filter:blur(2px)}
-body.dang-choi header h1{font-size:17px}
+body.dang-choi header{position:absolute; top:0; left:0; right:0; z-index:25; background:rgba(11,18,32,.45); margin:0; padding:2px 10px; /* LOP-RONG 15/11: header mong + trong hon */ border-radius:0 0 14px 14px; backdrop-filter:blur(2px)}
+body.dang-choi header h1{font-size:15px} /* LOP-RONG 15/11 */
 /* Nút "Mở minh họa" — mở tab mới tới demo thật của bài (chỉ 2 bài có link chắc chắn).
    Build 10: link là con trực tiếp của panel (ngoài vùng cuộn .ndp-cuon) nên luôn thấy;
    bỏ position:sticky (sticky trong panel là nguyên nhân dải đen — xem ghi chú trên). */
@@ -463,8 +463,8 @@ body:not(.mo-luyen-giong) #ghi-chu-cua, body.lop-hoc #ghi-chu-cua{display:none}
 .nut, .pill, #danh-sach-bai button, #danh-sach-tro button{transition:transform .08s ease}
 
 /* --- fix7: chip thu gon panel phong + bong bong gioi thieu cua le tan --- */
-#thanh-chip-phong{position:fixed; left:50%; transform:translateX(-50%); bottom:12px; z-index:27; display:none; gap:8px; flex-wrap:wrap; justify-content:center; max-width:96vw}
-#thanh-chip-phong button{font-family:inherit; font-size:15px; font-weight:800; padding:8px 14px; border-radius:999px; border:2px solid #C9A227; background:rgba(11,18,32,.92); color:#FDF6E3; cursor:pointer; box-shadow:0 4px 16px rgba(0,0,0,.45); white-space:nowrap}
+#thanh-chip-phong{position:fixed; left:50%; transform:translateX(-50%); bottom:10px; /* LOP-RONG 15/11 */ z-index:27; display:none; gap:8px; flex-wrap:wrap; justify-content:center; max-width:96vw}
+#thanh-chip-phong button{font-family:inherit; font-size:14px; font-weight:800; padding:6px 11px; /* LOP-RONG 15/11 */ border-radius:999px; border:2px solid #C9A227; background:rgba(11,18,32,.92); color:#FDF6E3; cursor:pointer; box-shadow:0 4px 16px rgba(0,0,0,.45); white-space:nowrap}
 #thanh-chip-phong button.mo{background:#C9A227; color:#0B1220}
 #thanh-chip-phong button.nghe-lai{border-style:dashed}
 #nut-da-ro{position:fixed; left:50%; transform:translateX(-50%); bottom:64px; z-index:28; display:none; font-family:inherit; font-size:16px; font-weight:800; padding:10px 18px; border-radius:999px; border:2px solid #C9A227; background:#E8C95A; color:#0B1220; cursor:pointer; box-shadow:0 4px 16px rgba(0,0,0,.5); white-space:nowrap}
@@ -3000,7 +3000,7 @@ let npcDuong = 0, xeDuong = 0, xeMayDuong = 0, khungDem = 0, toaNhaGanNhat = nul
 let danhSachLop = [], tenLop = '7B', tongLop = 0, lopDaNap = '7B';
 let doanNhom = null, doanThanhVien = [], doanRobot = null, banDuocMoi = null;
 let nhomNgoiPhong = null, nhomSapMo = null, leTanPhong = null, leTanCua = null;
-let gocPhong = 0.35, caoPhong = 5.2, banPhongXa = 9.5; /* v5: camera phong lui xa hon */
+let gocPhong = 0.35, caoPhong = 5.6, banPhongXa = 10.5; /* LOP-RONG 15/11: camera lui xa + cao hon cho lop thoang */
 
 function textureBien(dong1, dong2, mauNen){
   const c = document.createElement('canvas'); c.width = 1024; c.height = 320;
@@ -4977,7 +4977,7 @@ function datCameraPhong(){
       camPhong.lookAt(skCanhCamera.l[0], skCanhCamera.l[1], skCanhCamera.l[2]);
       return;
     }
-    camPhong.position.set(0, 2.6, 2.4); /* BUILD 18 do hoa 2: cao hon + lui lai de nhin QUA dau HS ngoi, khong bi dau che giua man hinh */
+    camPhong.position.set(0, 2.75, 3.0); /* LOP-RONG 15/11: lui ra them de san khau rong hon, van nhin QUA dau HS ngoi */
     camPhong.lookAt(0, 1.4, -3.1);
     return;
   }
@@ -5060,7 +5060,7 @@ function dungPhongThucHanh(){
     cuaSoNha.position.set(0, 2.2, 2.28); nha.add(cuaSoNha);
     nha.position.set(p[0], 0, p[1]); scenePhong.add(nha);
   });
-  camPhong = new THREE.PerspectiveCamera(66, 16/9, 0.1, 80); /* 12/11: FOV rong hon nua cho lop thoang */
+  camPhong = new THREE.PerspectiveCamera(76, 16/9, 0.1, 80); /* LOP-RONG 15/11: FOV 66->76 — lop rong rai, full man */
   datCameraPhong();
   /* --- San phong --- */
   const san = new THREE.Mesh(new THREE.PlaneGeometry(13, 9), new THREE.MeshStandardMaterial({map:textureSan(), roughness:0.5, metalness:0.08}));
@@ -5100,8 +5100,8 @@ function dungPhongThucHanh(){
     const cot = new THREE.Mesh(new THREE.BoxGeometry(0.26, 3.1, 0.3), goDamMat);
     cot.position.set(p[0], 1.55, 5.0); cot.castShadow = true; scenePhong.add(cot);
   });
-  const xaCua = new THREE.Mesh(new THREE.BoxGeometry(2.66, 0.35, 0.3), goDamMat);
-  xaCua.position.set(0, 3.25, 5.0); scenePhong.add(xaCua);
+  const xaCua = new THREE.Mesh(new THREE.BoxGeometry(2.66, 0.22, 0.3), goDamMat); /* LOP-RONG 15/11: xa ngang mong lai, bot che tam nhin */
+  xaCua.position.set(0, 3.32, 5.0); scenePhong.add(xaCua); /* LOP-RONG 15/11 */
   /* fix7b: BO xa tren (13.4x0.18 o y=5.0, z=5.0) — anh image-63: thanh go nay che bang SAP MO/ap phich khi nhin tu tren cao. */
   /* Chan tuong + chi vang tren dinh tuong (3 tuong trong). */
   const chanMat = new THREE.MeshStandardMaterial({color:0x2A1A0C, roughness:0.7});
@@ -5281,7 +5281,7 @@ function dungPhongThucHanh(){
   /* v4: 4 ban thanh 1 hang ngang sat tuong sau — 4 ban cach nhau, khong che nhau. */
   /* v4b-fix3 (BS13/my-office): 4 ban thanh 2 cum (moi cum 2 ban sat nhau, co loi di giua de toi bang),
      moi cum co tham mau rieng nhu pod cua my-office. */
-  [[-4.8,-2.3],[-2.9,-2.3],[2.9,-2.3],[4.8,-2.3]] /* 12/11: hang ban sau dan ra */.forEach(p=>{
+  [[-4.8,-2.3],[-3.0,-2.3],[3.0,-2.3],[4.8,-2.3]] /* LOP-RONG 15/11: hang ban sau dan khe giua */.forEach(p=>{
     const b = taoBanHoc(); b.position.set(p[0], 0, p[1]); scenePhong.add(b);
   });
   [[-3.6, 0x4A7AB8],[3.6, 0x5A9A4A]].forEach(p=>{
@@ -5290,11 +5290,11 @@ function dungPhongThucHanh(){
     const thamCum = new THREE.Mesh(new THREE.PlaneGeometry(3.9, 2.1), new THREE.MeshStandardMaterial({color:p[1], roughness:0.95}));
     thamCum.rotation.x = -Math.PI/2; thamCum.position.set(p[0], 0.02, -1.9); thamCum.receiveShadow = true; scenePhong.add(thamCum);
   });
-  [[-5.7,-0.5],[5.7,-0.5]] /* 12/11: ban ben dan ra */.forEach(p=>{
+  [[-5.8,-0.2],[5.8,-0.2]] /* LOP-RONG 15/11: ban ben dan ra */.forEach(p=>{
     const b = taoBanHoc(); b.position.set(p[0], 0, p[1]); b.rotation.y = Math.PI/2; scenePhong.add(b);
   });
   /* fix7b: 8 ban doi cho doan lop — 4 day x 2 hang, quay ve bang phia truoc (moi ban 2 ghe). */
-  [[-4.0,-0.2],[-1.35,-0.2],[1.35,-0.2],[4.0,-0.2],[-4.0,3.5],[-1.35,3.5],[1.35,3.5],[4.0,3.5]] /* 12/11: dan ban ghe */.forEach(p=>{
+  [[-4.15,-0.7],[-1.45,-0.7],[1.45,-0.7],[4.15,-0.7],[-4.15,3.2],[-1.45,3.2],[1.45,3.2],[4.15,3.2]] /* LOP-RONG 15/11: dan ban ghe — 2 hang cach nhau hon, khe giua rong hon */.forEach(p=>{
     const b = taoBanHoc(); b.position.set(p[0], 0, p[1]); scenePhong.add(b);
     [-0.45, 0.45].forEach(dx=>{
       const gh = taoGheNgoi(); gh.position.set(p[0] + dx, 0, p[1] + 0.85); scenePhong.add(gh);
@@ -5305,7 +5305,7 @@ function dungPhongThucHanh(){
   const cauNgoi = [['Sẵn sàng!', 'Tới lượt em nhé!'], ['Em hiểu rồi!', 'Cô giảng tiếp đi ạ!'], ['Em ghi chép đây!', 'Vở nhóm sẵn sàng!'], ['Tới lượt em!', 'Em lên bảng nhé!']];
   const moTaNgoi = ['đang ngồi nghe giảng, sẵn sàng thực hành.', 'đang ghi chép vào vở nhóm.', 'đang chờ tới lượt lên thực hành.', 'đang xem bảng và suy nghĩ câu trả lời.'];
   const tenNhom = ['Nhóm 1', 'Nhóm 2', 'Nhóm 3', 'Nhóm 4'];
-  [[-4.8,-2.3,0],[-2.9,-2.3,1],[2.9,-2.3,2],[4.8,-2.3,3]] /* 12/11: 4 nhom ngoi dan ra */.forEach(p=>{
+  [[-4.8,-2.3,0],[-3.0,-2.3,1],[3.0,-2.3,2],[4.8,-2.3,3]] /* LOP-RONG 15/11: 4 nhom ngoi theo hang sau */.forEach(p=>{
     const gh = taoGheNgoi(); gh.position.set(p[0], 0, p[1] + 0.85); scenePhong.add(gh);
     /* v4b-fix3 (BS13/my-office): ba lo dat ben ghe + ao khoac vat tren tua ghe (chi hien khi co nguoi ngoi). */
     const baLoGhe = new THREE.Mesh(new THREE.BoxGeometry(0.34, 0.4, 0.13), new THREE.MeshStandardMaterial({color:[0x8A5A2E,0x2E5A8A,0x5A8A3A,0x8A3A5A][p[2]], roughness:0.85}));
@@ -13154,7 +13154,7 @@ function chuyenSangPhong(b){
   if(nhomNgoiPhong) nhomNgoiPhong.visible = !!b.mo;
   if(nhomSapMo) nhomSapMo.visible = !b.mo;
   if((ID_CU[b.id] || b.id) === '7-c4-1'){ try{ if(typeof mauC41AnBanHs === 'function') mauC41AnBanHs(); }catch(e){} } /* DON BAN-HS 14/11: vao phong 7-c4-1 la don het ban + ghe + HS ngoi (ca canh lan 2 tro) */
-  gocPhong = 0.35; caoPhong = 5.2; datCameraPhong(); /* 12/11: camera gan + thap hon de san khau nam tren panel */
+  gocPhong = 0.35; caoPhong = 5.6; datCameraPhong(); /* LOP-RONG 15/11: camera lui xa + cao hon cho lop thoang */
   try{ skVaoPhong(b); }catch(e){}
   moDanChuyenCanh();
 }
