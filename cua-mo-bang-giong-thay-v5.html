@@ -19786,5 +19786,131 @@ if(document.readyState === 'loading'){
   }
 })();
 </script>
+<!-- NAV-TRON 15/11: dãy 5 nút tròn điều hướng nhanh ở cạnh trái (Sân + Khối 6/7/8/9).
+  QUYẾT ĐỊNH ĐÃ CHỐT (thầy 14:25 15/11): dãy 5 nút LUÔN HIỆN, không thu gọn thành nút "☰",
+  vì dải trái-giữa màn hình đang trống (thẻ trên kết thúc ~180px, nút "Mời bạn lên" ở dưới
+  bắt đầu ~740px ở cao 800px) — bấm 1 lần là tới, ít thao tác hơn cho thầy khi chiếu TV.
+  Tự chứa: chỉ dùng hàm điều hướng có sẵn (chuyenSangThanhPho / diToiKhoi / datViTriNhanVat /
+  batCamCao / anChonTang), không đổi nội dung 48 phòng, không dùng giọng đọc máy. -->
+<style>
+/* NAV-TRON 15/11: dãy nút tròn bên trái, giữa chiều cao màn hình */
+#nav-tron{position:fixed; left:12px; top:50%; transform:translateY(-50%); z-index:30;
+  display:none; flex-direction:column; gap:10px; align-items:center}
+body.dang-choi #nav-tron{display:flex} /* NAV-TRON 15/11: chỉ hiện khi đang chơi, ẩn ở màn mở đầu */
+#nav-tron .nav-tron-nut{width:56px; height:56px; min-width:56px; min-height:56px;
+  border-radius:50%; border:3px solid #C9A227; background:rgba(11,18,32,.92); color:#FDF6E3;
+  font-family:inherit; font-size:24px; font-weight:800; line-height:1; cursor:pointer;
+  display:flex; align-items:center; justify-content:center; padding:0;
+  box-shadow:0 4px 16px rgba(0,0,0,.45); touch-action:manipulation}
+#nav-tron .nav-tron-nut:hover{background:rgba(201,162,39,.35)}
+#nav-tron .nav-tron-nut.dang-chon{background:#E8C95A; color:#0B1220; border-color:#E8C95A;
+  box-shadow:0 0 0 3px rgba(232,201,90,.35), 0 0 18px rgba(232,201,90,.8)} /* NAV-TRON 15/11: nút active nền vàng phát sáng */
+#nav-tron .nav-tron-nut:focus-visible{outline:3px solid #fff; outline-offset:2px}
+#nav-tron.nav-tron-dich{transform:none} /* NAV-TRON 15/11: khi bị panel nhiệm vụ dài đẩy xuống thì bỏ căn giữa */
+@media (max-height:640px){ /* NAV-TRON 15/11: màn thấp thu nút còn 44px */
+  #nav-tron{gap:6px}
+  #nav-tron .nav-tron-nut{width:44px; height:44px; min-width:44px; min-height:44px; font-size:20px}
+}
+</style>
+<nav id="nav-tron" aria-label="Điều hướng nhanh">
+  <button type="button" class="nav-tron-nut" data-dich="san" title="Sân trường" aria-label="Về sân trường">🏛️</button>
+  <button type="button" class="nav-tron-nut" data-dich="6" title="Khối 6" aria-label="Tới Khối 6">6</button>
+  <button type="button" class="nav-tron-nut" data-dich="7" title="Khối 7" aria-label="Tới Khối 7">7</button>
+  <button type="button" class="nav-tron-nut" data-dich="8" title="Khối 8" aria-label="Tới Khối 8">8</button>
+  <button type="button" class="nav-tron-nut" data-dich="9" title="Khối 9" aria-label="Tới Khối 9">9</button>
+</nav>
+<script>
+(function(){ /* NAV-TRON 15/11: điều hướng nhanh bằng nút tròn bên trái */
+  'use strict';
+  var NAV = document.getElementById('nav-tron');
+  if(!NAV) return;
+  function layActive(){ /* NAV-TRON 15/11: nút active theo chỗ đang đứng */
+    try{
+      if(typeof activeScene !== 'undefined' && activeScene === 'phong'
+        && typeof phongHienTai !== 'undefined' && phongHienTai && phongHienTai.khoi){
+        return String(phongHienTai.khoi);
+      }
+      if(typeof activeScene !== 'undefined' && activeScene === 'city'){
+        if(typeof khoiGanNhat !== 'undefined' && khoiGanNhat && khoiGanNhat.khoi){
+          return String(khoiGanNhat.khoi);
+        }
+        return 'san';
+      }
+      if(typeof activeScene !== 'undefined' && activeScene === 'door') return 'san';
+      return 'san';
+    }catch(e){ return 'san'; }
+  }
+  function dieuChinhViTri(){ /* NAV-TRON 15/11: panel nhiệm vụ dài quá thì đẩy dãy nút xuống, tránh đè */
+    try{
+      if(!NAV || getComputedStyle(NAV).display === 'none') return false;
+      var r = NAV.getBoundingClientRect();
+      var nv = document.getElementById('panel-nhiem-vu');
+      if(nv && getComputedStyle(nv).display !== 'none'){
+        var dayNv = nv.getBoundingClientRect().bottom;
+        if(dayNv + 10 > r.top){
+          var topMoi = dayNv + 10;
+          var gioiHanDuoi = window.innerHeight - 70; /* chừa chỗ cho nút "Mời bạn lên" ở dưới */
+          if(topMoi + r.height <= gioiHanDuoi){
+            NAV.style.top = Math.round(topMoi) + 'px';
+            NAV.classList.add('nav-tron-dich');
+            return true;
+          }
+        }
+      }
+      NAV.style.top = '';
+      NAV.classList.remove('nav-tron-dich');
+      return false;
+    }catch(e){ return false; }
+  }
+  function capNhat(){ /* NAV-TRON 15/11: cập nhật nút active + vị trí (quét mỗi 800ms) */
+    try{
+      var a = layActive();
+      var nut = NAV.querySelectorAll('.nav-tron-nut');
+      for(var i = 0; i < nut.length; i++){
+        nut[i].classList.toggle('dang-chon', nut[i].getAttribute('data-dich') === a);
+      }
+      dieuChinhViTri();
+      return a;
+    }catch(e){ return null; }
+  }
+  function navTronDi(dich){ /* NAV-TRON 15/11: bấm nút tròn -> tới sân / khối */
+    if(dich !== 'san' && dich !== '6' && dich !== '7' && dich !== '8' && dich !== '9') return false;
+    /* 1. Thoát phòng/hành lang/cảnh đang diễn theo đường thoát chuẩn (không tự tắt cảnh lẻ). */
+    try{
+      if(typeof activeScene !== 'undefined' && activeScene !== 'city'
+        && typeof chuyenSangThanhPho === 'function'){
+        chuyenSangThanhPho();
+      }
+    }catch(e){}
+    /* 2. DỪNG ĐI BỘ TƯỜNG MINH — đã kiểm chứng: chuyenSangThanhPho() KHÔNG gán dangDiBo=false
+       (nó chỉ gọi dongHanhLang() để ẩn lớp phủ hành lang + ẩn doanNhom); nếu không dừng ở đây
+       thì capNhatDiBo() ở khung hình sau vẫn chạy tiếp và sẽ kéo cả lớp vào phòng đích cũ. */
+    try{
+      if(typeof dangDiBo !== 'undefined' && dangDiBo) dangDiBo = false;
+      if(typeof phongDich !== 'undefined') phongDich = null;
+      if(typeof duongDiBo !== 'undefined') duongDiBo = null;
+      if(typeof diBoDungXe !== 'undefined') diBoDungXe = false;
+      if(typeof xeBuytThanhPho !== 'undefined' && xeBuytThanhPho) xeBuytThanhPho.visible = false;
+      if(typeof doanNhom !== 'undefined' && doanNhom) doanNhom.visible = false;
+    }catch(e){}
+    /* 3. Đóng bảng chọn phòng nếu đang mở. */
+    try{ if(typeof anChonTang === 'function') anChonTang(); }catch(e){}
+    /* 4. Tới đích (sau chuyenSangThanhPho để batCamCao của mình thắng camCao 8s của nó). */
+    if(dich === 'san'){
+      datViTriNhanVat(0, 7); gocCamera = 0; khoiGanNhat = null; batCamCao(0, 0, 5);
+    }else{
+      diToiKhoi(parseInt(dich, 10));
+    }
+    capNhat();
+    return true;
+  }
+  NAV.querySelectorAll('.nav-tron-nut').forEach(function(nut){
+    nut.addEventListener('click', function(){ navTronDi(nut.getAttribute('data-dich')); });
+  });
+  setInterval(capNhat, 800);
+  capNhat();
+  window.NAVTRON = {di: navTronDi, capNhat: capNhat, layActive: layActive}; /* NAV-TRON 15/11: API kiểm chứng */
+})();
+</script>
 </body>
 </html>
