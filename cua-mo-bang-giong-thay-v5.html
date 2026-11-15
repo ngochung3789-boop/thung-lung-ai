@@ -265,7 +265,7 @@ body.dang-choi header{margin-bottom:8px; gap:6px}
 body.dang-choi header h1{font-size:19px}
 body.dang-choi header .huy-hieu{display:none}
 body.dang-choi header .nut{font-size:14px; padding:6px 10px; min-height:34px}
-body.dang-choi #panel-lop, body.dang-choi .chan-trang{display:none}
+body.dang-choi:not(.mo-lop) #panel-lop, body.dang-choi .chan-trang{display:none}
 body.dang-choi .khung-canh{height:100vh}
 /* Đợt Blender 12/11 — sân khấu giữa màn hình: bảng trò chơi to ở giữa, cảnh 3D
    vẫn thấy 2 bên + phía trên; panel phải không còn chứa nội dung trò chơi nữa. */
@@ -404,7 +404,7 @@ body.sk-canh-toan-man-hinh .chan-trang{display:none !important}
 
 #btn-mo-le-tan{position:absolute; left:12px; bottom:12px; z-index:8; display:none; font-family:inherit; font-size:17px; font-weight:800; padding:10px 16px; border-radius:999px; border:3px solid #C9A227; background:rgba(253,246,227,.97); color:#1A2340; cursor:pointer; box-shadow:0 4px 16px rgba(0,0,0,.4)}
 /* --- v3: mo dau lonh lanh ngay (3D toan man hinh, chu chi la lop phu nho) --- */
-body.dang-mo-dau header, body.dang-mo-dau #panel-lop, body.dang-mo-dau #khu-vuc-cua, body.dang-mo-dau #ghi-chu-cua, body.dang-mo-dau .chan-trang{display:none}
+body.dang-mo-dau header, body.dang-mo-dau:not(.mo-lop) #panel-lop, body.dang-mo-dau #khu-vuc-cua, body.dang-mo-dau #ghi-chu-cua, body.dang-mo-dau .chan-trang{display:none}
 body.dang-mo-dau{padding:0}
 body.dang-mo-dau .khung-canh{height:100vh}
 body.dang-mo-dau .mo-dau{justify-content:space-between; padding:7vh 20px 6vh; pointer-events:none; background:linear-gradient(180deg, rgba(11,18,32,.45) 0%, rgba(11,18,32,.08) 30%, rgba(11,18,32,0) 55%, rgba(11,18,32,.88) 100%)} body.dang-mo-dau .mo-dau h2{font-size:52px} body.dang-mo-dau .mo-dau p{font-size:22px}
@@ -581,7 +581,7 @@ body.dang-choi header .nut{font-size:13px; padding:5px 9px; min-height:30px}
   </div>
 </header>
 
-<details class="panel-lop" id="panel-lop">
+<details class="panel-lop" id="panel-lop" open>
   <summary>👥 Đoàn lớp: <span id="lop-hien-tai">7B</span> · <span id="lop-so-luong">đang tải…</span></summary>
   <div class="hang">
     <label for="chon-lop" style="font-weight:700">Lớp:</label>
@@ -596,6 +596,10 @@ body.dang-choi header .nut{font-size:13px; padding:5px 9px; min-height:30px}
   <input type="text" id="link-csv-lop" placeholder="Dán link Sheet khác (export CSV / gviz) — để trống dùng Sheet của thầy">
   <textarea id="danh-sach-tay" rows="3" placeholder="Hoặc dán tên, mỗi dòng 1 tên…"></textarea>
   <div class="hang"><button class="nut nut-cam nut-nho" id="btn-dung-danh-sach">Dùng danh sách này</button></div>
+  <div class="hang"><label for="tep-ds-lop" class="nut nut-xanh nut-nho" style="cursor:pointer">📂 Tải file danh sách lớp (.xls / .xlsx / .csv)</label><input type="file" id="tep-ds-lop" accept=".xls,.xlsx,.csv,text/csv" style="display:none"></div>
+  <p style="font-size:16px; color:#9AA8C2; margin:4px 0 0">File .xls bảng điểm VNEDU dùng được luôn — chỉ lấy tên, không lấy điểm.</p>
+  <div id="ds-ten-lop" class="ds-ten-lop"></div>
+
   <p style="font-size:16px; color:#9AA8C2; margin:4px 0 0">Danh sách lưu trong trình duyệt, lần sau mở lại vẫn nhớ. Đoàn vào phòng tối đa 12 bạn đại diện.</p>
 </details>
 
@@ -19910,6 +19914,147 @@ body.dang-choi #nav-tron{display:flex} /* NAV-TRON 15/11: chỉ hiện khi đang
   setInterval(capNhat, 800);
   capNhat();
   window.NAVTRON = {di: navTronDi, capNhat: capNhat, layActive: layActive}; /* NAV-TRON 15/11: API kiểm chứng */
+})();
+</script>
+<style>
+/* DSL-UPLOAD 15/11: danh sach ten lop o goc man hinh */
+.ds-ten-lop{max-height:220px;overflow:auto;border:1px solid #3A4A6B;border-radius:10px;margin:6px 0;background:#0A0F1E}
+.ds-ten-lop .ds-ten-hang{display:flex;gap:8px;padding:5px 10px;font-size:16px;color:#FDF6E3;border-bottom:1px solid rgba(58,74,107,.5)}
+.ds-ten-lop .ds-ten-hang:last-child{border-bottom:none}
+.ds-ten-lop .ds-ten-stt{width:28px;text-align:right;color:#9AA8C2;flex:none}
+.ds-ten-lop .ds-ten-trong{padding:10px;font-size:16px;color:#9AA8C2}
+/* DSL-UPLOAD 15/11: khi mo panel lop thi dich sang phai 76px de khoi de len day nut tron ben trai */
+body.mo-lop #panel-lop{left:76px}
+</style>
+<script>
+/* DSL-UPLOAD 15/11 — tai file danh sach lop (.xls/.xlsx/.csv), hien ten o goc man hinh, gan ten cho doan lop.
+   Dung lai ham co san: trichTenTuCSV (doc cot Ho/Ten), apDungDanhSach (gan ten -> xayDungDoan 12 ban dai dien + goi y moi len), luuCaiDatLop. Chi lay TEN — khong lay diem, ngay sinh, ma HS. */
+(function(){
+  var DS_6A = ["Hoàng Hữu An", "Dương Văn Ánh", "Vừ Thiên Băng", "Mã Thị Diến", "Sùng A Dũng", "Ma Cà Khánh Duy", "Trương Văn Đại", "Hoàng Thị Đông", "Hoàng Văn Đức", "Hứa Tiến Đức", "Sằm Thị Minh Hằng", "Hoàng Thị Hiền", "Triệu Văn Hiền", "Lý Thị Hoa", "Lý Thị Ngọc Lan", "Đào Văn Long", "Triệu Quang Minh", "Dương Thị Kim Ngân", "Sằm Lý Ánh Ngọc", "Thào Thiên Ngọc", "Trang Thúy Ngọc", "Lý Tư Nhi", "Lý Thị Phấn", "Sùng Thị Phương", "Lý Thị Ngọc Phượng", "Hoàng Thị Sải", "Giàng Văn Sinh", "Giàng Chí Tâm", "Lý A Thái", "Ma Văn Thè", "Hầu Văn Thiên", "Giàng Thị Thuý", "Lường Thị Anh Thư", "Sùng Thị Thương", "Giàng Văn Tiến", "Sùng Thị Trang", "Giàng Văn Trung", "Hoàng Văn Trưởng", "Lý Văn Tuân", "Dương Xuân Tường", "Hoàng Thị Xuân"]; /* lop 6A, bang diem chi tiet HKI 2026-2027 thay gui 15/11 */
+  var SHEETJS_URL = 'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js';
+  var _sheetJS = null;
+  function dslTaiSheetJS(){
+    if(window.XLSX) return Promise.resolve();
+    if(_sheetJS) return _sheetJS;
+    _sheetJS = new Promise(function(giai, loi){
+      var s = document.createElement('script');
+      s.src = SHEETJS_URL; s.async = true;
+      var het = setTimeout(function(){ loi(new Error('het thoi gian')); }, 15000);
+      s.onload = function(){ clearTimeout(het); window.XLSX ? giai() : loi(new Error('khong co XLSX')); };
+      s.onerror = function(){ clearTimeout(het); loi(new Error('khong tai duoc')); };
+      document.head.appendChild(s);
+    });
+    return _sheetJS;
+  }
+  function dslAoaSangCSV(rows){
+    return rows.map(function(r){
+      return r.map(function(c){
+        var s = (c == null ? '' : String(c));
+        return /[",\n\r]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
+      }).join(',');
+    }).join('\n');
+  }
+  function dslDoanLop(rows, tenFile){
+    var i, t, m;
+    for(i = 0; i < Math.min(rows.length, 15); i++){
+      t = rows[i].map(function(c){ return c == null ? '' : String(c); }).join(' ');
+      m = t.match(/lớp\s*([1-9])\s*([A-C])/i);
+      if(m) return m[1] + m[2].toUpperCase();
+    }
+    if(tenFile){
+      var f = tenFile.toLowerCase();
+      var m2 = f.match(/lop[_-]?([1-9])\s*([a-c])/);
+      if(m2) return m2[1] + m2[2].toUpperCase();
+    }
+    var sel = document.getElementById('chon-lop');
+    return sel ? sel.value : '6A';
+  }
+  function dslHienDanhSachTen(){
+    var o = document.getElementById('ds-ten-lop');
+    if(!o) return;
+    o.innerHTML = '';
+    if(typeof danhSachLop === 'undefined' || !danhSachLop.length){
+      var tr = document.createElement('div');
+      tr.className = 'ds-ten-trong';
+      tr.textContent = 'Chưa có tên — tải file danh sách lớp hoặc dán tên vào ô bên dưới.';
+      o.appendChild(tr);
+      return;
+    }
+    danhSachLop.forEach(function(ten, i){
+      var hang = document.createElement('div');
+      hang.className = 'ds-ten-hang';
+      var stt = document.createElement('span');
+      stt.className = 'ds-ten-stt';
+      stt.textContent = (i + 1) + '.';
+      var nm = document.createElement('span');
+      nm.textContent = ten;
+      hang.appendChild(stt); hang.appendChild(nm);
+      o.appendChild(hang);
+    });
+  }
+  /* quan apDungDanhSach de lan nao nap ten (Sheet/dan tay/tai file) cung ve lai danh sach o goc */
+  var dslApDungGoc = apDungDanhSach;
+  apDungDanhSach = function(ten, lop){
+    dslApDungGoc(ten, lop);
+    dslHienDanhSachTen();
+  };
+  window.DSL = window.DSL || {};
+  window.DSL.hienDanhSachTen = dslHienDanhSachTen;
+  async function dslXuLyFile(file){
+    if(!file) return;
+    datTrangThaiLop('Đang đọc file ' + file.name + '…');
+    try{
+      var tenLopMoi, ten;
+      if(/\.csv$/i.test(file.name)){
+        var text = await file.text();
+        ten = trichTenTuCSV(text);
+        tenLopMoi = dslDoanLop(parseCSV(text).slice(0, 15), file.name);
+      } else if(/\.(xls|xlsx)$/i.test(file.name)){
+        await dslTaiSheetJS();
+        var buf = await file.arrayBuffer();
+        var wb = XLSX.read(buf);
+        var ws = wb.Sheets[wb.SheetNames[0]];
+        var rows = XLSX.utils.sheet_to_json(ws, {header: 1, defval: ''});
+        ten = trichTenTuCSV(dslAoaSangCSV(rows));
+        tenLopMoi = dslDoanLop(rows, file.name);
+      } else {
+        datTrangThaiLop('File này chưa đọc được — thầy dùng file .xls, .xlsx hoặc .csv.');
+        return;
+      }
+      if(!ten.length){
+        datTrangThaiLop('Không tìm thấy tên nào trong file ' + file.name + ' — thầy kiểm tra lại file (cần cột STT + Họ và tên).');
+        return;
+      }
+      var sel = document.getElementById('chon-lop');
+      if(sel && tenLopMoi) sel.value = tenLopMoi;
+      var tay = document.getElementById('danh-sach-tay');
+      if(tay) tay.value = ten.join('\n');
+      apDungDanhSach(ten, tenLopMoi);
+      datTrangThaiLop('Đã nạp ' + ten.length + ' bạn lớp ' + tenLopMoi + ' từ file ' + file.name + '.');
+    }catch(e){
+      datTrangThaiLop('Không đọc được file ' + file.name + ' (' + (e && e.message ? e.message : 'lỗi không rõ') + '). File .xls/.xlsx cần mạng để tải thư viện đọc — không có mạng thì thầy lưu file thành .csv rồi tải lên.');
+    }
+  }
+  window.DSL.xuLyFile = dslXuLyFile;
+  var tep = document.getElementById('tep-ds-lop');
+  if(tep){
+    tep.addEventListener('change', function(ev){
+      dslXuLyFile(ev.target.files && ev.target.files[0]);
+      ev.target.value = '';
+    });
+  }
+  /* Hat giong 6A — chi 1 lan duy nhat tren moi trinh duyet: ghi san vao cho luu cua game
+     (dung dang napCaiDatLop van doc) de lan mo nay game nap thang 6A thay vua gui. */
+  try{
+    if(localStorage.getItem('ds-lop-seed-v1') !== '6A'){
+      localStorage.setItem('khu-pho-ai-lop', JSON.stringify({lop: '6A', link: '', tay: DS_6A.join('\n')}));
+      localStorage.setItem('ds-lop-seed-v1', '6A');
+      var sel2 = document.getElementById('chon-lop');
+      if(sel2) sel2.value = '6A';
+      var tay2 = document.getElementById('danh-sach-tay');
+      if(tay2) tay2.value = DS_6A.join('\n');
+    }
+  }catch(e){ /* trinh duyet chan luu tru — game van chay, thay tai file la duoc */ }
 })();
 </script>
 </body>
