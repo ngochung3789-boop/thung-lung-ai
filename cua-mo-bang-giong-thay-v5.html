@@ -12505,6 +12505,16 @@ function datNoiDungPhong(b){
     if(nutMH) nutMH.insertAdjacentHTML('afterend', htmlVideo);
     else p.insertAdjacentHTML('afterbegin', htmlVideo);
   }
+  /* Nút Trò chơi — Dạy máy học (17/11, phòng Bài 11 lớp 7 t11-f2): đặt ngay sau
+     nút Video 3D gà-vịt (nút .nut-video-3d cuối cùng), mở tab mới tới trò chơi
+     đã up lên GitHub. Chỉ hiện khi phòng có trong SK_LINK_TROCHOI. */
+  const lkTroChoi = (typeof SK_LINK_TROCHOI !== 'undefined') ? SK_LINK_TROCHOI[idCu] : null;
+  if(lkTroChoi){
+    const htmlTro = '<a class="nut-minh-hoa nut-video-3d" href="' + lkTroChoi.url + '" target="_blank" rel="noopener">🎮 Trò chơi — Dạy máy học ↗</a>';
+    const cacNutV3 = p.querySelectorAll('.nut-video-3d');
+    if(cacNutV3.length) cacNutV3[cacNutV3.length - 1].insertAdjacentHTML('afterend', htmlTro);
+    else { const nutMH2 = p.querySelector('.nut-minh-hoa'); if(nutMH2) nutMH2.insertAdjacentHTML('afterend', htmlTro); else p.insertAdjacentHTML('afterbegin', htmlTro); }
+  }
   /* Build 13: nút chung 'Bắt đầu trò này' ra khỏi vùng cuộn — làm con trực tiếp
      của panel (dưới link minh họa, trên vùng cuộn) để luôn thấy, không bị cuộn đi.
      Build 11 căn thẻ đầu đẩy nút lên dưới link (bi-che-boi:nut-minh-hoa); build 12
@@ -15138,6 +15148,13 @@ const SK_LINK_VIDEO3D = {
   '7-c4-1': {ten: 'Video 3D — Khởi động', url: 'https://ngochung3789-boop.github.io/thung-lung-ai/videos/7c41-khoi-dong-3d.html'},
   't11-f2': {ten: 'Video 3D — Khởi động', url: 'https://ngochung3789-boop.github.io/thung-lung-ai/videos/7c51-khoi-dong-3d.html'},
   't11-f3': {ten: 'Video 3D — Khởi động', url: 'https://ngochung3789-boop.github.io/thung-lung-ai/videos/8d21-khoi-dong-3d.html'}
+};
+/* Link trò chơi khởi động (17/11): trò "Dạy máy học" cho phòng Bài 11 lớp 7
+   (7.C5.1, file videos/7c51-tro-choi-day-may-hoc.html). Map RIÊNG vì
+   SK_LINK_VIDEO3D mỗi key chỉ giữ 1 link — thêm 't11-f2' vào map đó sẽ ghi đè
+   mất nút Video 3D gà-vịt. */
+const SK_LINK_TROCHOI = {
+  't11-f2': {ten: 'Trò chơi — Dạy máy học', url: 'https://ngochung3789-boop.github.io/thung-lung-ai/videos/7c51-tro-choi-day-may-hoc.html'}
 };
 let skNhom = null, skHS = null, skRobot = null, skVongDo = null, skDenDo = null;
 let skDenHS = null, skDenRobot = null;
