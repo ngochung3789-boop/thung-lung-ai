@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Video khởi động — Lớp 8 Bài 10 (8.C1.1) — Máy nghe nhầm</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: "Segoe UI", "DejaVu Sans", Arial, sans-serif;
+    background: #f2f5f9;
+    color: #1c2733;
+    line-height: 1.55;
+  }
+  header {
+    background: linear-gradient(135deg, #123a6d, #1b5fa8);
+    color: #fff;
+    padding: 34px 24px 30px;
+    text-align: center;
+  }
+  header .kicker {
+    font-size: 22px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: #ffd23f;
+  }
+  header h1 {
+    font-size: 44px;
+    line-height: 1.2;
+    margin: 10px 0 8px;
+  }
+  header p { font-size: 24px; color: #dbe9f7; }
+  main { max-width: 1180px; margin: 0 auto; padding: 28px 20px 40px; }
+  .intro {
+    font-size: 24px;
+    background: #fff;
+    border-left: 8px solid #ffd23f;
+    border-radius: 12px;
+    padding: 20px 24px;
+    margin-bottom: 28px;
+    box-shadow: 0 2px 10px rgba(0,0,0,.08);
+  }
+  .video-card {
+    background: #fff;
+    border-radius: 16px;
+    box-shadow: 0 2px 14px rgba(0,0,0,.10);
+    padding: 26px 28px;
+    margin-bottom: 28px;
+  }
+  .video-card .num {
+    display: inline-block;
+    background: #ffd23f;
+    color: #1c2733;
+    font-weight: 800;
+    font-size: 22px;
+    border-radius: 999px;
+    padding: 6px 20px;
+    margin-bottom: 12px;
+  }
+  .video-card h2 { font-size: 32px; line-height: 1.3; margin-bottom: 6px; }
+  .video-card .meta { font-size: 22px; color: #4a5a6a; margin-bottom: 14px; }
+  .video-card .meta b { color: #1b5fa8; }
+  .video-card .desc { font-size: 24px; margin-bottom: 18px; }
+  .video-card video {
+    width: 100%;
+    border-radius: 12px;
+    background: #000;
+    display: block;
+  }
+  .actions { margin-top: 16px; display: flex; flex-wrap: wrap; gap: 14px; }
+  .actions a {
+    font-size: 22px;
+    font-weight: 700;
+    text-decoration: none;
+    border-radius: 999px;
+    padding: 12px 26px;
+  }
+  .actions a.download { background: #1b5fa8; color: #fff; }
+  .actions a.download:hover { background: #144a82; }
+  .actions a.back { background: #e8eef4; color: #1b5fa8; }
+  .note {
+    font-size: 22px;
+    color: #4a5a6a;
+    text-align: center;
+    padding: 10px 0 4px;
+  }
+  footer {
+    text-align: center;
+    font-size: 20px;
+    color: #7a8a99;
+    padding: 18px 20px 30px;
+  }
+  @media (max-width: 640px) {
+    header h1 { font-size: 32px; }
+    header p, .intro, .video-card .desc { font-size: 20px; }
+    .video-card h2 { font-size: 26px; }
+  }
+</style>
+</head>
+<body>
+<header>
+  <div class="kicker">Thung lũng AI &bull; Lớp 8 &bull; Bài 10</div>
+  <h1>Video khởi động &mdash; Lớp 8 Bài 10 (8.C1.1)<br>Máy nghe nhầm</h1>
+  <p>Chọn một video dưới đây để mở đầu tiết học</p>
+</header>
+
+<main>
+  <div class="intro">
+    Máy tính nghe &ndash; đọc &ndash; nhìn như thế nào, và vì sao gặp dữ liệu lạ thì máy dễ sai?
+    Thầy chọn một video khởi động cho lớp xem trước khi vào trò <b>&ldquo;Máy nghe nhầm&rdquo;</b>.
+  </div>
+
+  <!-- ============================================================
+       DANH SÁCH VIDEO KHỞI ĐỘNG — LỚP 8 BÀI 10 (8.C1.1)
+       Cách thêm video mới sau này:
+       1. Đẩy file MP4 mới lên repo (thư mục videos/), tên rõ nghĩa,
+          ví dụ: videos/8c11-ten-video.mp4 (giữ dưới 25 MB để đẩy
+          được qua giao diện web GitHub).
+       2. Copy toàn bộ khối <section class="video-card"> ... </section>
+          bên dưới, dán ngay sau khối cuối cùng, rồi đổi:
+          - số thứ tự trong <span class="num">
+          - tiêu đề trong <h2>, thời lượng trong .meta
+          - dòng mô tả trong <p class="desc">
+          - src của <video> và href của nút Tải video về
+       3. Không xóa khối video cũ — để thầy và lớp luôn có lựa chọn.
+       ============================================================ -->
+
+  <section class="video-card">
+    <span class="num">Video 1</span>
+    <h2>Everyday AI &mdash; Phim hoạt hình 3D (bản tiếng Việt)</h2>
+    <p class="meta">Thời lượng: <b>5:00</b> &nbsp;&bull;&nbsp; Dạng: phim hoạt hình 3D, nhân vật chuyển động &nbsp;&bull;&nbsp; Giọng thuyết minh: nữ Bắc</p>
+    <p class="desc">AI ở quanh ta mỗi ngày: trợ lý ảo trả lời, hệ thống gợi ý phim, máy nhận ra khuôn mặt và rau củ &mdash; và vì sao AI vẫn thiên vị khi dữ liệu huấn luyện thiếu đa dạng.</p>
+    <video controls preload="metadata" src="videos/8c11-everyday-ai-phim-v2.mp4"></video>
+    <div class="actions">
+      <a class="download" href="videos/8c11-everyday-ai-phim-v2.mp4" download>⬇ Tải video về (21 MB)</a>
+    </div>
+  </section>
+
+  <p class="note">Danh sách sẽ bổ sung thêm video khởi động khác cho bài này khi có bản mới.</p>
+</main>
+
+<footer>
+  <a href="https://ngochung3789-boop.github.io/thung-lung-ai/">← Về game Thung lũng AI</a>
+  &nbsp;&bull;&nbsp; Lớp 8 Bài 10 &bull; Mã 8.C1.1 &bull; Trò &ldquo;Máy nghe nhầm&rdquo;
+</footer>
+</body>
+</html>
