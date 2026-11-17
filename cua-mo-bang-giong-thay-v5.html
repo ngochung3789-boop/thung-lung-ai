@@ -338,6 +338,7 @@ body.dang-choi header h1{font-size:15px} /* LOP-RONG 15/11 */
    bỏ position:sticky (sticky trong panel là nguyên nhân dải đen — xem ghi chú trên). */
 .nut-minh-hoa{display:block; text-align:center; background:linear-gradient(180deg,#E8C95A,#C9A227); color:#1A2340; font-weight:900; font-size:21px; padding:12px 16px; border-radius:12px; text-decoration:none; margin:0 0 10px; border:3px solid #8A6D1B; box-shadow:0 4px 14px rgba(0,0,0,.35); flex:none}
 .nut-minh-hoa:active{transform:scale(.98)}
+.nut-video-3d{background:linear-gradient(180deg,#7FB3FF,#3D7EDB); color:#fff; border-color:#1F4E9C}
 #noi-dung-phong .ndp-dau{position:sticky; top:0; display:flex; justify-content:space-between; align-items:center; gap:8px; background:#FDF6E3; padding:2px 0 8px; margin:0 0 4px; font-weight:800; color:#8A6D1B; font-size:17px; z-index:2}
 #noi-dung-phong .ndp-dau button{font-family:inherit; font-size:15px; font-weight:800; padding:6px 12px; border-radius:999px; border:2px solid #C9A227; background:#fff; color:#1A2340; cursor:pointer; white-space:nowrap}
 #noi-dung-phong.da-thu-gon{width:auto; max-height:none; overflow:visible; padding:10px 12px}
@@ -12492,6 +12493,15 @@ function datNoiDungPhong(b){
   p.innerHTML = '<div class="ndp-cuon">' + p.innerHTML + '</div>';
   const lkMinhHoa = SK_LINK_MINH_HOA[idCu];
   if(lkMinhHoa){ p.insertAdjacentHTML('afterbegin', '<a class="nut-minh-hoa" href="' + lkMinhHoa.url + '" target="_blank" rel="noopener">🔗 Mở minh họa: ' + lkMinhHoa.ten + ' ↗</a>'); }
+  /* Nút Video 3D — Khởi động (17/11, phòng Bài 11): đặt ngay sau nút Mở minh họa,
+     mở tab mới tới cảnh 3D đã up lên GitHub. Chỉ hiện khi phòng có trong SK_LINK_VIDEO3D. */
+  const lkVideo3D = (typeof SK_LINK_VIDEO3D !== 'undefined') ? SK_LINK_VIDEO3D[idCu] : null;
+  if(lkVideo3D){
+    const htmlVideo = '<a class="nut-minh-hoa nut-video-3d" href="' + lkVideo3D.url + '" target="_blank" rel="noopener">🎬 Video 3D — Khởi động ↗</a>';
+    const nutMH = p.querySelector('.nut-minh-hoa');
+    if(nutMH) nutMH.insertAdjacentHTML('afterend', htmlVideo);
+    else p.insertAdjacentHTML('afterbegin', htmlVideo);
+  }
   /* Build 13: nút chung 'Bắt đầu trò này' ra khỏi vùng cuộn — làm con trực tiếp
      của panel (dưới link minh họa, trên vùng cuộn) để luôn thấy, không bị cuộn đi.
      Build 11 căn thẻ đầu đẩy nút lên dưới link (bi-che-boi:nut-minh-hoa); build 12
@@ -15111,6 +15121,15 @@ const SK_LINK_MINH_HOA = {
   '7-c4-1': {ten: 'AI Học Nhìn Ảnh', url: 'https://ngochung3789-boop.github.io/bai10AI/'},
   /* LINK app May Nghe Nham (13/11): khoa code la 't10-f3' (id phong that) — brief ghi '8-c1-1' la ma bai 8.C1.1, KHONG doi ID_CU (doi '10-3' se doi b.id thanh '8-c1-1' lam vo moi map 't10-f3': PHONG_MOI/PM_TRO/DU_B4_DATA/GIOI_THIEU_MOI/NHIEM_VU). */
   't10-f3': {ten: 'Máy Nghe Nhầm', url: 'https://ngochung3789-boop.github.io/thung-lung-ai/may-nghe-nham.html'}
+};
+/* Link Video 3D khởi động (17/11, phòng Bài 11): cảnh 3D Lớp 7 Bài 11 "Dạy máy
+   nhận biết gà – vịt" (7.C5.1, file videos/7c51-khoi-dong-3d.html) và Lớp 8 Bài 11
+   "Chatbot lớp mình — Bot nói lạc ở đâu?" (8.D2.1, file videos/8d21-khoi-dong-3d.html),
+   cả 2 đều có giọng nữ Bắc 1 thu sẵn. Map riêng với SK_LINK_MINH_HOA.
+   Mục '7-c4-1' do patch 7.C4.1 thêm (đi trước theo thứ tự) — KHÔNG thêm ở đây. */
+const SK_LINK_VIDEO3D = {
+  't11-f2': {ten: 'Video 3D — Khởi động', url: 'https://ngochung3789-boop.github.io/thung-lung-ai/videos/7c51-khoi-dong-3d.html'},
+  't11-f3': {ten: 'Video 3D — Khởi động', url: 'https://ngochung3789-boop.github.io/thung-lung-ai/videos/8d21-khoi-dong-3d.html'}
 };
 let skNhom = null, skHS = null, skRobot = null, skVongDo = null, skDenDo = null;
 let skDenHS = null, skDenRobot = null;
