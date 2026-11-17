@@ -108,6 +108,25 @@
     background:rgba(255,255,255,.92); border:2px solid #ff8c1a; border-radius:999px;
     padding:8px 16px; cursor:pointer; box-shadow:0 3px 10px rgba(0,0,0,.25);
   }
+  /* cụm chọn tốc độ phát (TOC-DO 17/11) — góc phải trên, nút to dễ bấm trên TV, luôn hiện */
+  #tocdo {
+    position:fixed; top:14px; right:14px; z-index:40;
+    display:flex; gap:8px; align-items:center;
+  }
+  #tocdo .td-nhan {
+    font-size:20px; font-weight:800; color:#fff;
+    text-shadow:0 2px 6px rgba(0,0,0,.55);
+  }
+  #tocdo button {
+    font-size:20px; font-weight:800; color:#12324a;
+    background:rgba(255,255,255,.92); border:2px solid #ff8c1a; border-radius:999px;
+    padding:10px 18px; cursor:pointer; box-shadow:0 3px 10px rgba(0,0,0,.25);
+  }
+  #tocdo button.on {
+    background:#ffb300; border-color:#e65100; color:#3e2700;
+    box-shadow:0 0 0 3px rgba(255,179,0,.55), 0 3px 12px rgba(0,0,0,.35);
+  }
+
   #controls button:hover { background:#fff3e0; }
   #controls button:disabled { opacity:.45; cursor:default; }
   #clock {
@@ -158,6 +177,15 @@
   <button id="btnMute">🔊 Tiếng: Bật</button>
   <span id="clock">0:00 / 3:30</span>
 </div>
+<div id="tocdo" title="Tốc độ phát">
+  <span class="td-nhan">Tốc độ:</span>
+  <button data-td="1" class="on">1x</button>
+  <button data-td="1.2">1.2x</button>
+  <button data-td="1.5">1.5x</button>
+  <button data-td="2">2x</button>
+  <button data-td="2.5">2.5x</button>
+  <button data-td="3">3x</button>
+</div>
 <button id="bigPlay" title="Phát">▶</button>
 
 <div id="progress"><div id="progressFill"></div></div>
@@ -180,6 +208,7 @@ var DUR = 210; // 3 phút 30 giây
 /* ---------- tham số ?t= giây : nhảy tới đúng thời điểm, dừng ở đó ---------- */
 var params = new URLSearchParams(location.search);
 var t = 0, playing = false, frozen = false;
+var tocDo = 1; // TOC-DO 17/11: toc do phat 1x–3x, mac dinh 1x — ap cho ca hinh (t) va giong (playbackRate).
 if (params.has('t')) {
   var tv = parseFloat(params.get('t'));
   if (!isNaN(tv)) { t = Math.max(0, Math.min(DUR, tv)); frozen = true; }
@@ -745,7 +774,7 @@ function syncAudio(){
     var c = AUDIO_CLIPS[i], a = audioEls[c.id];
     if (playing && !muted && t >= c.start && t < c.start + c.dur){
       var off = t - c.start;
-      if (a.paused){ a.currentTime = off; var p = a.play(); if (p && p.catch) p.catch(function(){}); }
+      if (a.paused){ a.playbackRate = tocDo; a.currentTime = off; var p = a.play(); if (p && p.catch) p.catch(function(){}); }
       else if (Math.abs(a.currentTime - off) > 0.4){ a.currentTime = off; }
     } else if (!a.paused){ a.pause(); }
   }
@@ -907,7 +936,7 @@ function animate(now){
   if (dt > 0.5) dt = 0.5;
   lastNow = now;
   if (playing){
-    t += dt;
+    t += dt * tocDo; // TOC-DO 17/11
     if (t >= DUR){ t = DUR; pause(); }
   }
   applyTime(t);
@@ -955,6 +984,20 @@ btnMute.addEventListener('click', function(){
   btnMute.textContent = muted ? '🔇 Tiếng: Tắt' : '🔊 Tiếng: Bật';
   syncAudio();
 });
+/* ---------- tốc độ phát (TOC-DO 17/11): 1x–3x, áp cho cả hình lẫn giọng ---------- */
+function datTocDo(v){
+  tocDo = v;
+  for (var id in audioEls){ try { audioEls[id].playbackRate = v; } catch(e){} }
+  var ns = document.querySelectorAll('#tocdo button');
+  for (var i = 0; i < ns.length; i++) ns[i].classList.toggle('on', parseFloat(ns[i].getAttribute('data-td')) === v);
+  syncAudio();
+}
+var tdBtns = document.querySelectorAll('#tocdo button');
+for (var i = 0; i < tdBtns.length; i++){
+  tdBtns[i].addEventListener('click', function(){ datTocDo(parseFloat(this.getAttribute('data-td'))); });
+}
+window.__tocDo = function(){ return tocDo; };
+
 document.addEventListener('visibilitychange', function(){
   if (document.hidden && playing) pause();
 });
