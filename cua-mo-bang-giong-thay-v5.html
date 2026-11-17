@@ -2254,6 +2254,7 @@ function batDauMoDau(){
   batDauHanhTrinh();
 }
 function batDauHanhTrinh(){
+  dungTiengDongCo(); /* UU-UU HDMI 17/11: tat tieng dong co khi xe chay — chi giu tieng 'no may' ngan luc ho 'San sang'. */
   /* v5: chuyen bay ban ngay — luu che do dem hien tai, chuyen sang ngay cho chuyen bay, tra lai o buoc 4. */
   demTruocMoDau = dem;
   if(dem){ dem = false; capNhatNgayDem(); }
@@ -2285,7 +2286,7 @@ function batDauHanhTrinh(){
   /* v5 buoc 1: len may bay (5s) — rem DONG trong suot buoc nay. */
   introState = 'chay'; introT = 0; introBatDauMs = performance.now();
   hanhTrinhTich = 0; hanhTrinhPhaBatDau = 0; choLoiMoDau1 = true; /* 12/11: giong chi noi sau khung hinh dau */
-  khoiDongAmThanh(); amWhoosh(); if(!tiengDongCo) phatTiengDongCo(phuongTien); /* BUILD 17: tieng dong co chay suot hanh trinh (da no may luc ho xong; xem lai thi no lai). */
+  khoiDongAmThanh(); amWhoosh(); /* UU-UU HDMI 17/11: KHONG khoi dong lai tieng dong co khi xe chay (thay yeu cau 16/11 + bao u tren TV) — chi giu tieng 'no may' ngan luc ho 'San sang'. */
   $('mo-dau').style.display = 'none';
   $('btn-bo-qua-noi').style.display = 'block';
   const cb = $('chu-bay'); if(cb) cb.style.display = 'none';
@@ -13294,6 +13295,7 @@ function moDanChuyenCanh(){
 }
 function chuyenSangThanhPho(){
   if(!sceneCity) return;
+  dungTiengDongCo(); /* UU-UU HDMI 17/11: ve san la tat tieng dong co */
   activeScene = 'city';
   amDatCheDoNhac('hanh-trinh');
   anThanhChipPhong(); anBongBongGioiThieu(); /* fix7 */
@@ -13381,6 +13383,7 @@ function ganBangKhoiDongLop(){
 }
 function chuyenSangPhong(b){
   if(!scenePhong) return;
+  dungTiengDongCo(); /* UU-UU HDMI 17/11: vao phong la tat tieng dong co */
   try{ if(phongHienTai && (ID_CU[phongHienTai.id] || phongHienTai.id) === '7-c4-1' && typeof mauC41TraBanHs === 'function') mauC41TraBanHs(); }catch(e){} /* DON BAN-HS 14/11: roi phong 7-c4-1 thi tra lai ban + HS ngoi cho phong khac */
   phongHienTai = b;
   activeScene = 'phong';
@@ -13999,7 +14002,7 @@ function dungNghe(){
 /* ================= ÂM THANH — Web Audio API tổng hợp, không file ngoài ================= */
 /* Nhạc nền + hiệu ứng chỉ bắt đầu sau cử chỉ của người dùng (bấm "Bắt đầu"/"Bỏ qua"),
    theo chính sách autoplay của trình duyệt. Nút tắt tiếng tắt hết nhạc + hiệu ứng ngay. */
-let amCtx = null, amMaster = null, amNhac = null, amHieuUng = null;
+let amCtx = null, amMaster = null, amNhac = null, amHieuUng = null, amGiong = null; /* UU-UU HDMI 17/11: bus rieng cho giong noi */
 let amBat = false, amTatTieng = false, amLuong = 0.8, amGiongNoi = true; /* FIX3: giong robot/le tan mac dinh BAT (thay can huong dan bang am thanh) */
 let amNhacHen = null, amNotTiepTheo = 0, amDemNhac = 0;
 let amCheDo = 'hanh-trinh'; /* v5: che do nhac nen — hanh-trinh (mac dinh) / bay (nhanh + cao 1 quang) / choi (nhanh hon chut) */
@@ -14013,6 +14016,7 @@ function amTaoCtx(){
     amMaster = amCtx.createGain(); amMaster.gain.value = amTatTieng ? 0 : amLuong; amMaster.connect(amCtx.destination);
     amNhac = amCtx.createGain(); amNhac.gain.value = 0.22; amNhac.connect(amMaster);
     amHieuUng = amCtx.createGain(); amHieuUng.gain.value = 0.9; amHieuUng.connect(amMaster);
+    amGiong = amCtx.createGain(); amGiong.gain.value = 1; amGiong.connect(amMaster); /* UU-UU HDMI 17/11: giong noi di duong rieng */
     const dem = amCtx.createBuffer(1, amCtx.sampleRate, amCtx.sampleRate);
     const d = dem.getChannelData(0);
     for(let i=0;i<d.length;i++) d[i] = Math.random()*2 - 1;
@@ -14230,7 +14234,7 @@ function giongNuPhatFile(id){
       try{
         if(giongNuNguon){ try{ giongNuNguon.stop(); }catch(e){} }
         var src = amCtx.createBufferSource(); src.buffer = b;
-        src.connect(amHieuUng); src.start();
+        src.connect(amGiong || amHieuUng); src.start(); /* UU-UU HDMI 17/11: giong qua bus rieng */
         giongNuNguon = src;
         src.onended = function(){ if(giongNuNguon === src) giongNuNguon = null; };
       }catch(e){}
@@ -14250,12 +14254,14 @@ function amCapNhatNutTat(){
   const b = $('btn-tat-tieng'); if(!b) return;
   b.textContent = amTatTieng ? '🔇' : '🔊';
   b.classList.toggle('tat', amTatTieng);
-  b.title = amTatTieng ? 'Đã tắt tiếng — bấm để bật lại' : 'Bật/tắt tiếng (nhạc + hiệu ứng)';
+  b.title = amTatTieng ? 'Đã tắt nhạc + hiệu ứng (giọng nói vẫn bật) — bấm để bật lại' : 'Bật/tắt tiếng (nhạc + hiệu ứng)';
 }
 function amDoiTatTieng(){
   amTatTieng = !amTatTieng;
-  if(amMaster) amMaster.gain.value = amTatTieng ? 0 : amLuong;
-  if(amTatTieng){ try{ if(typeof giongNuDung === 'function') giongNuDung(); }catch(e){} try{ if(typeof mauF1DungFile === 'function') mauF1DungFile(); }catch(e){} }
+  /* UU-UU HDMI 17/11: nut loa chi tat nhac + hieu ung (gom tieng dong co).
+     Giong noi di bus rieng amGiong -> amMaster nen VAN NGHE DUOC khi tat loa. */
+  if(amNhac) amNhac.gain.value = amTatTieng ? 0 : 0.22;
+  if(amHieuUng) amHieuUng.gain.value = amTatTieng ? 0 : 0.9;
   amCapNhatNutTat();
 }
 function amGanNut(){
@@ -17130,7 +17136,7 @@ function mauF1PhatFile(khoa){
       try{
         if(mauF1NguonDangPhat){ try{ mauF1NguonDangPhat.stop(); }catch(e){} }
         var src = amCtx.createBufferSource(); src.buffer = b;
-        src.connect(amHieuUng); src.start();
+        src.connect(amGiong || amHieuUng); src.start(); /* UU-UU HDMI 17/11: giong qua bus rieng */
         mauF1NguonDangPhat = src;
         src.onended = function(){ if(mauF1NguonDangPhat === src) mauF1NguonDangPhat = null; };
       }catch(e){}
@@ -17611,7 +17617,7 @@ function mauC41PhatFile(khoa){
       try{
         if(mauC41NguonDangPhat){ try{ mauC41NguonDangPhat.stop(); }catch(e){} }
         var src = amCtx.createBufferSource(); src.buffer = b;
-        src.connect(amHieuUng); src.start();
+        src.connect(amGiong || amHieuUng); src.start(); /* UU-UU HDMI 17/11: giong qua bus rieng */
         mauC41NguonDangPhat = src;
         src.onended = function(){ if(mauC41NguonDangPhat === src) mauC41NguonDangPhat = null; };
       }catch(e){}
