@@ -595,6 +595,7 @@ body.dang-choi header .nut{font-size:13px; padding:5px 9px; min-height:30px}
     </select>
     <span id="trang-thai-lop" style="font-size:17px">Đang tải danh sách lớp…</span>
   </div>
+  <div id="ds-lop-da-luu" style="font-size:15px; color:#7FB069; margin:2px 0 0"></div>
   <input type="text" id="link-csv-lop" placeholder="Dán link Sheet khác (export CSV / gviz) — để trống dùng Sheet của thầy">
   <textarea id="danh-sach-tay" rows="3" placeholder="Hoặc dán tên, mỗi dòng 1 tên…"></textarea>
   <div class="hang"><button class="nut nut-cam nut-nho" id="btn-dung-danh-sach">Dùng danh sách này</button></div>
@@ -13093,6 +13094,16 @@ function datTrangThaiLop(text){
 }
 function apDungDanhSach(ten, lop){
   danhSachLop = ten; tongLop = ten.length; tenLop = lop; lopDaNap = lop;
+  /* NHIEU LOP 17/11: ghi ten vao ban do nhieu lop (chi khi co ten) — up lop nao
+     chi thay lop do, cac lop khac con nguyen. Khong bao gio xoa khi ten rong
+     (tai Sheet loi ma xoa thi mat het). */
+  try{
+    if(ten && ten.length){
+      var _bn = JSON.parse(localStorage.getItem('khu-pho-ai-lop-nhieu') || '{}');
+      _bn[lop] = ten.slice();
+      localStorage.setItem('khu-pho-ai-lop-nhieu', JSON.stringify(_bn));
+    }
+  }catch(e){}
   $('lop-hien-tai').textContent = lop;
   $('lop-so-luong').textContent = ten.length ? (ten.length + ' bạn') : 'chưa có tên';
   if(ten.length) datTrangThaiLop('Đã nạp ' + ten.length + ' bạn lớp ' + lop + '.');
@@ -13102,6 +13113,19 @@ function apDungDanhSach(ten, lop){
 }
 async function napDanhSachLop(lop, linkTuyChon){
   tenLop = lop;
+  /* NHIEU LOP 17/11: lop da luu tren may thi lay ngay, khong tai Sheet nua. */
+  if(!linkTuyChon){
+    try{
+      var _bn2 = JSON.parse(localStorage.getItem('khu-pho-ai-lop-nhieu') || '{}');
+      if(_bn2[lop] && _bn2[lop].length){
+        $('chon-lop').value = lop;
+        $('danh-sach-tay').value = _bn2[lop].join('\n');
+        apDungDanhSach(_bn2[lop].slice(), lop);
+        datTrangThaiLop('Đã nạp ' + _bn2[lop].length + ' bạn lớp ' + lop + ' (đã lưu trên máy).');
+        return;
+      }
+    }catch(e){}
+  }
   datTrangThaiLop('Đang tải danh sách lớp ' + lop + '…');
   let url = linkTuyChon;
   if(!url) url = 'https://docs.google.com/spreadsheets/d/' + SHEET_ID + '/export?format=csv&gid=' + GID_LOP[lop];
@@ -13151,6 +13175,15 @@ function napCaiDatLop(){
     if(cai.tay && cai.tay.trim()){ napTuTay(); return; }
     if(cai.link && cai.link.trim()){ napDanhSachLop(tenLop, cai.link); return; }
   }
+  /* NHIEU LOP 17/11: lop hien tai da luu trong ban do nhieu lop thi lay ngay. */
+  try{
+    var _bn3 = JSON.parse(localStorage.getItem('khu-pho-ai-lop-nhieu') || '{}');
+    if(_bn3[tenLop] && _bn3[tenLop].length){
+      $('danh-sach-tay').value = _bn3[tenLop].join('\n');
+      apDungDanhSach(_bn3[tenLop].slice(), tenLop);
+      return;
+    }
+  }catch(e){}
   napDanhSachLop(tenLop);
 }
 
@@ -20328,6 +20361,7 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
       tr.className = 'ds-ten-trong';
       tr.textContent = 'Chưa có tên — tải file danh sách lớp hoặc dán tên vào ô bên dưới.';
       o.appendChild(tr);
+      dslHienLopDaLuu();
       return;
     }
     danhSachLop.forEach(function(ten, i){
@@ -20341,6 +20375,15 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
       hang.appendChild(stt); hang.appendChild(nm);
       o.appendChild(hang);
     });
+    dslHienLopDaLuu();
+  }
+  function dslHienLopDaLuu(){
+    var o = document.getElementById('ds-lop-da-luu');
+    if(!o) return;
+    var m = {};
+    try{ m = JSON.parse(localStorage.getItem('khu-pho-ai-lop-nhieu') || '{}'); }catch(e){}
+    var ds = Object.keys(m).filter(function(k){ return m[k] && m[k].length; }).sort();
+    o.textContent = ds.length ? ('Đã lưu trên máy: ' + ds.map(function(k){ return k + ' (' + m[k].length + ')'; }).join(' · ')) : '';
   }
   /* quan apDungDanhSach de lan nao nap ten (Sheet/dan tay/tai file) cung ve lai danh sach o goc */
   var dslApDungGoc = apDungDanhSach;
@@ -20398,6 +20441,7 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
   try{
     if(localStorage.getItem('ds-lop-seed-v1') !== '6A'){
       localStorage.setItem('khu-pho-ai-lop', JSON.stringify({lop: '6A', link: '', tay: DS_6A.join('\n')}));
+      localStorage.setItem('khu-pho-ai-lop-nhieu', JSON.stringify({'6A': DS_6A.slice()}));
       localStorage.setItem('ds-lop-seed-v1', '6A');
       var sel2 = document.getElementById('chon-lop');
       if(sel2) sel2.value = '6A';
