@@ -336,9 +336,9 @@ body.dang-choi header h1{font-size:15px} /* LOP-RONG 15/11 */
 /* Nút "Mở minh họa" — mở tab mới tới demo thật của bài (chỉ 2 bài có link chắc chắn).
    Build 10: link là con trực tiếp của panel (ngoài vùng cuộn .ndp-cuon) nên luôn thấy;
    bỏ position:sticky (sticky trong panel là nguyên nhân dải đen — xem ghi chú trên). */
-.nut-minh-hoa{display:block; text-align:center; background:linear-gradient(180deg,#E8C95A,#C9A227); color:#1A2340; font-weight:900; font-size:21px; padding:12px 16px; border-radius:12px; text-decoration:none; margin:0 0 10px; border:3px solid #8A6D1B; box-shadow:0 4px 14px rgba(0,0,0,.35); flex:none}
-.nut-minh-hoa:active{transform:scale(.98)}
-.nut-video-3d{background:linear-gradient(180deg,#7FB3FF,#3D7EDB); color:#fff; border-color:#1F4E9C}
+.nut-minh-hoa, .nut-video-3d{display:block; text-align:center; background:linear-gradient(180deg,#E8C95A,#C9A227); color:#1A2340; font-weight:900; font-size:21px; padding:12px 16px; border-radius:12px; text-decoration:none; margin:0 0 10px; border:3px solid #8A6D1B; box-shadow:0 4px 14px rgba(0,0,0,.35); flex:none}
+.nut-minh-hoa:active, .nut-video-3d:active{transform:scale(.98)}
+.nut-minh-hoa.nut-video-3d{background:linear-gradient(180deg,#7FB3FF,#3D7EDB); color:#fff; border-color:#1F4E9C}
 #noi-dung-phong .ndp-dau{position:sticky; top:0; display:flex; justify-content:space-between; align-items:center; gap:8px; background:#FDF6E3; padding:2px 0 8px; margin:0 0 4px; font-weight:800; color:#8A6D1B; font-size:17px; z-index:2}
 #noi-dung-phong .ndp-dau button{font-family:inherit; font-size:15px; font-weight:800; padding:6px 12px; border-radius:999px; border:2px solid #C9A227; background:#fff; color:#1A2340; cursor:pointer; white-space:nowrap}
 #noi-dung-phong.da-thu-gon{width:auto; max-height:none; overflow:visible; padding:10px 12px}
@@ -6168,7 +6168,8 @@ function sk8C11TheGioiThieu(){
     + '<p>📖 <b>ĐỌC</b> — tách chữ thành số rồi đoán ý.</p>'
     + '<p>👁️ <b>NHÌN</b> — so ảnh với mẫu đã học.</p>'
     + '<div class="bot-luot"><h4 style="font-size:28px">🔗 Giờ thầy mở app cho cả lớp xem/thử:</h4>'
-    + '<p>Bấm nút <b>“🔗 Mở minh họa: Máy Nghe Nhầm”</b> ở trên để mở app — xem/thử xong, quay lại đây bấm “Đã xem xong” sẽ có 2 câu hỏi.</p></div>';
+    + '<p>Bấm nút <b>“🔗 Mở minh họa: Máy Nghe Nhầm”</b> ở trên để mở app — xem/thử xong, quay lại đây bấm “Đã xem xong” sẽ có 2 câu hỏi.</p>'
+    + '<p>Muốn xem phim trước: bấm nút <b>“🎬 Xem video 3D”</b> để xem phim hoạt hình 3D Everyday AI (5 phút) — xem xong quay lại đây rồi bấm nút app như trên.</p></div>';
 }
 function sk8C11TheDoi(){
   return '<h3>8.C1.1 — Cơ chế nghe/đọc/nhìn</h3><p class="ma-phong">✅ ĐÃ MỞ · Tòa 8 · Phòng 10</p>'
@@ -12493,6 +12494,8 @@ function datNoiDungPhong(b){
   p.innerHTML = '<div class="ndp-cuon">' + p.innerHTML + '</div>';
   const lkMinhHoa = SK_LINK_MINH_HOA[idCu];
   if(lkMinhHoa){ p.insertAdjacentHTML('afterbegin', '<a class="nut-minh-hoa" href="' + lkMinhHoa.url + '" target="_blank" rel="noopener">🔗 Mở minh họa: ' + lkMinhHoa.ten + ' ↗</a>'); }
+  const lkVideo = SK_LINK_VIDEO[idCu];
+  if(lkVideo){ const aMH = p.querySelector('.nut-minh-hoa'); if(aMH) aMH.insertAdjacentHTML('afterend', '<a class="nut-video-3d" href="' + lkVideo.url + '" target="_blank" rel="noopener">🎬 Xem video 3D ↗</a>'); else p.insertAdjacentHTML('afterbegin', '<a class="nut-video-3d" href="' + lkVideo.url + '" target="_blank" rel="noopener">🎬 Xem video 3D ↗</a>'); } /* VIDEO 3D 8.C1.1 (17/11): nut rieng, class khac .nut-minh-hoa de bam chi mo tab moi, KHONG kich hoat the doi nhu nut app */
   /* Nút Video 3D — Khởi động (17/11, phòng Bài 11): đặt ngay sau nút Mở minh họa,
      mở tab mới tới cảnh 3D đã up lên GitHub. Chỉ hiện khi phòng có trong SK_LINK_VIDEO3D. */
   const lkVideo3D = (typeof SK_LINK_VIDEO3D !== 'undefined') ? SK_LINK_VIDEO3D[idCu] : null;
@@ -15121,6 +15124,10 @@ const SK_LINK_MINH_HOA = {
   '7-c4-1': {ten: 'AI Học Nhìn Ảnh', url: 'https://ngochung3789-boop.github.io/bai10AI/'},
   /* LINK app May Nghe Nham (13/11): khoa code la 't10-f3' (id phong that) — brief ghi '8-c1-1' la ma bai 8.C1.1, KHONG doi ID_CU (doi '10-3' se doi b.id thanh '8-c1-1' lam vo moi map 't10-f3': PHONG_MOI/PM_TRO/DU_B4_DATA/GIOI_THIEU_MOI/NHIEM_VU). */
   't10-f3': {ten: 'Máy Nghe Nhầm', url: 'https://ngochung3789-boop.github.io/thung-lung-ai/may-nghe-nham.html'}
+};
+/* VIDEO 3D 8.C1.1 (17/11): nut "Xem video 3D" mo trang danh sach video khoi dong — chi mo tab moi, KHONG doi trang thai game (handler ganSuKienNoiDungPhong chi bat .nut-minh-hoa). Link da kiem: trang tra 200, co 1 phim Everyday AI 3D v2 (5 phut). */
+const SK_LINK_VIDEO = {
+  't10-f3': {ten: 'Video 3D', url: 'https://ngochung3789-boop.github.io/thung-lung-ai/video-khoi-dong-8c11.html'}
 };
 /* Link Video 3D khởi động (17/11, phòng Bài 11): cảnh 3D Lớp 7 Bài 11 "Dạy máy
    nhận biết gà – vịt" (7.C5.1, file videos/7c51-khoi-dong-3d.html) và Lớp 8 Bài 11
