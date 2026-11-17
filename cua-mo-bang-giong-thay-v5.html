@@ -12510,7 +12510,7 @@ function datNoiDungPhong(b){
      đã up lên GitHub. Chỉ hiện khi phòng có trong SK_LINK_TROCHOI. */
   const lkTroChoi = (typeof SK_LINK_TROCHOI !== 'undefined') ? SK_LINK_TROCHOI[idCu] : null;
   if(lkTroChoi){
-    const htmlTro = '<a class="nut-minh-hoa nut-video-3d" href="' + lkTroChoi.url + '" target="_blank" rel="noopener">🎮 Trò chơi — Dạy máy học ↗</a>';
+    const htmlTro = '<a class="nut-minh-hoa nut-video-3d" href="' + lkTroChoi.url + '" target="_blank" rel="noopener">🎮 ' + lkTroChoi.ten + ' ↗</a>';
     const cacNutV3 = p.querySelectorAll('.nut-video-3d');
     if(cacNutV3.length) cacNutV3[cacNutV3.length - 1].insertAdjacentHTML('afterend', htmlTro);
     else { const nutMH2 = p.querySelector('.nut-minh-hoa'); if(nutMH2) nutMH2.insertAdjacentHTML('afterend', htmlTro); else p.insertAdjacentHTML('afterbegin', htmlTro); }
@@ -15154,7 +15154,8 @@ const SK_LINK_VIDEO3D = {
    SK_LINK_VIDEO3D mỗi key chỉ giữ 1 link — thêm 't11-f2' vào map đó sẽ ghi đè
    mất nút Video 3D gà-vịt. */
 const SK_LINK_TROCHOI = {
-  't11-f2': {ten: 'Trò chơi — Dạy máy học', url: 'https://ngochung3789-boop.github.io/thung-lung-ai/videos/7c51-tro-choi-day-may-hoc.html'}
+  't11-f2': {ten: 'Trò chơi — Dạy máy học', url: 'https://ngochung3789-boop.github.io/thung-lung-ai/videos/7c51-tro-choi-day-may-hoc.html'},
+  't11-f3': {ten: 'Trò chơi — Bot nói lạc ở đâu?', url: 'https://ngochung3789-boop.github.io/thung-lung-ai/videos/8d21-tro-choi-chatbot-lac.html'}
 };
 let skNhom = null, skHS = null, skRobot = null, skVongDo = null, skDenDo = null;
 let skDenHS = null, skDenRobot = null;
