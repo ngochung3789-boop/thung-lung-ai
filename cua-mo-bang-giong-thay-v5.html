@@ -13088,6 +13088,52 @@ function trichTenTuCSV(text){
     if(!ho && !t) continue;
     ten.push((ho + ' ' + t).trim());
   }
+  /* DU PHONG DANH SACH THUONG 18/11: CHI chay khi cach chinh (cot STT)
+     ra 0 ten. File danh sach lop thuong chi co cot "Ho va ten", khong co
+     cot STT nen cach chinh khong lay duoc ten nao. */
+  if(!ten.length){
+    var tieuDeHop = -1, cotHop = -1, tieuDeHo = -1, cotHo2 = -1, tieuDeTen = -1, cotTen2 = -1;
+    for(let r = 0; r < rows.length; r++){
+      const hang = rows[r].map(function(c){ return chuanHoaKhongDau((c || '').trim()); });
+      for(let i = 0; i < hang.length; i++){
+        if(tieuDeHop < 0 && dslCoTu(hang[i], 'ho') && dslCoTu(hang[i], 'ten')){ tieuDeHop = r; cotHop = i; }
+        if(tieuDeHo < 0 && dslCoTu(hang[i], 'ho')){ tieuDeHo = r; cotHo2 = i; }
+        if(tieuDeTen < 0 && dslCoTu(hang[i], 'ten')){ tieuDeTen = r; cotTen2 = i; }
+      }
+      if(tieuDeHop >= 0) break;
+    }
+    var tenPhu = [];
+    if(tieuDeHop >= 0){
+      /* Cot gop "Ho va ten": lay moi o khong rong ben duoi dong tieu de. */
+      var tieuDeHopChuan = chuanHoaKhongDau((rows[tieuDeHop][cotHop] || '').trim());
+      for(let ri = tieuDeHop + 1; ri < rows.length; ri++){
+        var v = ((rows[ri][cotHop]) || '').trim();
+        if(!v) continue;
+        if(chuanHoaKhongDau(v) === tieuDeHopChuan) continue;
+        tenPhu.push(v);
+      }
+    } else if(tieuDeHo >= 0 && tieuDeTen >= 0){
+      /* Cot Ho rieng + cot Ten rieng: ghep "Ho Ten", du lieu bat dau duoi
+         dong tieu de muon hon trong hai cot. */
+      var batDau = Math.max(tieuDeHo, tieuDeTen) + 1;
+      var tieuDeHoChuan = chuanHoaKhongDau((rows[tieuDeHo][cotHo2] || '').trim());
+      var tieuDeTenChuan = chuanHoaKhongDau((rows[tieuDeTen][cotTen2] || '').trim());
+      for(let ri = batDau; ri < rows.length; ri++){
+        var h = ((rows[ri][cotHo2]) || '').trim(), t2 = ((rows[ri][cotTen2]) || '').trim();
+        if(!h && !t2) continue;
+        if(chuanHoaKhongDau(h) === tieuDeHoChuan && chuanHoaKhongDau(t2) === tieuDeTenChuan) continue;
+        tenPhu.push((h + ' ' + t2).trim());
+      }
+    }
+    /* Cat khoang trang, bo o rong, bo trung giu nguyen thu tu. */
+    var daThay = {};
+    for(let k = 0; k < tenPhu.length; k++){
+      var g = tenPhu[k].replace(/\s+/g, ' ').trim();
+      if(!g || daThay[g]) continue;
+      daThay[g] = true;
+      ten.push(g);
+    }
+  }
   return ten;
 }
 function datTrangThaiLop(text){
@@ -13170,7 +13216,15 @@ function napCaiDatLop(){
   let cai = null;
   try{ cai = JSON.parse(localStorage.getItem('khu-pho-ai-lop') || 'null'); }catch(e){ cai = null; }
   if(cai){
-    if(cai.lop && GID_LOP[cai.lop]){ tenLop = cai.lop; $('chon-lop').value = cai.lop; }
+    /* SUA RELOAD LOP NGOAI GID 18/11: chap nhan lop da luu khi co trong GID_LOP,
+       hoac trong ban do nhieu lop, hoac trong dropdown #chon-lop (du 6A-9C) —
+       truoc day lop ngoai GID (7C, 9A/9B/9C) roi ve mac dinh 7B roi ghi de mat ten 7B. */
+    if(cai.lop){
+      var _lopOk = !!GID_LOP[cai.lop];
+      if(!_lopOk){ try{ var _bnL = JSON.parse(localStorage.getItem('khu-pho-ai-lop-nhieu') || '{}'); _lopOk = !!(_bnL[cai.lop] && _bnL[cai.lop].length); }catch(e){} }
+      if(!_lopOk){ var _selL = document.getElementById('chon-lop'); if(_selL){ for(var _oi = 0; _oi < _selL.options.length; _oi++){ if(_selL.options[_oi].value === cai.lop){ _lopOk = true; break; } } } }
+      if(_lopOk){ tenLop = cai.lop; $('chon-lop').value = cai.lop; }
+    }
     if(cai.link) $('link-csv-lop').value = cai.link;
     if(cai.tay) $('danh-sach-tay').value = cai.tay;
     if(cai.tay && cai.tay.trim()){ napTuTay(); return; }
