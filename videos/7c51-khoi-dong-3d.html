@@ -206,6 +206,13 @@ var DUR = 215; // 3 phút 35 giây
 var params = new URLSearchParams(location.search);
 var t = 0, playing = false, frozen = false;
 var tocDo = 1; // TOC-DO 17/11: toc do phat 1x–3x, mac dinh 1x — ap cho ca hinh (t) va giong (playbackRate).
+/* TOC-DO 18/11 (quy tac moi): toc do da chon chi co hieu luc o doan KHONG co giong;
+   khi dang co giong thuyet minh thi ep ve 1x (ca hinh lan giong), het giong tu tro lai muc da chon.
+   Nut da chon van sang nguyen — chi toc do chay thuc te bi ep. */
+function dangCoGiong(){
+  return playing && !voiceMuted && !voiceAudio.paused && !voiceAudio.ended;
+}
+function tocDoHieuLuc(){ return dangCoGiong() ? 1 : tocDo; }
 if (params.has('t')) {
   var tv = parseFloat(params.get('t'));
   if (!isNaN(tv)) { t = Math.max(0, Math.min(DUR, tv)); frozen = true; }
@@ -765,7 +772,7 @@ function playCue(id){
   if (!src) return;
   try {
     if (voiceAudio.src !== src) voiceAudio.src = src;
-    voiceAudio.playbackRate = tocDo;
+    voiceAudio.playbackRate = 1; // TOC-DO 18/11: cau giong luon phat 1x
     voiceAudio.currentTime = 0;
     var p = voiceAudio.play();
     if (p && p.catch) p.catch(function(){});
@@ -821,7 +828,7 @@ function animate(now){
   lastNow = now;
   if (playing){
     var prevT = t;
-    t += dt * tocDo; // TOC-DO 17/11
+    t += dt * tocDoHieuLuc(); // TOC-DO 18/11: ep 1x khi co giong
     if (t >= DUR){ t = DUR; pause(); }
     voiceTick(prevT, t);
   }
@@ -879,7 +886,7 @@ btnMute.addEventListener('click', function(){
 /* ---------- tốc độ phát (TOC-DO 17/11): 1x–3x, áp cho cả hình lẫn giọng ---------- */
 function datTocDo(v){
   tocDo = v;
-  try { voiceAudio.playbackRate = v; } catch(e){}
+  try { voiceAudio.playbackRate = dangCoGiong() ? 1 : v; } catch(e){}
   var ns = document.querySelectorAll('#tocdo button');
   for (var i = 0; i < ns.length; i++) ns[i].classList.toggle('on', parseFloat(ns[i].getAttribute('data-td')) === v);
 }
@@ -888,6 +895,8 @@ for (var i = 0; i < tdBtns.length; i++){
   tdBtns[i].addEventListener('click', function(){ datTocDo(parseFloat(this.getAttribute('data-td'))); });
 }
 window.__tocDo = function(){ return tocDo; };
+window.__tocDoHieuLuc = function(){ return tocDoHieuLuc(); };
+window.__dangCoGiong = function(){ return dangCoGiong(); };
 
 document.addEventListener('mousemove', showControls);
 document.addEventListener('keydown', function(e){

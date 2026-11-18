@@ -209,6 +209,18 @@ var DUR = 210; // 3 phút 30 giây
 var params = new URLSearchParams(location.search);
 var t = 0, playing = false, frozen = false;
 var tocDo = 1; // TOC-DO 17/11: toc do phat 1x–3x, mac dinh 1x — ap cho ca hinh (t) va giong (playbackRate).
+/* TOC-DO 18/11 (quy tac moi): toc do da chon chi co hieu luc o doan KHONG co giong;
+   khi dang co giong thuyet minh thi ep ve 1x (ca hinh lan giong), het giong tu tro lai muc da chon.
+   Nut da chon van sang nguyen — chi toc do chay thuc te bi ep. */
+function dangCoGiong(){
+  if (!playing || muted) return false;
+  for (var i = 0; i < AUDIO_CLIPS.length; i++){
+    var c = AUDIO_CLIPS[i];
+    if (t >= c.start && t < c.start + c.dur) return true;
+  }
+  return false;
+}
+function tocDoHieuLuc(){ return dangCoGiong() ? 1 : tocDo; }
 if (params.has('t')) {
   var tv = parseFloat(params.get('t'));
   if (!isNaN(tv)) { t = Math.max(0, Math.min(DUR, tv)); frozen = true; }
@@ -774,7 +786,7 @@ function syncAudio(){
     var c = AUDIO_CLIPS[i], a = audioEls[c.id];
     if (playing && !muted && t >= c.start && t < c.start + c.dur){
       var off = t - c.start;
-      if (a.paused){ a.playbackRate = tocDo; a.currentTime = off; var p = a.play(); if (p && p.catch) p.catch(function(){}); }
+      if (a.paused){ a.playbackRate = tocDoHieuLuc(); a.currentTime = off; var p = a.play(); if (p && p.catch) p.catch(function(){}); }
       else if (Math.abs(a.currentTime - off) > 0.4){ a.currentTime = off; }
     } else if (!a.paused){ a.pause(); }
   }
@@ -936,7 +948,7 @@ function animate(now){
   if (dt > 0.5) dt = 0.5;
   lastNow = now;
   if (playing){
-    t += dt * tocDo; // TOC-DO 17/11
+    t += dt * tocDoHieuLuc(); // TOC-DO 18/11: ep 1x khi co giong
     if (t >= DUR){ t = DUR; pause(); }
   }
   applyTime(t);
@@ -987,7 +999,7 @@ btnMute.addEventListener('click', function(){
 /* ---------- tốc độ phát (TOC-DO 17/11): 1x–3x, áp cho cả hình lẫn giọng ---------- */
 function datTocDo(v){
   tocDo = v;
-  for (var id in audioEls){ try { audioEls[id].playbackRate = v; } catch(e){} }
+  for (var id in audioEls){ try { audioEls[id].playbackRate = dangCoGiong() ? 1 : v; } catch(e){} }
   var ns = document.querySelectorAll('#tocdo button');
   for (var i = 0; i < ns.length; i++) ns[i].classList.toggle('on', parseFloat(ns[i].getAttribute('data-td')) === v);
   syncAudio();
@@ -997,6 +1009,8 @@ for (var i = 0; i < tdBtns.length; i++){
   tdBtns[i].addEventListener('click', function(){ datTocDo(parseFloat(this.getAttribute('data-td'))); });
 }
 window.__tocDo = function(){ return tocDo; };
+window.__tocDoHieuLuc = function(){ return tocDoHieuLuc(); };
+window.__dangCoGiong = function(){ return dangCoGiong(); };
 
 document.addEventListener('visibilitychange', function(){
   if (document.hidden && playing) pause();
