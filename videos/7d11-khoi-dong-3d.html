@@ -789,6 +789,7 @@ var leadTrash = new THREE.Group();
 leadTrash.position.set(-3.6, 0, 2.2); /* doi vao trong khung: de o -5.4 bi cat nua thung o mep trai (anh g-lead-2) */
 leadTrash.visible = false;
 var leadTrashFade = 0; /* 0..1: đống rác hiện/mờ dần khi chuyển đoạn (sửa 19/11) */
+var leadDtPrev = 0; /* thời gian (animT) lần applyState trước — để fade/lia theo thời gian thật */
 scene.add(leadTrash);
 
 /* ---------- MÀN HÌNH LỚN (máy) ---------- */
@@ -1402,17 +1403,18 @@ function applyState(tt){
   armRest.rotation.z = 0.18 + Math.sin(tt*1.6)*0.05;
   armRest.rotation.x = Math.sin(tt*1.6)*0.06;
   head.rotation.z = (state.phase === 'vote') ? 0.18 + Math.sin(tt*1.2)*0.04 : Math.sin(tt*1.2)*0.04;
+  var leadDt = Math.max(0, Math.min(0.5, tt - leadDtPrev)); leadDtPrev = tt; /* fade/lia theo thời gian thật, không theo khung hình: máy yếu 1fps vẫn xong trong ~2 giây (sửa 19/11) */
   if (state.phase !== 'lead'){ head.rotation.y = (state.phase === 'reveal' && state.imgIdx === 2) ? Math.sin(tt*9)*0.22 : clamp(((state.phase === 'vote' || state.phase === 'reveal') ? -3.0 : -1.0)*0.09, -0.45, 0.45); }
   if (state.phase === 'lead'){ /* quay đầu về phía hiện trường đang kể (Moki đứng bên phải, không đi giữa) — lia dần, không ngoặt đột ngột (sửa 19/11) */
     var headTarget = [-0.1, -0.4, -0.55, -0.6, -0.1][state.leadIdx]; /* đoạn 3 nghiêng về bạn mới, đoạn 4 hướng về hai bạn (cùng phía trái) */
-    head.rotation.y += (headTarget - head.rotation.y)*0.06;
+    head.rotation.y += (headTarget - head.rotation.y)*Math.min(1, leadDt*3.5); /* ở 60fps hệ số ≈0,06 như cũ */
   }
 
   placeStudents(tt);
   /* --- dàn diễn dẫn dắt (dùng lại học sinh/model sẵn có, không dựng model mới) --- */
   /* đống rác hiện/mờ dần (~1 giây) thay cho bật/tắt đột ngột: 1→2 hiện dần, 4→5 mờ dần; đoạn 2–4 giữ nguyên hiện trường (sửa 19/11) */
   var trashTarget = (state.phase === 'lead' && state.leadIdx >= 1 && state.leadIdx <= 3) ? 1 : 0;
-  leadTrashFade += (trashTarget - leadTrashFade)*0.05;
+  leadTrashFade += (trashTarget - leadTrashFade)*Math.min(1, leadDt*3); /* ở 60fps hệ số ≈0,05 như cũ */
   if (leadTrashFade < 0.02){ leadTrash.visible = false; }
   else { leadTrash.visible = true; leadTrash.traverse(function(o){ if (o.material){ o.material.transparent = true; o.material.opacity = leadTrashFade; } }); }
   students.forEach(function(st, si){
