@@ -1254,7 +1254,7 @@ function updateDOM(){
   if (teacherEl._txt !== tl.txt){ teacherEl.textContent = tl.txt; teacherEl._txt = tl.txt; }
   teacherEl.classList.toggle('q', tl.q);
   badgeEl.style.display = (ph === 'q') ? 'flex' : 'none';
-  actionBar.classList.toggle('high', ph === 'reveal');
+  actionBar.classList.toggle('high', ph === 'reveal' || (ph === 'lead' && state.leadIdx === 3)); /* sửa 19/11: dải chữ thầy đoạn 4 (câu cao trào) dài 4 dòng, không bật high thì nút Tiếp tục/Bỏ qua che mất dòng đầu */
   finalEl.style.display = (ph === 'final') ? '' : 'none';
   bigPlayEl.style.display = (ph === 'idle') ? '' : 'none';
   if (ph === 'vote'){
