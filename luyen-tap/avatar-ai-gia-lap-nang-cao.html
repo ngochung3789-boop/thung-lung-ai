@@ -173,9 +173,10 @@
       #screen-app { background: #f4f6f4; color: #16211a; }
       #screen-app .statusbar { color: #16211a; }
       .apphead {
-        flex: none; display: flex; align-items: center; gap: 10px;
-        padding: 8px 14px 10px;
+        flex: none; display: flex; align-items: center; gap: 8px 10px;
+        padding: 8px 14px 10px; flex-wrap: wrap;
       }
+      .apphead > div { flex: 1 1 auto; min-width: 0; }
       .backbtn {
         width: 44px; height: 44px; min-height: 44px; border-radius: 50%;
         border: none; background: #e4eae4; color: #16211a;
@@ -190,12 +191,13 @@
       .apphead h1 { margin: 0; font-size: 20px; font-weight: 900; letter-spacing: -.01em; white-space: nowrap; }
       .apphead .sub { font-size: 12.5px; color: #5c6d61; font-weight: 600; margin-top: 1px; white-space: nowrap; }
       .modechip {
-        margin-left: auto; flex: none;
-        font-size: 12px; font-weight: 800;
+        margin-left: auto; flex: 0 1 auto; min-width: 0; max-width: 100%;
+        font-size: 11.5px; font-weight: 800;
         background: #dff3e9; color: #0c5c40;
-        border-radius: 999px; padding: 7px 11px;
+        border-radius: 999px; padding: 7px 9px;
+        white-space: normal; text-align: center; line-height: 1.3;
       }
-      .appbody { flex: 1; overflow-y: auto; padding: 4px 18px 18px; }
+      .appbody { flex: 1; overflow-y: auto; overflow-x: hidden; padding: 4px 18px 18px; }
       .adline {
         background: #fff3d6; border: 1.5px dashed #e0a92e; color: #7a5b00;
         border-radius: 14px; padding: 9px 12px;
@@ -204,7 +206,7 @@
       label.flabel { display: block; font-size: 14px; font-weight: 800; margin: 9px 0 5px; }
       label.flabel span { font-weight: 600; color: #75847a; font-size: 12.5px; }
       .finput {
-        width: 100%; border: 2px solid #d5ded5; border-radius: 14px;
+        width: 100%; max-width: 100%; min-width: 0; border: 2px solid #d5ded5; border-radius: 14px;
         padding: 12px 14px; font-size: 17px; font-family: inherit; font-weight: 600;
         background: #fff; color: #16211a;
       }
@@ -265,18 +267,19 @@
       .realnote b { color: #4a3800; }
       .contactsbox {
         margin-top: 14px; background: #fff; border: 2px solid #d5ded5; border-radius: 18px; padding: 13px 13px 11px;
+        min-width: 0; max-width: 100%;
       }
       .contactsbox h3 { margin: 0 0 4px; font-size: 15.5px; font-weight: 900; }
       .contactsbox p { margin: 0 0 10px; font-size: 12.8px; color: #5c6d61; line-height: 1.5; }
-      .contactbtns { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 10px; }
+      .contactbtns { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 8px; margin-bottom: 10px; }
       .cbtn {
         border-radius: 13px; padding: 11px 8px; font-size: 13.5px; font-weight: 800; line-height: 1.3; min-height: 48px;
       }
       .cbtn-primary { border: 2px solid #0c5c40; background: #0c5c40; color: #fff; }
       .cbtn-ghost { border: 2px solid #cfdccf; background: #f4f6f4; color: #17301f; }
       .cbtn:disabled { opacity: .55; }
-      .contactmanual { display: grid; grid-template-columns: 1fr; gap: 7px; }
-      .contactmanual .finput { font-size: 15px; padding: 10px 12px; }
+      .contactmanual { display: grid; grid-template-columns: minmax(0, 1fr); gap: 7px; min-width: 0; }
+      .contactmanual .finput { font-size: 13.5px; padding: 10px 10px; min-width: 0; width: 100%; max-width: 100%; }
       .addcontactbtn {
         width: 100%; border: 2px dashed #1d9e75; background: #eafaf3; color: #0c5c40;
         border-radius: 12px; font-size: 14.5px; font-weight: 800; padding: 10px;
@@ -312,7 +315,7 @@
       #screen-scan { background: #0d1117; color: #e8f0ea; }
       #screen-scan .statusbar { color: #e8f0ea; }
       .scanbody { flex: 1; overflow-y: auto; padding: 10px 20px 20px; display: flex; flex-direction: column; }
-      .scanbody h2 { margin: 4px 0 14px; font-size: 22px; font-weight: 900; text-align: center; }
+      .scanbody h2 { margin: 4px 0 14px; font-size: 22px; font-weight: 900; text-align: center; overflow-wrap: normal; word-break: normal; hyphens: none; text-wrap: balance; }
       .scanphoto {
         position: relative; border-radius: 22px; overflow: hidden;
         aspect-ratio: 4 / 2.95; flex: none; background: #161d26;
@@ -967,7 +970,7 @@
         clearTimers();
         stopCamera();
         $("scan-photo").classList.remove("done");
-        $("scan-title").textContent = isTeacher ? "Đang dùng camera thật & vị trí thật…" : "Đang quét khuôn mặt…";
+        $("scan-title").textContent = isTeacher ? "Đang dùng camera thật & vị trí thật…" : "Đang quét khuôn mặt…";
         $("result-box").classList.remove("show");
         $("scan-status").textContent = "";
         $("scan-status").classList.remove("err");
