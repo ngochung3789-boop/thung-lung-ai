@@ -370,7 +370,9 @@ function doPost(e) {
 //  lần; Phiên bản 9 vẫn chỉ kẹt ở "Đang tải thông tin...") nên trang không bao
 //  giờ hiện dữ liệu. Bản này doGet vẽ sẵn toàn bộ thẻ máy + ảnh + link tải về
 //  ngay trên máy chủ rồi trả về HTML hoàn chỉnh — mở link là thấy ngay, không
-//  cần JavaScript. Trang tự tải lại mỗi 3 giây (meta refresh) để nhận máy mới gửi.
+//  cần JavaScript. KHÔNG tự tải lại: meta refresh làm trang trắng sau 3 giây
+//  trong iframe Apps Script (kiểm 21/11 14:10), nên bỏ hẳn — thầy bấm F5 hoặc
+//  nút "Làm mới trang" để xem máy mới gửi.
 //  Nút "Tải Album về": mỗi ảnh có 1 nút tải riêng (link thuần HTML, bấm là tải
 //  thẳng file ảnh đó về máy); bấm vào chính tấm ảnh cũng tải ảnh đó về.
 // ============================================================================
@@ -484,7 +486,7 @@ function taoTrangTrinhChieu() {
     luoiHtml = ''; hopXanh = ''; cauHoi = '';
     trong = '<div class="trong">Chưa có thông tin.<br>Thầy bấm "Đăng ký" trên điện thoại.</div>';
   } else {
-    trangThai = 'Đang chiếu thông tin của các máy (tự làm mới mỗi 3 giây).';
+    trangThai = 'Đang chiếu thông tin của các máy. Bấm F5 hoặc nút "Làm mới trang" để xem máy mới gửi.';
     var the = '';
     for (var j = 0; j < danhSach.length; j++) the += theMayMayChu(danhSach[j]);
     luoiHtml = '<div class="luoi-may">' + the + '</div>';
@@ -494,7 +496,6 @@ function taoTrangTrinhChieu() {
   }
   return '<!DOCTYPE html>\n<html lang="vi">\n<head>\n<meta charset="UTF-8">\n' +
     '<meta name="viewport" content="width=device-width, initial-scale=1">\n' +
-    '<meta http-equiv="refresh" content="3">\n' +
     '<title>Trình chiếu thông tin Avatar AI</title>\n<style>\n' +
     '  * { box-sizing: border-box; }\n' +
     '  body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif; background: #111; color: #f3f4f6; }\n' +
@@ -525,7 +526,7 @@ function taoTrangTrinhChieu() {
     '  .cau-hoi b { color: #fbbf24; }\n' +
     '  .trong { padding: 80px 20px; text-align: center; font-size: 24px; color: #9ca3af; line-height: 1.6; }\n' +
     '</style>\n</head>\n<body>\n' +
-    '<div class="dau"><h1>App vừa biết được những gì?</h1><div class="trang-thai">' + escHtml(trangThai) + '</div></div>\n' +
+    '<div class="dau"><h1>App vừa biết được những gì?</h1><div class="trang-thai">' + escHtml(trangThai) + '</div><div style="margin-top:10px;"><a class="nut-tai" href="https://script.google.com/macros/s/AKfycbw6K57VCKeT8w5oLfaUZsrLyfuJDcJaGWn0Crp5AP8IECVzo4zwse8CilJ5B5ckGTQ0/exec">Làm mới trang</a></div></div>\n' +
     '<div class="khung">' + luoiHtml + hopXanh + cauHoi + '</div>\n' + trong +
     '\n</body>\n</html>';
 }
