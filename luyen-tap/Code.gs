@@ -1,6 +1,17 @@
 // ============================================================================
 //  ĐƯỜNG CHUYỂN TOÀN BỘ THÔNG TIN: ĐIỆN THOẠI (thầy) -> LAPTOP (thầy) -> CHIẾU LÊN TV
 //  Chỉ phục vụ thầy Phạm Ngọc Hưng và dữ liệu CỦA THẦY.
+//  PHIÊN BẢN 22 (21/11/2026):
+//  - MENU CHỈ HIỆN ĐÚNG 6 MÁY GỬI GẦN NHẤT (thay thế luật 60 phút của
+//    bản 21): xếp mới nhất lên trên, lấy đúng 6 máy đầu; máy cũ hơn
+//    ẩn khỏi menu nhưng KHÔNG bị xóa — "Xem tất cả" và trang chi tiết
+//    vẫn xem được máy cũ. Không có máy nào gửi thì menu báo "Chưa có
+//    máy nào gửi." + link "Xem tất cả".
+//  - Giữ nguyên bản 21: menu dùng 1 FILE CHỈ MỤC duy nhất
+//    "danh-sach-may.json" (1 lần đọc) + CACHE 60 giây (CacheService);
+//    doPost cập nhật chỉ mục ngay khi có máy gửi mới (lỗi thì bỏ qua,
+//    không làm hỏng lần gửi); chưa có chỉ mục thì menu quét nhẹ như
+//    bản 20 rồi tự ghi lại chỉ mục.
 //  PHIÊN BẢN 21 (21/11/2026):
 //  - NHANH HƠN NỮA (menu chỉ còn 1 lần đọc): trước đây menu vẫn quét
 //    CẢ thư mục Drive mỗi lần mở (đọc từng file JSON + duyệt tên file)
@@ -11,11 +22,8 @@
 //    chưa có chỉ mục thì menu quét nhẹ như bản 20 rồi tự ghi lại chỉ mục.
 //    Thêm CACHE 60 giây (CacheService): menu mở lại trong 60 giây thì
 //    lấy từ cache, không đọc Drive; gửi mới / xóa máy thì xóa cache.
-//  - MENU CHỈ HIỆN MÁY GỬI TRONG 1 GIỜ QUA (cho đỡ lác): máy nào gửi
-//    quá 1 giờ thì ẩn khỏi menu (không xóa dữ liệu — "Xem tất cả" và
-//    trang chi tiết vẫn xem được máy cũ). Không có máy nào trong 1 giờ
-//    qua thì menu báo "Chưa có máy nào gửi trong 1 giờ qua." + link
-//    "Xem tất cả" để xem dữ liệu cũ hơn.
+//  - (Luật menu của bản 21 — chỉ hiện máy gửi trong 60 phút qua — đã
+//    được bản 22 thay bằng "đúng 6 máy gửi gần nhất".)
 //  PHIÊN BẢN 20 (21/11/2026):
 //  - CHẠY NHANH HƠN NHIỀU: trước đây mỗi lần mở trang đều gọi
 //    layThongTinTatCaMay() — đọc và base64 TOÀN BỘ ảnh + giọng nói của
@@ -934,9 +942,9 @@ function layThongTinMotMay(khoa, mNhe) {
 //    quét lại). Xóa máy cũng cập nhật chỉ mục + xóa cache.
 //  - Chưa có chỉ mục (lần đầu lên bản 21) thì menu quét nhẹ như bản 20
 //    rồi tự ghi lại chỉ mục để lần sau mở nhanh.
-//  - Chỉ mục vẫn liệt kê TẤT CẢ các máy (kể cả máy gửi đã lâu) — bộ lọc
-//    1 GIỜ chỉ áp lúc vẽ menu (taoTrangMenu); "Xem tất cả" và trang chi
-//    tiết vẫn xem được máy cũ.
+//  - Chỉ mục vẫn liệt kê TẤT CẢ các máy (kể cả máy gửi đã lâu) — giới
+//    hạn 6 máy chỉ áp lúc vẽ menu (taoTrangMenu); "Xem tất cả" và trang
+//    chi tiết vẫn xem được máy cũ.
 
 // Tên file chỉ mục trong cùng thư mục Drive "Anh trinh chieu Avatar AI".
 var TEN_FILE_CHI_MUC = 'danh-sach-may.json';
@@ -1546,17 +1554,18 @@ function taoTrangKetQuaXoa(timThay, nhan) {
 //  nút "Làm mới trang" để xem máy mới gửi.
 //  Nút "Tải Album về": mỗi ảnh có 1 nút tải riêng (link thuần HTML, bấm là tải
 //  thẳng file ảnh đó về máy); bấm vào chính tấm ảnh cũng tải ảnh đó về.
-//  PHIÊN BẢN 21 (21/11/2026): MENU danh sách máy là trang mặc định — xếp theo thời gian, mới nhất lên trên, CHỈ hiện máy gửi trong 1 giờ qua. Link điều hướng có target="_top" (thoát khung nhúng). Menu + chi tiết dùng chỉ mục nhanh (cache 60 giây / 1 file danh-sach-may.json), không tải ảnh/âm thanh của mọi máy.
+//  PHIÊN BẢN 22 (21/11/2026): MENU danh sách máy là trang mặc định — xếp theo thời gian, mới nhất lên trên, CHỈ hiện ĐÚNG 6 máy gửi gần nhất. Link điều hướng có target="_top" (thoát khung nhúng). Menu + chi tiết dùng chỉ mục nhanh (cache 60 giây / 1 file danh-sach-may.json), không tải ảnh/âm thanh của mọi máy.
 // ============================================================================
 
-// ---------- Trang MENU / CHI TIẾT / XEM TẤT CẢ (Phiên bản 21) ----------
-// Menu là trang mặc định: danh sách các máy gửi trong 1 GIỜ QUA, mỗi dòng
-// hiện TÊN MÁY to + GIỜ GỬI ("Gửi lúc HH:MM ngày DD/MM/YYYY") + huy hiệu
-// "ĐANG DÙNG" cho máy gửi gần nhất. Bấm 1 dòng -> trang chi tiết chỉ 1
-// máy đó (?xem=<khóa>). "Xem tất cả" (?xem=tat-ca) -> lưới tất cả các thẻ
-// như trước (không lọc 1 giờ). Trang chi tiết / xem tất cả có link
-// "← Quay lại menu". Xóa xong cũng quay lại menu. Tất cả vẽ sẵn phía máy
-// chủ, không JavaScript, không google.script.run, không meta refresh.
+// ---------- Trang MENU / CHI TIẾT / XEM TẤT CẢ (Phiên bản 22) ----------
+// Menu là trang mặc định: ĐÚNG 6 máy gửi GẦN NHẤT (mới nhất lên trên),
+// mỗi dòng hiện TÊN MÁY to + GIỜ GỬI ("Gửi lúc HH:MM ngày DD/MM/YYYY")
+// + huy hiệu "ĐANG DÙNG" cho máy gửi gần nhất. Bấm 1 dòng -> trang chi
+// tiết chỉ 1 máy đó (?xem=<khóa>). "Xem tất cả" (?xem=tat-ca) -> lưới
+// tất cả các thẻ như trước (không giới hạn 6 máy). Trang chi tiết / xem
+// tất cả có link "← Quay lại menu". Xóa xong cũng quay lại menu. Tất cả
+// vẽ sẵn phía máy chủ, không JavaScript, không google.script.run, không
+// meta refresh.
 
 // Khóa xem 1 máy (dùng trong ?xem=<khóa>): ô Máy -> "may-N" (may-1..may-6);
 // máy theo tên -> idMay đã làm sạch (ví dụ "id_abc123").
@@ -1715,7 +1724,7 @@ function moDauTrangTrinhChieu(tieuDe, trangThai, urlLamMoi, linkQuayLai) {
 
 // Cuối trang trình chiếu: chân trang ghi phiên bản + đóng thẻ.
 function dongTrangTrinhChieu() {
-  return '<div class="chan-trang">Trình chiếu Avatar AI — Phiên bản 21 (21/11/2026)</div>\n</body>\n</html>';
+  return '<div class="chan-trang">Trình chiếu Avatar AI — Phiên bản 22 (21/11/2026)</div>\n</body>\n</html>';
 }
 
 // Hộp xanh + câu hỏi cho lớp (hiện dưới thẻ máy, chỉ khi máy đã có dữ liệu).
@@ -1727,21 +1736,21 @@ function hopXanhVaCauHoi() {
 
 // Trang MENU (mặc định): danh sách các máy, mỗi dòng hiện tên máy + giờ gửi.
 // Bấm 1 dòng -> trang chi tiết của máy đó (?xem=<khóa>).
-// (Phiên bản 21: dùng layDanhSachMenuNhanh — cache 60 giây hoặc 1 file
-//  chỉ mục duy nhất — nên menu mở rất nhanh. Menu CHỈ hiện máy gửi trong
-//  1 GIỜ QUA (cho đỡ lác); máy gửi đã lâu ẩn khỏi menu nhưng KHÔNG bị
-//  xóa — "Xem tất cả" và trang chi tiết vẫn xem được máy cũ.)
+// (Phiên bản 22: dùng layDanhSachMenuNhanh — cache 60 giây hoặc 1 file
+//  chỉ mục duy nhất — nên menu mở rất nhanh. Menu CHỈ hiện ĐÚNG 6 máy
+//  gửi GẦN NHẤT (mới nhất lên trên); máy cũ hơn ẩn khỏi menu nhưng KHÔNG
+//  bị xóa — "Xem tất cả" và trang chi tiết vẫn xem được máy cũ. Thay thế
+//  luật 60 phút của bản 21.)
 function taoTrangMenu() {
   var d = layDanhSachMenuNhanh();
   var danhSach = sapXepMenuTheoThoiGian((d && d.may) || []);
-  // Lọc 1 GIỜ: chỉ giữ máy đã gửi trong 60 phút qua (so mốc ms từ chuỗi
-  // ISO thoiGianGui; thiếu / không đọc được thì coi là quá hạn -> ẩn).
-  var motGioTruoc = new Date().getTime() - 60 * 60 * 1000;
+  // Chỉ giữ máy ĐÃ CÓ dữ liệu, xếp mới nhất lên trên, lấy ĐÚNG 6 máy
+  // đầu (ô trống "chưa có thông tin" không hiện; máy cũ hơn ẩn khỏi
+  // menu nhưng KHÔNG bị xóa — "Xem tất cả" vẫn xem được).
   var danhSachMoi = [];
-  for (var k = 0; k < danhSach.length; k++) {
+  for (var k = 0; k < danhSach.length && danhSachMoi.length < 6; k++) {
     var mm = danhSach[k];
     if (!mayCoDuLieu(mm)) continue;
-    if (mocThoiGianGui(mm.thoiGianGui) <= motGioTruoc) continue;
     danhSachMoi.push(mm);
   }
   var moiNhat = chiSoMayMoiNhat(danhSachMoi);
@@ -1750,12 +1759,12 @@ function taoTrangMenu() {
     trangThai = 'Không tải được thông tin: ' + d.loi;
     noiDung = '<div class="trong">Không tải được thông tin.<br>' + escHtml(d.loi) + '</div>';
   } else if (danhSachMoi.length === 0) {
-    trangThai = 'Chỉ hiện máy gửi trong 1 giờ qua. Bấm "Xem tất cả" để xem dữ liệu cũ hơn.';
+    trangThai = 'Bấm "Xem tất cả" để xem dữ liệu các máy.';
     noiDung = '<div class="khung"><div class="menu-may">' +
-      '<div class="trong">Chưa có máy nào gửi trong 1 giờ qua.</div>' +
+      '<div class="trong">Chưa có máy nào gửi.</div>' +
       '<a class="xem-tat-ca" target="_top" href="' + escHtml(URL_WEB_APP) + '?xem=tat-ca">Xem tất cả</a></div></div>';
   } else {
-    trangThai = 'Chỉ hiện máy gửi trong 1 giờ qua — bấm vào một máy để xem chi tiết. Bấm "Xem tất cả" để xem máy cũ hơn.';
+    trangThai = '6 máy gửi gần nhất — bấm vào một máy để xem chi tiết. Bấm "Xem tất cả" để xem máy cũ hơn.';
     var hang = '';
     for (var i = 0; i < danhSachMoi.length; i++) {
       var m = danhSachMoi[i];
@@ -1855,7 +1864,7 @@ function doGet(e) {
       .setTitle('Gửi thông tin lên laptop')
       .addMetaTag('viewport', 'width=device-width, initial-scale=1');
   }
-  // Trang trình chiếu (Phiên bản 21): MENU là mặc định (chỉ máy gửi trong 1 giờ qua).
+  // Trang trình chiếu (Phiên bản 22): MENU là mặc định (chỉ 6 máy gửi gần nhất).
   //   (không tham số) -> menu danh sách máy (tên + giờ gửi)
   //   ?xem=tat-ca    -> xem tất cả các thẻ cùng lúc (lưới như trước)
   //   ?xem=<khóa>     -> chi tiết 1 máy (khóa "may-N" hoặc idMay)
