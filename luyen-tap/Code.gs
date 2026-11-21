@@ -445,12 +445,17 @@ function theMayMayChu(m) {
   }
   h += '</ul></div>';
   if (m.anh && m.anh.length > 0) {
+    var soMay = m.may.replace(/\D/g, '') || '1';
     h += '<div class="luoi-anh">';
     for (var j = 0; j < m.anh.length; j++) {
-      h += '<a href="' + m.anh[j].anh + '" download="' + escHtml(m.anh[j].ten || ('anh-' + (j + 1) + '.jpg')) + '" title="Bấm để tải ảnh này về"><img src="' + m.anh[j].anh + '" alt="' + escHtml(m.anh[j].ten || '') + '"></a>';
+      h += '<a href="#xem-may' + soMay + '-anh' + (j + 1) + '" title="Bấm để xem ảnh lớn"><img src="' + m.anh[j].anh + '" alt="' + escHtml(m.anh[j].ten || '') + '"></a>';
     }
     h += '</div>';
-    h += '<div class="chu-thich-anh">Ảnh app vừa lấy (' + m.anh.length + ' ảnh). Bấm vào từng ảnh để tải ảnh đó về máy.</div>';
+    h += '<div class="chu-thich-anh">Ảnh app vừa lấy (' + m.anh.length + ' ảnh). Bấm vào từng ảnh để xem lớn; nút "Tải ảnh N về" để tải về máy.</div>';
+    for (var j2 = 0; j2 < m.anh.length; j2++) {
+      var tenAnh = escHtml(m.anh[j2].ten || ('anh-' + (j2 + 1) + '.jpg'));
+      h += '<div class="xem-anh" id="xem-may' + soMay + '-anh' + (j2 + 1) + '"><a class="dong-xem" href="#">✕ Đóng</a><img src="' + m.anh[j2].anh + '" alt="' + tenAnh + '"><div class="ten-anh">' + tenAnh + '</div><a class="nut-tai" href="' + m.anh[j2].anh + '" download="' + tenAnh + '">Tải ảnh này về</a></div>';
+    }
   }
   var nut = '';
   if (m.anh && m.anh.length > 0) {
@@ -518,6 +523,11 @@ function taoTrangTrinhChieu() {
     '  .luoi-anh { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px; margin-top: 12px; }\n' +
     '  .luoi-anh img { width: 100%; aspect-ratio: 4 / 3; object-fit: cover; border-radius: 12px; display: block; background: #222; }\n' +
     '  .chu-thich-anh { color: #9ca3af; margin-top: 8px; font-size: 18px; }\n' +
+    '  .xem-anh { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.93); z-index: 999; padding: 24px; text-align: center; overflow: auto; }\n' +
+    '  .xem-anh:target { display: block; }\n' +
+    '  .xem-anh img { max-width: 94vw; max-height: 76vh; border-radius: 12px; margin: 12px auto; display: block; }\n' +
+    '  .dong-xem { display: inline-block; background: #ef4444; color: #fff; border-radius: 10px; padding: 12px 20px; font-size: 18px; font-weight: 700; text-decoration: none; }\n' +
+    '  .ten-anh { color: #e5e7eb; font-size: 18px; margin: 10px 0 14px; }\n' +
     '  .hang-tai { margin-top: 14px; display: flex; gap: 10px; flex-wrap: wrap; }\n' +
     '  .nut-tai { background: #2563eb; color: #fff; border: 0; border-radius: 10px; padding: 12px 18px; font-size: 18px; font-weight: 700; cursor: pointer; text-decoration: none; display: inline-block; }\n' +
     '  .nut-tai:hover { background: #1d4ed8; }\n' +
