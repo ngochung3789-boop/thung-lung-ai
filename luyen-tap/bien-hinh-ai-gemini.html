@@ -156,25 +156,6 @@
   .ok{ color:var(--accent); font-weight:700; }
   .bad{ color:#c0392b; font-weight:700; }
   .muted{ color:var(--sub); }
-  .album-err{ color:#d92d20; font-weight:700; }
-  #errorBanner{ position:fixed; left:0; right:0; top:0; z-index:9999; background:#b91c1c; color:#fff; font-size:13px; line-height:1.5; padding:10px 12px; text-align:center; box-shadow:0 2px 8px rgba(0,0,0,.35); }
-
-  .album-grid{ display:grid; grid-template-columns:repeat(4,1fr); gap:8px; margin-top:11px; }
-  .thumb{ position:relative; border-radius:10px; overflow:hidden; border:3px solid transparent; cursor:pointer; padding:0; background:#e6edf2; min-height:64px; display:flex; flex-direction:column; align-items:center; justify-content:center; }
-  .thumb .pic-icon{ font-size:26px; line-height:1; padding:10px 4px 2px; }
-  .thumb .pic-name{ display:block; width:100%; font-size:10px; color:var(--sub); padding:0 5px 8px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; text-align:center; }
-  .thumb.sel{ border-color:var(--accent); }
-  .thumb:not(.sel) .pic-icon, .thumb:not(.sel) .pic-name{ opacity:.35; filter:grayscale(.6); }
-  .thumb .tick{
-    position:absolute; top:4px; right:4px; width:21px; height:21px; border-radius:50%;
-    background:var(--accent); color:#fff; font-size:12px; display:none; align-items:center; justify-content:center; font-weight:800;
-  }
-  .thumb.sel .tick{ display:flex; }
-  .file-label{
-    display:flex; align-items:center; justify-content:center; gap:8px; width:100%;
-    background:#e6edf2; border-radius:13px; min-height:46px; padding:11px; font-weight:700; font-size:14.5px; cursor:pointer;
-  }
-  input[type="file"]{ position:absolute; width:1px; height:1px; opacity:0; overflow:hidden; }
 
   .contact-item{
     display:flex; align-items:center; gap:9px; background:var(--field); border:1px solid var(--card-line);
@@ -203,23 +184,6 @@
     100%{ box-shadow:0 0 0 0 rgba(11,122,85,0); }
   }
 
-  /* ---------- Terminal screen ---------- */
-  #terminalScreen{ background:var(--term-bg); color:var(--term-green); }
-  .term-scroll{ overflow-y:auto; padding:60px 15px 22px; -webkit-overflow-scrolling:touch; height:100%; }
-  .term-title{ font-family:ui-monospace,Menlo,Consolas,monospace; font-size:15px; font-weight:700; margin:0 0 4px; }
-  .term-sub{ font-family:ui-monospace,Menlo,Consolas,monospace; font-size:12px; color:var(--term-dim); margin:0 0 12px; line-height:1.6; }
-  #termBody{ font-family:ui-monospace,Menlo,Consolas,monospace; font-size:12.5px; }
-  .term-line{ margin:7px 0; line-height:1.55; border-bottom:1px solid #12240f; padding-bottom:5px; overflow-wrap:anywhere; }
-  .term-line .hl{ color:#ffff7a; font-weight:700; }
-  .term-line.good{ color:#8dff9e; font-weight:700; }
-  .term-line.alertline{ color:#ffb3b3; font-weight:700; }
-  .term-actions{ display:flex; gap:9px; flex-wrap:wrap; margin-top:16px; }
-  .term-actions .btn{ flex:1 1 140px; }
-  .btn-term{ background:#0d2b12; color:var(--term-green); border:1.5px solid var(--term-green); }
-  .btn-term-solid{ background:var(--term-green); color:#04140a; }
-  .term-summary-title{ font-family:ui-monospace,Menlo,Consolas,monospace; font-size:13px; margin:20px 0 8px; color:#ffff7a; }
-  #terminalScreen .summary-block{ background:#0a120c; border:1px solid #1d3a22; max-height:none; }
-  #terminalScreen .teacher-notice{ margin-top:16px; }
 </style>
 </head>
 <body>
@@ -275,84 +239,51 @@
       <button class="back-btn" id="backHomeBtn" type="button" aria-label="Về màn hình chính">‹</button>
       <div>
         <h1>Biến hình siêu ngầu</h1>
-        <p class="tag">Quét thật trên máy thầy — xem AI biết gì về bạn · Bản 21/11 17:55</p>
+        <p class="tag">Máy: <span id="deviceNameLabel"></span> · Bản 21/11 17:55</p>
       </div>
     </div>
     <div class="app-scroll">
       <div class="teacher-notice">CHỈ CHẠY TRÊN MÁY THẦY — dữ liệu thật trên máy thầy, thầy tự cho phép. Không dùng cho học sinh.</div>
 
       <div class="card">
-        <h2>Đặt tên cho máy này</h2>
-        <p class="hint">Tên này hiện trên thẻ của máy ở laptop. Đặt 1 lần, máy tự nhớ cho các lần sau.</p>
         <label class="field-label" for="deviceNameInput">Tên máy</label>
         <input type="text" id="deviceNameInput" value="Điện thoại của thầy" autocomplete="off" />
         <p class="saved-note" id="deviceDetectNote"></p>
         <div class="btn-row">
           <button class="btn btn-soft btn-small" id="renameBtn" type="button">Đổi tên máy</button>
         </div>
-        <div class="saved-note" id="renameNote"></div>
-        <div class="warn-inline">Chú ý: hai điện thoại đặt cùng một tên sẽ hiện chung một thẻ trên laptop. Muốn tách riêng, hãy đặt tên khác nhau.</div>
+        <p class="saved-note" id="renameNote"></p>
       </div>
 
       <div class="card">
-        <h2>1 · Thông tin của thầy</h2>
-        <label class="field-label" for="inputName">Họ và tên</label>
+        <label class="field-label" for="inputName">Tên</label>
         <input type="text" id="inputName" placeholder="Nhập họ tên..." autocomplete="name" />
         <label class="field-label" for="inputPhone">Số điện thoại</label>
         <input type="tel" id="inputPhone" placeholder="09xxxxxxxx" autocomplete="tel" />
       </div>
 
       <div class="card">
-        <h2>2 · Camera — chụp 1 tấm</h2>
-        <p class="hint">Ảnh chụp ra sạch, chỉ chỉnh sáng và màu nhẹ. Không vẽ thêm gì lên ảnh.</p>
+        <button class="btn btn-primary" id="captureBtn" type="button" disabled>📷 Chụp 1 ảnh</button>
         <div class="camera-box">
           <video id="videoEl" autoplay playsinline muted></video>
-          <canvas id="photoCanvas"></canvas>
+          <canvas id="photoCanvas" hidden></canvas>
           <div class="camera-status" id="cameraStatus">Đang mở camera...</div>
         </div>
+        <p class="status-line" id="photoStatus" hidden></p>
         <div class="btn-row">
-          <button class="btn btn-primary" id="captureBtn" type="button" disabled>Chụp ảnh</button>
-          <button class="btn btn-soft" id="retakeBtn" type="button" hidden>Chụp lại</button>
+          <button class="btn btn-soft btn-small" id="retakeBtn" type="button" hidden>Chụp lại</button>
         </div>
       </div>
 
       <div class="card">
-        <h2>3 · Album — chọn thêm ảnh gửi kèm</h2>
-        <p class="hint">Chọn ảnh trong album của thầy. Bấm vào ảnh để chọn / bỏ chọn — ảnh được chọn sẽ gửi cùng ảnh camera.</p>
-        <label class="file-label" for="albumInput">Chọn ảnh từ album</label>
-        <input type="file" id="albumInput" accept="image/*" multiple />
-        <div class="album-grid" id="albumGrid"></div>
-        <p class="status-line muted" id="albumCount">Chưa chọn ảnh nào.</p>
-        <p class="status-line album-err" id="albumErr" hidden></p>
+        <button class="btn btn-primary" id="gpsBtn" type="button">📍 Chia sẻ GPS</button>
+        <p class="status-line" id="gpsStatus">Chưa chia sẻ vị trí.</p>
       </div>
 
       <div class="card">
-        <h2>4 · Danh bạ — tối đa 2 người</h2>
-        <p class="hint">Bấm nút để mở danh sách danh bạ trên máy thầy rồi chọn 1–2 người. Nếu máy không mở được danh sách thì cứ tiếp tục — không bắt buộc.</p>
-        <div class="btn-row">
-          <button class="btn btn-soft" id="pickContactBtn" type="button">Chọn từ danh bạ máy</button>
-        </div>
-        <p class="status-line muted" id="pickerNote"></p>
-        <div id="contactList"></div>
-      </div>
-
-      <div class="card">
-        <h2>5 · Vị trí, micro và thông tin máy</h2>
-        <p class="hint">Bấm từng nút để cấp quyền. Kiểm tra micro chỉ xin quyền rồi tắt ngay — không ghi âm.</p>
-        <div class="btn-row">
-          <button class="btn btn-soft" id="gpsBtn" type="button">Lấy vị trí GPS</button>
-          <button class="btn btn-soft" id="micBtn" type="button">Kiểm tra micro</button>
-          <button class="btn btn-soft" id="refreshInfoBtn" type="button">Đọc lại thông tin máy</button>
-        </div>
-        <div id="infoLines" style="margin-top:10px"></div>
-      </div>
-
-      <div class="card">
-        <h2>6 · Nhập giọng nói</h2>
-        <p class="hint">Bước yêu cầu nhập giọng nói: đọc to câu dưới đây rồi bấm nút micro. File âm thanh sẽ gửi kèm khi hoàn tất đăng ký để nghe lại trên laptop. Nếu máy không cho phép micro thì cứ tiếp tục bước sau.</p>
         <p class="voice-prompt">“Tôi là học sinh lớp 8”</p>
         <div class="btn-row">
-          <button class="btn btn-primary" id="voiceBtn" type="button">🎙️ Bấm để nói</button>
+          <button class="btn btn-primary" id="voiceBtn" type="button">🎙️ Nói</button>
           <button class="btn btn-soft" id="playVoiceBtn" type="button" hidden>Nghe lại</button>
         </div>
         <p class="status-line" id="voiceStatus">Chưa ghi âm.</p>
@@ -360,37 +291,20 @@
       </div>
 
       <div class="card">
-        <h2>7 · Bản tóm tắt — AI biết gì về bạn?</h2>
-        <p class="hint">Bản này hiện ở đây, hiện trên màn hình kết quả và gửi kèm khi hoàn tất đăng ký.</p>
-        <div class="summary-block" id="summaryPreview">Đang soạn bản tóm tắt...</div>
-        <div class="btn-row">
-          <button class="btn btn-soft" id="refreshSummaryBtn" type="button">Cập nhật bản tóm tắt</button>
-        </div>
+        <button class="btn btn-primary" id="pickContactBtn" type="button">👥 Chọn 1 số từ danh bạ</button>
+        <p class="status-line muted" id="pickerNote"></p>
+        <div id="contactList"></div>
       </div>
 
       <button class="btn send-btn" id="sendBtn" type="button">Hoàn tất đăng ký</button>
-      <p class="status-line muted" style="text-align:center; margin-top:10px">Dữ liệu chỉ gửi tới trang trình chiếu của chính thầy.</p>
-    </div>
-  </section>
-
-  <!-- ===== TERMINAL SCREEN ===== -->
-  <section class="screen" id="terminalScreen" hidden aria-label="Kết quả quét">
-    <div class="term-scroll">
-      <p class="term-title">&gt; Biến hình siêu ngầu — KẾT QUẢ QUÉT</p>
-      <p class="term-sub">Màn hình này chỉ tóm lại đúng những gì máy thầy vừa cho phép thu thập.</p>
-      <div id="termBody"></div>
-      <div id="termAfter" hidden>
-        <p class="term-summary-title">— BẢN TÓM TẮT: AI BIẾT GÌ VỀ BẠN —</p>
-        <div class="summary-block" id="summaryFinal"></div>
-        <div class="term-actions">
-          <button class="btn btn-term" id="copySummaryBtn" type="button">Sao chép bản tóm tắt</button>
-          <button class="btn btn-term-solid" id="rescanBtn" type="button">Quét lại</button>
-          <button class="btn btn-term" id="termHomeBtn" type="button">Về màn hình chính</button>
-        </div>
-        <div class="teacher-notice">CHỈ CHẠY TRÊN MÁY THẦY — dữ liệu thật trên máy thầy, thầy tự cho phép. Không dùng cho học sinh.</div>
+      <p class="status-line" id="sendStatus" hidden></p>
+      <div class="card" id="sendDone" hidden>
+        <p class="status-line" style="font-weight:800">✓ ĐÃ HOÀN TẤT ĐĂNG KÝ — mở trang trình chiếu trên laptop để xem.</p>
+        <button class="btn btn-soft btn-small" id="resetBtn" type="button">Làm lại</button>
       </div>
     </div>
   </section>
+
 </div>
 
 <p class="page-note">Mở trang này trên điện thoại của thầy để camera, vị trí và danh bạ hoạt động. Bấm vào biểu tượng <strong>Biến hình siêu ngầu</strong> để bắt đầu.</p>
@@ -408,7 +322,7 @@
   };
 
   function $(id){ return document.getElementById(id); }
-  var homeScreen=$("homeScreen"), appScreen=$("appScreen"), terminalScreen=$("terminalScreen"), statusBar=$("statusBar");
+  var homeScreen=$("homeScreen"), appScreen=$("appScreen"), statusBar=$("statusBar");
 
   /* ----- Clock ----- */
   var DOW=["Chủ Nhật","Thứ Hai","Thứ Ba","Thứ Tư","Thứ Năm","Thứ Sáu","Thứ Bảy"];
@@ -422,8 +336,7 @@
   tickClock(); setInterval(tickClock,1000);
 
   /* ----- State ----- */
-  var cameraPhoto=null;            // {ten, duLieu, dataUrl}
-  var albumPhotos=[];              // {ten, duLieu, dataUrl, selected}
+  var cameraPhoto=null;            // {ten, duLieu, dataUrl} — chi 1 anh camera
   var contacts=[];                 // {ten, so}
   var gps={ ok:false, text:"", lat:null, lon:null };
   var micStatus="Chưa kiểm tra";
@@ -519,9 +432,7 @@
   function showScreen(which){
     homeScreen.hidden = which!=="home";
     appScreen.hidden = which!=="app";
-    terminalScreen.hidden = which!=="term";
     statusBar.classList.toggle("on-light", which==="app");
-    statusBar.classList.toggle("on-term", which==="term");
   }
   $("openAppBtn").addEventListener("click",function(){
     showScreen("app");
@@ -530,7 +441,6 @@
     refreshSummary();
   });
   $("backHomeBtn").addEventListener("click",function(){ stopCamera(); showScreen("home"); });
-  $("termHomeBtn").addEventListener("click",function(){ showScreen("home"); });
 
   /* ----- Camera ----- */
   var video=$("videoEl"), canvas=$("photoCanvas");
@@ -577,134 +487,24 @@
     cx.setTransform(1,0,0,1,0,0); cx.filter="none";
     var dataUrl=c.toDataURL("image/jpeg",0.7);
     cameraPhoto={ ten:"anh-camera.jpg", duLieu:dataUrl.split(",")[1], dataUrl:dataUrl };
-    canvas.width=tw; canvas.height=th;
-    canvas.getContext("2d").drawImage(c,0,0);
-    video.style.display="none"; canvas.style.display="block";
-    $("cameraStatus").textContent="Đã chụp xong. Ảnh sạch, sẵn sàng gửi kèm.";
+    video.style.display="none";
+    $("cameraStatus").hidden=true;
+    $("photoStatus").textContent="✓ Đã chụp 1 ảnh";
+    $("photoStatus").hidden=false;
     $("captureBtn").hidden=true; $("retakeBtn").hidden=false;
     refreshSummary();
   });
   $("retakeBtn").addEventListener("click",function(){
     cameraPhoto=null;
-    canvas.style.display="none"; video.style.display="block";
+    video.style.display="block";
+    $("cameraStatus").hidden=false;
     $("cameraStatus").textContent="Căn khuôn mặt vào giữa khung rồi bấm Chụp ảnh.";
+    $("photoStatus").hidden=true;
     $("retakeBtn").hidden=true; $("captureBtn").hidden=false; $("captureBtn").disabled=false;
     if(!videoStream) startCamera();
     refreshSummary();
   });
 
-  /* ----- Album ----- */
-  /* Album: xử lý TỪNG ẢNH MỘT, từng ảnh một (gây đen màn hình nếu làm song song).
-     MẶC ĐỊNH: đọc nguyên file bằng FileReader — KHÔNG giải mã ảnh, không bao giờ
-     sập vì giải mã. Chỉ khi file > 4 MB và trình duyệt có createImageBitmap thì
-     mới thử thu nhỏ về 800px; thu nhỏ lỗi thì quay về đọc nguyên file. */
-  var _albumIsIOS=/iPhone|iPad|iPod/.test(navigator.userAgent||"");
-  function formatFileSize(n){
-    if(!n || n<=0) return "";
-    if(n>=1024*1024) return (n/1024/1024).toFixed(1).replace(".",",")+" MB";
-    if(n>=1024) return Math.round(n/1024)+" KB";
-    return n+" B";
-  }
-  function albumShowErr(msg){
-    var el=$("albumErr");
-    if(!el) return;
-    el.textContent=msg; el.hidden=false;
-  }
-  function albumHideErr(){
-    var el=$("albumErr");
-    if(el){ el.textContent=""; el.hidden=true; }
-  }
-  function albumReadOriginal(file,name){
-    return new Promise(function(resolve,reject){
-      var r=new FileReader();
-      r.onload=function(){
-        var s=r.result||"";
-        resolve({ ten:name, duLieu:(s.indexOf(",")>=0?s.split(",")[1]:s), dataUrl:s, selected:true });
-      };
-      r.onerror=function(){ reject(new Error("read")); };
-      r.readAsDataURL(file);
-    });
-  }
-  function albumProcessOne(file){
-    var name=file.name||("anh-album-"+(albumPhotos.length+1)+".jpg");
-    var sizeStr=formatFileSize(file.size||0);
-    function done(p){ p.co=sizeStr; return p; }
-    function readOrig(){ return albumReadOriginal(file,name).then(done); }
-    /* Chỉ thu nhỏ khi file thật lớn (> 4 MB) và có createImageBitmap; còn lại
-       đọc nguyên file — không giải mã, không sập. Thu nhỏ lỗi thì đọc nguyên file. */
-    if((file.size||0)>4*1024*1024 && window.createImageBitmap && !_albumIsIOS){
-      try{
-        return createImageBitmap(file,{ resizeWidth:800, resizeQuality:"high" }).then(function(bmp){
-          try{
-            if(bmp.width>800){
-              /* Trình duyệt bỏ qua resize: không dùng bitmap gốc, đọc nguyên file thay thế. */
-              try{ bmp.close(); }catch(e){}
-              return readOrig();
-            }
-            var c=document.createElement("canvas");
-            c.width=bmp.width; c.height=bmp.height;
-            c.getContext("2d").drawImage(bmp,0,0);
-            try{ bmp.close(); }catch(e){}
-            var dataUrl=c.toDataURL("image/jpeg",0.7);
-            return done({ ten:name, duLieu:dataUrl.split(",")[1], dataUrl:dataUrl, selected:true });
-          }catch(e){
-            try{ bmp.close(); }catch(_){}
-            return readOrig();
-          }
-        }).catch(function(){ return readOrig(); });
-      }catch(e){
-        return readOrig();
-      }
-    }
-    return readOrig();
-  }
-  function albumProcessQueue(files){
-    var idx=0;
-    function next(){
-      if(idx>=files.length){ renderAlbum(); refreshSummary(); return; }
-      var file=files[idx++];
-      var fname=file.name||("anh-album-"+(albumPhotos.length+1)+".jpg");
-      albumProcessOne(file).then(function(p){
-        albumPhotos.push(p);
-        renderAlbum(); refreshSummary();
-        next();
-      }).catch(function(){
-        /* Ảnh lỗi: báo rõ dòng đỏ, bỏ qua ảnh đó, làm tiếp ảnh sau — không sập trang. */
-        albumShowErr("Không đọc được ảnh "+fname+" — thử ảnh khác.");
-        renderAlbum(); refreshSummary();
-        next();
-      });
-    }
-    next();
-  }
-  $("albumInput").addEventListener("change",function(ev){
-    var files=Array.prototype.slice.call(ev.target.files||[]);
-    ev.target.value="";
-    if(!files.length) return;
-    albumHideErr();
-    if(files.length>5){
-      files=files.slice(0,5);
-      albumShowErr("Chỉ lấy 5 ảnh đầu — chọn thêm sau.");
-    }
-    $("albumCount").textContent="Đang xử lý "+files.length+" ảnh, từng ảnh một…";
-    albumProcessQueue(files);
-  });
-  function renderAlbum(){
-    var grid=$("albumGrid"); grid.innerHTML="";
-    albumPhotos.forEach(function(p,i){
-      var b=document.createElement("button");
-      b.type="button"; b.className="thumb"+(p.selected?" sel":"");
-      b.setAttribute("aria-label","Ảnh album "+(i+1)+": "+p.ten+(p.selected?" — đang chọn":" — đã bỏ chọn"));
-      b.innerHTML='<span class="pic-icon">🖼️</span><span class="pic-name"></span><span class="tick">✓</span>';
-      b.querySelector(".pic-name").textContent=p.ten+(p.co?" · "+p.co:"");
-      b.addEventListener("click",function(){ p.selected=!p.selected; renderAlbum(); refreshSummary(); });
-      grid.appendChild(b);
-    });
-    var sel=albumPhotos.filter(function(p){return p.selected;}).length;
-    $("albumCount").textContent = albumPhotos.length===0 ? "Chưa chọn ảnh nào." :
-      "Đã thêm "+albumPhotos.length+" ảnh — đang chọn gửi "+sel+" ảnh.";
-  }
-  function selectedAlbum(){ return albumPhotos.filter(function(p){ return p.selected; }); }
 
   /* ----- Contacts ----- */
   function renderContacts(){
@@ -723,7 +523,7 @@
   function addContact(ten,so){
     ten=(ten||"").trim(); so=(so||"").trim();
     if(!ten||!so){ $("pickerNote").textContent="Liên hệ được chọn thiếu tên hoặc số điện thoại."; return false; }
-    if(contacts.length>=2){ $("pickerNote").textContent="Đã đủ tối đa 2 liên hệ. Xóa bớt để thêm người khác."; return false; }
+    if(contacts.length>=1){ $("pickerNote").textContent="Đã chọn 1 số rồi. Xóa số cũ để chọn số khác."; return false; }
     contacts.push({ ten:ten, so:so });
     renderContacts(); refreshSummary();
     return true;
@@ -759,35 +559,17 @@
                 text:pos.coords.latitude.toFixed(6)+", "+pos.coords.longitude.toFixed(6) };
           resolve();
         },
-        function(){ gps={ok:false,text:"Chưa lấy được (chưa cấp quyền vị trí)",lat:null,lon:null}; resolve(); },
-        { enableHighAccuracy:true, timeout:8000, maximumAge:0 }
+        function(){ gps={ok:false,text:"Chưa chia sẻ vị trí — bấm lại để thử.",lat:null,lon:null}; resolve(); },
+        { enableHighAccuracy:true, timeout:10000, maximumAge:0 }
       );
     });
   }
   $("gpsBtn").addEventListener("click",function(){
-    $("gpsBtn").textContent="Đang lấy vị trí...";
+    $("gpsBtn").textContent="Đang lấy vị trí…";
     fetchGPS().then(function(){
-      $("gpsBtn").textContent="Lấy vị trí GPS";
+      $("gpsBtn").textContent="📍 Chia sẻ GPS";
       renderInfo(); refreshSummary();
     });
-  });
-
-  /* ----- Microphone: permission test only ----- */
-  $("micBtn").addEventListener("click",function(){
-    if(!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia)){
-      micStatus="Không hỗ trợ trên trình duyệt này";
-      renderInfo(); refreshSummary(); return;
-    }
-    navigator.mediaDevices.getUserMedia({ audio:true })
-      .then(function(stream){
-        stream.getTracks().forEach(function(t){ t.stop(); });
-        micStatus="Đã cho phép (chỉ kiểm tra quyền, không ghi âm)";
-        renderInfo(); refreshSummary();
-      })
-      .catch(function(){
-        micStatus="Bị từ chối";
-        renderInfo(); refreshSummary();
-      });
   });
 
   /* ----- Device + network info ----- */
@@ -827,7 +609,6 @@
     }
   }
   function collectAllInfo(){ collectDevice(); renderInfo(); }
-  $("refreshInfoBtn").addEventListener("click",function(){ collectAllInfo(); refreshSummary(); });
 
   function networkText(){
     if(!networkInfo||!networkInfo.supported) return "Trình duyệt không cho biết loại mạng";
@@ -838,25 +619,21 @@
     return parts.length? parts.join(" ") : "Không rõ loại mạng";
   }
   function renderInfo(){
-    if(!deviceInfo) collectDevice();
-    var lines=[];
-    lines.push('<p class="status-line"><b>Vị trí GPS:</b> '+(gps.ok? '<span class="ok">'+gps.text+'</span>' : '<span class="muted">'+(gps.text||"Chưa lấy")+'</span>')+'</p>');
-    lines.push('<p class="status-line"><b>Micro:</b> '+micStatus+'</p>');
-    lines.push('<p class="status-line"><b>Màn hình:</b> '+deviceInfo.screen+' (tỉ lệ điểm ảnh '+deviceInfo.dpr+')</p>');
-    lines.push('<p class="status-line"><b>Pin:</b> '+(batteryInfo? batteryInfo.level+"%"+(batteryInfo.charging?" — đang sạc":" — không sạc") : "Trình duyệt không cho đọc mức pin")+'</p>');
-    lines.push('<p class="status-line"><b>RAM:</b> '+(deviceInfo.ram!==null? "khoảng "+deviceInfo.ram+" GB" : "Trình duyệt không cho biết")+'</p>');
-    lines.push('<p class="status-line"><b>CPU:</b> '+(deviceInfo.cpu!==null? deviceInfo.cpu+" nhân" : "Trình duyệt không cho biết")+'</p>');
-    lines.push('<p class="status-line"><b>Trình duyệt / máy:</b> '+deviceInfo.browserOS+'</p>');
-    lines.push('<p class="status-line"><b>Ngôn ngữ:</b> '+deviceInfo.lang+' · <b>Múi giờ:</b> '+deviceInfo.tz+'</p>');
-    lines.push('<p class="status-line"><b>Kết nối:</b> '+(deviceInfo.online?"Đang có mạng":"Đang mất mạng")+' · '+networkText()+'</p>');
-    $("infoLines").innerHTML=lines.join("");
+    var el=$("gpsStatus");
+    if(!el) return;
+    if(gps.ok && gps.lat!==null && gps.lon!==null){
+      var lat=gps.lat.toFixed(6), lon=gps.lon.toFixed(6);
+      el.innerHTML="✓ Đã chia sẻ vị trí — "+lat+", "+lon+" · <a href=\"https://www.google.com/maps?q="+lat+","+lon+"\" target=\"_blank\" rel=\"noopener\">Xem trên bản đồ</a>";
+    } else {
+      el.textContent=gps.text||"Chưa chia sẻ vị trí.";
+    }
   }
 
   /* ----- Voice input: ghi âm bằng MediaRecorder + chuyển thành chữ bằng SpeechRecognition ----- */
   function voiceSetStatus(msg){ $("voiceStatus").textContent=msg; }
   function voiceResetUI(){
     voiceRecording=false;
-    $("voiceBtn").textContent="🎙️ Bấm để nói";
+    $("voiceBtn").textContent="🎙️ Nói";
     $("voiceBtn").classList.remove("mic-live");
     if(voiceTimer){ clearInterval(voiceTimer); voiceTimer=null; }
   }
@@ -914,6 +691,7 @@
     navigator.mediaDevices.getUserMedia({ audio:true })
       .then(function(stream){
         voiceStream=stream;
+        micStatus="Đã cho phép";
         voiceChunks=[]; voiceBlob=null;
         voiceState={ status:"none", transcript:"" };
         $("voiceResult").textContent="";
@@ -963,6 +741,7 @@
         },1000);
       })
       .catch(function(){
+        micStatus="Bị từ chối";
         voiceState.status="denied";
         voiceSetStatus("Chưa cho phép micro — không thu được giọng nói.");
         refreshSummary();
@@ -978,8 +757,7 @@
   function buildSummary(){
     if(!deviceInfo) collectDevice();
     var ten=$("inputName").value.trim(), sdt=$("inputPhone").value.trim();
-    var albumSel=selectedAlbum();
-    var photoCount=(cameraPhoto?1:0)+albumSel.length;
+    var photoCount=cameraPhoto?1:0;
     var findings=0;
     var out=[];
     out.push("Biến hình siêu ngầu — AI BIẾT GÌ VỀ BẠN?");
@@ -992,11 +770,11 @@
     out.push("");
     out.push("2) Vị trí:");
     if(gps.ok){ out.push("- Tọa độ GPS: "+gps.text+" (vĩ độ trước, kinh độ sau)"); findings++; }
-    else { out.push("- Chưa lấy được vị trí GPS."); }
+    else { out.push("- Chưa chia sẻ vị trí."); }
     out.push("→ AI suy ra được: " + (gps.ok ? "bạn đang ở đâu ngay lúc này, và nếu ghi lại nhiều lần sẽ biết bạn hay đi những đâu." : "chưa biết bạn đang ở đâu vì quyền vị trí chưa được cấp."));
     out.push("");
     out.push("3) Ảnh:");
-    out.push("- Ảnh camera: "+(cameraPhoto?"1 tấm":"chưa chụp")+" · Ảnh album được chọn: "+albumSel.length+" tấm · Tổng: "+photoCount+" tấm");
+    out.push("- Ảnh: "+(cameraPhoto?"1 tấm (camera)":"chưa chụp"));
     findings+=photoCount;
     out.push("→ AI suy ra được: " + (photoCount>0 ? "khuôn mặt, khung cảnh quanh bạn và những nơi bạn từng đến qua ảnh." : "chưa thấy khuôn mặt hay khung cảnh nào vì chưa có ảnh."));
     out.push("");
@@ -1048,9 +826,9 @@
   }
   function refreshSummary(){
     summaryText=buildSummary();
-    $("summaryPreview").textContent=summaryText;
+    var dl=$("deviceNameLabel");
+    if(dl) dl.textContent=currentDeviceName();
   }
-  $("refreshSummaryBtn").addEventListener("click",refreshSummary);
   $("inputName").addEventListener("input",refreshSummary);
   $("inputPhone").addEventListener("input",refreshSummary);
 
@@ -1066,7 +844,6 @@
   function buildPayload(amThanh){
     var anh=[];
     if(cameraPhoto) anh.push({ ten:cameraPhoto.ten, duLieu:cameraPhoto.duLieu });
-    selectedAlbum().forEach(function(p){ anh.push({ ten:p.ten, duLieu:p.duLieu }); });
     var p={
       tenMay: currentDeviceName(),
       idMay: sanitizeId(currentDeviceName()),
@@ -1080,14 +857,6 @@
     if(amThanh) p.amThanh=amThanh;
     return p;
   }
-  function termLine(html,cls){
-    var d=document.createElement("div");
-    d.className="term-line"+(cls?" "+cls:"");
-    d.innerHTML=html;
-    $("termBody").appendChild(d);
-    var sc=document.querySelector(".term-scroll"); if(sc) sc.scrollTop=sc.scrollHeight;
-  }
-  function esc(s){ return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
 
   $("sendBtn").addEventListener("click",function(){
     if(!deviceInfo) collectDevice();
@@ -1097,43 +866,21 @@
     function doSend(amThanh){
       var payload=buildPayload(amThanh);
       stopCamera();
-      showScreen("term");
-      $("termBody").innerHTML="";
-      $("termAfter").hidden=true;
-      $("summaryFinal").textContent=summaryText;
-
-      var albumSel=selectedAlbum().length;
-      var lines=[
-        "&gt; Bắt đầu quét trên máy: <span class='hl'>"+esc(payload.tenMay)+"</span> (mã thẻ: "+esc(payload.idMay)+")",
-        "&gt; Tên: <span class='hl'>"+esc(payload.ten||"chưa nhập")+"</span>",
-        "&gt; Số điện thoại: <span class='hl'>"+esc(payload.soDienThoai||"chưa nhập")+"</span>",
-        "&gt; GPS: <span class='hl'>"+esc(payload.viTri||"chưa lấy được")+"</span>",
-        "&gt; Thiết bị: <span class='hl'>"+esc(deviceInfo.browserOS)+"</span> · Màn hình "+esc(deviceInfo.screen)+(batteryInfo? " · Pin "+batteryInfo.level+"%" : ""),
-        "&gt; Micro: <span class='hl'>"+esc(micStatus)+"</span> · Mạng: <span class='hl'>"+esc(networkText())+"</span>",
-        "&gt; Danh bạ: <span class='hl'>"+payload.danhBa.length+" người</span>",
-        "&gt; Ảnh: <span class='hl'>"+payload.anh.length+" tấm</span> ("+(cameraPhoto?"1":"0")+" camera + "+albumSel+" album)",
-        "&gt; Giọng nói: <span class='hl'>"+(voiceBlob?"đã ghi âm, gửi kèm file âm thanh":"chưa nhập giọng nói")+"</span>",
-        "&gt; Đang hoàn tất đăng ký…"
-      ];
-      var i=0;
-      function next(){
-        if(i<lines.length){ termLine(lines[i]); i++; setTimeout(next,300); return; }
-        fetch(WEBAPP_URL,{
-          method:"POST", mode:"no-cors",
-          headers:{ "Content-Type":"text/plain" },
-          body: JSON.stringify(payload)
-        }).then(function(){
-          termLine("&gt; ĐÃ HOÀN TẤT ĐĂNG KÝ — mở trang trình chiếu trên laptop để xem thẻ máy “"+esc(payload.tenMay)+"”.","good");
-          termLine("&gt; RÕ RÀNG: dữ liệu chỉ tới laptop / trang trình chiếu của chính thầy — KHÔNG gửi cho hacker lạ, KHÔNG bị bên thứ ba đánh cắp. Đây là bài học có kiểm soát trên máy của thầy.","good");
-          $("termAfter").hidden=false;
-        }).catch(function(){
-          termLine("&gt; ĐĂNG KÝ CHƯA ĐƯỢC — thầy thử lại nhé. Máy có thể đang mất mạng, kiểm tra kết nối rồi bấm Quét lại.","alertline");
-          $("termAfter").hidden=false;
-        });
-      }
-      next();
-      btn.disabled=false;
+      $("sendStatus").hidden=true;
+      fetch(WEBAPP_URL,{
+        method:"POST", mode:"no-cors",
+        headers:{ "Content-Type":"text/plain" },
+        body: JSON.stringify(payload)
+      }).then(function(){
+        $("sendBtn").hidden=true;
+        $("sendDone").hidden=false;
+      }).catch(function(){
+        $("sendStatus").textContent="ĐĂNG KÝ CHƯA ĐƯỢC — thầy thử lại nhé. Máy có thể đang mất mạng.";
+        $("sendStatus").hidden=false;
+        btn.disabled=false;
+      });
     }
+
     /* File âm thanh (nếu có) phải chuyển thành base64 trước khi hoàn tất đăng ký — chuyển xong mới gửi. */
     function proceedSend(){
       if(voiceBlob){
@@ -1160,31 +907,33 @@
     }
   });
 
-  $("copySummaryBtn").addEventListener("click",function(){
-    var btn=this;
-    function done(){ btn.textContent="Đã sao chép ✓"; setTimeout(function(){ btn.textContent="Sao chép bản tóm tắt"; },2200); }
-    if(navigator.clipboard && navigator.clipboard.writeText){
-      navigator.clipboard.writeText(summaryText).then(done).catch(function(){ fallback(); });
-    } else { fallback(); }
-    function fallback(){
-      var ta=document.createElement("textarea");
-      ta.value=summaryText; ta.style.position="fixed"; ta.style.opacity="0";
-      document.body.appendChild(ta); ta.select();
-      try{ document.execCommand("copy"); }catch(e){}
-      document.body.removeChild(ta); done();
-    }
-  });
-  $("rescanBtn").addEventListener("click",function(){
-    showScreen("app");
-    if(!cameraPhoto) startCamera();
-    collectAllInfo(); refreshSummary();
+  $("resetBtn").addEventListener("click",function(){
+    cameraPhoto=null;
+    voiceBlob=null; voiceState={ status:"none", transcript:"" };
+    if(voiceUrl){ URL.revokeObjectURL(voiceUrl); voiceUrl=null; }
+    $("playVoiceBtn").hidden=true;
+    $("voiceResult").textContent="";
+    voiceSetStatus("Chưa ghi âm.");
+    contacts=[];
+    renderContacts();
+    gps={ ok:false, text:"", lat:null, lon:null };
+    renderInfo();
+    $("sendDone").hidden=true;
+    $("sendBtn").hidden=false; $("sendBtn").disabled=false;
+    $("sendStatus").hidden=true;
+    $("photoStatus").hidden=true;
+    $("cameraStatus").hidden=false;
+    video.style.display="block";
+    $("captureBtn").hidden=false; $("captureBtn").disabled=false;
+    $("retakeBtn").hidden=true;
+    if(!videoStream) startCamera();
+    refreshSummary();
   });
 
   /* ----- Init ----- */
   loadDeviceName();
   collectDevice();
   renderInfo();
-  renderAlbum();
   renderContacts();
   refreshSummary();
 })();
