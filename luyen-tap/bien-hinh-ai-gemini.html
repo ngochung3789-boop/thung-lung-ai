@@ -128,6 +128,8 @@
     font-size:15px; background:var(--field); color:var(--ink); min-height:46px;
   }
   input:focus{ outline:2px solid var(--accent); outline-offset:1px; }
+  .manual-contact input{ margin-top:8px; }
+  .manual-contact .btn{ width:100%; margin-top:9px; }
   .btn{
     border:none; border-radius:13px; cursor:pointer; font-weight:700; font-size:14.5px;
     min-height:46px; padding:11px 14px; display:inline-flex; align-items:center; justify-content:center; gap:7px;
@@ -230,7 +232,7 @@
       <span class="app-icon" style="background:#fff"><svg width="28" height="28" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="3" fill="#ffd94d"/><circle cx="9" cy="10" r="1.8" fill="#fff"/><path d="M4 17l5-4 4 3 3-2 4 3v1a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2z" fill="#57b25e"/></svg></span>
       <span class="app-icon" style="background:#d9dde2"><svg width="28" height="28" viewBox="0 0 24 24" fill="#5a6672"><path d="M12 8.5A3.5 3.5 0 1 0 12 15.5 3.5 3.5 0 0 0 12 8.5zm9 4.6v-2.2l-2-.5a7 7 0 0 0-.7-1.7l1.1-1.7-1.6-1.6-1.7 1.1a7 7 0 0 0-1.7-.7L13.9 3h-2.2l-.5 2a7 7 0 0 0-1.7.7L7.8 4.6 6.2 6.2l1.1 1.7a7 7 0 0 0-.7 1.7l-2 .5v2.2l2 .5c.16.6.4 1.16.7 1.7L6.2 16.2l1.6 1.6 1.7-1.1c.54.3 1.1.54 1.7.7l.5 2h2.2l.5-2a7 7 0 0 0 1.7-.7l1.7 1.1 1.6-1.6-1.1-1.7c.3-.54.54-1.1.7-1.7z" transform="scale(.92) translate(1,1)"/></svg></span>
     </div>
-    <div class="version-label">Biến hình siêu ngầu · Bản 21/11 17:55</div>
+    <div class="version-label">Biến hình siêu ngầu · Bản 21/11 18:10</div>
   </section>
 
   <!-- ===== APP SCREEN ===== -->
@@ -239,7 +241,7 @@
       <button class="back-btn" id="backHomeBtn" type="button" aria-label="Về màn hình chính">‹</button>
       <div>
         <h1>Biến hình siêu ngầu</h1>
-        <p class="tag">Máy: <span id="deviceNameLabel"></span> · Bản 21/11 17:55</p>
+        <p class="tag">Máy: <span id="deviceNameLabel"></span> · Bản 21/11 18:10</p>
       </div>
     </div>
     <div class="app-scroll">
@@ -293,6 +295,12 @@
       <div class="card">
         <button class="btn btn-primary" id="pickContactBtn" type="button">👥 Chọn 1 số từ danh bạ</button>
         <p class="status-line muted" id="pickerNote"></p>
+        <div id="manualContactBox" class="manual-contact" hidden>
+          <p class="status-line" id="manualContactNote"></p>
+          <input type="text" id="manualContactName" placeholder="Tên người — ví dụ: Thầy Hưng" autocomplete="off" />
+          <input type="tel" id="manualContactPhone" placeholder="Số điện thoại" inputmode="tel" autocomplete="off" />
+          <button class="btn btn-soft" id="addManualContactBtn" type="button">Thêm số này</button>
+        </div>
         <div id="contactList"></div>
       </div>
 
@@ -516,7 +524,7 @@
       grow.querySelector("b").textContent=ct.ten;
       grow.querySelector("span").textContent=ct.so;
       var del=document.createElement("button"); del.type="button"; del.textContent="✕"; del.setAttribute("aria-label","Xóa liên hệ");
-      del.addEventListener("click",function(){ contacts.splice(i,1); renderContacts(); refreshSummary(); });
+      del.addEventListener("click",function(){ contacts.splice(i,1); renderContacts(); refreshSummary(); syncManualContactBox(); });
       d.appendChild(grow); d.appendChild(del); box.appendChild(d);
     });
   }
@@ -528,26 +536,61 @@
     renderContacts(); refreshSummary();
     return true;
   }
-  if(navigator.contacts && navigator.contacts.select){
-    $("pickerNote").textContent="Bấm nút trên để mở danh sách danh bạ trên máy thầy.";
-  } else {
-    $("pickerNote").textContent="Máy này chưa mở được danh sách danh bạ.";
+  /* Danh bạ: nút chọn danh sách máy (chỉ Chrome Android) + gõ tay làm dự phòng (mọi máy đều dùng được). */
+  var pickerAvailable=!!(navigator.contacts && navigator.contacts.select);
+  var pickerFailed=false;
+  function syncManualContactBox(){
+    var box=$("manualContactBox");
+    if(contacts.length>0){ box.hidden=true; return; }
+    if(!pickerAvailable){
+      $("pickerNote").textContent="";
+      $("manualContactNote").textContent="Máy này không mở được danh sách danh bạ — gõ tay số vào đây:";
+      $("pickContactBtn").hidden=true;
+      box.hidden=false;
+    } else if(pickerFailed){
+      $("manualContactNote").textContent="Không chọn được — gõ tay số bên dưới:";
+      $("pickContactBtn").hidden=false;
+      box.hidden=false;
+    } else {
+      $("pickerNote").textContent="Bấm nút trên để mở danh sách danh bạ trên máy thầy.";
+      $("pickContactBtn").hidden=false;
+      box.hidden=true;
+    }
   }
   $("pickContactBtn").addEventListener("click",function(){
-    if(!(navigator.contacts && navigator.contacts.select)){
-      $("pickerNote").textContent="Máy này chưa mở được danh sách danh bạ.";
-      return;
-    }
+    if(!pickerAvailable){ syncManualContactBox(); return; }
     navigator.contacts.select(["name","tel"],{ multiple:false })
       .then(function(res){
         if(res&&res.length){
           var nm=(res[0].name&&res[0].name[0])||"";
           var tl=(res[0].tel&&res[0].tel[0])||"";
-          addContact(nm,tl);
+          if(addContact(nm,tl)){
+            pickerFailed=false;
+            $("pickerNote").textContent="✓ Đã chọn: "+nm;
+            syncManualContactBox();
+          }
+        } else {
+          pickerFailed=true;
+          $("pickerNote").textContent="Thầy đã hủy chọn danh bạ hoặc máy không cho chọn.";
+          syncManualContactBox();
         }
       })
-      .catch(function(){ $("pickerNote").textContent="Thầy đã hủy chọn danh bạ hoặc máy không cho chọn."; });
+      .catch(function(){
+        pickerFailed=true;
+        $("pickerNote").textContent="Thầy đã hủy chọn danh bạ hoặc máy không cho chọn.";
+        syncManualContactBox();
+      });
   });
+  $("addManualContactBtn").addEventListener("click",function(){
+    var nm=$("manualContactName").value, tl=$("manualContactPhone").value;
+    if(addContact(nm,tl)){
+      pickerFailed=false;
+      $("pickerNote").textContent="✓ Đã chọn: "+nm.trim();
+      $("manualContactName").value=""; $("manualContactPhone").value="";
+      syncManualContactBox();
+    }
+  });
+  syncManualContactBox();
 
   /* ----- GPS ----- */
   function fetchGPS(){
