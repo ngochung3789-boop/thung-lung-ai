@@ -46,19 +46,20 @@
 
   /* Màn cuối: băng-rôn tên bài ở TRÊN CAO, gọn để không che màn hình.
      top:76px để nằm dưới hàng nút điều khiển (kẻo nút tốc độ che mất tên bài). */
-  #final {
+  #final, #final2 {
     position:fixed; left:50%; top:76px; transform:translateX(-50%);
     width:min(880px, 90vw); text-align:center; z-index:25; pointer-events:none;
   }
-  #final .title {
+  #final .title, #final2 .title {
     background:rgba(13,71,161,.94); border-radius:22px; color:#fff;
     padding:10px 22px; box-shadow:0 8px 30px rgba(0,0,0,.35);
   }
-  #final .title h1 { font-size:clamp(18px, 2.4vw, 28px); line-height:1.25; font-weight:900; }
-  #final .title p { font-size:clamp(13px, 1.8vw, 19px); line-height:1.35; margin-top:6px; color:#ffe082; font-weight:700; }
-  #final .title p.chot { font-size:clamp(24px, 3.2vw, 38px); color:#ffd740; font-weight:900; margin-top:10px; line-height:1.2; }
-  #final .title p.yccd { font-size:clamp(13px, 1.7vw, 18px); color:#e3f2fd; font-weight:400; line-height:1.45; margin-top:10px; text-align:left; }
-  #final .title p.next { font-size:clamp(14px, 1.9vw, 20px); color:#fff; font-weight:700; margin-top:10px; }
+  #final .title h1, #final2 .title h1 { font-size:clamp(18px, 2.4vw, 28px); line-height:1.25; font-weight:900; }
+  #final .title p, #final2 .title p { font-size:clamp(13px, 1.8vw, 19px); line-height:1.35; margin-top:6px; color:#ffe082; font-weight:700; }
+  #final .title p.chot, #final2 .title p.chot { font-size:clamp(24px, 3.2vw, 38px); color:#ffd740; font-weight:900; margin-top:10px; line-height:1.2; }
+  #final .title p.yccd, #final2 .title p.yccd { font-size:clamp(13px, 1.7vw, 18px); color:#e3f2fd; font-weight:400; line-height:1.45; margin-top:10px; text-align:left; }
+  #final .title p.next, #final2 .title p.next { font-size:clamp(14px, 1.9vw, 20px); color:#fff; font-weight:700; margin-top:10px; }
+  #final .title p.exp, #final2 .title p.exp { font-size:clamp(13px, 1.7vw, 18px); color:#bbdefb; font-weight:400; line-height:1.45; margin-top:8px; text-align:left; }
 
   /* Huy hiệu "?" ở góc màn hình (lúc hỏi, chưa có đáp án) */
   #badge {
@@ -125,8 +126,15 @@
   <div class="title">
     <h1>Bài 4 lớp 8: Nhận biết hiện tượng sử dụng AI để theo dõi và kiểm soát người dùng</h1>
     <p class="chot">Thấy lạ — dừng lại — kiểm tra.</p>
+    <p class="yccd">YCCĐ 8.A2.1: Giải thích được cách thức một số hệ thống dịch vụ có tích hợp AI tiến hành thu thập, phân tích hành vi và khai thác dữ liệu cá nhân của người dùng nhằm mục đích kiểm soát hành vi hoặc thao túng quyết định chi tiêu.</p>
     <p class="yccd">YCCĐ 8.A2.2: Nhận biết được hiện tượng sử dụng AI để kiểm soát người dùng (sử dụng dữ liệu không minh bạch, quảng cáo bám đuổi, định hướng thông tin một chiều, thao túng suy nghĩ và làm mất quyền kiểm soát thông tin cá nhân).</p>
-    <p class="next">Tiếp theo: thầy cho các em xem một app thật thu thập dữ liệu như thế nào.</p>
+  </div>
+</div>
+<div id="final2" style="display:none">
+  <div class="title">
+    <h1>Tiếp theo — Thử nghiệm: Giải thích hệ thống</h1>
+    <p class="next">Thầy cho các em xem một app thật thu thập dữ liệu như thế nào.</p>
+    <p class="exp">Thử nghiệm này giúp các em hiểu hệ thống AI thu thập, phân tích và dùng dữ liệu của mình ra sao — đó chính là YCCĐ 8.A2.1.</p>
   </div>
 </div>
 
@@ -164,10 +172,12 @@
 <script>
 (function(){
 "use strict";
-/* Video khởi động Lớp 8 Bài 4 (8.A2.2) — "Quảng cáo bám đuổi khắp nơi?"
+/* Video khởi động Lớp 8 Bài 4 (8.A2.1 + 8.A2.2) — "Quảng cáo bám đuổi khắp nơi?"
    Câu chuyện ngôi thứ nhất (học sinh tự kể): mượn điện thoại bố mẹ, quảng cáo
    đeo bám khắp nơi, chỉ còn 10 phút thì mọi app cùng hiện quảng cáo giày sale,
-   biết đúng mình còn 150.000đ → CÂU HỎI LỚN, kết bằng chốt + dẫn vào app demo.
+   biết đúng mình còn 150.000đ → CÂU HỎI LỚN, kết bằng chốt + cả 2 YCCĐ.
+   Màn cuối chia 2: màn 1 = chốt + YCCĐ 8.A2.1 + 8.A2.2; màn 2 = Thử nghiệm:
+   giải thích hệ thống (dẫn vào app demo "Biến hình siêu ngầu").
    Đồ họa/engine Three.js như cảnh Bài 12 lớp 7 (7d11): sân trường nắng, màn hình
    lớn, robot AI màu xanh dẫn chuyện, học sinh cầm điện thoại.
    Giọng nữ Bắc 1 thu trước (20 câu), nhúng base64, phát qua Web Audio API.
@@ -243,6 +253,13 @@ var BIG_QUESTION = 'Tại sao họ lại biết mình thích gì... hay mình c�
 var COUNTDOWN_BIG = 'CÒN 10 PHÚT';
 var PRICE_TEXT = '150.000đ';
 var CHOT_TEXT = 'Thấy lạ — dừng lại — kiểm tra.';
+/* Màn cuối 2 (dẫn vào app demo): app demo là THỬ NGHIỆM giải thích hệ thống —
+   cho thấy hệ thống AI thu thập, phân tích và dùng dữ liệu ra sao (YCCĐ 8.A2.1). */
+var EXP_TITLE = 'THỬ NGHIỆM';
+var EXP_SUB = 'Giải thích hệ thống';
+var EXP_TEXT = 'Thầy cho xem app thật thu thập dữ liệu';
+var EXP_NOTE = 'Xem hệ thống AI làm việc ra sao — đó chính là YCCĐ 8.A2.1';
+var FINAL2_HOLD_MS = 10000; /* màn 1 (chốt + 2 YCCĐ) hiện 10 giây rồi tự sang màn 2 */
 
 function clamp(v,a,b){ return Math.max(a, Math.min(b, v)); }
 function smooth(a,b,x){ x = clamp((x-a)/(b-a),0,1); return x*x*(3-2*x); }
@@ -1238,7 +1255,31 @@ function drawFinalScreen(){
   ctx.fillStyle = '#ffffff'; ctx.font = "40px 'Segoe UI', Arial, sans-serif";
   ctx.fillText('Bài 4 lớp 8', W/2, 420);
   ctx.fillStyle = '#bbdefb'; ctx.font = "34px 'Segoe UI', Arial, sans-serif";
-  ctx.fillText('Tiếp theo: xem app thật thu thập dữ liệu', W/2, 500);
+  ctx.fillText('YCCĐ 8.A2.1 • 8.A2.2', W/2, 500);
+  scrTex.needsUpdate = true;
+}
+/* Màn cuối 2 (canvas): Thử nghiệm — giải thích hệ thống.
+   Kính lúp vàng to + 3 dòng chữ, để thầy dẫn vào app demo. */
+function drawFinal2Screen(){
+  var ctx = scrCtx, W = 1024, H = 620;
+  var g = ctx.createLinearGradient(0, 0, 0, H);
+  g.addColorStop(0, '#1565c0'); g.addColorStop(1, '#0d47a1');
+  ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+  /* kính lúp vàng */
+  var cx = W/2, cy = 150;
+  ctx.strokeStyle = '#ffd740'; ctx.lineWidth = 12;
+  ctx.beginPath(); ctx.arc(cx, cy, 62, 0, 6.283); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(cx + 44, cy + 44); ctx.lineTo(cx + 92, cy + 92);
+  ctx.stroke();
+  ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  ctx.fillStyle = '#ffd740'; ctx.font = "bold 72px 'Segoe UI', Arial, sans-serif";
+  ctx.fillText(EXP_TITLE, W/2, 300);
+  ctx.fillStyle = '#ffffff'; ctx.font = "bold 52px 'Segoe UI', Arial, sans-serif";
+  ctx.fillText(EXP_SUB, W/2, 390);
+  ctx.fillStyle = '#bbdefb'; ctx.font = "36px 'Segoe UI', Arial, sans-serif";
+  ctx.fillText(EXP_TEXT, W/2, 480);
+  ctx.fillStyle = '#e3f2fd'; ctx.font = "30px 'Segoe UI', Arial, sans-serif";
+  ctx.fillText(EXP_NOTE, W/2, 540);
   scrTex.needsUpdate = true;
 }
 function drawScreen(){
@@ -1246,6 +1287,7 @@ function drawScreen(){
   ctx.clearRect(0, 0, W, H);
   if (state.phase === 'idle' || state.phase === 'lead'){ drawIdle(); return; }
   if (state.phase === 'final'){ drawFinalScreen(); return; }
+  if (state.phase === 'final2'){ drawFinal2Screen(); return; }
   var i = state.clipIdx;
   if (i <= 4) drawPhoneScreen(i);
   else if (i <= 10) drawRef();
@@ -1341,6 +1383,7 @@ function preloadAll(){
 }
 function playFrom(i){
   stopVoice();
+  clearFinalTimer();
   ensureAudio();
   state.started = true;
   state.phaseT = 0;
@@ -1361,7 +1404,7 @@ function toggleMute(){
 /* ---------- DOM ---------- */
 var $ = function(id){ return document.getElementById(id); };
 var bubbleEl = $('bubble'), teacherEl = $('teacher'),
-    finalEl = $('final'), badgeEl = $('badge'), progressFill = $('progressFill'),
+    finalEl = $('final'), final2El = $('final2'), badgeEl = $('badge'), progressFill = $('progressFill'),
     controlsEl = $('controls'), bigPlayEl = $('bigPlay'),
     btnReplay = $('btnReplay'), btnFull = $('btnFull'), btnMute = $('btnMute'),
     clockEl = $('clock');
@@ -1375,6 +1418,7 @@ function bubbleText(){
   if (state.phase === 'lead') return 'Chào cả lớp! Mình là robot AI, bạn đồng hành hôm nay.';
   if (state.phase === 'story') return CLIPS[state.clipIdx].bubble;
   if (state.phase === 'final') return 'Các em nhớ nhé: thấy lạ thì dừng lại, kiểm tra!';
+  if (state.phase === 'final2') return 'Giờ thầy cho xem app thật nhé — xem hệ thống làm việc ra sao!';
   return null;
 }
 function teacherText(){
@@ -1382,6 +1426,7 @@ function teacherText(){
   if (state.phase === 'lead') return { txt:'Câu chuyện của một bạn lớp 8 — mượn điện thoại của bố mẹ.', q:false };
   if (state.phase === 'story') return { txt:CLIPS[state.clipIdx].text, q: state.clipIdx === 16 };
   if (state.phase === 'final') return { txt:CHOT_TEXT, q:true };
+  if (state.phase === 'final2') return { txt:'Thử nghiệm: Giải thích hệ thống. Thầy cho các em xem một app thật thu thập dữ liệu như thế nào.', q:false };
   return { txt:'', q:false };
 }
 function updateDOM(){
@@ -1392,19 +1437,32 @@ function updateDOM(){
   teacherEl.classList.toggle('q', tl.q);
   badgeEl.style.display = (state.phase === 'story' && state.clipIdx === 16) ? 'flex' : 'none';
   finalEl.style.display = (state.phase === 'final') ? '' : 'none';
+  final2El.style.display = (state.phase === 'final2') ? '' : 'none';
   bigPlayEl.style.display = (state.phase === 'idle') ? '' : 'none';
-  var n = state.started ? (state.phase === 'final' ? 20 : state.clipIdx + 1) : 0;
+  var n = state.started ? ((state.phase === 'final' || state.phase === 'final2') ? 20 : state.clipIdx + 1) : 0;
   if (clockEl) clockEl.textContent = 'Clip ' + n + ' / 20';
   progressFill.style.width = (n/20*100) + '%';
 }
+var finalTimer = null;
+function clearFinalTimer(){ if (finalTimer !== null){ clearTimeout(finalTimer); finalTimer = null; } }
 function showFinal(){
   stopVoice();
+  clearFinalTimer();
   state.phase = 'final'; state.phaseT = 0;
+  state.clipIdx = CLIPS.length - 1;
+  updateDOM();
+  /* màn 1 hiện 10 giây rồi tự sang màn 2 (Thử nghiệm: giải thích hệ thống) */
+  finalTimer = setTimeout(function(){ finalTimer = null; showFinal2(); }, FINAL2_HOLD_MS);
+}
+function showFinal2(){
+  clearFinalTimer();
+  state.phase = 'final2'; state.phaseT = 0;
   state.clipIdx = CLIPS.length - 1;
   updateDOM();
 }
 function resetGame(){
   stopVoice();
+  clearFinalTimer();
   state.phase = 'idle'; state.clipIdx = 0; state.phaseT = 0; state.started = false;
   updateDOM();
 }
@@ -1416,14 +1474,14 @@ function play(){
 /* ---------- khung hình chính ---------- */
 function applyState(tt){
   curT = tt;
-  var ck = smooth(0, 1.5, state.phase === 'final' ? state.phaseT : 0);
+  var ck = smooth(0, 1.5, (state.phase === 'final' || state.phase === 'final2') ? state.phaseT : 0);
   camera.position.set(0, lerp(2.6, 3.0, ck), lerp(8.6, 11.5, ck));
   camera.lookAt(0, lerp(1.25, 1.15, ck), -0.3);
   /* robot: nhún nhẹ, nghiêng đầu, vẫy tay / chỉ tay, kính lúp lấp lánh */
   robot.position.y = Math.sin(tt*2)*0.03;
   head.rotation.y = -0.15 + Math.sin(tt*0.9)*0.06;
   head.rotation.z = Math.sin(tt*1.2)*0.04;
-  if (state.phase === 'lead' || state.phase === 'final'){
+  if (state.phase === 'lead' || state.phase === 'final' || state.phase === 'final2'){
     armWave.rotation.z = -2.5 + Math.sin(tt*5.5)*0.18;
     armWave.rotation.x = -0.25 + Math.sin(tt*5.5)*0.05;
   } else if (state.phase === 'story' && state.clipIdx === 16){
@@ -1496,7 +1554,7 @@ function applyState(tt){
     }
     fp.needsUpdate = true;
   }
-  progressFill.style.width = ((state.started ? (state.phase === 'final' ? 20 : state.clipIdx + 1) : 0)/20*100) + '%';
+  progressFill.style.width = ((state.started ? ((state.phase === 'final' || state.phase === 'final2') ? 20 : state.clipIdx + 1) : 0)/20*100) + '%';
 }
 
 var projV = new THREE.Vector3();
@@ -1562,6 +1620,7 @@ document.addEventListener('keydown', function(e){
 function gotoStep(name){
   state.started = true;
   if (name === 'final'){ showFinal(); return; }
+  if (name === 'final2'){ showFinal2(); return; }
   if (name === 'q'){ playFrom(16); return; }
   var m = /^c(\d+)$/.exec(name);
   if (m){
