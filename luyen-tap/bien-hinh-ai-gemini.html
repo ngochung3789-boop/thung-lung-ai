@@ -280,6 +280,7 @@
         <p class="hint">Tên này hiện trên thẻ của máy ở laptop. Đặt 1 lần, máy tự nhớ cho các lần sau.</p>
         <label class="field-label" for="deviceNameInput">Tên máy</label>
         <input type="text" id="deviceNameInput" value="Điện thoại của thầy" autocomplete="off" />
+        <p class="saved-note" id="deviceDetectNote"></p>
         <div class="btn-row">
           <button class="btn btn-soft btn-small" id="renameBtn" type="button">Đổi tên máy</button>
         </div>
@@ -432,16 +433,49 @@
     s=s.slice(0,40).replace(/-+$/g,"");
     return s||"may-cua-thay";
   }
+  var deviceNameEdited=false;   // true khi thầy đã gõ/sửa tên — khi đó không tự cập nhật nữa
+  function detectDeviceName(){
+    var ua=navigator.userAgent||"";
+    var m=ua.match(/Android\s+[\d.]+;\s*([^;)]+?)(?:\s+Build|;|\))/i);
+    if(m && m[1] && m[1].trim()) return m[1].trim();
+    if(/iPhone/.test(ua)) return "iPhone";
+    if(/iPad/.test(ua)) return "iPad";
+    return "Điện thoại của thầy";
+  }
+  function refineDeviceNameAsync(){
+    try{
+      var uad=navigator.userAgentData;
+      if(uad && typeof uad.getHighEntropyValues==="function"){
+        uad.getHighEntropyValues(["model"]).then(function(data){
+          var mdl=data && data.model;
+          if(mdl && typeof mdl==="string" && mdl.trim() && !deviceNameEdited){
+            var v=mdl.trim();
+            $("deviceNameInput").value=v;
+            try{ localStorage.setItem("tenMay",v); }catch(e){}
+            $("deviceDetectNote").textContent="Đã tự nhận biết tên máy";
+            refreshSummary();
+          }
+        }).catch(function(){});
+      }
+    }catch(e){}
+  }
   function loadDeviceName(){
     var saved="";
     try{ saved=localStorage.getItem("tenMay")||""; }catch(e){}
-    if(saved) $("deviceNameInput").value=saved;
+    if(saved){ $("deviceNameInput").value=saved; return; }
+    /* Chưa có tên đã lưu: tự nhận biết tên máy và điền sẵn — thầy không cần gõ. */
+    var auto=detectDeviceName();
+    $("deviceNameInput").value=auto;
+    $("deviceDetectNote").textContent="Đã tự nhận biết tên máy";
+    try{ localStorage.setItem("tenMay",auto); }catch(e){}
+    refineDeviceNameAsync();
   }
   function currentDeviceName(){
     var v=$("deviceNameInput").value.trim();
     return v||"Điện thoại của thầy";
   }
   $("renameBtn").addEventListener("click",function(){
+    deviceNameEdited=true;
     var v=currentDeviceName();
     $("deviceNameInput").value=v;
     try{ localStorage.setItem("tenMay",v); }catch(e){}
@@ -451,6 +485,10 @@
   $("deviceNameInput").addEventListener("change",function(){
     try{ localStorage.setItem("tenMay",currentDeviceName()); }catch(e){}
     refreshSummary();
+  });
+  $("deviceNameInput").addEventListener("input",function(){
+    deviceNameEdited=true;
+    $("deviceDetectNote").textContent="";
   });
 
   /* ----- Navigation ----- */
