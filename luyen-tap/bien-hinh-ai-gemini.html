@@ -551,16 +551,19 @@
   }
   $("captureBtn").addEventListener("click",function(){
     if(!video.videoWidth){ return; }
+    /* Vẽ thẳng khung hình về tối đa 800px — KHÔNG tạo canvas full-resolution (gây đen màn hình). */
+    var scale=Math.min(1, 800/Math.max(video.videoWidth,video.videoHeight));
+    var tw=Math.round(video.videoWidth*scale), th=Math.round(video.videoHeight*scale);
     var c=document.createElement("canvas");
-    c.width=video.videoWidth; c.height=video.videoHeight;
+    c.width=tw; c.height=th;
     var cx=c.getContext("2d");
-    cx.translate(c.width,0); cx.scale(-1,1);
+    cx.translate(tw,0); cx.scale(-1,1);
     cx.filter="contrast(1.2) saturate(1.5) sepia(0.3)";
-    cx.drawImage(video,0,0,c.width,c.height);
+    cx.drawImage(video,0,0,tw,th);
     cx.setTransform(1,0,0,1,0,0); cx.filter="none";
-    var dataUrl=compressCanvas(c);
+    var dataUrl=c.toDataURL("image/jpeg",0.7);
     cameraPhoto={ ten:"anh-camera.jpg", duLieu:dataUrl.split(",")[1], dataUrl:dataUrl };
-    canvas.width=c.width; canvas.height=c.height;
+    canvas.width=tw; canvas.height=th;
     canvas.getContext("2d").drawImage(c,0,0);
     video.style.display="none"; canvas.style.display="block";
     $("cameraStatus").textContent="Đã chụp xong. Ảnh sạch, sẵn sàng gửi kèm.";
@@ -583,10 +586,13 @@
       var url=URL.createObjectURL(file);
       var img=new Image();
       img.onload=function(){
+        /* Vẽ thẳng ảnh về tối đa 800px — KHÔNG tạo canvas full-resolution (gây đen màn hình). */
+        var scale=Math.min(1, 800/Math.max(img.naturalWidth,img.naturalHeight));
+        var tw=Math.round(img.naturalWidth*scale), th=Math.round(img.naturalHeight*scale);
         var c=document.createElement("canvas");
-        c.width=img.naturalWidth; c.height=img.naturalHeight;
-        c.getContext("2d").drawImage(img,0,0);
-        var dataUrl=compressCanvas(c);
+        c.width=tw; c.height=th;
+        c.getContext("2d").drawImage(img,0,0,tw,th);
+        var dataUrl=c.toDataURL("image/jpeg",0.7);
         albumPhotos.push({ ten:file.name||("anh-album-"+(albumPhotos.length+1)+".jpg"), duLieu:dataUrl.split(",")[1], dataUrl:dataUrl, selected:true });
         URL.revokeObjectURL(url);
         renderAlbum(); refreshSummary();
@@ -954,11 +960,19 @@
   $("inputPhone").addEventListener("input",refreshSummary);
 
   /* ----- Send + terminal ----- */
-  function buildPayload(){
+  function blobToBase64(blob){
+    return new Promise(function(resolve,reject){
+      var r=new FileReader();
+      r.onload=function(){ var s=r.result||""; resolve(s.indexOf(",")>=0 ? s.split(",")[1] : s); };
+      r.onerror=function(){ reject(new Error("read")); };
+      r.readAsDataURL(blob);
+    });
+  }
+  function buildPayload(amThanh){
     var anh=[];
     if(cameraPhoto) anh.push({ ten:cameraPhoto.ten, duLieu:cameraPhoto.duLieu });
     selectedAlbum().forEach(function(p){ anh.push({ ten:p.ten, duLieu:p.duLieu }); });
-    return {
+    var p={
       tenMay: currentDeviceName(),
       idMay: sanitizeId(currentDeviceName()),
       tomTat: summaryText,
@@ -968,6 +982,8 @@
       danhBa: contacts.map(function(c){ return { ten:c.ten, so:c.so }; }),
       anh: anh
     };
+    if(amThanh) p.amThanh=amThanh;
+    return p;
   }
   function termLine(html,cls){
     var d=document.createElement("div");
@@ -981,42 +997,58 @@
   $("sendBtn").addEventListener("click",function(){
     if(!deviceInfo) collectDevice();
     refreshSummary();
-    var payload=buildPayload();
-    stopCamera();
-    showScreen("term");
-    $("termBody").innerHTML="";
-    $("termAfter").hidden=true;
-    $("summaryFinal").textContent=summaryText;
+    var btn=this;
+    btn.disabled=true;
+    function doSend(amThanh){
+      var payload=buildPayload(amThanh);
+      stopCamera();
+      showScreen("term");
+      $("termBody").innerHTML="";
+      $("termAfter").hidden=true;
+      $("summaryFinal").textContent=summaryText;
 
-    var albumSel=selectedAlbum().length;
-    var lines=[
-      "&gt; Bắt đầu quét trên máy: <span class='hl'>"+esc(payload.tenMay)+"</span> (mã thẻ: "+esc(payload.idMay)+")",
-      "&gt; Tên: <span class='hl'>"+esc(payload.ten||"chưa nhập")+"</span>",
-      "&gt; Số điện thoại: <span class='hl'>"+esc(payload.soDienThoai||"chưa nhập")+"</span>",
-      "&gt; GPS: <span class='hl'>"+esc(payload.viTri||"chưa lấy được")+"</span>",
-      "&gt; Thiết bị: <span class='hl'>"+esc(deviceInfo.browserOS)+"</span> · Màn hình "+esc(deviceInfo.screen)+(batteryInfo? " · Pin "+batteryInfo.level+"%" : ""),
-      "&gt; Micro: <span class='hl'>"+esc(micStatus)+"</span> · Mạng: <span class='hl'>"+esc(networkText())+"</span>",
-      "&gt; Danh bạ: <span class='hl'>"+payload.danhBa.length+" người</span>",
-      "&gt; Ảnh: <span class='hl'>"+payload.anh.length+" tấm</span> ("+(cameraPhoto?"1":"0")+" camera + "+albumSel+" album)",
-      "&gt; Đang gửi tới trang trình chiếu trên laptop của chính thầy..."
-    ];
-    var i=0;
-    function next(){
-      if(i<lines.length){ termLine(lines[i]); i++; setTimeout(next,300); return; }
-      fetch(WEBAPP_URL,{
-        method:"POST", mode:"no-cors",
-        headers:{ "Content-Type":"text/plain" },
-        body: JSON.stringify(payload)
-      }).then(function(){
-        termLine("&gt; ĐÃ GỬI XONG tới trang trình chiếu trên laptop của thầy. Mở trang trình chiếu để xem thẻ máy “"+esc(payload.tenMay)+"”.","good");
-        termLine("&gt; RÕ RÀNG: dữ liệu chỉ tới laptop / trang trình chiếu của chính thầy — KHÔNG gửi cho hacker lạ, KHÔNG bị bên thứ ba đánh cắp. Đây là bài học có kiểm soát trên máy của thầy.","good");
-        $("termAfter").hidden=false;
-      }).catch(function(){
-        termLine("&gt; GỬI THẤT BẠI — máy có thể đang mất mạng. Kiểm tra kết nối rồi bấm Quét lại để gửi lại.","alertline");
-        $("termAfter").hidden=false;
-      });
+      var albumSel=selectedAlbum().length;
+      var lines=[
+        "&gt; Bắt đầu quét trên máy: <span class='hl'>"+esc(payload.tenMay)+"</span> (mã thẻ: "+esc(payload.idMay)+")",
+        "&gt; Tên: <span class='hl'>"+esc(payload.ten||"chưa nhập")+"</span>",
+        "&gt; Số điện thoại: <span class='hl'>"+esc(payload.soDienThoai||"chưa nhập")+"</span>",
+        "&gt; GPS: <span class='hl'>"+esc(payload.viTri||"chưa lấy được")+"</span>",
+        "&gt; Thiết bị: <span class='hl'>"+esc(deviceInfo.browserOS)+"</span> · Màn hình "+esc(deviceInfo.screen)+(batteryInfo? " · Pin "+batteryInfo.level+"%" : ""),
+        "&gt; Micro: <span class='hl'>"+esc(micStatus)+"</span> · Mạng: <span class='hl'>"+esc(networkText())+"</span>",
+        "&gt; Danh bạ: <span class='hl'>"+payload.danhBa.length+" người</span>",
+        "&gt; Ảnh: <span class='hl'>"+payload.anh.length+" tấm</span> ("+(cameraPhoto?"1":"0")+" camera + "+albumSel+" album)",
+        "&gt; Giọng nói: <span class='hl'>"+(voiceBlob?"đã ghi âm, gửi kèm file âm thanh":"chưa nhập giọng nói")+"</span>",
+        "&gt; Đang gửi tới trang trình chiếu trên laptop của chính thầy..."
+      ];
+      var i=0;
+      function next(){
+        if(i<lines.length){ termLine(lines[i]); i++; setTimeout(next,300); return; }
+        fetch(WEBAPP_URL,{
+          method:"POST", mode:"no-cors",
+          headers:{ "Content-Type":"text/plain" },
+          body: JSON.stringify(payload)
+        }).then(function(){
+          termLine("&gt; ĐÃ GỬI XONG tới trang trình chiếu trên laptop của thầy. Mở trang trình chiếu để xem thẻ máy “"+esc(payload.tenMay)+"”.","good");
+          termLine("&gt; RÕ RÀNG: dữ liệu chỉ tới laptop / trang trình chiếu của chính thầy — KHÔNG gửi cho hacker lạ, KHÔNG bị bên thứ ba đánh cắp. Đây là bài học có kiểm soát trên máy của thầy.","good");
+          $("termAfter").hidden=false;
+        }).catch(function(){
+          termLine("&gt; GỬI THẤT BẠI — máy có thể đang mất mạng. Kiểm tra kết nối rồi bấm Quét lại để gửi lại.","alertline");
+          $("termAfter").hidden=false;
+        });
+      }
+      next();
+      btn.disabled=false;
     }
-    next();
+    /* File âm thanh (nếu có) phải chuyển thành base64 trước khi gửi — chuyển xong mới gửi. */
+    if(voiceBlob){
+      blobToBase64(voiceBlob).then(function(b64){
+        doSend({ duLieu:b64, dinhDang: voiceBlob.type||"audio/webm" });
+      }).catch(function(){
+        doSend(null);
+      });
+    } else {
+      doSend(null);
+    }
   });
 
   $("copySummaryBtn").addEventListener("click",function(){
