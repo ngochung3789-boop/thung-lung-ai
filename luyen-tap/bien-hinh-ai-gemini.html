@@ -157,10 +157,11 @@
   .muted{ color:var(--sub); }
 
   .album-grid{ display:grid; grid-template-columns:repeat(4,1fr); gap:8px; margin-top:11px; }
-  .thumb{ position:relative; border-radius:10px; overflow:hidden; border:3px solid transparent; cursor:pointer; padding:0; background:#ddd; min-height:44px; }
-  .thumb img{ width:100%; height:64px; object-fit:cover; display:block; }
+  .thumb{ position:relative; border-radius:10px; overflow:hidden; border:3px solid transparent; cursor:pointer; padding:0; background:#e6edf2; min-height:64px; display:flex; flex-direction:column; align-items:center; justify-content:center; }
+  .thumb .pic-icon{ font-size:26px; line-height:1; padding:10px 4px 2px; }
+  .thumb .pic-name{ display:block; width:100%; font-size:10px; color:var(--sub); padding:0 5px 8px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; text-align:center; }
   .thumb.sel{ border-color:var(--accent); }
-  .thumb:not(.sel) img{ opacity:.35; filter:grayscale(.6); }
+  .thumb:not(.sel) .pic-icon, .thumb:not(.sel) .pic-name{ opacity:.35; filter:grayscale(.6); }
   .thumb .tick{
     position:absolute; top:4px; right:4px; width:21px; height:21px; border-radius:50%;
     background:var(--accent); color:#fff; font-size:12px; display:none; align-items:center; justify-content:center; font-weight:800;
@@ -606,8 +607,9 @@
     albumPhotos.forEach(function(p,i){
       var b=document.createElement("button");
       b.type="button"; b.className="thumb"+(p.selected?" sel":"");
-      b.setAttribute("aria-label","Ảnh album "+(i+1)+(p.selected?" — đang chọn":" — đã bỏ chọn"));
-      b.innerHTML='<img alt="" src="'+p.dataUrl+'"><span class="tick">✓</span>';
+      b.setAttribute("aria-label","Ảnh album "+(i+1)+": "+p.ten+(p.selected?" — đang chọn":" — đã bỏ chọn"));
+      b.innerHTML='<span class="pic-icon">🖼️</span><span class="pic-name"></span><span class="tick">✓</span>';
+      b.querySelector(".pic-name").textContent=p.ten;
       b.addEventListener("click",function(){ p.selected=!p.selected; renderAlbum(); refreshSummary(); });
       grid.appendChild(b);
     });
