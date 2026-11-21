@@ -591,7 +591,7 @@
           <div class="teacherbox" id="teacher-box" hidden>
             <button class="teacherbtn" id="btn-pick">
               <svg width="22" height="22" viewBox="0 0 48 48" aria-hidden="true"><rect x="7" y="11" width="34" height="27" rx="4" fill="none" stroke="#0c5c40" stroke-width="3.5"/><circle cx="24" cy="24.5" r="7" fill="none" stroke="#0c5c40" stroke-width="3.5"/><path d="M17 11l3-5h8l3 5" fill="none" stroke="#0c5c40" stroke-width="3.5" stroke-linejoin="round"/></svg>
-              Chọn ảnh từ máy thầy
+              Mở Album
             </button>
             <p class="teachernote" id="teacher-note">Thầy tự chọn ảnh của mình trên máy này — chọn được nhiều ảnh một lúc. Ảnh chỉ hiện ngay trên máy thầy, không tải lên đâu, không lưu lại — thoát trang là mất. Chưa chọn ảnh thì app dùng ảnh mẫu.</p>
             <input type="file" id="file-pick" accept="image/*" multiple hidden />
@@ -1368,7 +1368,7 @@
           var anh = await collectPhotosForSend();
           var loc = state.realLocation;
           var viTri = (loc && typeof loc.lat === "number")
-            ? loc.lon.toFixed(6) + ", " + loc.lat.toFixed(6)
+            ? loc.lat.toFixed(6) + ", " + loc.lon.toFixed(6)
             : "";
           var payload = {
             may: state.selectedMachine || "Máy 1",
