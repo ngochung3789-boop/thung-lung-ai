@@ -1,6 +1,21 @@
 // ============================================================================
 //  ĐƯỜNG CHUYỂN TOÀN BỘ THÔNG TIN: ĐIỆN THOẠI (thầy) -> LAPTOP (thầy) -> CHIẾU LÊN TV
 //  Chỉ phục vụ thầy Phạm Ngọc Hưng và dữ liệu CỦA THẦY.
+//  PHIÊN BẢN 21 (21/11/2026):
+//  - NHANH HƠN NỮA (menu chỉ còn 1 lần đọc): trước đây menu vẫn quét
+//    CẢ thư mục Drive mỗi lần mở (đọc từng file JSON + duyệt tên file)
+//    nên Apps Script vẫn chậm. Giờ menu dùng 1 FILE CHỈ MỤC duy nhất
+//    "danh-sach-may.json" trong cùng thư mục — chỉ 1 lần đọc là có đủ
+//    tên máy + giờ gửi + số ảnh + có giọng nói. doPost cập nhật chỉ mục
+//    ngay khi có máy gửi mới (lỗi thì bỏ qua, không làm hỏng lần gửi);
+//    chưa có chỉ mục thì menu quét nhẹ như bản 20 rồi tự ghi lại chỉ mục.
+//    Thêm CACHE 60 giây (CacheService): menu mở lại trong 60 giây thì
+//    lấy từ cache, không đọc Drive; gửi mới / xóa máy thì xóa cache.
+//  - MENU CHỈ HIỆN MÁY GỬI TRONG 1 GIỜ QUA (cho đỡ lác): máy nào gửi
+//    quá 1 giờ thì ẩn khỏi menu (không xóa dữ liệu — "Xem tất cả" và
+//    trang chi tiết vẫn xem được máy cũ). Không có máy nào trong 1 giờ
+//    qua thì menu báo "Chưa có máy nào gửi trong 1 giờ qua." + link
+//    "Xem tất cả" để xem dữ liệu cũ hơn.
 //  PHIÊN BẢN 20 (21/11/2026):
 //  - CHẠY NHANH HƠN NHIỀU: trước đây mỗi lần mở trang đều gọi
 //    layThongTinTatCaMay() — đọc và base64 TOÀN BỘ ảnh + giọng nói của
@@ -906,6 +921,262 @@ function layThongTinMotMay(khoa, mNhe) {
   }
 }
 
+// ---------- CHỈ MỤC NHANH + CACHE MENU (Phiên bản 21) ----------
+// Vấn đề: dù bản 20 đã nhẹ, menu vẫn phải quét CẢ thư mục Drive mỗi lần
+// mở (đọc từng file JSON metadata + duyệt tên file) — Apps Script vốn
+// đã chậm (khởi động lạnh + gọi Drive API chậm) nên trang vẫn lác.
+// Bản 21 giữ 1 FILE CHỈ MỤC duy nhất "danh-sach-may.json" trong cùng
+// thư mục Drive: 1 mảng JSON [{khoa, tenHienThi, thoiGianGui, soAnh,
+// coAmThanh, loai}] — chỉ chữ/số, không ảnh/âm thanh, không base64.
+// Menu chỉ cần đọc ĐÚNG 1 file này (thậm chí lấy từ CACHE 60 giây).
+//  - doPost cập nhật chỉ mục ngay khi có máy gửi mới (best-effort: lỗi
+//    thì bỏ qua, KHÔNG làm hỏng lần gửi; chỉ xóa cache để lần mở sau
+//    quét lại). Xóa máy cũng cập nhật chỉ mục + xóa cache.
+//  - Chưa có chỉ mục (lần đầu lên bản 21) thì menu quét nhẹ như bản 20
+//    rồi tự ghi lại chỉ mục để lần sau mở nhanh.
+//  - Chỉ mục vẫn liệt kê TẤT CẢ các máy (kể cả máy gửi đã lâu) — bộ lọc
+//    1 GIỜ chỉ áp lúc vẽ menu (taoTrangMenu); "Xem tất cả" và trang chi
+//    tiết vẫn xem được máy cũ.
+
+// Tên file chỉ mục trong cùng thư mục Drive "Anh trinh chieu Avatar AI".
+var TEN_FILE_CHI_MUC = 'danh-sach-may.json';
+// Khóa cache menu (CacheService, tối đa 100KB/giá trị — danh sách nhẹ
+// chỉ vài KB nên thoải mái).
+var KHOA_CACHE_MENU = 'danhSachMay';
+var THOI_GIAN_CACHE_MENU_GIAY = 60;
+
+// Đọc file chỉ mục: trả về mảng các mục, hoặc null nếu chưa có / lỗi.
+function docChiMucMay(thuMuc) {
+  try {
+    var files = thuMuc.getFilesByName(TEN_FILE_CHI_MUC);
+    if (!files.hasNext()) return null;
+    var goi = JSON.parse(files.next().getBlob().getDataAsString());
+    if (!goi || !(goi instanceof Array)) return null;
+    return goi;
+  } catch (loi) {
+    return null;
+  }
+}
+
+// Ghi đè file chỉ mục (xóa file cũ nếu có rồi tạo mới).
+function ghiChiMucMay(thuMuc, chiMuc) {
+  var files = thuMuc.getFilesByName(TEN_FILE_CHI_MUC);
+  while (files.hasNext()) { files.next().setTrashed(true); }
+  var blob = Utilities.newBlob(JSON.stringify(chiMuc), 'application/json', TEN_FILE_CHI_MUC);
+  thuMuc.createFile(blob);
+}
+
+// Cache menu (60 giây). Mọi lỗi cache đều bỏ qua — trang không bao giờ
+// hỏng chỉ vì cache.
+function xoaCacheMenu() {
+  try { CacheService.getScriptCache().remove(KHOA_CACHE_MENU); } catch (loi) {}
+}
+function luuCacheMenu(chuoiJson) {
+  try { CacheService.getScriptCache().put(KHOA_CACHE_MENU, chuoiJson, THOI_GIAN_CACHE_MENU_GIAY); } catch (loi) {}
+}
+function docCacheMenu() {
+  try { return CacheService.getScriptCache().get(KHOA_CACHE_MENU); } catch (loi) { return null; }
+}
+
+// Đổi danh sách NHẸ (layDanhSachMayNhe) thành mảng mục chỉ mục.
+// Chỉ ghi máy đã có dữ liệu (mayCoDuLieu) — ô trống không vào chỉ mục.
+function chiMucTuDanhSachNhe(danhSach) {
+  var chiMuc = [];
+  for (var i = 0; i < danhSach.length; i++) {
+    var m = danhSach[i];
+    if (!mayCoDuLieu(m)) continue;
+    chiMuc.push({
+      khoa: khoaXemMay(m),
+      tenHienThi: tenHienThiMay(m),
+      thoiGianGui: m.thoiGianGui || '',
+      soAnh: m.soAnh || 0,
+      coAmThanh: !!m.coAmThanh,
+      loai: m.loai === 'ten' ? 'ten' : 'may'
+    });
+  }
+  return chiMuc;
+}
+
+// Đổi mảng mục chỉ mục thành danh sách NHẸ (cùng hình dạng mục như
+// layDanhSachMayNhe trả về) để menu / chi tiết dùng y như cũ.
+// Thêm ô trống Máy 1..SO_MAY_HIEN chưa có trong chỉ mục (như bản 20).
+function danhSachNheTuChiMuc(chiMuc) {
+  var ketQua = [];
+  var daCo = {};
+  for (var i = 0; i < chiMuc.length; i++) {
+    var e = chiMuc[i];
+    if (!e || !e.khoa) continue;
+    var muc;
+    if (e.loai === 'ten') {
+      muc = {
+        loai: 'ten',
+        may: e.tenHienThi || e.khoa,
+        tenMay: e.tenHienThi || e.khoa,
+        idMay: e.khoa,
+        ten: '', soDienThoai: '', viTri: '', danhBa: [], anh: [],
+        amThanh: '', dinhDangAmThanh: '', tenFileAmThanh: '', tomTat: '',
+        thoiGianGui: e.thoiGianGui || '',
+        soAnh: e.soAnh || 0, coAmThanh: !!e.coAmThanh, coDuLieu: true
+      };
+    } else {
+      var so = chuanHoaSoMay(e.khoa);
+      daCo[so] = true;
+      muc = {
+        loai: 'may',
+        may: 'Máy ' + so,
+        ten: '', soDienThoai: '', viTri: '', danhBa: [], anh: [],
+        amThanh: '', dinhDangAmThanh: '', tenFileAmThanh: '', tomTat: '',
+        thoiGianGui: e.thoiGianGui || '',
+        soAnh: e.soAnh || 0, coAmThanh: !!e.coAmThanh, coDuLieu: true
+      };
+    }
+    ketQua.push(muc);
+  }
+  for (var m = 1; m <= SO_MAY_HIEN; m++) {
+    if (daCo[m]) continue;
+    ketQua.push({ loai: 'may', may: 'Máy ' + m, ten: '', soDienThoai: '', viTri: '', danhBa: [], anh: [], amThanh: '', tomTat: '', thoiGianGui: '', soAnh: 0, coAmThanh: false });
+  }
+  // Cùng thứ tự với layDanhSachMayNhe: ô Máy trước theo số, máy theo
+  // tên sau theo tên (A-Z).
+  ketQua.sort(function(a, b) {
+    var la = a.loai === 'ten' ? 1 : 0;
+    var lb = b.loai === 'ten' ? 1 : 0;
+    if (la !== lb) return la - lb;
+    if (la === 1) {
+      var ta = String(a.tenMay || a.may || '');
+      var tb = String(b.tenMay || b.may || '');
+      return ta < tb ? -1 : (ta > tb ? 1 : 0);
+    }
+    return parseInt(String(a.may).replace(/\D/g, ''), 10) - parseInt(String(b.may).replace(/\D/g, ''), 10);
+  });
+  return ketQua;
+}
+
+// Lấy danh sách máy cho MENU / CHI TIẾT — nhanh nhất có thể:
+//   1) Cache 60 giây (không đọc Drive).
+//   2) File chỉ mục danh-sach-may.json (1 lần đọc).
+//   3) Chưa có chỉ mục thì quét nhẹ như bản 20 rồi tự ghi lại chỉ mục.
+// Trả về {may: [...]} cùng hình dạng như layDanhSachMayNhe().
+// Menu KHÔNG BAO GIỜ trống chỉ vì thiếu chỉ mục — bước 3 đảm bảo.
+function layDanhSachMenuNhanh() {
+  try {
+    var chuoiCache = docCacheMenu();
+    if (chuoiCache) {
+      var goiCache = JSON.parse(chuoiCache);
+      if (goiCache && goiCache.may) return goiCache;
+    }
+  } catch (loiCache) {}
+  var thuMuc = layThuMucAnh();
+  var chiMuc = docChiMucMay(thuMuc);
+  if (chiMuc) {
+    var ketQua = { may: danhSachNheTuChiMuc(chiMuc) };
+    luuCacheMenu(JSON.stringify(ketQua));
+    return ketQua;
+  }
+  var d = layDanhSachMayNhe();
+  if (d && d.may && !d.loi) {
+    try { ghiChiMucMay(thuMuc, chiMucTuDanhSachNhe(d.may)); } catch (loiGhi) {}
+    luuCacheMenu(JSON.stringify(d));
+  }
+  return d;
+}
+
+// Cập nhật mục của ĐÚNG 1 máy trong file chỉ mục sau khi máy đó gửi mới.
+// khoa: "may-N" (ô Máy) hoặc idMay ("id_...").
+// Đọc lại JSON metadata vừa lưu để lấy giờ gửi / số ảnh / có giọng nói
+// (chính xác như đã lưu). Máy gửi rỗng (không có dữ liệu thật) thì GỠ
+// khỏi chỉ mục thay vì thêm (giữ đúng luật "có dữ liệu" của bản 20).
+// Mọi lỗi đều bỏ qua — chỉ cần xóa cache để lần mở menu sau quét lại;
+// lần gửi KHÔNG BAO GIỜ hỏng vì chỉ mục.
+function capNhatChiMucSauKhiGui(khoa) {
+  try { xoaCacheMenu(); } catch (loi0) {}
+  try {
+    var thuMuc = layThuMucAnh();
+    var chiMuc = docChiMucMay(thuMuc) || [];
+    var mucMoi = null;
+    var coDuLieuThat = false;
+    if (String(khoa).indexOf('id_') === 0) {
+      var safeId = sachChuoi(khoa);
+      var fJson = thuMuc.getFilesByName(tenFileThongTinTheoTen(safeId));
+      if (!fJson.hasNext()) return;
+      var goi = JSON.parse(fJson.next().getBlob().getDataAsString());
+      if (!goi) return;
+      coDuLieuThat = (sachChuoi(goi.ten) !== '') || (sachChuoi(goi.soDienThoai) !== '') ||
+        (sachChuoi(goi.viTri) !== '') || (goi.danhBa && goi.danhBa.length > 0) ||
+        (goi.anh && goi.anh.length > 0) || (sachChuoi(goi.tomTat) !== '') ||
+        !!goi.thoiGianDungApp || (sachChuoi(goi.tenFileAmThanh) !== '');
+      if (coDuLieuThat) {
+        mucMoi = {
+          khoa: safeId,
+          tenHienThi: sachChuoi(goi.tenMay) || safeId,
+          thoiGianGui: sachChuoi(goi.thoiGianGui),
+          soAnh: (goi.anh || []).length,
+          coAmThanh: sachChuoi(goi.tenFileAmThanh) !== '',
+          loai: 'ten'
+        };
+      }
+    } else {
+      var soMay = chuanHoaSoMay(khoa);
+      var meta = docThongTinMay(thuMuc, soMay);
+      coDuLieuThat = (meta.ten !== '') || (meta.soDienThoai !== '') || (meta.viTri !== '') ||
+        (meta.danhBa.length > 0) || (meta.anh.length > 0) || (meta.tomTat !== '') ||
+        (sachChuoi(meta.tenFileAmThanh) !== '');
+      if (coDuLieuThat) {
+        mucMoi = {
+          khoa: 'may-' + soMay,
+          tenHienThi: 'Máy ' + soMay,
+          thoiGianGui: meta.thoiGianGui || '',
+          soAnh: (meta.anh || []).length,
+          coAmThanh: sachChuoi(meta.tenFileAmThanh) !== '',
+          loai: 'may'
+        };
+      }
+    }
+    var giu = [];
+    for (var i = 0; i < chiMuc.length; i++) {
+      if (!chiMuc[i] || !chiMuc[i].khoa) continue;
+      if (mucMoi && chiMuc[i].khoa === mucMoi.khoa) continue;
+      if (!mucMoi && chiMuc[i].khoa === String(khoa)) continue;
+      giu.push(chiMuc[i]);
+    }
+    if (mucMoi) giu.push(mucMoi);
+    ghiChiMucMay(thuMuc, giu);
+  } catch (loiCap) {
+    // Bỏ qua: menu sẽ quét lại khi mở (fallback trong layDanhSachMenuNhanh).
+  }
+}
+
+// Gỡ ĐÚNG 1 máy khỏi file chỉ mục sau khi xóa máy đó (best-effort).
+// idNhan: "1"-"6" / "Máy N" (ô Máy) hoặc idMay (máy theo tên).
+// Xóa xong cũng xóa cache menu. Mọi lỗi đều bỏ qua.
+function xoaMayKhoiChiMuc(idNhan) {
+  try { xoaCacheMenu(); } catch (loi0) {}
+  try {
+    var id = String(idNhan === undefined || idNhan === null ? '' : idNhan).trim();
+    if (id === '') return;
+    var khoa = '';
+    var maySo = id.match(/^\s*(?:m[aá]y\s*)?([1-6])\s*$/i);
+    if (maySo) {
+      khoa = 'may-' + chuanHoaSoMay(maySo[1]);
+    } else {
+      khoa = sachIdMayDeXoa(id);
+      if (khoa === '') return;
+    }
+    var thuMuc = layThuMucAnh();
+    var chiMuc = docChiMucMay(thuMuc);
+    if (!chiMuc) return;
+    var giu = [];
+    for (var i = 0; i < chiMuc.length; i++) {
+      if (!chiMuc[i] || !chiMuc[i].khoa) continue;
+      if (chiMuc[i].khoa === khoa) continue;
+      giu.push(chiMuc[i]);
+    }
+    ghiChiMucMay(thuMuc, giu);
+  } catch (loiXoa) {
+    // Bỏ qua: menu sẽ quét lại khi mở.
+  }
+}
+
 // Trả về dữ liệu của Máy 1 (định dạng cũ) — giữ lại cho tương thích ngược.
 function layThongTin() {
   var tatCa = layThongTinTatCaMay().may;
@@ -1013,11 +1284,16 @@ function doPost(e) {
     var safeIdGui = sachIdMay(thongTin.idMay);
     if (safeIdGui !== '') {
       var ketQuaTen = luuThongTinTheoTen(thongTin);
+      // Phiên bản 21: cập nhật file chỉ mục + xóa cache menu (best-effort,
+      // không làm hỏng lần gửi nếu chỉ mục lỗi).
+      try { capNhatChiMucSauKhiGui(ketQuaTen.idMay); } catch (loiChiMuc) {}
       return ContentService
         .createTextOutput(JSON.stringify({ thanhCong: true, tenMay: ketQuaTen.tenMay, idMay: ketQuaTen.idMay, soAnh: ketQuaTen.soAnh }))
         .setMimeType(ContentService.MimeType.JSON);
     }
     var ketQua = luuThongTinVaoDrive(thongTin);
+    // Phiên bản 21: cập nhật file chỉ mục + xóa cache menu (best-effort).
+    try { capNhatChiMucSauKhiGui('may-' + ketQua.soMay); } catch (loiChiMuc2) {}
     return ContentService
       .createTextOutput(JSON.stringify({ thanhCong: true, may: 'Máy ' + ketQua.soMay, soAnh: ketQua.soAnh }))
       .setMimeType(ContentService.MimeType.JSON);
@@ -1270,17 +1546,17 @@ function taoTrangKetQuaXoa(timThay, nhan) {
 //  nút "Làm mới trang" để xem máy mới gửi.
 //  Nút "Tải Album về": mỗi ảnh có 1 nút tải riêng (link thuần HTML, bấm là tải
 //  thẳng file ảnh đó về máy); bấm vào chính tấm ảnh cũng tải ảnh đó về.
-//  PHIÊN BẢN 20 (21/11/2026): MENU danh sách máy là trang mặc định — xếp theo thời gian, mới nhất lên trên. Link điều hướng có target="_top" (thoát khung nhúng). Menu + chi tiết chỉ dùng danh sách nhẹ (không tải ảnh/âm thanh của mọi máy).
+//  PHIÊN BẢN 21 (21/11/2026): MENU danh sách máy là trang mặc định — xếp theo thời gian, mới nhất lên trên, CHỈ hiện máy gửi trong 1 giờ qua. Link điều hướng có target="_top" (thoát khung nhúng). Menu + chi tiết dùng chỉ mục nhanh (cache 60 giây / 1 file danh-sach-may.json), không tải ảnh/âm thanh của mọi máy.
 // ============================================================================
 
-// ---------- Trang MENU / CHI TIẾT / XEM TẤT CẢ (Phiên bản 20) ----------
-// Menu là trang mặc định: danh sách tất cả các máy, mỗi dòng hiện TÊN MÁY to
-// + GIỜ GỬI ("Gửi lúc HH:MM ngày DD/MM/YYYY") + huy hiệu "ĐANG DÙNG" cho
-// máy gửi gần nhất. Bấm 1 dòng -> trang chi tiết chỉ 1 máy đó
-// (?xem=<khóa>). "Xem tất cả" (?xem=tat-ca) -> lưới tất cả các thẻ như
-// trước. Trang chi tiết / xem tất cả có link "← Quay lại menu". Xóa xong
-// cũng quay lại menu. Tất cả vẽ sẵn phía máy chủ, không JavaScript,
-// không google.script.run, không meta refresh.
+// ---------- Trang MENU / CHI TIẾT / XEM TẤT CẢ (Phiên bản 21) ----------
+// Menu là trang mặc định: danh sách các máy gửi trong 1 GIỜ QUA, mỗi dòng
+// hiện TÊN MÁY to + GIỜ GỬI ("Gửi lúc HH:MM ngày DD/MM/YYYY") + huy hiệu
+// "ĐANG DÙNG" cho máy gửi gần nhất. Bấm 1 dòng -> trang chi tiết chỉ 1
+// máy đó (?xem=<khóa>). "Xem tất cả" (?xem=tat-ca) -> lưới tất cả các thẻ
+// như trước (không lọc 1 giờ). Trang chi tiết / xem tất cả có link
+// "← Quay lại menu". Xóa xong cũng quay lại menu. Tất cả vẽ sẵn phía máy
+// chủ, không JavaScript, không google.script.run, không meta refresh.
 
 // Khóa xem 1 máy (dùng trong ?xem=<khóa>): ô Máy -> "may-N" (may-1..may-6);
 // máy theo tên -> idMay đã làm sạch (ví dụ "id_abc123").
@@ -1292,12 +1568,14 @@ function khoaXemMay(m) {
 // Máy này đã gửi dữ liệu gì chưa? (cùng luật với theMayMayChu)
 // Phiên bản 20: thêm soAnh/coAmThanh để danh sách NHẸ (không tải ảnh/
 // âm thanh, chỉ đếm file) vẫn nhận đúng máy nào có dữ liệu.
+// Phiên bản 21: thêm coDuLieu (mục khôi phục từ file chỉ mục
+// danh-sach-may.json — chỉ mục chỉ ghi máy đã có dữ liệu).
 function mayCoDuLieu(m) {
   return (m.ten && m.ten !== '') || (m.soDienThoai && m.soDienThoai !== '') ||
     (m.viTri && m.viTri !== '') || (m.danhBa && m.danhBa.length > 0) ||
     (m.anh && m.anh.length > 0) || (m.tomTat && m.tomTat !== '') ||
     !!m.thoiGianDungApp || (m.amThanh && m.amThanh !== '') ||
-    (m.soAnh && m.soAnh > 0) || !!m.coAmThanh;
+    (m.soAnh && m.soAnh > 0) || !!m.coAmThanh || !!m.coDuLieu;
 }
 
 // Có máy nào đã gửi dữ liệu không?
@@ -1437,7 +1715,7 @@ function moDauTrangTrinhChieu(tieuDe, trangThai, urlLamMoi, linkQuayLai) {
 
 // Cuối trang trình chiếu: chân trang ghi phiên bản + đóng thẻ.
 function dongTrangTrinhChieu() {
-  return '<div class="chan-trang">Trình chiếu Avatar AI — Phiên bản 20 (21/11/2026)</div>\n</body>\n</html>';
+  return '<div class="chan-trang">Trình chiếu Avatar AI — Phiên bản 21 (21/11/2026)</div>\n</body>\n</html>';
 }
 
 // Hộp xanh + câu hỏi cho lớp (hiện dưới thẻ máy, chỉ khi máy đã có dữ liệu).
@@ -1449,47 +1727,58 @@ function hopXanhVaCauHoi() {
 
 // Trang MENU (mặc định): danh sách các máy, mỗi dòng hiện tên máy + giờ gửi.
 // Bấm 1 dòng -> trang chi tiết của máy đó (?xem=<khóa>).
-// (Phiên bản 20: chỉ dùng danh sách NHẸ layDanhSachMayNhe — không tải
-//  ảnh/âm thanh — nên menu mở nhanh.)
+// (Phiên bản 21: dùng layDanhSachMenuNhanh — cache 60 giây hoặc 1 file
+//  chỉ mục duy nhất — nên menu mở rất nhanh. Menu CHỈ hiện máy gửi trong
+//  1 GIỜ QUA (cho đỡ lác); máy gửi đã lâu ẩn khỏi menu nhưng KHÔNG bị
+//  xóa — "Xem tất cả" và trang chi tiết vẫn xem được máy cũ.)
 function taoTrangMenu() {
-  var d = layDanhSachMayNhe();
+  var d = layDanhSachMenuNhanh();
   var danhSach = sapXepMenuTheoThoiGian((d && d.may) || []);
-  var moiNhat = chiSoMayMoiNhat(danhSach);
+  // Lọc 1 GIỜ: chỉ giữ máy đã gửi trong 60 phút qua (so mốc ms từ chuỗi
+  // ISO thoiGianGui; thiếu / không đọc được thì coi là quá hạn -> ẩn).
+  var motGioTruoc = new Date().getTime() - 60 * 60 * 1000;
+  var danhSachMoi = [];
+  for (var k = 0; k < danhSach.length; k++) {
+    var mm = danhSach[k];
+    if (!mayCoDuLieu(mm)) continue;
+    if (mocThoiGianGui(mm.thoiGianGui) <= motGioTruoc) continue;
+    danhSachMoi.push(mm);
+  }
+  var moiNhat = chiSoMayMoiNhat(danhSachMoi);
   var trangThai, noiDung;
   if (d && d.loi) {
     trangThai = 'Không tải được thông tin: ' + d.loi;
     noiDung = '<div class="trong">Không tải được thông tin.<br>' + escHtml(d.loi) + '</div>';
+  } else if (danhSachMoi.length === 0) {
+    trangThai = 'Chỉ hiện máy gửi trong 1 giờ qua. Bấm "Xem tất cả" để xem dữ liệu cũ hơn.';
+    noiDung = '<div class="khung"><div class="menu-may">' +
+      '<div class="trong">Chưa có máy nào gửi trong 1 giờ qua.</div>' +
+      '<a class="xem-tat-ca" target="_top" href="' + escHtml(URL_WEB_APP) + '?xem=tat-ca">Xem tất cả</a></div></div>';
   } else {
-    trangThai = 'Dữ liệu thu thập trên máy của thầy — bấm vào một máy để xem chi tiết. Bấm F5 hoặc nút "Làm mới trang" để xem máy mới gửi.';
+    trangThai = 'Chỉ hiện máy gửi trong 1 giờ qua — bấm vào một máy để xem chi tiết. Bấm "Xem tất cả" để xem máy cũ hơn.';
     var hang = '';
-    for (var i = 0; i < danhSach.length; i++) {
-      var m = danhSach[i];
-      var coDuLieu = mayCoDuLieu(m);
-      hang += '<a class="hang-menu' + (coDuLieu ? '' : ' trong') + '" target="_top" href="' + escHtml(URL_WEB_APP) + '?xem=' + escHtml(encodeURIComponent(khoaXemMay(m))) + '">';
+    for (var i = 0; i < danhSachMoi.length; i++) {
+      var m = danhSachMoi[i];
+      hang += '<a class="hang-menu" target="_top" href="' + escHtml(URL_WEB_APP) + '?xem=' + escHtml(encodeURIComponent(khoaXemMay(m))) + '">';
       hang += '<div class="ten-menu">' + escHtml(tenHienThiMay(m)) + '</div>';
       if (i === moiNhat) hang += '<div style="margin-top:8px;"><span class="huy-hieu-dang-dung">ĐANG DÙNG</span></div>';
-      if (coDuLieu && m.thoiGianGui && m.thoiGianGui !== '') {
+      if (m.thoiGianGui && m.thoiGianGui !== '') {
         hang += '<div class="moc-thoi-gian">' + escHtml(dinhDangThoiGianGui(m.thoiGianGui)) + '</div>';
-      } else {
-        hang += '<div class="gio-menu">chưa có thông tin</div>';
       }
       hang += '</a>';
     }
     noiDung = '<div class="khung"><div class="menu-may">' + hang +
       '<a class="xem-tat-ca" target="_top" href="' + escHtml(URL_WEB_APP) + '?xem=tat-ca">Xem tất cả</a></div></div>';
-    if (!coMayNaoGui(danhSach)) {
-      noiDung += '<div style="padding:0 24px 24px;text-align:center;font-size:20px;color:#9ca3af;">Chưa có thông tin.<br>Thầy bấm "Đăng ký" trên điện thoại.</div>';
-    }
   }
   return moDauTrangTrinhChieu('HỘP ĐEN THU THẬP DỮ LIỆU NGƯỜI DÙNG', trangThai, URL_WEB_APP, '') + noiDung + dongTrangTrinhChieu();
 }
 
 // Trang CHI TIẾT 1 máy (?xem=<khóa>): chỉ thẻ của máy đó + hộp xanh + câu hỏi.
-// (Phiên bản 20: chỉ tải ĐẦY ĐỦ dữ liệu của ĐÚNG 1 máy đó
-//  layThongTinMotMay — không tải ảnh/âm thanh của các máy khác.
-//  Huy hiệu "ĐANG DÙNG" tính bằng danh sách nhẹ.)
+// (Phiên bản 21: dùng layDanhSachMenuNhanh — cache / chỉ mục — thay cho
+//  layDanhSachMayNhe; vẫn chỉ tải ĐẦY ĐỦ dữ liệu của ĐÚNG 1 máy đó
+//  layThongTinMotMay. Huy hiệu "ĐANG DÙNG" tính bằng danh sách nhẹ.)
 function taoTrangChiTietMay(khoa) {
-  var d = layDanhSachMayNhe();
+  var d = layDanhSachMenuNhanh();
   var danhSach = (d && d.may) || [];
   var moiNhat = chiSoMayMoiNhat(danhSach);
   var linkQuayLai = '<a class="nut-quay-lai" target="_top" href="' + escHtml(URL_WEB_APP) + '">← Quay lại menu</a>';
@@ -1550,6 +1839,8 @@ function doGet(e) {
     var nhanXoa = nhanMayDeXoa(p.id);
     if (p.xacNhan === '1') {
       var ketQuaXoa = xoaDuLieuMotMay(p.id);
+      // Phiên bản 21: gỡ máy khỏi file chỉ mục + xóa cache menu (best-effort).
+      try { xoaMayKhoiChiMuc(p.id); } catch (loiChiMucXoa) {}
       return HtmlService.createHtmlOutput(taoTrangKetQuaXoa(ketQuaXoa.timThay, ketQuaXoa.nhan || nhanXoa))
         .setTitle('Đã xóa dữ liệu')
         .addMetaTag('viewport', 'width=device-width, initial-scale=1');
@@ -1564,7 +1855,7 @@ function doGet(e) {
       .setTitle('Gửi thông tin lên laptop')
       .addMetaTag('viewport', 'width=device-width, initial-scale=1');
   }
-  // Trang trình chiếu (Phiên bản 20): MENU là mặc định.
+  // Trang trình chiếu (Phiên bản 21): MENU là mặc định (chỉ máy gửi trong 1 giờ qua).
   //   (không tham số) -> menu danh sách máy (tên + giờ gửi)
   //   ?xem=tat-ca    -> xem tất cả các thẻ cùng lúc (lưới như trước)
   //   ?xem=<khóa>     -> chi tiết 1 máy (khóa "may-N" hoặc idMay)
