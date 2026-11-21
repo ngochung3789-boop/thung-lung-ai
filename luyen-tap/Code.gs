@@ -1,6 +1,12 @@
 // ============================================================================
 //  ĐƯỜNG CHUYỂN TOÀN BỘ THÔNG TIN: ĐIỆN THOẠI (thầy) -> LAPTOP (thầy) -> CHIẾU LÊN TV
 //  Chỉ phục vụ thầy Phạm Ngọc Hưng và dữ liệu CỦA THẦY.
+//  PHIÊN BẢN 16 (21/11/2026):
+//  - GIỌNG NÓI: app trên điện thoại gửi kèm file âm thanh đã thu (amThanh:
+//    {duLieu base64, dinhDang mime}) — lưu thành file mayN_giong-noi.<ext>
+//    hoặc id_<id>_giong-noi.<ext> trong cùng thư mục Drive; trang trình
+//    chiếu hiện trình phát <audio controls> + nút "Tải giọng nói về" trên
+//    thẻ máy đó. Gửi lại / xóa máy thì xóa luôn file âm thanh của máy đó.
 //  PHIÊN BẢN 15 (21/11/2026):
 //  - XÓA DỮ LIỆU 1 MÁY: mỗi thẻ máy có nút "🗑 Xóa dữ liệu máy này".
 //    Bấm nút -> trang XÁC NHẬN (chưa xóa gì) -> bấm "Xóa ngay" mới xóa
@@ -143,6 +149,17 @@ function tienToAnhTheoTen(safeId) {
   return safeId + '_';
 }
 
+// Tên file âm thanh của 1 máy (Phiên bản 16): mayN_giong-noi.<ext> hoặc
+// id_<id>_giong-noi.<ext>. Cùng tiền tố với ảnh của máy đó nên gửi lại /
+// xóa máy đều dọn luôn file âm thanh của đúng máy đó.
+function tenFileAmThanhMay(soMay, ext) {
+  return 'may' + soMay + '_giong-noi.' + ext;
+}
+
+function tenFileAmThanhTheoTen(safeId, ext) {
+  return safeId + '_giong-noi.' + ext;
+}
+
 // Xóa dữ liệu cũ của ĐÚNG 1 máy theo tên: file JSON của máy + ảnh có tiền tố
 // của máy đó. Không động vào dữ liệu của các máy khác (kể cả ô Máy).
 function xoaDuLieuTheoTen(thuMuc, safeId) {
@@ -261,6 +278,46 @@ function sachThoiGianDungApp(giaTri) {
   };
 }
 
+// ---------- GIỌNG NÓI (Phiên bản 16) ----------
+// Làm sạch trường âm thanh {duLieu (base64, không có tiền tố data:),
+// dinhDang (mime, ví dụ "audio/webm")}. Chấp nhận object hoặc chuỗi JSON.
+// Trả về null nếu không đọc được / rỗng (khi đó coi như máy không gửi giọng nói).
+function sachAmThanh(amThanh) {
+  if (!amThanh) return null;
+  if (typeof amThanh === 'string') {
+    try { amThanh = JSON.parse(amThanh); } catch (loi) { return null; }
+  }
+  if (!amThanh || typeof amThanh !== 'object') return null;
+  var duLieu = sachChuoi(amThanh.duLieu);
+  if (duLieu === '') return null;
+  var dinhDang = sachChuoi(amThanh.dinhDang) || 'audio/webm';
+  return { duLieu: duLieu, dinhDang: dinhDang };
+}
+
+// Đuôi file từ kiểu MIME âm thanh.
+function duoiAmThanh(dinhDang) {
+  var d = String(dinhDang || '').toLowerCase();
+  if (d.indexOf('webm') !== -1) return 'webm';
+  if (d.indexOf('mp4') !== -1) return 'mp4';
+  if (d.indexOf('m4a') !== -1) return 'm4a';
+  if (d.indexOf('mpeg') !== -1 || d.indexOf('mp3') !== -1) return 'mp3';
+  if (d.indexOf('ogg') !== -1) return 'ogg';
+  if (d.indexOf('wav') !== -1) return 'wav';
+  return 'bin';
+}
+
+// Lưu 1 file âm thanh vào thư mục; trả về tên file đã lưu ('' nếu không lưu được).
+function luuAmThanhVaoDrive(thuMuc, amThanhSach, tenFile) {
+  if (!amThanhSach || !amThanhSach.duLieu) return '';
+  try {
+    var blob = Utilities.newBlob(Utilities.base64Decode(amThanhSach.duLieu), amThanhSach.dinhDang, tenFile);
+    thuMuc.createFile(blob);
+    return tenFile;
+  } catch (loi) {
+    return '';
+  }
+}
+
 // Lưu toàn bộ thông tin của 1 máy vào Drive:
 //  - ảnh lưu thành từng file, tên có tiền tố mayN_ (ví dụ may1_anh-1.jpg)
 //  - tên, số, vị trí, danh bạ, tên các ảnh lưu vào file thong-tin-may-N.json
@@ -284,6 +341,19 @@ function luuThongTinVaoDrive(thongTin) {
     tenAnh.push(ten);
     dem++;
   }
+  // Giọng nói (Phiên bản 16): lưu thành file mayN_giong-noi.<ext>.
+  // File cũ đã bị xoaDuLieuMay dọn ở trên (cùng tiền tố mayN_).
+  var tenFileAmThanh = '';
+  var dinhDangAmThanh = '';
+  var amThanhSach = sachAmThanh(thongTin.amThanh);
+  if (amThanhSach) {
+    tenFileAmThanh = tenFileAmThanhMay(soMay, duoiAmThanh(amThanhSach.dinhDang));
+    if (luuAmThanhVaoDrive(thuMuc, amThanhSach, tenFileAmThanh) === '') {
+      tenFileAmThanh = '';
+    } else {
+      dinhDangAmThanh = amThanhSach.dinhDang;
+    }
+  }
   var meta = {
     may: 'Máy ' + soMay,
     ten: sachChuoi(thongTin.ten),
@@ -291,6 +361,8 @@ function luuThongTinVaoDrive(thongTin) {
     viTri: sachChuoi(thongTin.viTri),
     danhBa: sachDanhBa(thongTin.danhBa),
     anh: tenAnh,
+    tenFileAmThanh: tenFileAmThanh,
+    dinhDangAmThanh: dinhDangAmThanh,
     tomTat: sachChuoi(thongTin.tomTat),
     thoiGianGui: new Date().toISOString()
   };
@@ -324,6 +396,19 @@ function luuThongTinTheoTen(thongTin) {
     tenAnh.push(ten);
     dem++;
   }
+  // Giọng nói (Phiên bản 16): lưu thành file id_<id>_giong-noi.<ext>.
+  // File cũ đã bị xoaDuLieuTheoTen dọn ở trên (cùng tiền tố id_<id>_).
+  var tenFileAmThanh = '';
+  var dinhDangAmThanh = '';
+  var amThanhSach = sachAmThanh(thongTin.amThanh);
+  if (amThanhSach) {
+    tenFileAmThanh = tenFileAmThanhTheoTen(safeId, duoiAmThanh(amThanhSach.dinhDang));
+    if (luuAmThanhVaoDrive(thuMuc, amThanhSach, tenFileAmThanh) === '') {
+      tenFileAmThanh = '';
+    } else {
+      dinhDangAmThanh = amThanhSach.dinhDang;
+    }
+  }
   var meta = {
     loai: 'ten',
     idMay: safeId,
@@ -333,6 +418,8 @@ function luuThongTinTheoTen(thongTin) {
     viTri: sachChuoi(thongTin.viTri),
     danhBa: sachDanhBa(thongTin.danhBa),
     anh: tenAnh,
+    tenFileAmThanh: tenFileAmThanh,
+    dinhDangAmThanh: dinhDangAmThanh,
     tomTat: sachChuoi(thongTin.tomTat),
     thoiGianDungApp: sachThoiGianDungApp(thongTin.thoiGianDungApp),
     thoiGianGui: new Date().toISOString()
@@ -386,7 +473,7 @@ function luuAnh(dauVao) {
 
 // Đọc file thong-tin-may-N.json; không có thì trả về thông tin trống.
 function docThongTinMay(thuMuc, soMay) {
-  var trong = { may: 'Máy ' + soMay, ten: '', soDienThoai: '', viTri: '', danhBa: [], anh: [], tomTat: '', thoiGianGui: '' };
+  var trong = { may: 'Máy ' + soMay, ten: '', soDienThoai: '', viTri: '', danhBa: [], anh: [], tenFileAmThanh: '', dinhDangAmThanh: '', tomTat: '', thoiGianGui: '' };
   var files = thuMuc.getFilesByName(tenFileThongTinMay(soMay));
   if (!files.hasNext()) return trong;
   try {
@@ -399,6 +486,8 @@ function docThongTinMay(thuMuc, soMay) {
       viTri: sachChuoi(goi.viTri),
       danhBa: sachDanhBa(goi.danhBa),
       anh: goi.anh || [],
+      tenFileAmThanh: sachChuoi(goi.tenFileAmThanh),
+      dinhDangAmThanh: sachChuoi(goi.dinhDangAmThanh),
       tomTat: sachChuoi(goi.tomTat),
       thoiGianGui: sachChuoi(goi.thoiGianGui)
     };
@@ -431,6 +520,22 @@ function layKhoaAnh() {
   return layKhoaThongTin();
 }
 
+// Đọc file âm thanh của 1 máy (theo tên file ghi trong JSON) thành data URL
+// base64 để trình phát <audio> trên trang trình chiếu dùng được.
+// Trả về '' nếu không có / không đọc được (coi như máy không có giọng nói).
+function docAmThanhMayChu(thuMuc, tenFileAmThanh, dinhDang) {
+  if (!tenFileAmThanh) return '';
+  try {
+    var files = thuMuc.getFilesByName(tenFileAmThanh);
+    if (!files.hasNext()) return '';
+    var blob = files.next().getBlob();
+    var kieu = dinhDang || blob.getContentType() || 'audio/webm';
+    return 'data:' + kieu + ';base64,' + Utilities.base64Encode(blob.getBytes());
+  } catch (loi) {
+    return '';
+  }
+}
+
 // Trả về dữ liệu của TẤT CẢ các máy để trình chiếu:
 // {may: [{may, ten, soDienThoai, viTri, danhBa:[{ten,so}], anh:[{ten, anh}]}]}
 // Gồm các máy 1..SO_MAY_HIEN (chưa gửi thì ô trống) + máy nào gửi thêm (tới Máy 6).
@@ -444,6 +549,7 @@ function layThongTinTatCaMay() {
     var f = files.next();
     var ten = f.getName();
     if (ten.slice(-5) === '.json') continue;
+    if (ten.indexOf('_giong-noi.') !== -1) continue; // File âm thanh (Phiên bản 16), không phải ảnh.
     var khop = ten.match(/^may(\d+)_/);
     if (!khop) continue;
     var so = parseInt(khop[1], 10);
@@ -458,7 +564,8 @@ function layThongTinTatCaMay() {
   for (var n = 1; n <= SO_MAY_TOI_DA; n++) {
     var meta = docThongTinMay(thuMuc, n);
     var anhMay = anhTheoMay[n] || [];
-    var coDuLieu = (meta.ten !== '') || (meta.soDienThoai !== '') || (meta.viTri !== '') || (meta.danhBa.length > 0) || (meta.anh.length > 0) || (anhMay.length > 0) || (meta.tomTat !== '');
+    var amThanhMay = docAmThanhMayChu(thuMuc, meta.tenFileAmThanh, meta.dinhDangAmThanh);
+    var coDuLieu = (meta.ten !== '') || (meta.soDienThoai !== '') || (meta.viTri !== '') || (meta.danhBa.length > 0) || (meta.anh.length > 0) || (anhMay.length > 0) || (meta.tomTat !== '') || (amThanhMay !== '');
     if (!coDuLieu) continue;
     daCo[n] = true;
     ketQua.push({
@@ -469,6 +576,9 @@ function layThongTinTatCaMay() {
       viTri: meta.viTri,
       danhBa: meta.danhBa,
       anh: anhMay,
+      amThanh: amThanhMay,
+      dinhDangAmThanh: meta.dinhDangAmThanh,
+      tenFileAmThanh: meta.tenFileAmThanh,
       tomTat: meta.tomTat,
       thoiGianGui: meta.thoiGianGui || ''
     });
@@ -490,12 +600,14 @@ function layThongTinTatCaMay() {
         var fAnh = filesAnh.next();
         var tenA = fAnh.getName();
         if (tenA.indexOf(tienToTen) !== 0) continue;
+        if (tenA.indexOf('_giong-noi.') !== -1) continue; // File âm thanh (Phiên bản 16), không phải ảnh.
         var blobA = fAnh.getBlob();
         var kieuA = blobA.getContentType() || 'image/jpeg';
         var b64A = Utilities.base64Encode(blobA.getBytes());
         anhTen.push({ ten: tenA, anh: 'data:' + kieuA + ';base64,' + b64A });
       }
-      var coDuLieuTen = (sachChuoi(goiTen.ten) !== '') || (sachChuoi(goiTen.soDienThoai) !== '') || (sachChuoi(goiTen.viTri) !== '') || (goiTen.danhBa && goiTen.danhBa.length > 0) || anhTen.length > 0 || (sachChuoi(goiTen.tomTat) !== '') || !!goiTen.thoiGianDungApp;
+      var amThanhTen = docAmThanhMayChu(thuMuc, sachChuoi(goiTen.tenFileAmThanh), sachChuoi(goiTen.dinhDangAmThanh));
+      var coDuLieuTen = (sachChuoi(goiTen.ten) !== '') || (sachChuoi(goiTen.soDienThoai) !== '') || (sachChuoi(goiTen.viTri) !== '') || (goiTen.danhBa && goiTen.danhBa.length > 0) || anhTen.length > 0 || (sachChuoi(goiTen.tomTat) !== '') || !!goiTen.thoiGianDungApp || (amThanhTen !== '');
       if (!coDuLieuTen) continue;
       ketQua.push({
         loai: 'ten',
@@ -507,6 +619,9 @@ function layThongTinTatCaMay() {
         viTri: sachChuoi(goiTen.viTri),
         danhBa: sachDanhBa(goiTen.danhBa),
         anh: anhTen,
+        amThanh: amThanhTen,
+        dinhDangAmThanh: sachChuoi(goiTen.dinhDangAmThanh),
+        tenFileAmThanh: sachChuoi(goiTen.tenFileAmThanh),
         tomTat: sachChuoi(goiTen.tomTat),
         thoiGianDungApp: sachThoiGianDungApp(goiTen.thoiGianDungApp),
         thoiGianGui: sachChuoi(goiTen.thoiGianGui)
@@ -574,7 +689,7 @@ function layDanhSachAnh() {
 // Trả về JSON {"thanhCong":true,"may":"Máy N","soAnh":N}.
 function doPost(e) {
   try {
-    var thongTin = { may: 1, ten: '', soDienThoai: '', viTri: '', danhBa: [], anh: [], tomTat: '', tenMay: '', idMay: '', thoiGianDungApp: null };
+    var thongTin = { may: 1, ten: '', soDienThoai: '', viTri: '', danhBa: [], anh: [], amThanh: null, tomTat: '', tenMay: '', idMay: '', thoiGianDungApp: null };
     var daDocJson = false;
     if (e.postData && e.postData.contents) {
       try {
@@ -591,6 +706,7 @@ function doPost(e) {
             thongTin.viTri = goi.viTri || '';
             thongTin.danhBa = goi.danhBa || [];
             thongTin.anh = goi.anh || [];
+            thongTin.amThanh = goi.amThanh || null;
             thongTin.tomTat = goi.tomTat || '';
           }
           thongTin.tenMay = goi.tenMay || '';
@@ -626,6 +742,11 @@ function doPost(e) {
         thongTin.thoiGianDungApp = e.parameter.thoiGianDungApp ? JSON.parse(e.parameter.thoiGianDungApp) : null;
       } catch (loiTG) {
         thongTin.thoiGianDungApp = null;
+      }
+      try {
+        thongTin.amThanh = e.parameter.amThanh ? JSON.parse(e.parameter.amThanh) : null;
+      } catch (loiAmThanh) {
+        thongTin.amThanh = null;
       }
       try {
         thongTin.danhBa = e.parameter.danhBa ? JSON.parse(e.parameter.danhBa) : [];
@@ -755,7 +876,7 @@ function theMayMayChu(m, dangDung) {
   var khoaThe = laTheoTen ? String(m.idMay || '').replace(/[^A-Za-z0-9_-]/g, '') : String(m.may).replace(/\D/g, '');
   if (khoaThe === '') khoaThe = '1';
   var coDuLieu = (m.ten && m.ten !== '') || (m.soDienThoai && m.soDienThoai !== '') ||
-    (m.viTri && m.viTri !== '') || (m.danhBa && m.danhBa.length > 0) || (m.anh && m.anh.length > 0) || (m.tomTat && m.tomTat !== '') || !!m.thoiGianDungApp;
+    (m.viTri && m.viTri !== '') || (m.danhBa && m.danhBa.length > 0) || (m.anh && m.anh.length > 0) || (m.tomTat && m.tomTat !== '') || !!m.thoiGianDungApp || (m.amThanh && m.amThanh !== '');
   var h = '<div class="the-may' + (coDuLieu ? '' : ' trong') + '">';
   h += '<div class="nhan-may">' + escHtml(tieuDe) + '</div>';
   if (dangDung) {
@@ -793,6 +914,13 @@ function theMayMayChu(m, dangDung) {
   if (m.tomTat && m.tomTat !== '') {
     h += '<div class="hang-thong-tin"><div class="nhan">Bản tóm tắt hành vi (AI quét được trên máy thầy)</div><div class="tom-tat">' + escHtml(m.tomTat) + '</div></div>';
   }
+  // Giọng nói đã thu (Phiên bản 16): trình phát thuần HTML, không dùng
+  // JavaScript; preload="none" để trang không tải âm thanh khi chưa bấm nghe.
+  if (m.amThanh && m.amThanh !== '') {
+    h += '<div class="hang-thong-tin"><div class="nhan">Giọng nói đã thu</div>' +
+      '<audio controls preload="none" src="' + m.amThanh + '"></audio>' +
+      '<div class="chu-thich-am-thanh">Bấm ▶ để nghe lại giọng nói thầy vừa thu trên điện thoại.</div></div>';
+  }
   if (m.anh && m.anh.length > 0) {
     h += '<div class="luoi-anh">';
     for (var j = 0; j < m.anh.length; j++) {
@@ -814,6 +942,10 @@ function theMayMayChu(m, dangDung) {
   if (m.danhBa && m.danhBa.length > 0) {
     var b64 = Utilities.base64Encode(Utilities.newBlob(chuoiDanhBaTxt(m), 'text/plain', 'danh-ba.txt').getBytes());
     nut += '<a class="nut-tai" href="data:text/plain;charset=utf-8;base64,' + b64 + '" download="danh-ba-' + khoaThe + '.txt">Tải Danh bạ về</a>';
+  }
+  if (m.amThanh && m.amThanh !== '') {
+    var tenAmThanh = escHtml(m.tenFileAmThanh || ('giong-noi-' + khoaThe + '.' + duoiAmThanh(m.dinhDangAmThanh)));
+    nut += '<a class="nut-tai" href="' + m.amThanh + '" download="' + tenAmThanh + '">Tải giọng nói về</a>';
   }
   if (nut !== '') h += '<div class="hang-tai">' + nut + '</div>';
   // Nút xóa dữ liệu của đúng máy này (Phiên bản 15): dẫn sang trang xác nhận,
@@ -846,7 +978,7 @@ function taoTrangXacNhanXoa(idNhan, nhan) {
     '  .nut-huy { background: #374151; color: #fff; }\n' +
     '</style>\n</head>\n<body>\n<div class="hop">\n' +
     '<h1>Xóa dữ liệu máy này?</h1>\n' +
-    '<p>Bạn có chắc chắn muốn xóa toàn bộ dữ liệu của <b>' + escHtml(nhan) + '</b>? (tên, số điện thoại, vị trí, danh bạ, ảnh, bản tóm tắt). Sau khi xóa sẽ <b>không lấy lại được</b>.</p>\n' +
+    '<p>Bạn có chắc chắn muốn xóa toàn bộ dữ liệu của <b>' + escHtml(nhan) + '</b>? (tên, số điện thoại, vị trí, danh bạ, ảnh, bản tóm tắt, giọng nói). Sau khi xóa sẽ <b>không lấy lại được</b>.</p>\n' +
     '<a class="nut nut-xoa" href="' + escHtml(linkXoa) + '">🗑 Xóa ngay</a>' +
     '<a class="nut nut-huy" href="' + escHtml(URL_WEB_APP) + '">Hủy — quay lại</a>\n' +
     '</div>\n</body>\n</html>';
@@ -880,7 +1012,7 @@ function taoTrangTrinhChieu() {
   var coMayNao = false;
   for (var i = 0; i < danhSach.length; i++) {
     var m = danhSach[i];
-    if ((m.ten && m.ten !== '') || (m.soDienThoai && m.soDienThoai !== '') || (m.viTri && m.viTri !== '') || (m.danhBa && m.danhBa.length > 0) || (m.anh && m.anh.length > 0) || (m.tomTat && m.tomTat !== '') || !!m.thoiGianDungApp) { coMayNao = true; break; }
+    if ((m.ten && m.ten !== '') || (m.soDienThoai && m.soDienThoai !== '') || (m.viTri && m.viTri !== '') || (m.danhBa && m.danhBa.length > 0) || (m.anh && m.anh.length > 0) || (m.tomTat && m.tomTat !== '') || (m.amThanh && m.amThanh !== '') || !!m.thoiGianDungApp) { coMayNao = true; break; }
   }
   var trangThai, luoiHtml, hopXanh, cauHoi, trong;
   if (d && d.loi) {
@@ -939,6 +1071,8 @@ function taoTrangTrinhChieu() {
     '  .ds-danh-ba { list-style: none; margin: 8px 0 0; padding: 0; }\n' +
     '  .ds-danh-ba li { font-size: 20px; font-weight: 600; padding: 8px 0; border-top: 1px solid #374151; }\n' +
     '  .tom-tat { white-space: pre-wrap; font-size: 20px; line-height: 1.6; background: #111827; border: 1px solid #374151; border-radius: 12px; padding: 14px 16px; margin-top: 8px; }\n' +
+    '  .hang-thong-tin audio { width: 100%; margin-top: 8px; }\n' +
+    '  .chu-thich-am-thanh { color: #9ca3af; margin-top: 6px; font-size: 18px; }\n' +
     '  .luoi-anh { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px; margin-top: 12px; }\n' +
     '  .luoi-anh img { width: 100%; aspect-ratio: 4 / 3; object-fit: cover; border-radius: 12px; display: block; background: #222; }\n' +
     '  .chu-thich-anh { color: #9ca3af; margin-top: 8px; font-size: 18px; }\n' +
