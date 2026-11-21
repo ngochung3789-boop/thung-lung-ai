@@ -1,0 +1,809 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="color-scheme" content="light dark" />
+    <link rel="icon" href="data:," />
+    <title>Avatar AI giả lập nâng cao</title>
+    <style>
+      :root {
+        --backdrop: #dce8e2;
+        --backdrop-2: #b9d2c6;
+        --caption: #33523f;
+        --phone-edge: #10151c;
+      }
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --backdrop: #0d1512;
+          --backdrop-2: #16241d;
+          --caption: #9fc4ae;
+          --phone-edge: #000;
+        }
+      }
+      * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+      html, body { height: 100%; }
+      body {
+        margin: 0;
+        font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        background: radial-gradient(120% 90% at 50% 0%, var(--backdrop) 0%, var(--backdrop-2) 100%);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        min-height: 100dvh;
+        padding: 18px 10px 14px;
+        gap: 12px;
+      }
+      button { font-family: inherit; cursor: pointer; }
+      button, input { min-height: 44px; }
+
+      /* ============ PHONE ============ */
+      .phone {
+        position: relative;
+        width: min(410px, 100%);
+        height: min(840px, calc(100dvh - 90px));
+        min-height: 560px;
+        background: #0b0f14;
+        border: 10px solid var(--phone-edge);
+        border-radius: 52px;
+        overflow: hidden;
+        box-shadow: 0 30px 60px rgba(10, 30, 20, .35), 0 4px 14px rgba(10, 30, 20, .25);
+        flex: none;
+      }
+      @media (max-width: 480px) {
+        body { padding: 0; gap: 0; }
+        .phone { width: 100%; height: 100dvh; min-height: 0; border: none; border-radius: 0; box-shadow: none; }
+        .caption { display: none; }
+      }
+      .caption {
+        color: var(--caption);
+        font-size: 14px;
+        font-weight: 600;
+        letter-spacing: .02em;
+        text-align: center;
+      }
+      .caption b { font-weight: 800; }
+
+      .screen {
+        position: absolute; inset: 0;
+        display: none;
+        flex-direction: column;
+        overflow: hidden;
+      }
+      .screen.active { display: flex; }
+
+      /* Status bar */
+      .statusbar {
+        flex: none;
+        display: flex; justify-content: space-between; align-items: center;
+        padding: 12px 26px 4px;
+        font-size: 14px; font-weight: 700;
+        position: relative; z-index: 5;
+      }
+      .statusbar .sicons { display: flex; gap: 6px; align-items: center; }
+      .notch {
+        position: absolute; top: 8px; left: 50%; transform: translateX(-50%);
+        width: 110px; height: 26px; background: #000; border-radius: 20px; z-index: 6;
+      }
+
+      /* ============ HOME SCREEN ============ */
+      #screen-home {
+        background:
+          radial-gradient(90% 55% at 85% -5%, rgba(255, 196, 86, .85) 0%, rgba(255,196,86,0) 60%),
+          radial-gradient(100% 60% at 0% 110%, rgba(20, 140, 110, .9) 0%, rgba(20,140,110,0) 65%),
+          linear-gradient(165deg, #2f7f9f 0%, #2a9d8f 55%, #57b26a 100%);
+        color: #fff;
+      }
+      .home-clock { text-align: center; margin-top: 26px; text-shadow: 0 2px 14px rgba(0,0,0,.25); }
+      .home-clock .time { font-size: 74px; font-weight: 800; line-height: 1; letter-spacing: -1px; }
+      .home-clock .date { font-size: 17px; font-weight: 600; margin-top: 6px; }
+      .appgrid {
+        margin-top: 34px; padding: 0 26px;
+        display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px 14px;
+      }
+      .appicon {
+        background: none; border: none; padding: 0; min-height: 0;
+        display: flex; flex-direction: column; align-items: center; gap: 6px;
+        color: #fff; font-size: 12.5px; font-weight: 600;
+        text-shadow: 0 1px 6px rgba(0,0,0,.35);
+      }
+      .appicon .tile {
+        width: 62px; height: 62px; border-radius: 16px;
+        display: flex; align-items: center; justify-content: center;
+        box-shadow: 0 6px 14px rgba(0,0,0,.28), inset 0 1px 0 rgba(255,255,255,.35);
+        transition: transform .12s ease;
+      }
+      .appicon:active .tile { transform: scale(.9); }
+      .tile-avatar { background: linear-gradient(150deg, #ff9f43, #ee5a6f 60%, #c44569); }
+      .tile-tiktok { background: #111; }
+      .tile-zalo { background: linear-gradient(150deg, #2f9df4, #0b6fd6); }
+      .tile-face { background: linear-gradient(150deg, #3b8bff, #1663d9); }
+      .tile-avatar { position: relative; }
+      .tile-avatar .hot {
+        position: absolute; top: -7px; right: -7px;
+        background: #e8323a; color: #fff; font-size: 11px; font-weight: 800;
+        min-width: 22px; height: 22px; border-radius: 12px;
+        display: flex; align-items: center; justify-content: center; padding: 0 5px;
+        border: 2px solid #fff;
+      }
+      .home-spacer { flex: 1; }
+      .modecard {
+        margin: 0 16px 14px;
+        background: rgba(255,255,255,.94);
+        color: #17301f;
+        border-radius: 24px;
+        padding: 16px 16px 14px;
+        box-shadow: 0 14px 30px rgba(0,0,0,.28);
+      }
+      .modecard h2 { margin: 0 0 4px; font-size: 18px; font-weight: 800; }
+      .modecard p { margin: 0 0 12px; font-size: 13.5px; color: #4b5d50; line-height: 1.45; }
+      .modebtns { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+      .modebtn {
+        border: 2.5px solid #cfdccf; background: #fff; color: #17301f;
+        border-radius: 16px; padding: 10px 8px;
+        font-size: 15.5px; font-weight: 800; line-height: 1.25;
+        display: flex; flex-direction: column; align-items: center; gap: 2px;
+      }
+      .modebtn small { font-size: 12px; font-weight: 600; color: #63736a; }
+      .modebtn.sel { border-color: #1d9e75; background: #e7f7f0; color: #0c5c40; }
+      .modebtn.sel small { color: #3d7d64; }
+      .modehint { margin-top: 11px; text-align: center; font-size: 13.5px; font-weight: 700; color: #0c5c40; }
+      .dock {
+        margin: 0 14px 16px; padding: 10px 18px;
+        background: rgba(255,255,255,.28);
+        border-radius: 26px;
+        display: flex; justify-content: space-around;
+        backdrop-filter: blur(4px);
+      }
+      .dock .appicon .tile { width: 56px; height: 56px; }
+      .toast {
+        position: absolute; left: 50%; top: 40%; transform: translate(-50%, -50%) scale(.96);
+        width: calc(100% - 44px); max-width: 340px;
+        background: rgba(12, 18, 14, .95); color: #fff;
+        border-radius: 16px; padding: 13px 16px;
+        font-size: 14.5px; font-weight: 600; line-height: 1.45; text-align: center;
+        opacity: 0; pointer-events: none; transition: all .25s ease; z-index: 30;
+        box-shadow: 0 12px 28px rgba(0,0,0,.4);
+      }
+      .toast.show { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+      .toast b { color: #ffd166; }
+
+      /* ============ APP SCREEN ============ */
+      #screen-app { background: #f4f6f4; color: #16211a; }
+      #screen-app .statusbar { color: #16211a; }
+      .apphead {
+        flex: none; display: flex; align-items: center; gap: 10px;
+        padding: 8px 14px 10px;
+      }
+      .backbtn {
+        width: 44px; height: 44px; min-height: 44px; border-radius: 50%;
+        border: none; background: #e4eae4; color: #16211a;
+        font-size: 22px; font-weight: 800; line-height: 1; flex: none;
+      }
+      .apphead .tile-sm {
+        width: 46px; height: 46px; border-radius: 13px; flex: none;
+        background: linear-gradient(150deg, #ff9f43, #ee5a6f 60%, #c44569);
+        display: flex; align-items: center; justify-content: center;
+        box-shadow: 0 4px 10px rgba(238,90,111,.4);
+      }
+      .apphead h1 { margin: 0; font-size: 20px; font-weight: 900; letter-spacing: -.01em; white-space: nowrap; }
+      .apphead .sub { font-size: 12.5px; color: #5c6d61; font-weight: 600; margin-top: 1px; white-space: nowrap; }
+      .modechip {
+        margin-left: auto; flex: none;
+        font-size: 12px; font-weight: 800;
+        background: #dff3e9; color: #0c5c40;
+        border-radius: 999px; padding: 7px 11px;
+      }
+      .appbody { flex: 1; overflow-y: auto; padding: 4px 18px 18px; }
+      .adline {
+        background: #fff3d6; border: 1.5px dashed #e0a92e; color: #7a5b00;
+        border-radius: 14px; padding: 9px 12px;
+        font-size: 13.5px; font-weight: 700; text-align: center; margin-bottom: 10px;
+      }
+      label.flabel { display: block; font-size: 14px; font-weight: 800; margin: 9px 0 5px; }
+      label.flabel span { font-weight: 600; color: #75847a; font-size: 12.5px; }
+      .finput {
+        width: 100%; border: 2px solid #d5ded5; border-radius: 14px;
+        padding: 12px 14px; font-size: 17px; font-family: inherit; font-weight: 600;
+        background: #fff; color: #16211a;
+      }
+      .finput:focus { outline: none; border-color: #1d9e75; }
+      .localnote { font-size: 12.5px; color: #75847a; margin-top: 6px; line-height: 1.45; }
+
+      .camwrap { margin-top: 12px; }
+      .camframe {
+        position: relative; border-radius: 22px; overflow: hidden;
+        background: #10161d; aspect-ratio: 4 / 2.95;
+        box-shadow: inset 0 0 0 2px rgba(255,255,255,.08);
+      }
+      .camframe .camcontent { position: absolute; inset: 0; }
+      .camframe .camcontent svg, .camframe .camcontent img {
+        width: 100%; height: 100%; object-fit: cover; display: block;
+      }
+      .vf { position: absolute; width: 34px; height: 34px; border: 4px solid rgba(255,255,255,.92); z-index: 3; }
+      .vf.tl { top: 12px; left: 12px; border-right: none; border-bottom: none; border-radius: 10px 0 0 0; }
+      .vf.tr { top: 12px; right: 12px; border-left: none; border-bottom: none; border-radius: 0 10px 0 0; }
+      .vf.bl { bottom: 12px; left: 12px; border-right: none; border-top: none; border-radius: 0 0 0 10px; }
+      .vf.br { bottom: 12px; right: 12px; border-left: none; border-top: none; border-radius: 0 0 10px 0; }
+      .camchip {
+        position: absolute; top: 12px; left: 50%; transform: translateX(-50%); z-index: 3;
+        background: rgba(0,0,0,.62); color: #fff;
+        font-size: 11.5px; font-weight: 800; letter-spacing: .06em;
+        padding: 6px 12px; border-radius: 999px;
+        display: flex; align-items: center; gap: 6px; white-space: nowrap;
+      }
+      .camchip .dot { width: 8px; height: 8px; border-radius: 50%; background: #ff4757; animation: blink 1.1s infinite; }
+      @keyframes blink { 0%,100% { opacity: 1; } 50% { opacity: .25; } }
+      .facemark {
+        position: absolute; left: 50%; top: 47%; transform: translate(-50%,-50%);
+        width: 46%; aspect-ratio: 1 / 1.18; border: 2.5px dashed rgba(255,209,102,.95);
+        border-radius: 48% 48% 46% 46%; z-index: 2; pointer-events: none;
+      }
+
+      .albumhead { display: flex; align-items: baseline; justify-content: space-between; margin: 12px 0 7px; }
+      .albumhead h3 { margin: 0; font-size: 15px; font-weight: 800; }
+      .albumhead span { font-size: 12px; color: #75847a; font-weight: 600; }
+      .album { display: flex; gap: 10px; }
+      .thumb {
+        width: 68px; height: 68px; min-height: 68px; border-radius: 16px; overflow: hidden;
+        border: 3px solid transparent; padding: 0; background: #dde5dd; flex: none;
+      }
+      .thumb svg, .thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+      .thumb.sel { border-color: #1d9e75; box-shadow: 0 4px 12px rgba(29,158,117,.35); }
+      .teacherbox { margin-top: 14px; }
+      .teacherbtn {
+        width: 100%; border: 2.5px dashed #1d9e75; background: #eafaf3; color: #0c5c40;
+        border-radius: 16px; font-size: 16px; font-weight: 800; padding: 13px 12px;
+        display: flex; align-items: center; justify-content: center; gap: 9px;
+      }
+      .teachernote { font-size: 12.5px; color: #5c6d61; line-height: 1.5; margin-top: 8px; }
+      .scanbtn {
+        width: 100%; margin-top: 14px;
+        border: none; border-radius: 18px; padding: 17px 14px;
+        background: linear-gradient(150deg, #ff9f43, #ee5a6f 65%, #d6336c);
+        color: #fff; font-size: 19px; font-weight: 900; letter-spacing: .01em;
+        box-shadow: 0 10px 22px rgba(238,90,111,.42);
+      }
+      .scanbtn:active { transform: scale(.98); }
+      .scanunder { text-align: center; font-size: 12.5px; color: #75847a; margin-top: 9px; font-weight: 600; }
+
+      /* ============ SCAN SCREEN ============ */
+      #screen-scan { background: #0d1117; color: #e8f0ea; }
+      #screen-scan .statusbar { color: #e8f0ea; }
+      .scanbody { flex: 1; overflow-y: auto; padding: 10px 20px 20px; display: flex; flex-direction: column; }
+      .scanbody h2 { margin: 4px 0 14px; font-size: 22px; font-weight: 900; text-align: center; }
+      .scanphoto {
+        position: relative; border-radius: 22px; overflow: hidden;
+        aspect-ratio: 4 / 2.95; flex: none; background: #161d26;
+      }
+      .scanphoto .camcontent { position: absolute; inset: 0; }
+      .scanphoto .camcontent svg, .scanphoto .camcontent img { width: 100%; height: 100%; object-fit: cover; display: block; }
+      .scanline {
+        position: absolute; left: 0; right: 0; height: 5px; top: 0; z-index: 4;
+        background: linear-gradient(90deg, transparent, #37e0a0 20%, #b6ffd9 50%, #37e0a0 80%, transparent);
+        box-shadow: 0 0 22px 6px rgba(55,224,160,.55);
+        animation: sweep 1.5s ease-in-out infinite alternate;
+      }
+      @keyframes sweep { from { top: 2%; } to { top: 94%; } }
+      .scanphoto.done .scanline { display: none; }
+      .scanphoto .resultframe {
+        position: absolute; inset: 0; z-index: 5; pointer-events: none;
+        border: 6px solid #ffd166; border-radius: 22px;
+        box-shadow: inset 0 0 0 3px rgba(255,255,255,.65), inset 0 0 44px rgba(255,209,102,.35);
+        opacity: 0; transition: opacity .4s ease;
+      }
+      .scanphoto.done .resultframe { opacity: 1; }
+      .sparkle { position: absolute; z-index: 6; opacity: 0; pointer-events: none; }
+      .scanphoto.done .sparkle { opacity: 1; animation: twinkle 1.2s ease-in-out infinite alternate; }
+      @keyframes twinkle { from { transform: scale(.75) rotate(-8deg); } to { transform: scale(1.15) rotate(8deg); } }
+      .steps { list-style: none; margin: 18px 0 0; padding: 0; display: flex; flex-direction: column; gap: 11px; }
+      .steps li {
+        display: flex; align-items: center; gap: 11px;
+        font-size: 16.5px; font-weight: 700; color: #5f7268;
+        transition: color .3s ease;
+      }
+      .steps li .st {
+        width: 30px; height: 30px; border-radius: 50%; flex: none;
+        border: 2.5px solid #33473c; display: flex; align-items: center; justify-content: center;
+        font-size: 15px; color: transparent;
+      }
+      .steps li.doing { color: #e8f0ea; }
+      .steps li.doing .st { border-color: #37e0a0; }
+      .steps li.doing .st::after { content: ""; width: 11px; height: 11px; border-radius: 50%; background: #37e0a0; animation: blink .7s infinite; }
+      .steps li.done { color: #9fe8c6; }
+      .steps li.done .st { border-color: #37e0a0; background: #14532d; color: #37e0a0; }
+      .steps li.done .st::after { content: "✓"; }
+      .resultbox { display: none; margin-top: 18px; text-align: center; }
+      .resultbox.show { display: block; }
+      .resultbox .big { font-size: 21px; font-weight: 900; color: #ffd166; margin-bottom: 6px; }
+      .resultbox p { margin: 0 0 14px; font-size: 14.5px; color: #b9cabd; line-height: 1.5; }
+      .gobtn {
+        width: 100%; border: none; border-radius: 16px; padding: 15px;
+        background: #e8323a; color: #fff; font-size: 17.5px; font-weight: 900;
+        box-shadow: 0 10px 22px rgba(232,50,58,.4);
+      }
+      .autonote { font-size: 12.5px; color: #7d9184; margin-top: 10px; font-weight: 600; }
+
+      /* ============ WARNING SCREEN ============ */
+      #screen-warn { background: #05070a; color: #f2f5f2; }
+      #screen-warn .statusbar { color: #f2f5f2; }
+      .warnbody { flex: 1; overflow-y: auto; padding: 8px 20px 22px; }
+      .warnbadge {
+        display: flex; align-items: center; gap: 10px;
+        background: rgba(232,50,58,.14); border: 1.5px solid rgba(232,50,58,.55);
+        border-radius: 16px; padding: 10px 13px; margin-bottom: 12px;
+      }
+      .warnbadge .wt { font-size: 17px; font-weight: 900; color: #ff6b72; line-height: 1.3; }
+      .warnlead { font-size: 16px; line-height: 1.5; color: #cfd8cf; margin: 0 0 12px; }
+      .warnlead b { color: #fff; }
+      .loot { display: flex; flex-direction: column; gap: 8px; margin-bottom: 13px; }
+      .lootrow {
+        display: flex; align-items: center; gap: 12px;
+        background: #10151c; border: 1px solid #232c38; border-radius: 15px; padding: 9px 12px;
+      }
+      .lootrow .ic {
+        width: 42px; height: 42px; border-radius: 12px; flex: none;
+        background: rgba(232,50,58,.16); display: flex; align-items: center; justify-content: center;
+      }
+      .lootrow .k { font-size: 12.5px; font-weight: 700; color: #8fa398; letter-spacing: .03em; }
+      .lootrow .v { font-size: 16.5px; font-weight: 800; color: #fff; line-height: 1.3; word-break: break-word; }
+      .lootrow .v.empty { color: #ffb3b7; font-size: 14.5px; }
+      .lootthumb { width: 46px; height: 46px; border-radius: 11px; overflow: hidden; flex: none; border: 2px solid rgba(232,50,58,.6); }
+      .lootthumb svg, .lootthumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+      .safebox {
+        background: rgba(29,158,117,.15); border: 1.5px solid rgba(55,224,160,.55);
+        border-radius: 16px; padding: 11px 14px; margin-bottom: 15px;
+        font-size: 15px; line-height: 1.5; color: #c9f5df;
+      }
+      .safebox b { color: #5ff0b6; }
+      .bigq { font-size: 23px; font-weight: 900; line-height: 1.3; margin: 0 0 7px; color: #ffd166; }
+      .subq { font-size: 15px; line-height: 1.5; color: #cfd8cf; margin: 0 0 16px; }
+      .replaybtn {
+        width: 100%; border: none; border-radius: 16px; padding: 16px;
+        background: #1d9e75; color: #fff; font-size: 18px; font-weight: 900;
+        box-shadow: 0 10px 22px rgba(29,158,117,.35);
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .scanline, .camchip .dot, .sparkle, .steps li.doing .st::after { animation: none !important; }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="phone" id="phone">
+
+      <!-- ================= HOME ================= -->
+      <section class="screen active" id="screen-home" aria-label="Màn hình chính điện thoại giả">
+        <div class="notch"></div>
+        <div class="statusbar">
+          <span>7:30</span>
+          <span class="sicons">
+            <svg width="17" height="12" viewBox="0 0 17 12" fill="#fff" aria-hidden="true"><rect x="0" y="7" width="3" height="5" rx="1"/><rect x="4.5" y="5" width="3" height="7" rx="1"/><rect x="9" y="2.5" width="3" height="9.5" rx="1"/><rect x="13.5" y="0" width="3" height="12" rx="1"/></svg>
+            <svg width="25" height="12" viewBox="0 0 25 12" aria-hidden="true"><rect x="0.5" y="0.5" width="20" height="11" rx="3" fill="none" stroke="#fff" opacity=".6"/><rect x="2.5" y="2.5" width="13" height="7" rx="1.5" fill="#fff"/><path d="M23 4v4a2.2 2.2 0 0 0 0-4z" fill="#fff" opacity=".6"/></svg>
+          </span>
+        </div>
+
+        <div class="home-clock">
+          <div class="time">7:30</div>
+          <div class="date">Thứ Bảy, ngày 21 tháng 11</div>
+        </div>
+
+        <div class="appgrid">
+          <button class="appicon" id="app-avatar" aria-label="Mở ứng dụng Avatar AI">
+            <span class="tile tile-avatar">
+              <svg width="36" height="36" viewBox="0 0 48 48" aria-hidden="true"><circle cx="24" cy="19" r="9" fill="#fff"/><path d="M8 42c1.5-8.5 8-12.5 16-12.5S38.5 33.5 40 42z" fill="#fff"/><circle cx="20.5" cy="18" r="1.6" fill="#c44569"/><circle cx="27.5" cy="18" r="1.6" fill="#c44569"/><path d="M21 23.2c1 1.1 5 1.1 6 0" stroke="#c44569" stroke-width="1.8" fill="none" stroke-linecap="round"/></svg>
+              <span class="hot">1</span>
+            </span>
+            Avatar AI
+          </button>
+          <button class="appicon app-locked" data-app="TikTok" aria-label="Ứng dụng TikTok">
+            <span class="tile tile-tiktok">
+              <svg width="32" height="32" viewBox="0 0 48 48" aria-hidden="true"><path d="M33 6v22.5a8.75 8.75 0 1 1-6.5-8.45" fill="none" stroke="#fff" stroke-width="4.5" stroke-linecap="round"/><path d="M33 6c.6 5.4 4 9 9.5 9.6" fill="none" stroke="#25f4ee" stroke-width="4.5" stroke-linecap="round"/><path d="M33 6c.6 5.4 4 9 9.5 9.6" fill="none" stroke="#fe2c55" stroke-width="4.5" stroke-linecap="round" opacity=".45"/></svg>
+            </span>
+            TikTok
+          </button>
+          <button class="appicon app-locked" data-app="Zalo" aria-label="Ứng dụng Zalo">
+            <span class="tile tile-zalo">
+              <svg width="34" height="34" viewBox="0 0 48 48" aria-hidden="true"><path d="M24 7C14.6 7 7 13.6 7 21.8c0 4.7 2.5 8.8 6.4 11.4-.3 2.4-1.3 5-3 6.8 3.4-.3 6.6-1.7 8.8-3.4 1.5.3 3.1.5 4.8.5 9.4 0 17-6.6 17-14.8S33.4 7 24 7z" fill="#fff"/><circle cx="17" cy="21.5" r="2.2" fill="#0b6fd6"/><circle cx="24" cy="21.5" r="2.2" fill="#0b6fd6"/><circle cx="31" cy="21.5" r="2.2" fill="#0b6fd6"/></svg>
+            </span>
+            Zalo
+          </button>
+          <button class="appicon app-locked" data-app="Facebook" aria-label="Ứng dụng Facebook">
+            <span class="tile tile-face">
+              <svg width="32" height="32" viewBox="0 0 48 48" aria-hidden="true"><path d="M30 42v-13h4.6l.8-5.6H30v-3.2c0-1.5.6-2.7 2.9-2.7h2.3V12.2c-.6-.1-1.9-.2-3.3-.2-3.9 0-6.4 2.2-6.4 6.7v4.7H21V29h4.5v13z" fill="#fff"/></svg>
+            </span>
+            Facebook
+          </button>
+        </div>
+
+        <div class="home-spacer"></div>
+
+        <div class="modecard">
+          <h2>Chọn chế độ chơi</h2>
+          <p>Chọn trước, rồi chạm vào ứng dụng <b>Avatar AI</b> ở trên để bắt đầu.</p>
+          <div class="modebtns">
+            <button class="modebtn" id="mode-teacher" aria-pressed="false">
+              Thầy trình diễn
+              <small>Dùng ảnh của thầy</small>
+            </button>
+            <button class="modebtn sel" id="mode-student" aria-pressed="true">
+              Học sinh chơi
+              <small>Dùng ảnh mẫu có sẵn</small>
+            </button>
+          </div>
+          <div class="modehint" id="mode-hint">Đang chọn: Học sinh chơi — chạm Avatar AI để mở</div>
+        </div>
+
+        <div class="dock" aria-hidden="true">
+          <span class="appicon"><span class="tile" style="background:linear-gradient(150deg,#4cd964,#1faa3c)"><svg width="30" height="30" viewBox="0 0 48 48"><path d="M14 9c1 0 2.5 3.4 2.5 4.8 0 1.7-2 2.6-2 4.4 0 3.7 8.8 13.4 12.4 13.4 1.8 0 2.7-2 4.4-2 1.4 0 4.8 1.5 4.8 2.5 0 2.3-2.3 4.5-4.7 4.5C20.4 39.7 8.3 27.6 8.3 13.7 8.3 11.3 11.7 9 14 9z" fill="#fff"/></svg></span></span>
+          <span class="appicon"><span class="tile" style="background:linear-gradient(150deg,#5ac8fa,#0a84ff)"><svg width="30" height="30" viewBox="0 0 48 48"><circle cx="24" cy="24" r="15" fill="none" stroke="#fff" stroke-width="3.5"/><path d="M31 17l-3.4 7.6L20 28l3.4-7.6z" fill="#fff"/></svg></span></span>
+          <span class="appicon"><span class="tile" style="background:linear-gradient(150deg,#ffd60a,#ff9f0a)"><svg width="30" height="30" viewBox="0 0 48 48"><rect x="10" y="12" width="28" height="24" rx="4" fill="#fff"/><circle cx="24" cy="24" r="6.5" fill="#ff9f0a"/><circle cx="33" cy="17" r="2" fill="#ff9f0a"/></svg></span></span>
+          <span class="appicon"><span class="tile" style="background:linear-gradient(150deg,#bf5af2,#5e5ce6)"><svg width="30" height="30" viewBox="0 0 48 48"><path d="M18 33V15l16-3v18" fill="none" stroke="#fff" stroke-width="3.5" stroke-linejoin="round"/><circle cx="14.5" cy="33" r="4.5" fill="#fff"/><circle cx="30.5" cy="30" r="4.5" fill="#fff"/></svg></span></span>
+        </div>
+
+        <div class="toast" id="toast" role="status"></div>
+      </section>
+
+      <!-- ================= APP ================= -->
+      <section class="screen" id="screen-app" aria-label="Ứng dụng Avatar AI Pro giả lập">
+        <div class="statusbar">
+          <span>7:31</span>
+          <span class="sicons">
+            <svg width="17" height="12" viewBox="0 0 17 12" fill="#16211a" aria-hidden="true"><rect x="0" y="7" width="3" height="5" rx="1"/><rect x="4.5" y="5" width="3" height="7" rx="1"/><rect x="9" y="2.5" width="3" height="9.5" rx="1"/><rect x="13.5" y="0" width="3" height="12" rx="1"/></svg>
+            <svg width="25" height="12" viewBox="0 0 25 12" aria-hidden="true"><rect x="0.5" y="0.5" width="20" height="11" rx="3" fill="none" stroke="#16211a" opacity=".5"/><rect x="2.5" y="2.5" width="13" height="7" rx="1.5" fill="#16211a"/><path d="M23 4v4a2.2 2.2 0 0 0 0-4z" fill="#16211a" opacity=".5"/></svg>
+          </span>
+        </div>
+
+        <div class="apphead">
+          <button class="backbtn" id="btn-back-home" aria-label="Quay lại màn hình chính">‹</button>
+          <span class="tile-sm">
+            <svg width="27" height="27" viewBox="0 0 48 48" aria-hidden="true"><circle cx="24" cy="19" r="9" fill="#fff"/><path d="M8 42c1.5-8.5 8-12.5 16-12.5S38.5 33.5 40 42z" fill="#fff"/><circle cx="20.5" cy="18" r="1.6" fill="#c44569"/><circle cx="27.5" cy="18" r="1.6" fill="#c44569"/><path d="M21 23.2c1 1.1 5 1.1 6 0" stroke="#c44569" stroke-width="1.8" fill="none" stroke-linecap="round"/></svg>
+          </span>
+          <div>
+            <h1>Avatar AI Pro</h1>
+            <div class="sub">4,9 ★ · Miễn phí</div>
+          </div>
+          <span class="modechip" id="mode-chip">Học sinh chơi</span>
+        </div>
+
+        <div class="appbody">
+          <div class="adline">Tạo avatar hoạt hình cực xinh từ chính khuôn mặt của bạn — chỉ mất 5 giây!</div>
+
+          <label class="flabel" for="in-name">Họ và tên <span>(không bắt buộc)</span></label>
+          <input class="finput" id="in-name" type="text" autocomplete="off" placeholder="Ví dụ: Nguyễn Văn A" />
+          <label class="flabel" for="in-phone">Số điện thoại <span>(không bắt buộc)</span></label>
+          <input class="finput" id="in-phone" type="tel" autocomplete="off" placeholder="Ví dụ: 0912 345 678" />
+          <p class="localnote">Thông tin em gõ chỉ hiện trên máy này để chơi giả lập, không gửi đi đâu cả.</p>
+
+          <div class="camwrap">
+            <div class="camframe">
+              <div class="camcontent" id="cam-content"></div>
+              <span class="vf tl"></span><span class="vf tr"></span><span class="vf bl"></span><span class="vf br"></span>
+              <span class="camchip"><span class="dot"></span> CAMERA GIẢ LẬP</span>
+              <span class="facemark"></span>
+            </div>
+          </div>
+
+          <div class="teacherbox" id="teacher-box" hidden>
+            <button class="teacherbtn" id="btn-pick">
+              <svg width="22" height="22" viewBox="0 0 48 48" aria-hidden="true"><rect x="7" y="11" width="34" height="27" rx="4" fill="none" stroke="#0c5c40" stroke-width="3.5"/><circle cx="24" cy="24.5" r="7" fill="none" stroke="#0c5c40" stroke-width="3.5"/><path d="M17 11l3-5h8l3 5" fill="none" stroke="#0c5c40" stroke-width="3.5" stroke-linejoin="round"/></svg>
+              Chọn ảnh từ máy thầy
+            </button>
+            <p class="teachernote" id="teacher-note">Thầy tự chọn ảnh của mình trên máy này. Ảnh chỉ hiện ngay trên máy thầy, không tải lên đâu, không lưu lại — thoát trang là mất. Chưa chọn ảnh thì app dùng ảnh mẫu.</p>
+            <input type="file" id="file-pick" accept="image/*" multiple hidden />
+          </div>
+
+          <div class="albumhead">
+            <h3 id="album-title">Album mẫu</h3>
+            <span id="album-sub">Chạm để đổi khuôn mặt</span>
+          </div>
+          <div class="album" id="album"></div>
+
+          <button class="scanbtn" id="btn-scan">QUÉT &amp; TẠO AVATAR AI</button>
+          <p class="scanunder">Miễn phí 100% · Không cần đăng ký</p>
+        </div>
+      </section>
+
+      <!-- ================= SCAN ================= -->
+      <section class="screen" id="screen-scan" aria-label="Đang quét khuôn mặt">
+        <div class="statusbar">
+          <span>7:31</span>
+          <span class="sicons">
+            <svg width="17" height="12" viewBox="0 0 17 12" fill="#e8f0ea" aria-hidden="true"><rect x="0" y="7" width="3" height="5" rx="1"/><rect x="4.5" y="5" width="3" height="7" rx="1"/><rect x="9" y="2.5" width="3" height="9.5" rx="1"/><rect x="13.5" y="0" width="3" height="12" rx="1"/></svg>
+            <svg width="25" height="12" viewBox="0 0 25 12" aria-hidden="true"><rect x="0.5" y="0.5" width="20" height="11" rx="3" fill="none" stroke="#e8f0ea" opacity=".5"/><rect x="2.5" y="2.5" width="13" height="7" rx="1.5" fill="#e8f0ea"/><path d="M23 4v4a2.2 2.2 0 0 0 0-4z" fill="#e8f0ea" opacity=".5"/></svg>
+          </span>
+        </div>
+        <div class="scanbody">
+          <h2 id="scan-title">Đang quét khuôn mặt…</h2>
+          <div class="scanphoto" id="scan-photo">
+            <div class="camcontent" id="scan-content"></div>
+            <div class="scanline"></div>
+            <div class="resultframe"></div>
+            <svg class="sparkle" style="top:10px;left:12px" width="34" height="34" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 1l2.4 7.6L22 11l-7.6 2.4L12 21l-2.4-7.6L2 11l7.6-2.4z" fill="#ffd166"/></svg>
+            <svg class="sparkle" style="bottom:14px;right:12px;animation-delay:.4s" width="26" height="26" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 1l2.4 7.6L22 11l-7.6 2.4L12 21l-2.4-7.6L2 11l7.6-2.4z" fill="#fff"/></svg>
+            <svg class="sparkle" style="top:16px;right:44px;animation-delay:.8s" width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 1l2.4 7.6L22 11l-7.6 2.4L12 21l-2.4-7.6L2 11l7.6-2.4z" fill="#ffd166"/></svg>
+          </div>
+          <ul class="steps" id="scan-steps">
+            <li data-step="0"><span class="st"></span>Nhận diện khuôn mặt</li>
+            <li data-step="1"><span class="st"></span>Đọc họ tên và số điện thoại</li>
+            <li data-step="2"><span class="st"></span>Xác định vị trí của bạn</li>
+            <li data-step="3"><span class="st"></span>Tạo avatar hoạt hình</li>
+          </ul>
+          <div class="resultbox" id="result-box">
+            <div class="big">Avatar của em đã sẵn sàng!</div>
+            <p>Đẹp quá phải không? Nhưng khoan — hãy xem app vừa “biết” thêm những gì về em…</p>
+            <button class="gobtn" id="btn-to-warn">Xem điều app vừa biết</button>
+            <div class="autonote">Màn hình cảnh báo sẽ tự hiện sau vài giây…</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= WARNING ================= -->
+      <section class="screen" id="screen-warn" aria-label="Màn hình cảnh báo">
+        <div class="statusbar">
+          <span>7:32</span>
+          <span class="sicons">
+            <svg width="17" height="12" viewBox="0 0 17 12" fill="#f2f5f2" aria-hidden="true"><rect x="0" y="7" width="3" height="5" rx="1"/><rect x="4.5" y="5" width="3" height="7" rx="1"/><rect x="9" y="2.5" width="3" height="9.5" rx="1"/><rect x="13.5" y="0" width="3" height="12" rx="1"/></svg>
+            <svg width="25" height="12" viewBox="0 0 25 12" aria-hidden="true"><rect x="0.5" y="0.5" width="20" height="11" rx="3" fill="none" stroke="#f2f5f2" opacity=".5"/><rect x="2.5" y="2.5" width="13" height="7" rx="1.5" fill="#f2f5f2"/><path d="M23 4v4a2.2 2.2 0 0 0 0-4z" fill="#f2f5f2" opacity=".5"/></svg>
+          </span>
+        </div>
+        <div class="warnbody">
+          <div class="warnbadge">
+            <svg width="34" height="34" viewBox="0 0 48 48" aria-hidden="true"><path d="M24 5L45 41H3z" fill="#e8323a"/><rect x="22.2" y="17" width="3.6" height="13" rx="1.8" fill="#fff"/><circle cx="24" cy="35.4" r="2.2" fill="#fff"/></svg>
+            <span class="wt">DỪNG LẠI MỘT CHÚT!<br />Hãy nhìn xem app vừa biết gì về em</span>
+          </div>
+
+          <p class="warnlead">Nếu đây là một <b>app thật</b>, chỉ sau vài giây nó đã có trong tay:</p>
+
+          <div class="loot">
+            <div class="lootrow">
+              <span class="ic"><svg width="23" height="23" viewBox="0 0 48 48" aria-hidden="true"><circle cx="24" cy="17" r="8" fill="none" stroke="#ff6b72" stroke-width="3.4"/><path d="M9 41c1.6-7.6 7.4-11 15-11s13.4 3.4 15 11" fill="none" stroke="#ff6b72" stroke-width="3.4" stroke-linecap="round"/></svg></span>
+              <div><div class="k">HỌ VÀ TÊN</div><div class="v" id="loot-name">—</div></div>
+            </div>
+            <div class="lootrow">
+              <span class="ic"><svg width="23" height="23" viewBox="0 0 48 48" aria-hidden="true"><rect x="15" y="5" width="18" height="38" rx="4" fill="none" stroke="#ff6b72" stroke-width="3.4"/><line x1="21" y1="37" x2="27" y2="37" stroke="#ff6b72" stroke-width="3.4" stroke-linecap="round"/></svg></span>
+              <div><div class="k">SỐ ĐIỆN THOẠI</div><div class="v" id="loot-phone">—</div></div>
+            </div>
+            <div class="lootrow">
+              <span class="ic"><svg width="23" height="23" viewBox="0 0 48 48" aria-hidden="true"><rect x="6" y="10" width="36" height="29" rx="4" fill="none" stroke="#ff6b72" stroke-width="3.4"/><circle cx="17" cy="19" r="3" fill="#ff6b72"/><path d="M6 34l10-9 8 7 7-6 11 10" fill="none" stroke="#ff6b72" stroke-width="3.4" stroke-linejoin="round"/></svg></span>
+              <div style="flex:1"><div class="k">ẢNH KHUÔN MẶT</div><div class="v">Bức ảnh em vừa “chụp”</div></div>
+              <span class="lootthumb" id="loot-photo"></span>
+            </div>
+            <div class="lootrow">
+              <span class="ic"><svg width="23" height="23" viewBox="0 0 48 48" aria-hidden="true"><path d="M24 44S10 29.6 10 18.5A14 14 0 1 1 38 18.5C38 29.6 24 44 24 44z" fill="none" stroke="#ff6b72" stroke-width="3.4"/><circle cx="24" cy="18.5" r="5" fill="#ff6b72"/></svg></span>
+              <div><div class="k">VỊ TRÍ</div><div class="v">Nơi em đang đứng lúc này</div></div>
+            </div>
+          </div>
+
+          <div class="safebox"><b>Đây chỉ là giả lập</b> — không có gì được chụp, được ghi hay được gửi đi. Tên, số điện thoại và ảnh chỉ nằm trên máy này và biến mất khi đóng trang.</div>
+
+          <p class="bigq">Nếu đây là app thật thì sao?</p>
+          <p class="subq">Một người lạ ở rất xa sẽ biết em tên gì, số điện thoại của em, mặt em trông thế nào và em đang ở đâu. Em có muốn như vậy không?</p>
+
+          <button class="replaybtn" id="btn-replay">Chơi lại từ đầu</button>
+        </div>
+      </section>
+    </div>
+
+    <p class="caption"><b>Avatar AI — bản giả lập</b> · Mở đầu Bài 4 lớp 8 · Mã 8.A2.2</p>
+
+    <script>
+      "use strict";
+
+      /* ---------- Ảnh mẫu: tranh minh họa vẽ bằng SVG, không phải ảnh thật của ai ---------- */
+      function faceSVG(o) {
+        var hairBack = "", hairTop = "", extra = "";
+        if (o.hairStyle === "long") {
+          hairBack = '<path d="M60 62c-14 4-20 20-20 44v34h14V96c0-16 2-26 6-30zM140 62c14 4 20 20 20 44v34h-14V96c0-16-2-26-6-30z" fill="' + o.hair + '"/>';
+          hairTop = '<path d="M58 78c0-26 18-42 42-42s42 16 42 42c0 4-1 8-2 11-3-14-10-24-22-29 2 6 2 10 1 14-6-10-16-16-30-17-13 0-24 6-29 15-1-3-2-6-2-6z" fill="' + o.hair + '"/>';
+        } else if (o.hairStyle === "bun") {
+          hairTop = '<circle cx="100" cy="34" r="13" fill="' + o.hair + '"/><path d="M58 80c0-25 18-42 42-42s42 17 42 42c0 3 0 6-1 9-4-16-14-27-30-31-20-5-40 4-51 16-1-2-2-4-2-6z" fill="' + o.hair + '"/>';
+        } else if (o.hairStyle === "cap") {
+          hairTop = '<path d="M60 74c2-22 18-36 40-36s38 14 40 36l-4 1c-3-12-9-20-19-25 1 4 1 7 0 10-7-8-17-12-28-11-12 1-21 7-26 16z" fill="' + o.hair + '"/>';
+          extra = '<path d="M56 66c4-16 22-27 44-27s40 11 44 27c-14-5-29-7-44-7s-30 2-44 7z" fill="#d63c30"/><path d="M52 66h96c3 0 4 4 1 6-30 6-68 6-98 0-3-2-2-6 1-6z" fill="#b02a20"/>';
+        } else { /* short */
+          hairTop = '<path d="M59 76c-1-24 17-40 41-40s42 16 41 40c0 2 0 4-1 6-3-13-9-22-19-27 1 4 1 7 0 10-7-8-17-12-28-11-13 1-24 7-30 16-2 2-3 4-4 6z" fill="' + o.hair + '"/>';
+        }
+        return '<svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Ảnh mẫu minh họa">' +
+          '<rect width="200" height="200" fill="' + o.bg + '"/>' +
+          '<circle cx="34" cy="36" r="15" fill="#ffffff" opacity=".35"/><circle cx="172" cy="52" r="10" fill="#ffffff" opacity=".3"/><circle cx="164" cy="160" r="17" fill="#ffffff" opacity=".22"/>' +
+          hairBack +
+          '<path d="M52 200c4-30 22-44 48-44s44 14 48 44z" fill="' + o.shirt + '"/>' +
+          '<path d="M88 148h24v18c0 7-5 11-12 11s-12-4-12-11z" fill="' + o.skin + '"/>' +
+          '<ellipse cx="100" cy="102" rx="43" ry="48" fill="' + o.skin + '"/>' +
+          '<ellipse cx="56" cy="104" rx="6" ry="9" fill="' + o.skin + '"/><ellipse cx="144" cy="104" rx="6" ry="9" fill="' + o.skin + '"/>' +
+          hairTop + extra +
+          '<ellipse cx="83" cy="100" rx="4.6" ry="6" fill="#2b2320"/><ellipse cx="117" cy="100" rx="4.6" ry="6" fill="#2b2320"/>' +
+          '<circle cx="84.8" cy="97.8" r="1.7" fill="#fff"/><circle cx="118.8" cy="97.8" r="1.7" fill="#fff"/>' +
+          '<path d="M74 86c3-2.4 8-2.6 11-.8M115 85.2c3-1.8 8-1.6 11 .8" stroke="#2b2320" stroke-width="2.6" fill="none" stroke-linecap="round"/>' +
+          '<path d="M100 104v10c0 2.4-2 3.6-4.4 3.8" stroke="#d99e78" stroke-width="2.4" fill="none" stroke-linecap="round"/>' +
+          '<ellipse cx="72" cy="120" rx="7.5" ry="4.4" fill="#ff9d9d" opacity=".55"/><ellipse cx="128" cy="120" rx="7.5" ry="4.4" fill="#ff9d9d" opacity=".55"/>' +
+          '<path d="M86 128c4 5 9 7.4 14 7.4s10-2.4 14-7.4c-9 2.4-19 2.4-28 0z" fill="#a4442f"/>' +
+          '<path d="M89.5 129.6c6.8 1.6 14.2 1.6 21 0-2.8 3.4-6.4 5-10.5 5s-7.7-1.6-10.5-5z" fill="#fff"/>' +
+          '</svg>';
+      }
+
+      var SAMPLES = [
+        { name: "Bạn nữ tóc dài", svg: faceSVG({ bg: "#bfe8d8", skin: "#f6c79b", hair: "#3a2a22", shirt: "#ef6f9c", hairStyle: "long" }) },
+        { name: "Bạn nam tóc ngắn", svg: faceSVG({ bg: "#fdeec0", skin: "#eeb287", hair: "#1f1a17", shirt: "#3e7cb1", hairStyle: "short" }) },
+        { name: "Bạn nữ tóc búi", svg: faceSVG({ bg: "#e3d7fb", skin: "#f9d3ac", hair: "#5a3a1e", shirt: "#f08a24", hairStyle: "bun" }) },
+        { name: "Bạn nam đội mũ", svg: faceSVG({ bg: "#ffd9d2", skin: "#e8a877", hair: "#241d19", shirt: "#4caf7d", hairStyle: "cap" }) }
+      ];
+
+      /* ---------- Trạng thái ---------- */
+      var state = {
+        mode: "student",           /* "teacher" | "student" */
+        source: "sample",          /* "sample" | "teacher" */
+        sampleIdx: 0,
+        teacherIdx: 0,
+        teacherImgs: []            /* object URLs, chỉ sống trong lần mở trang */
+      };
+      var timers = [];
+
+      function $(id) { return document.getElementById(id); }
+      function later(fn, ms) { timers.push(setTimeout(fn, ms)); }
+      function clearTimers() { timers.forEach(clearTimeout); timers = []; }
+
+      function showScreen(id) {
+        var screens = document.querySelectorAll(".screen");
+        for (var i = 0; i < screens.length; i++) screens[i].classList.remove("active");
+        $(id).classList.add("active");
+        var body = $(id).querySelector(".appbody, .warnbody, .scanbody");
+        if (body) body.scrollTop = 0;
+      }
+
+      function currentContent() {
+        if (state.source === "teacher" && state.teacherImgs.length) {
+          return '<img src="' + state.teacherImgs[state.teacherIdx] + '" alt="Ảnh thầy đã chọn trên máy này" />';
+        }
+        return SAMPLES[state.sampleIdx].svg;
+      }
+
+      function renderCamera() { $("cam-content").innerHTML = currentContent(); }
+
+      function renderAlbum() {
+        var album = $("album");
+        album.innerHTML = "";
+        if (state.source === "teacher" && state.teacherImgs.length) {
+          $("album-title").textContent = "Ảnh của thầy";
+          $("album-sub").textContent = state.teacherImgs.length + " ảnh đã chọn";
+          state.teacherImgs.forEach(function (url, i) {
+            var b = document.createElement("button");
+            b.className = "thumb" + (i === state.teacherIdx ? " sel" : "");
+            b.setAttribute("aria-label", "Chọn ảnh thầy số " + (i + 1));
+            b.innerHTML = '<img src="' + url + '" alt="" />';
+            b.addEventListener("click", function () { state.teacherIdx = i; renderAlbum(); renderCamera(); });
+            album.appendChild(b);
+          });
+        } else {
+          $("album-title").textContent = state.mode === "teacher" ? "Album mẫu (chưa chọn ảnh)" : "Album mẫu";
+          $("album-sub").textContent = "Chạm để đổi khuôn mặt";
+          SAMPLES.forEach(function (s, i) {
+            var b = document.createElement("button");
+            b.className = "thumb" + (i === state.sampleIdx ? " sel" : "");
+            b.setAttribute("aria-label", "Chọn ảnh mẫu: " + s.name);
+            b.innerHTML = s.svg;
+            b.addEventListener("click", function () {
+              state.source = "sample"; state.sampleIdx = i; renderAlbum(); renderCamera();
+            });
+            album.appendChild(b);
+          });
+        }
+      }
+
+      /* ---------- Chế độ ---------- */
+      function setMode(mode) {
+        state.mode = mode;
+        var t = $("mode-teacher"), s = $("mode-student");
+        t.classList.toggle("sel", mode === "teacher");
+        s.classList.toggle("sel", mode === "student");
+        t.setAttribute("aria-pressed", mode === "teacher" ? "true" : "false");
+        s.setAttribute("aria-pressed", mode === "student" ? "true" : "false");
+        $("mode-hint").textContent = mode === "teacher"
+          ? "Đang chọn: Thầy trình diễn — chạm Avatar AI để mở"
+          : "Đang chọn: Học sinh chơi — chạm Avatar AI để mở";
+      }
+      $("mode-teacher").addEventListener("click", function () { setMode("teacher"); });
+      $("mode-student").addEventListener("click", function () { setMode("student"); });
+
+      /* ---------- Màn hình chính ---------- */
+      var toastTimer = null;
+      function toast(msg) {
+        var el = $("toast");
+        el.innerHTML = msg;
+        el.classList.add("show");
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(function () { el.classList.remove("show"); }, 3200);
+      }
+      document.querySelectorAll(".app-locked").forEach(function (btn) {
+        btn.addEventListener("click", function () {
+          toast("Ứng dụng <b>" + btn.getAttribute("data-app") + "</b> chưa mở được trong giờ học.<br />Hãy mở <b>Avatar AI</b> để bắt đầu nhé!");
+        });
+      });
+
+      $("app-avatar").addEventListener("click", function () {
+        $("teacher-box").hidden = state.mode !== "teacher";
+        $("mode-chip").textContent = state.mode === "teacher" ? "Thầy trình diễn" : "Học sinh chơi";
+        if (state.mode !== "teacher") state.source = "sample";
+        renderAlbum();
+        renderCamera();
+        showScreen("screen-app");
+      });
+
+      $("btn-back-home").addEventListener("click", function () { showScreen("screen-home"); });
+
+      /* ---------- Thầy chọn ảnh (chỉ trên máy thầy) ---------- */
+      $("btn-pick").addEventListener("click", function () { $("file-pick").click(); });
+      $("file-pick").addEventListener("change", function (ev) {
+        var files = Array.prototype.slice.call(ev.target.files || []);
+        if (!files.length) return;
+        state.teacherImgs.forEach(function (u) { URL.revokeObjectURL(u); });
+        state.teacherImgs = files.map(function (f) { return URL.createObjectURL(f); });
+        state.teacherIdx = 0;
+        state.source = "teacher";
+        $("teacher-note").textContent = "Đã chọn " + files.length + " ảnh của thầy. Ảnh chỉ hiện trên máy này, không tải lên đâu, không lưu lại — thoát trang là mất.";
+        renderAlbum();
+        renderCamera();
+        ev.target.value = "";
+      });
+
+      /* ---------- Quét & tạo avatar ---------- */
+      var warnTimerStarted = false;
+      $("btn-scan").addEventListener("click", function () {
+        clearTimers();
+        warnTimerStarted = false;
+        $("scan-content").innerHTML = currentContent();
+        $("scan-photo").classList.remove("done");
+        $("scan-title").textContent = "Đang quét khuôn mặt…";
+        $("result-box").classList.remove("show");
+        var lis = document.querySelectorAll("#scan-steps li");
+        lis.forEach(function (li) { li.classList.remove("doing", "done"); });
+        showScreen("screen-scan");
+
+        lis.forEach(function (li, i) {
+          later(function () { li.classList.add("doing"); }, 250 + i * 950);
+          later(function () { li.classList.remove("doing"); li.classList.add("done"); }, 250 + (i + 1) * 950);
+        });
+        later(function () {
+          $("scan-photo").classList.add("done");
+          $("scan-title").textContent = "Tạo avatar xong!";
+          $("result-box").classList.add("show");
+          warnTimerStarted = true;
+          later(goWarn, 6000);
+        }, 250 + 4 * 950 + 350);
+      });
+
+      function goWarn() {
+        var name = $("in-name").value.trim();
+        var phone = $("in-phone").value.trim();
+        var ln = $("loot-name"), lp = $("loot-phone");
+        if (name) { ln.textContent = name; ln.classList.remove("empty"); }
+        else { ln.textContent = "Em chưa gõ — app thật vẫn sẽ tìm cách lấy"; ln.classList.add("empty"); }
+        if (phone) { lp.textContent = phone; lp.classList.remove("empty"); }
+        else { lp.textContent = "Em chưa gõ — app thật vẫn sẽ tìm cách lấy"; lp.classList.add("empty"); }
+        $("loot-photo").innerHTML = currentContent();
+        showScreen("screen-warn");
+      }
+      $("btn-to-warn").addEventListener("click", function () { clearTimers(); goWarn(); });
+
+      /* ---------- Chơi lại ---------- */
+      $("btn-replay").addEventListener("click", function () {
+        clearTimers();
+        $("in-name").value = "";
+        $("in-phone").value = "";
+        state.teacherImgs.forEach(function (u) { URL.revokeObjectURL(u); });
+        state.teacherImgs = [];
+        state.source = "sample";
+        state.sampleIdx = 0;
+        state.teacherIdx = 0;
+        $("teacher-note").textContent = "Thầy tự chọn ảnh của mình trên máy này. Ảnh chỉ hiện ngay trên máy thầy, không tải lên đâu, không lưu lại — thoát trang là mất. Chưa chọn ảnh thì app dùng ảnh mẫu.";
+        renderAlbum();
+        renderCamera();
+        showScreen("screen-home");
+      });
+
+      renderAlbum();
+      renderCamera();
+    </script>
+  </body>
+</html>
