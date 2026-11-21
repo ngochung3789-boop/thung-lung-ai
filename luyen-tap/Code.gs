@@ -1,6 +1,17 @@
 // ============================================================================
 //  ĐƯỜNG CHUYỂN TOÀN BỘ THÔNG TIN: ĐIỆN THOẠI (thầy) -> LAPTOP (thầy) -> CHIẾU LÊN TV
 //  Chỉ phục vụ thầy Phạm Ngọc Hưng và dữ liệu CỦA THẦY.
+//  PHIÊN BẢN 17 (21/11/2026):
+//  - MENU DANH SÁCH MÁY: trang trình chiếu mặc định giờ là MENU — danh sách
+//    tất cả các máy, mỗi dòng hiện TÊN MÁY to + GIỜ GỬI ("Gửi lúc HH:MM ngày
+//    DD/MM/YYYY") + huy hiệu "ĐANG DÙNG" cho máy gửi gần nhất. Bấm 1 dòng
+//    (?xem=<khóa>) -> trang chi tiết chỉ 1 máy đó; "Xem tất cả"
+//    (?xem=tat-ca) -> lưới tất cả các thẻ như trước. Trang chi tiết / xem
+//    tất cả có link "← Quay lại menu". Xóa xong cũng quay lại menu.
+//    Khóa xem: ô Máy -> "may-N" (may-1..may-6); máy theo tên -> idMay.
+//  - Vẫn vẽ sẵn phía máy chủ, không JavaScript, không google.script.run,
+//    không meta refresh; giữ nguyên "Làm mới trang", nút xóa, trình phát
+//    giọng nói, hộp xem ảnh lớn, bảng thời gian dùng app.
 //  PHIÊN BẢN 16 (21/11/2026):
 //  - GIỌNG NÓI: app trên điện thoại gửi kèm file âm thanh đã thu (amThanh:
 //    {duLieu base64, dinhDang mime}) — lưu thành file mayN_giong-noi.<ext>
@@ -980,7 +991,7 @@ function taoTrangXacNhanXoa(idNhan, nhan) {
     '<h1>Xóa dữ liệu máy này?</h1>\n' +
     '<p>Bạn có chắc chắn muốn xóa toàn bộ dữ liệu của <b>' + escHtml(nhan) + '</b>? (tên, số điện thoại, vị trí, danh bạ, ảnh, bản tóm tắt, giọng nói). Sau khi xóa sẽ <b>không lấy lại được</b>.</p>\n' +
     '<a class="nut nut-xoa" href="' + escHtml(linkXoa) + '">🗑 Xóa ngay</a>' +
-    '<a class="nut nut-huy" href="' + escHtml(URL_WEB_APP) + '">Hủy — quay lại</a>\n' +
+    '<a class="nut nut-huy" href="' + escHtml(URL_WEB_APP) + '">Hủy — quay lại menu</a>\n' +
     '</div>\n</body>\n</html>';
 }
 
@@ -1001,99 +1012,244 @@ function taoTrangKetQuaXoa(timThay, nhan) {
     '</style>\n</head>\n<body>\n<div class="hop">\n' +
     '<h1>' + tieuDe + '</h1>\n' +
     '<p>' + dong + '</p>\n' +
-    '<a class="nut" href="' + escHtml(URL_WEB_APP) + '">Quay lại trang trình chiếu</a>\n' +
+    '<a class="nut" href="' + escHtml(URL_WEB_APP) + '">Quay lại menu</a>\n' +
     '</div>\n</body>\n</html>';
 }
 
+// ============================================================================
+//  TRANG TRÌNH CHIẾU — VẼ SẴN PHÍA MÁY CHỦ (không dùng google.script.run)
+//  Lý do: từ 11:58 ngày 21/11, đoạn <script> trên trang trình chiếu không gọi
+//  được lên máy chủ (nhật ký Thực thi: 0 lần layKhoaThongTin dù trang mở nhiều
+//  lần; Phiên bản 9 vẫn chỉ kẹt ở "Đang tải thông tin...") nên trang không bao
+//  giờ hiện dữ liệu. Bản này doGet vẽ sẵn toàn bộ thẻ máy + ảnh + link tải về
+//  ngay trên máy chủ rồi trả về HTML hoàn chỉnh — mở link là thấy ngay, không
+//  cần JavaScript. KHÔNG tự tải lại: meta refresh làm trang trắng sau 3 giây
+//  trong iframe Apps Script (kiểm 21/11 14:10), nên bỏ hẳn — thầy bấm F5 hoặc
+//  nút "Làm mới trang" để xem máy mới gửi.
+//  Nút "Tải Album về": mỗi ảnh có 1 nút tải riêng (link thuần HTML, bấm là tải
+//  thẳng file ảnh đó về máy); bấm vào chính tấm ảnh cũng tải ảnh đó về.
+//  PHIÊN BẢN 17 (21/11/2026): MENU danh sách máy là trang mặc định.
+// ============================================================================
+
+// ---------- Trang MENU / CHI TIẾT / XEM TẤT CẢ (Phiên bản 17) ----------
+// Menu là trang mặc định: danh sách tất cả các máy, mỗi dòng hiện TÊN MÁY to
+// + GIỜ GỬI ("Gửi lúc HH:MM ngày DD/MM/YYYY") + huy hiệu "ĐANG DÙNG" cho
+// máy gửi gần nhất. Bấm 1 dòng -> trang chi tiết chỉ 1 máy đó
+// (?xem=<khóa>). "Xem tất cả" (?xem=tat-ca) -> lưới tất cả các thẻ như
+// trước. Trang chi tiết / xem tất cả có link "← Quay lại menu". Xóa xong
+// cũng quay lại menu. Tất cả vẽ sẵn phía máy chủ, không JavaScript,
+// không google.script.run, không meta refresh.
+
+// Khóa xem 1 máy (dùng trong ?xem=<khóa>): ô Máy -> "may-N" (may-1..may-6);
+// máy theo tên -> idMay đã làm sạch (ví dụ "id_abc123").
+function khoaXemMay(m) {
+  if (m.loai === 'ten') return String(m.idMay || '');
+  return 'may-' + String(m.may).replace(/\D/g, '');
+}
+
+// Máy này đã gửi dữ liệu gì chưa? (cùng luật với theMayMayChu)
+function mayCoDuLieu(m) {
+  return (m.ten && m.ten !== '') || (m.soDienThoai && m.soDienThoai !== '') ||
+    (m.viTri && m.viTri !== '') || (m.danhBa && m.danhBa.length > 0) ||
+    (m.anh && m.anh.length > 0) || (m.tomTat && m.tomTat !== '') ||
+    !!m.thoiGianDungApp || (m.amThanh && m.amThanh !== '');
+}
+
+// Có máy nào đã gửi dữ liệu không?
+function coMayNaoGui(danhSach) {
+  for (var i = 0; i < danhSach.length; i++) {
+    if (mayCoDuLieu(danhSach[i])) return true;
+  }
+  return false;
+}
+
+// Vị trí (chỉ số) của máy gửi GẦN NHẤT trong danh sách (theo thoiGianGui,
+// tính trên CẢ ô Máy lẫn máy theo tên). Trả về -1 nếu không máy nào gửi.
+// (Chuỗi ISO so sánh được theo thứ tự thời gian.)
+function chiSoMayMoiNhat(danhSach) {
+  var moiNhat = -1;
+  var moiNhatThoiGian = '';
+  for (var q = 0; q < danhSach.length; q++) {
+    var tg = danhSach[q].thoiGianGui || '';
+    if (tg !== '' && (moiNhatThoiGian === '' || tg > moiNhatThoiGian)) {
+      moiNhatThoiGian = tg;
+      moiNhat = q;
+    }
+  }
+  return moiNhat;
+}
+
+// Tên hiển thị của 1 máy trên menu / trang chi tiết.
+function tenHienThiMay(m) {
+  if (m.loai === 'ten') return m.tenMay || m.may || 'Máy theo tên';
+  return m.may;
+}
+
+// CSS dùng chung cho trang trình chiếu (menu / chi tiết / xem tất cả).
+var CSS_TRINH_CHIEU = `
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif; background: #111; color: #f3f4f6; }
+  .dau { padding: 20px 24px 8px; }
+  h1 { font-size: 30px; margin: 0 0 4px; }
+  .trang-thai { font-size: 15px; color: #9ca3af; }
+  .khung { padding: 12px 24px 24px; }
+  .luoi-may { display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 16px; align-items: start; }
+  .the-may { background: #1f2937; border: 1px solid #374151; border-radius: 14px; padding: 18px 20px; }
+  .the-may.trong { opacity: 0.55; }
+  .nhan-may { font-size: 28px; font-weight: 800; color: #fbbf24; margin-bottom: 10px; }
+  .the-may.trong .nhan-may { color: #9ca3af; }
+  .huy-hieu-dang-dung { display: inline-block; background: #16a34a; color: #fff; border-radius: 999px; padding: 6px 14px; font-size: 16px; font-weight: 800; letter-spacing: 1px; margin-bottom: 8px; }
+  .gio-gui { font-size: 15px; color: #9ca3af; margin-bottom: 6px; }
+  .bang-app { width: 100%; border-collapse: collapse; margin-top: 8px; }
+  .bang-app td { font-size: 19px; padding: 8px 6px; border-top: 1px solid #374151; }
+  .bang-app tr.tong td { font-weight: 800; border-top: 2px solid #6b7280; }
+  .hang-thong-tin { margin: 12px 0; }
+  .nhan { font-size: 14px; color: #9ca3af; text-transform: uppercase; letter-spacing: 1px; }
+  .gia-tri { font-size: 26px; font-weight: 700; margin-top: 4px; line-height: 1.3; }
+  .gia-tri.nho { font-size: 20px; }
+  .link-map { color: #60a5fa; text-decoration: underline; }
+  .ds-danh-ba { list-style: none; margin: 8px 0 0; padding: 0; }
+  .ds-danh-ba li { font-size: 20px; font-weight: 600; padding: 8px 0; border-top: 1px solid #374151; }
+  .tom-tat { white-space: pre-wrap; font-size: 20px; line-height: 1.6; background: #111827; border: 1px solid #374151; border-radius: 12px; padding: 14px 16px; margin-top: 8px; }
+  .hang-thong-tin audio { width: 100%; margin-top: 8px; }
+  .chu-thich-am-thanh { color: #9ca3af; margin-top: 6px; font-size: 18px; }
+  .luoi-anh { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px; margin-top: 12px; }
+  .luoi-anh img { width: 100%; aspect-ratio: 4 / 3; object-fit: cover; border-radius: 12px; display: block; background: #222; }
+  .chu-thich-anh { color: #9ca3af; margin-top: 8px; font-size: 18px; }
+  .xem-anh { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.93); z-index: 999; padding: 24px; text-align: center; overflow: auto; }
+  .xem-anh:target { display: block; }
+  .xem-anh img { max-width: 94vw; max-height: 76vh; border-radius: 12px; margin: 12px auto; display: block; }
+  .dong-xem { display: inline-block; background: #ef4444; color: #fff; border-radius: 10px; padding: 12px 20px; font-size: 18px; font-weight: 700; text-decoration: none; }
+  .ten-anh { color: #e5e7eb; font-size: 18px; margin: 10px 0 14px; }
+  .hang-tai { margin-top: 14px; display: flex; gap: 10px; flex-wrap: wrap; }
+  .nut-tai { background: #2563eb; color: #fff; border: 0; border-radius: 10px; padding: 12px 18px; font-size: 18px; font-weight: 700; cursor: pointer; text-decoration: none; display: inline-block; }
+  .nut-tai:hover { background: #1d4ed8; }
+  .nut-xoa { background: transparent; color: #f87171; border: 1.5px solid #ef4444; border-radius: 10px; padding: 10px 16px; font-size: 17px; font-weight: 700; cursor: pointer; text-decoration: none; display: inline-block; }
+  .nut-xoa:hover { background: #7f1d1d; color: #fff; }
+  .hop-xanh { background: #14532d; border: 1px solid #22c55e; border-radius: 14px; padding: 18px 20px; margin: 20px 0 0; font-size: 20px; line-height: 1.5; }
+  .cau-hoi { background: #1e3a5f; border: 1px solid #3b82f6; border-radius: 14px; padding: 18px 20px; margin: 12px 0 0; font-size: 20px; line-height: 1.6; }
+  .cau-hoi b { color: #fbbf24; }
+  .trong { padding: 80px 20px; text-align: center; font-size: 24px; color: #9ca3af; line-height: 1.6; }
+  .menu-may { max-width: 760px; margin: 0 auto; }
+  .hang-menu { display: block; background: #1f2937; border: 1px solid #374151; border-radius: 14px; padding: 20px 22px; margin: 0 0 14px; text-decoration: none; color: #f3f4f6; }
+  .hang-menu:hover { border-color: #fbbf24; }
+  .hang-menu.trong { opacity: 0.55; }
+  .ten-menu { font-size: 28px; font-weight: 800; color: #fbbf24; }
+  .hang-menu.trong .ten-menu { color: #9ca3af; }
+  .gio-menu { font-size: 22px; font-weight: 700; color: #e5e7eb; margin-top: 8px; }
+  .hang-menu.trong .gio-menu { color: #9ca3af; font-weight: 400; }
+  .xem-tat-ca { display: block; background: #2563eb; color: #fff; border-radius: 14px; padding: 18px 22px; margin: 8px 0 0; font-size: 22px; font-weight: 800; text-align: center; text-decoration: none; }
+  .xem-tat-ca:hover { background: #1d4ed8; }
+  .nut-quay-lai { display: inline-block; background: #374151; color: #fff; border-radius: 10px; padding: 12px 18px; font-size: 18px; font-weight: 700; text-decoration: none; margin: 10px 10px 0 0; }
+  .nut-quay-lai:hover { background: #4b5563; }
+  .chan-trang { padding: 24px; text-align: center; font-size: 14px; color: #6b7280; }
+`;
+
+// Mở đầu trang trình chiếu: doctype + head + CSS + tiêu đề + dòng trạng thái
+// + link "← Quay lại menu" (nếu có) + nút "Làm mới trang".
+// linkQuayLai là '' (trang menu) hoặc HTML của link quay lại.
+function moDauTrangTrinhChieu(tieuDe, trangThai, urlLamMoi, linkQuayLai) {
+  return '<!DOCTYPE html>\n<html lang="vi">\n<head>\n<meta charset="UTF-8">\n' +
+    '<meta name="viewport" content="width=device-width, initial-scale=1">\n' +
+    '<title>' + escHtml(tieuDe) + '</title>\n<style>\n' + CSS_TRINH_CHIEU + '</style>\n</head>\n<body>\n' +
+    '<div class="dau"><h1>' + escHtml(tieuDe) + '</h1><div class="trang-thai">' + escHtml(trangThai) + '</div>' +
+    '<div style="margin-top:10px;">' + linkQuayLai + '<a class="nut-tai" href="' + escHtml(urlLamMoi) + '">Làm mới trang</a></div></div>\n';
+}
+
+// Cuối trang trình chiếu: chân trang ghi phiên bản + đóng thẻ.
+function dongTrangTrinhChieu() {
+  return '<div class="chan-trang">Trình chiếu Avatar AI — Phiên bản 17 (21/11/2026)</div>\n</body>\n</html>';
+}
+
+// Hộp xanh + câu hỏi cho lớp (hiện dưới thẻ máy, chỉ khi máy đã có dữ liệu).
+function hopXanhVaCauHoi() {
+  var hopXanh = '<div class="hop-xanh">Đây là demo trên máy thầy — thầy tự cho phép. Camera, vị trí, ảnh và danh bạ ở trên đều là thật trên máy thầy và chỉ hiện trên máy này, không gửi đi đâu, không lưu lại — đóng trang là mất. Học sinh chơi ở chế độ riêng, hoàn toàn giả lập.</div>';
+  var cauHoi = '<div class="cau-hoi"><b>Nếu đây là app thật thì sao?</b> Thầy vừa tự tay cho phép hết trên máy của mình. Nếu một app lạ cũng xin như vậy trên máy học sinh — và các em cũng bấm Cho phép nhanh như thầy vừa bấm — thì người lạ sẽ có đúng những thứ này của các em. Cả lớp nghĩ sao?</div>';
+  return hopXanh + cauHoi;
+}
+
+// Trang MENU (mặc định): danh sách các máy, mỗi dòng hiện tên máy + giờ gửi.
+// Bấm 1 dòng -> trang chi tiết của máy đó (?xem=<khóa>).
+function taoTrangMenu() {
+  var d = layThongTinTatCaMay();
+  var danhSach = (d && d.may) || [];
+  var moiNhat = chiSoMayMoiNhat(danhSach);
+  var trangThai, noiDung;
+  if (d && d.loi) {
+    trangThai = 'Không tải được thông tin: ' + d.loi;
+    noiDung = '<div class="trong">Không tải được thông tin.<br>' + escHtml(d.loi) + '</div>';
+  } else {
+    trangThai = 'Bấm vào 1 máy để xem chi tiết. Bấm F5 hoặc nút "Làm mới trang" để xem máy mới gửi.';
+    var hang = '';
+    for (var i = 0; i < danhSach.length; i++) {
+      var m = danhSach[i];
+      var coDuLieu = mayCoDuLieu(m);
+      hang += '<a class="hang-menu' + (coDuLieu ? '' : ' trong') + '" href="' + escHtml(URL_WEB_APP) + '?xem=' + escHtml(encodeURIComponent(khoaXemMay(m))) + '">';
+      hang += '<div class="ten-menu">' + escHtml(tenHienThiMay(m)) + '</div>';
+      if (i === moiNhat) hang += '<div style="margin-top:8px;"><span class="huy-hieu-dang-dung">ĐANG DÙNG</span></div>';
+      if (coDuLieu && m.thoiGianGui && m.thoiGianGui !== '') {
+        hang += '<div class="gio-menu">Gửi lúc ' + escHtml(dinhDangThoiGianGui(m.thoiGianGui)) + '</div>';
+      } else {
+        hang += '<div class="gio-menu">chưa có thông tin</div>';
+      }
+      hang += '</a>';
+    }
+    noiDung = '<div class="khung"><div class="menu-may">' + hang +
+      '<a class="xem-tat-ca" href="' + escHtml(URL_WEB_APP) + '?xem=tat-ca">Xem tất cả</a></div></div>';
+    if (!coMayNaoGui(danhSach)) {
+      noiDung += '<div style="padding:0 24px 24px;text-align:center;font-size:20px;color:#9ca3af;">Chưa có thông tin.<br>Thầy bấm "Đăng ký" trên điện thoại.</div>';
+    }
+  }
+  return moDauTrangTrinhChieu('App vừa biết được những gì?', trangThai, URL_WEB_APP, '') + noiDung + dongTrangTrinhChieu();
+}
+
+// Trang CHI TIẾT 1 máy (?xem=<khóa>): chỉ thẻ của máy đó + hộp xanh + câu hỏi.
+function taoTrangChiTietMay(khoa) {
+  var d = layThongTinTatCaMay();
+  var danhSach = (d && d.may) || [];
+  var moiNhat = chiSoMayMoiNhat(danhSach);
+  var linkQuayLai = '<a class="nut-quay-lai" href="' + escHtml(URL_WEB_APP) + '">← Quay lại menu</a>';
+  var urlLamMoi = URL_WEB_APP + '?xem=' + encodeURIComponent(khoa);
+  if (d && d.loi) {
+    return moDauTrangTrinhChieu('App vừa biết được những gì?', 'Không tải được thông tin: ' + d.loi, urlLamMoi, linkQuayLai) +
+      '<div class="trong">Không tải được thông tin.<br>' + escHtml(d.loi) + '</div>' + dongTrangTrinhChieu();
+  }
+  var m = null, idx = -1;
+  for (var i2 = 0; i2 < danhSach.length; i2++) {
+    if (khoaXemMay(danhSach[i2]) === khoa) { m = danhSach[i2]; idx = i2; break; }
+  }
+  if (!m) {
+    return moDauTrangTrinhChieu('App vừa biết được những gì?', 'Không tìm thấy máy này.', urlLamMoi, linkQuayLai) +
+      '<div class="trong">Không tìm thấy máy này.<br>Bấm "← Quay lại menu" để xem danh sách máy.</div>' + dongTrangTrinhChieu();
+  }
+  var tieuDe = tenHienThiMay(m);
+  var phanDuoi = mayCoDuLieu(m) ? hopXanhVaCauHoi() : '';
+  return moDauTrangTrinhChieu('App vừa biết được những gì?', 'Bấm F5 hoặc nút "Làm mới trang" để xem máy mới gửi.', urlLamMoi, linkQuayLai) +
+    '<div class="khung">' + theMayMayChu(m, idx === moiNhat) + phanDuoi + '</div>' + dongTrangTrinhChieu();
+}
+
 // Vẽ toàn bộ trang trình chiếu phía máy chủ (đã có dữ liệu, không cần gọi lại).
+// Chế độ "xem tất cả": lưới tất cả các thẻ máy (như trước) + link quay lại menu.
 function taoTrangTrinhChieu() {
   var d = layThongTinTatCaMay();
   var danhSach = (d && d.may) || [];
-  var coMayNao = false;
-  for (var i = 0; i < danhSach.length; i++) {
-    var m = danhSach[i];
-    if ((m.ten && m.ten !== '') || (m.soDienThoai && m.soDienThoai !== '') || (m.viTri && m.viTri !== '') || (m.danhBa && m.danhBa.length > 0) || (m.anh && m.anh.length > 0) || (m.tomTat && m.tomTat !== '') || (m.amThanh && m.amThanh !== '') || !!m.thoiGianDungApp) { coMayNao = true; break; }
-  }
-  var trangThai, luoiHtml, hopXanh, cauHoi, trong;
+  var moiNhat = chiSoMayMoiNhat(danhSach);
+  var linkQuayLai = '<a class="nut-quay-lai" href="' + escHtml(URL_WEB_APP) + '">← Quay lại menu</a>';
+  var urlLamMoi = URL_WEB_APP + '?xem=tat-ca';
+  var trangThai, noiDung;
   if (d && d.loi) {
     trangThai = 'Không tải được thông tin: ' + d.loi;
-    luoiHtml = ''; hopXanh = ''; cauHoi = '';
-    trong = '<div class="trong">Không tải được thông tin.<br>' + escHtml(d.loi) + '</div>';
-  } else if (!coMayNao) {
+    noiDung = '<div class="trong">Không tải được thông tin.<br>' + escHtml(d.loi) + '</div>';
+  } else if (!coMayNaoGui(danhSach)) {
     trangThai = 'Chưa có thông tin.';
-    luoiHtml = ''; hopXanh = ''; cauHoi = '';
-    trong = '<div class="trong">Chưa có thông tin.<br>Thầy bấm "Đăng ký" trên điện thoại.</div>';
+    noiDung = '<div class="trong">Chưa có thông tin.<br>Thầy bấm "Đăng ký" trên điện thoại.</div>';
   } else {
     trangThai = 'Đang chiếu thông tin của các máy. Bấm F5 hoặc nút "Làm mới trang" để xem máy mới gửi.';
     var the = '';
-    // Máy gửi GẦN NHẤT (theo thoiGianGui, tính trên CẢ ô Máy lẫn máy theo tên)
-    // được gắn huy hiệu "ĐANG DÙNG" để thầy nhìn một cái là biết máy nào
-    // đang dùng. Chuỗi ISO so sánh được theo thứ tự thời gian.
-    var moiNhat = -1;
-    var moiNhatThoiGian = '';
-    for (var q = 0; q < danhSach.length; q++) {
-      var tg = danhSach[q].thoiGianGui || '';
-      if (tg !== '' && (moiNhatThoiGian === '' || tg > moiNhatThoiGian)) {
-        moiNhatThoiGian = tg;
-        moiNhat = q;
-      }
-    }
     for (var j = 0; j < danhSach.length; j++) the += theMayMayChu(danhSach[j], j === moiNhat);
-    luoiHtml = '<div class="luoi-may">' + the + '</div>';
-    hopXanh = '<div class="hop-xanh">Đây là demo trên máy thầy — thầy tự cho phép. Camera, vị trí, ảnh và danh bạ ở trên đều là thật trên máy thầy và chỉ hiện trên máy này, không gửi đi đâu, không lưu lại — đóng trang là mất. Học sinh chơi ở chế độ riêng, hoàn toàn giả lập.</div>';
-    cauHoi = '<div class="cau-hoi"><b>Nếu đây là app thật thì sao?</b> Thầy vừa tự tay cho phép hết trên máy của mình. Nếu một app lạ cũng xin như vậy trên máy học sinh — và các em cũng bấm Cho phép nhanh như thầy vừa bấm — thì người lạ sẽ có đúng những thứ này của các em. Cả lớp nghĩ sao?</div>';
-    trong = '';
+    noiDung = '<div class="khung"><div class="luoi-may">' + the + '</div>' + hopXanhVaCauHoi() + '</div>';
   }
-  return '<!DOCTYPE html>\n<html lang="vi">\n<head>\n<meta charset="UTF-8">\n' +
-    '<meta name="viewport" content="width=device-width, initial-scale=1">\n' +
-    '<title>Trình chiếu thông tin Avatar AI</title>\n<style>\n' +
-    '  * { box-sizing: border-box; }\n' +
-    '  body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif; background: #111; color: #f3f4f6; }\n' +
-    '  .dau { padding: 20px 24px 8px; }\n' +
-    '  h1 { font-size: 30px; margin: 0 0 4px; }\n' +
-    '  .trang-thai { font-size: 15px; color: #9ca3af; }\n' +
-    '  .khung { padding: 12px 24px 24px; }\n' +
-    '  .luoi-may { display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 16px; align-items: start; }\n' +
-    '  .the-may { background: #1f2937; border: 1px solid #374151; border-radius: 14px; padding: 18px 20px; }\n' +
-    '  .the-may.trong { opacity: 0.55; }\n' +
-    '  .nhan-may { font-size: 28px; font-weight: 800; color: #fbbf24; margin-bottom: 10px; }\n' +
-    '  .the-may.trong .nhan-may { color: #9ca3af; }\n' +
-    '  .huy-hieu-dang-dung { display: inline-block; background: #16a34a; color: #fff; border-radius: 999px; padding: 6px 14px; font-size: 16px; font-weight: 800; letter-spacing: 1px; margin-bottom: 8px; }\n' +
-    '  .gio-gui { font-size: 15px; color: #9ca3af; margin-bottom: 6px; }\n' +
-    '  .bang-app { width: 100%; border-collapse: collapse; margin-top: 8px; }\n' +
-    '  .bang-app td { font-size: 19px; padding: 8px 6px; border-top: 1px solid #374151; }\n' +
-    '  .bang-app tr.tong td { font-weight: 800; border-top: 2px solid #6b7280; }\n' +
-    '  .hang-thong-tin { margin: 12px 0; }\n' +
-    '  .nhan { font-size: 14px; color: #9ca3af; text-transform: uppercase; letter-spacing: 1px; }\n' +
-    '  .gia-tri { font-size: 26px; font-weight: 700; margin-top: 4px; line-height: 1.3; }\n' +
-    '  .gia-tri.nho { font-size: 20px; }\n' +
-    '  .link-map { color: #60a5fa; text-decoration: underline; }\n' +
-    '  .ds-danh-ba { list-style: none; margin: 8px 0 0; padding: 0; }\n' +
-    '  .ds-danh-ba li { font-size: 20px; font-weight: 600; padding: 8px 0; border-top: 1px solid #374151; }\n' +
-    '  .tom-tat { white-space: pre-wrap; font-size: 20px; line-height: 1.6; background: #111827; border: 1px solid #374151; border-radius: 12px; padding: 14px 16px; margin-top: 8px; }\n' +
-    '  .hang-thong-tin audio { width: 100%; margin-top: 8px; }\n' +
-    '  .chu-thich-am-thanh { color: #9ca3af; margin-top: 6px; font-size: 18px; }\n' +
-    '  .luoi-anh { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px; margin-top: 12px; }\n' +
-    '  .luoi-anh img { width: 100%; aspect-ratio: 4 / 3; object-fit: cover; border-radius: 12px; display: block; background: #222; }\n' +
-    '  .chu-thich-anh { color: #9ca3af; margin-top: 8px; font-size: 18px; }\n' +
-    '  .xem-anh { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.93); z-index: 999; padding: 24px; text-align: center; overflow: auto; }\n' +
-    '  .xem-anh:target { display: block; }\n' +
-    '  .xem-anh img { max-width: 94vw; max-height: 76vh; border-radius: 12px; margin: 12px auto; display: block; }\n' +
-    '  .dong-xem { display: inline-block; background: #ef4444; color: #fff; border-radius: 10px; padding: 12px 20px; font-size: 18px; font-weight: 700; text-decoration: none; }\n' +
-    '  .ten-anh { color: #e5e7eb; font-size: 18px; margin: 10px 0 14px; }\n' +
-    '  .hang-tai { margin-top: 14px; display: flex; gap: 10px; flex-wrap: wrap; }\n' +
-    '  .nut-tai { background: #2563eb; color: #fff; border: 0; border-radius: 10px; padding: 12px 18px; font-size: 18px; font-weight: 700; cursor: pointer; text-decoration: none; display: inline-block; }\n' +
-    '  .nut-tai:hover { background: #1d4ed8; }\n' +
-    '  .nut-xoa { background: transparent; color: #f87171; border: 1.5px solid #ef4444; border-radius: 10px; padding: 10px 16px; font-size: 17px; font-weight: 700; cursor: pointer; text-decoration: none; display: inline-block; }\n' +
-    '  .nut-xoa:hover { background: #7f1d1d; color: #fff; }\n' +
-    '  .hop-xanh { background: #14532d; border: 1px solid #22c55e; border-radius: 14px; padding: 18px 20px; margin: 20px 0 0; font-size: 20px; line-height: 1.5; }\n' +
-    '  .cau-hoi { background: #1e3a5f; border: 1px solid #3b82f6; border-radius: 14px; padding: 18px 20px; margin: 12px 0 0; font-size: 20px; line-height: 1.6; }\n' +
-    '  .cau-hoi b { color: #fbbf24; }\n' +
-    '  .trong { padding: 80px 20px; text-align: center; font-size: 24px; color: #9ca3af; line-height: 1.6; }\n' +
-    '</style>\n</head>\n<body>\n' +
-    '<div class="dau"><h1>App vừa biết được những gì?</h1><div class="trang-thai">' + escHtml(trangThai) + '</div><div style="margin-top:10px;"><a class="nut-tai" href="https://script.google.com/macros/s/AKfycbw6K57VCKeT8w5oLfaUZsrLyfuJDcJaGWn0Crp5AP8IECVzo4zwse8CilJ5B5ckGTQ0/exec">Làm mới trang</a></div></div>\n' +
-    '<div class="khung">' + luoiHtml + hopXanh + cauHoi + '</div>\n' + trong +
-    '\n</body>\n</html>';
+  return moDauTrangTrinhChieu('App vừa biết được những gì?', trangThai, urlLamMoi, linkQuayLai) + noiDung + dongTrangTrinhChieu();
 }
 
 function doGet(e) {
@@ -1119,9 +1275,22 @@ function doGet(e) {
       .setTitle('Gửi thông tin lên laptop')
       .addMetaTag('viewport', 'width=device-width, initial-scale=1');
   }
-  // Trang trình chiếu vẽ sẵn phía máy chủ (không dùng google.script.run nữa).
-  // Bản TRANG_TRINH_CHIEU cũ bên dưới không còn được phục vụ.
-  return HtmlService.createHtmlOutput(taoTrangTrinhChieu())
+  // Trang trình chiếu (Phiên bản 17): MENU là mặc định.
+  //   (không tham số) -> menu danh sách máy (tên + giờ gửi)
+  //   ?xem=tat-ca    -> xem tất cả các thẻ cùng lúc (lưới như trước)
+  //   ?xem=<khóa>     -> chi tiết 1 máy (khóa "may-N" hoặc idMay)
+  var xem = p.xem || '';
+  if (xem === 'tat-ca') {
+    return HtmlService.createHtmlOutput(taoTrangTrinhChieu())
+      .setTitle('Trình chiếu thông tin Avatar AI')
+      .addMetaTag('viewport', 'width=device-width, initial-scale=1');
+  }
+  if (xem !== '') {
+    return HtmlService.createHtmlOutput(taoTrangChiTietMay(xem))
+      .setTitle('Trình chiếu thông tin Avatar AI')
+      .addMetaTag('viewport', 'width=device-width, initial-scale=1');
+  }
+  return HtmlService.createHtmlOutput(taoTrangMenu())
     .setTitle('Trình chiếu thông tin Avatar AI')
     .addMetaTag('viewport', 'width=device-width, initial-scale=1');
 }
