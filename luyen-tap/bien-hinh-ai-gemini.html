@@ -175,6 +175,14 @@
     width:100%; background:#14202b; color:#fff; font-size:16.5px; min-height:56px; border-radius:16px;
     box-shadow:0 8px 20px rgba(20,32,43,.3);
   }
+  /* Vùng trạng thái gửi: chữ to, thấy rõ, không phải dòng xám nhỏ. */
+  .send-status{
+    font-size:17px; font-weight:800; line-height:1.55;
+    padding:13px 14px; border-radius:14px; margin-top:12px; text-align:center;
+  }
+  .send-status.sending{ background:#fff4d6; border:1.5px solid #e3b93c; color:#5c4300; }
+  .send-status.success{ background:#dff5e3; border:1.5px solid #0b7a55; color:#0b7a55; }
+  .send-status.error{ background:#fdecea; border:1.5px solid #c0392b; color:#c0392b; }
   .voice-prompt{
     font-size:25px; font-weight:800; text-align:center; line-height:1.45;
     margin:8px 0 14px; color:var(--ink);
@@ -232,7 +240,7 @@
       <span class="app-icon" style="background:#fff"><svg width="28" height="28" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="3" fill="#ffd94d"/><circle cx="9" cy="10" r="1.8" fill="#fff"/><path d="M4 17l5-4 4 3 3-2 4 3v1a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2z" fill="#57b25e"/></svg></span>
       <span class="app-icon" style="background:#d9dde2"><svg width="28" height="28" viewBox="0 0 24 24" fill="#5a6672"><path d="M12 8.5A3.5 3.5 0 1 0 12 15.5 3.5 3.5 0 0 0 12 8.5zm9 4.6v-2.2l-2-.5a7 7 0 0 0-.7-1.7l1.1-1.7-1.6-1.6-1.7 1.1a7 7 0 0 0-1.7-.7L13.9 3h-2.2l-.5 2a7 7 0 0 0-1.7.7L7.8 4.6 6.2 6.2l1.1 1.7a7 7 0 0 0-.7 1.7l-2 .5v2.2l2 .5c.16.6.4 1.16.7 1.7L6.2 16.2l1.6 1.6 1.7-1.1c.54.3 1.1.54 1.7.7l.5 2h2.2l.5-2a7 7 0 0 0 1.7-.7l1.7 1.1 1.6-1.6-1.1-1.7c.3-.54.54-1.1.7-1.7z" transform="scale(.92) translate(1,1)"/></svg></span>
     </div>
-    <div class="version-label">Biến hình siêu ngầu · Bản 21/11 18:10</div>
+    <div class="version-label">Biến hình siêu ngầu · Bản 21/11 18:15</div>
   </section>
 
   <!-- ===== APP SCREEN ===== -->
@@ -241,7 +249,7 @@
       <button class="back-btn" id="backHomeBtn" type="button" aria-label="Về màn hình chính">‹</button>
       <div>
         <h1>Biến hình siêu ngầu</h1>
-        <p class="tag">Máy: <span id="deviceNameLabel"></span> · Bản 21/11 18:10</p>
+        <p class="tag">Máy: <span id="deviceNameLabel"></span> · Bản 21/11 18:15</p>
       </div>
     </div>
     <div class="app-scroll">
@@ -274,6 +282,7 @@
         <p class="status-line" id="photoStatus" hidden></p>
         <div class="btn-row">
           <button class="btn btn-soft btn-small" id="retakeBtn" type="button" hidden>Chụp lại</button>
+          <button class="btn btn-soft btn-small" id="reopenCameraBtn" type="button" hidden>Mở lại camera</button>
         </div>
       </div>
 
@@ -305,7 +314,7 @@
       </div>
 
       <button class="btn send-btn" id="sendBtn" type="button">Hoàn tất đăng ký</button>
-      <p class="status-line" id="sendStatus" hidden></p>
+      <div class="send-status" id="sendStatus" hidden></div>
       <div class="card" id="sendDone" hidden>
         <p class="status-line" style="font-weight:800">✓ ĐÃ HOÀN TẤT ĐĂNG KÝ — mở trang trình chiếu trên laptop để xem.</p>
         <button class="btn btn-soft btn-small" id="resetBtn" type="button">Làm lại</button>
@@ -452,23 +461,60 @@
 
   /* ----- Camera ----- */
   var video=$("videoEl"), canvas=$("photoCanvas");
+  /* Camera chết giữa chừng (mất quyền, app khác chiếm camera, luồng kết thúc...):
+     dừng hẳn luồng cũ, báo rõ và cho thầy mở lại. Không xóa ảnh đã chụp trước đó. */
+  function onCameraLost(){
+    if(!videoStream) return; /* đã dừng chủ động (bấm Về / đã gửi) thì bỏ qua */
+    try{ videoStream.getTracks().forEach(function(t){ try{ t.stop(); }catch(e){} }); }catch(e){}
+    videoStream=null;
+    video.srcObject=null;
+    $("cameraStatus").textContent="Camera chưa mở được. Bấm 'Mở lại camera' để thử lại.";
+    $("cameraStatus").hidden=false;
+    $("reopenCameraBtn").hidden=false;
+    $("captureBtn").disabled=true;
+  }
   function startCamera(){
     if(videoStream){ return; }
+    $("reopenCameraBtn").hidden=true;
     if(!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia)){
-      $("cameraStatus").textContent="Trình duyệt này không hỗ trợ camera.";
+      $("cameraStatus").textContent="Camera chưa mở được. Bấm 'Mở lại camera' để thử lại.";
+      $("cameraStatus").hidden=false;
+      $("reopenCameraBtn").hidden=false;
+      $("captureBtn").disabled=true;
       return;
     }
     navigator.mediaDevices.getUserMedia({ video:{ facingMode:"user" }, audio:false })
       .then(function(stream){
         videoStream=stream;
         video.srcObject=stream;
+        /* Bật phát rõ ràng — iPhone Safari cần play() tường minh, chỉ autoplay chưa đủ. */
+        try{ var pr=video.play(); if(pr&&pr.catch) pr.catch(function(){}); }catch(e){}
+        /* Theo dõi luồng: nếu track kết thúc thì camera đã chết, cho thầy mở lại. */
+        stream.getTracks().forEach(function(t){ t.onended=function(){ onCameraLost(); }; });
         $("cameraStatus").textContent="Căn khuôn mặt vào giữa khung rồi bấm Chụp ảnh.";
+        $("cameraStatus").hidden=false;
+        $("reopenCameraBtn").hidden=true;
         $("captureBtn").disabled=false;
       })
       .catch(function(){
-        $("cameraStatus").textContent="Chưa được cấp quyền camera. Hãy cho phép camera rồi mở lại ứng dụng.";
+        $("cameraStatus").textContent="Camera chưa mở được. Bấm 'Mở lại camera' để thử lại.";
+        $("cameraStatus").hidden=false;
+        $("reopenCameraBtn").hidden=false;
+        $("captureBtn").disabled=true;
       });
   }
+  video.addEventListener("error",function(){ onCameraLost(); });
+  $("reopenCameraBtn").addEventListener("click",function(){
+    stopCamera();
+    $("reopenCameraBtn").hidden=true;
+    $("cameraStatus").textContent="Đang mở camera...";
+    $("cameraStatus").hidden=false;
+    video.style.display="block";
+    $("photoCanvas").hidden=true; $("photoCanvas").style.display="none";
+    $("captureBtn").hidden=false; $("captureBtn").disabled=true;
+    $("retakeBtn").hidden=true;
+    startCamera();
+  });
   function stopCamera(){
     if(videoStream){ videoStream.getTracks().forEach(function(t){ t.stop(); }); videoStream=null; }
     video.srcObject=null;
@@ -481,8 +527,34 @@
     out.getContext("2d").drawImage(srcCanvas,0,0,out.width,out.height);
     return out.toDataURL("image/jpeg",0.7);
   }
+  /* Kiểm tra khung hình vừa chụp có bị đen không: lấy 10×10 điểm mẫu, tính độ sáng trung bình.
+     Trung bình < 12/255 thì coi là đen (camera chưa kịp lên hình). */
+  function isFrameBlack(ctx, w, h){
+    try{
+      var imgData=ctx.getImageData(0,0,w,h);
+      var d=imgData.data;
+      var sum=0, n=0;
+      for(var gy=0; gy<10; gy++){
+        for(var gx=0; gx<10; gx++){
+          var x=Math.min(w-1, Math.floor((gx+0.5)*w/10));
+          var y=Math.min(h-1, Math.floor((gy+0.5)*h/10));
+          var i=(y*w+x)*4;
+          sum += 0.299*d[i] + 0.587*d[i+1] + 0.114*d[i+2];
+          n++;
+        }
+      }
+      return n>0 && (sum/n) < 12;
+    }catch(e){
+      return false; /* không đọc được pixel: coi như không đen, chụp như thường */
+    }
+  }
   $("captureBtn").addEventListener("click",function(){
-    if(!video.videoWidth){ return; }
+    /* Chỉ chụp khi video thật sự đang chạy và có khung hình — nếu không sẽ ra ảnh đen. */
+    if(!(video.videoWidth>0 && video.readyState>=2 && !video.paused)){
+      $("cameraStatus").textContent="Camera chưa sẵn sàng — đợi một chút rồi chụp lại.";
+      $("cameraStatus").hidden=false;
+      return;
+    }
     /* Vẽ thẳng khung hình về tối đa 800px — KHÔNG tạo canvas full-resolution (gây đen màn hình). */
     var scale=Math.min(1, 800/Math.max(video.videoWidth,video.videoHeight));
     var tw=Math.round(video.videoWidth*scale), th=Math.round(video.videoHeight*scale);
@@ -490,11 +562,33 @@
     c.width=tw; c.height=th;
     var cx=c.getContext("2d");
     cx.translate(tw,0); cx.scale(-1,1);
-    cx.filter="contrast(1.2) saturate(1.5) sepia(0.3)";
+    /* Vẽ khung hình nguyên bản, KHÔNG dùng filter — filter trên canvas không ổn định trên iPhone Safari và có thể làm ảnh ra đen. */
     cx.drawImage(video,0,0,tw,th);
-    cx.setTransform(1,0,0,1,0,0); cx.filter="none";
+    cx.setTransform(1,0,0,1,0,0);
+    /* Khung hình vừa chụp bị đen (camera chưa kịp lên hình): bỏ ảnh đen, giữ lại ảnh trước (nếu có). */
+    if(isFrameBlack(cx, tw, th)){
+      var hadPrev=!!cameraPhoto;
+      /* Không ghi đè cameraPhoto — giữ lại ảnh trước. */
+      video.style.display="block";
+      $("cameraStatus").hidden=false;
+      $("cameraStatus").textContent="Căn khuôn mặt vào giữa khung rồi bấm Chụp ảnh.";
+      $("photoCanvas").hidden=true; $("photoCanvas").style.display="none";
+      $("captureBtn").hidden=false; $("captureBtn").disabled=false;
+      $("retakeBtn").hidden=true;
+      $("photoStatus").textContent = hadPrev
+        ? "Ảnh mới bị đen — đã giữ lại ảnh trước. Bấm Chụp lại để thử lại."
+        : "Ảnh vừa chụp bị đen — bấm Chụp lại để thử lại.";
+      $("photoStatus").hidden=false;
+      refreshSummary();
+      return;
+    }
     var dataUrl=c.toDataURL("image/jpeg",0.7);
     cameraPhoto={ ten:"anh-camera.jpg", duLieu:dataUrl.split(",")[1], dataUrl:dataUrl };
+    /* Hiện ảnh vừa chụp vào khung xem (không để khung đen). */
+    var pc=$("photoCanvas");
+    pc.width=tw; pc.height=th;
+    pc.getContext("2d").drawImage(c,0,0);
+    pc.hidden=false; pc.style.display="block";
     video.style.display="none";
     $("cameraStatus").hidden=true;
     $("photoStatus").textContent="✓ Đã chụp 1 ảnh";
@@ -504,6 +598,7 @@
   });
   $("retakeBtn").addEventListener("click",function(){
     cameraPhoto=null;
+    $("photoCanvas").hidden=true; $("photoCanvas").style.display="none";
     video.style.display="block";
     $("cameraStatus").hidden=false;
     $("cameraStatus").textContent="Căn khuôn mặt vào giữa khung rồi bấm Chụp ảnh.";
@@ -901,25 +996,38 @@
     return p;
   }
 
+  /* Trạng thái gửi: hiện rõ, chữ to, thấy ngay trong suốt quá trình gửi. */
+  function setSendStatus(kind, text){
+    var el=$("sendStatus");
+    el.className="send-status "+kind;
+    el.innerHTML="";
+    var parts=String(text).split("\n");
+    parts.forEach(function(part,i){
+      if(i>0) el.appendChild(document.createElement("br"));
+      el.appendChild(document.createTextNode(part));
+    });
+    el.hidden=false;
+  }
   $("sendBtn").addEventListener("click",function(){
     if(!deviceInfo) collectDevice();
     refreshSummary();
     var btn=this;
     btn.disabled=true;
+    /* Hiện ngay "Đang gửi" — phải thấy rõ trong suốt quá trình gửi (kể cả lúc chuyển file âm thanh). */
+    setSendStatus("sending","⏳ Đang gửi đăng ký…");
     function doSend(amThanh){
       var payload=buildPayload(amThanh);
       stopCamera();
-      $("sendStatus").hidden=true;
       fetch(WEBAPP_URL,{
         method:"POST", mode:"no-cors",
         headers:{ "Content-Type":"text/plain" },
         body: JSON.stringify(payload)
       }).then(function(){
+        setSendStatus("success","✓ ĐÃ GỬI THÀNH CÔNG\nMở trang trình chiếu trên laptop để xem.");
         $("sendBtn").hidden=true;
         $("sendDone").hidden=false;
       }).catch(function(){
-        $("sendStatus").textContent="ĐĂNG KÝ CHƯA ĐƯỢC — thầy thử lại nhé. Máy có thể đang mất mạng.";
-        $("sendStatus").hidden=false;
+        setSendStatus("error","✗ Gửi chưa được — kiểm tra mạng rồi bấm 'Hoàn tất đăng ký' để thử lại.");
         btn.disabled=false;
       });
     }
@@ -966,6 +1074,8 @@
     $("sendStatus").hidden=true;
     $("photoStatus").hidden=true;
     $("cameraStatus").hidden=false;
+    $("photoCanvas").hidden=true; $("photoCanvas").style.display="none";
+    $("reopenCameraBtn").hidden=true;
     video.style.display="block";
     $("captureBtn").hidden=false; $("captureBtn").disabled=false;
     $("retakeBtn").hidden=true;
