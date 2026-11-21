@@ -717,60 +717,84 @@ stNam.g.rotation.y = -0.3; /* quay mặt về phía lớp, hơi nghiêng về m�
   phoneScr.position.set(0, -0.5, 0.075); stNam.armR.add(phoneScr);
 })();
 
-/* ---------- ROBOT AI MÀU XANH (theo ảnh mẫu thầy gửi) ----------
-   Đầu tròn xanh, hai mắt to phát sáng xanh lơ, thân xanh có nhãn "AI" trắng,
-   tay cầm kính lúp. Đứng cạnh màn hình như Moki ở cảnh Bài 12. */
+/* ---------- ROBOT AI CAO CẤP (theo ảnh mẫu thầy gửi, phối nhiều màu) ----------
+   Vẫn là robot thân thiện dẫn chuyện: đầu tròn, mắt phát sáng, nhãn "AI",
+   tay cầm kính lúp — nhưng "xịn" hơn: thân phủ gradient tím → xanh dương →
+   xanh ngọc bóng loáng, viền vàng kim, mắt vàng phát sáng, đèn ngực 3 màu
+   (xanh ngọc / vàng / hồng), thắt lưng vàng, tai tím. Đứng cạnh màn hình
+   như Moki ở cảnh Bài 12. */
 var robot = new THREE.Group();
 robot.position.set(3.0, 0, -1.4);
 scene.add(robot);
-var blueBody = mat(0x1e88e5, 0.35);
-var blueDark = mat(0x1565c0, 0.4);
+var robotGradTex = canvasTex(64, 256, function(ctx, w, h){
+  var g = ctx.createLinearGradient(0, 0, 0, h);
+  g.addColorStop(0.00, '#7c4dff');
+  g.addColorStop(0.45, '#1e88e5');
+  g.addColorStop(1.00, '#00b8d4');
+  ctx.fillStyle = g; ctx.fillRect(0, 0, w, h);
+});
+var bodyGrad = new THREE.MeshPhysicalMaterial({ map: robotGradTex, roughness: 0.16, metalness: 0.12, clearcoat: 0.9, clearcoatRoughness: 0.22, envMapIntensity: 0.9 });
+var purpleMat = mat(0x7c4dff, 0.3);
+var deepPurple = mat(0x311b92, 0.35);
+var goldMetal = new THREE.MeshStandardMaterial({ color: 0xffb300, roughness: 0.28, metalness: 0.85, emissive: 0x4a2c00, emissiveIntensity: 0.35 });
+var goldGlow = new THREE.MeshStandardMaterial({ color: 0xffd54f, roughness: 0.2, metalness: 0.1, emissive: 0xffb300, emissiveIntensity: 2.2 });
 var cyanGlow = new THREE.MeshStandardMaterial({ color:0x00e5ff, roughness:0.2, metalness:0.1, emissive:0x00b8d4, emissiveIntensity:1.8 });
+var pinkGlow = new THREE.MeshStandardMaterial({ color: 0xff80ab, roughness: 0.2, metalness: 0.1, emissive: 0xff4081, emissiveIntensity: 1.8 });
 var robotWhite = mat(0xf5f5f5, 0.5);
-var robotMetal = new THREE.MeshPhysicalMaterial({ color:0xd7dde2, roughness:0.25, metalness:0.9, clearcoat:0.5, clearcoatRoughness:0.25, envMapIntensity:0.9 });
 var faceDark = mat(0x0d1b2a, 0.25);
 [-1, 1].forEach(function(s){
-  var leg = capsule(0.09, 0.22, blueDark); leg.position.set(0.15*s, 0.32, 0); robot.add(leg);
-  var foot = ball(0.11, blueDark, 1, 0.5, 1.5); foot.position.set(0.15*s, 0.07, 0.05); robot.add(foot);
+  var leg = capsule(0.09, 0.22, deepPurple); leg.position.set(0.15*s, 0.32, 0); robot.add(leg);
+  var foot = ball(0.11, deepPurple, 1, 0.5, 1.5); foot.position.set(0.15*s, 0.07, 0.05); robot.add(foot);
+  var toe = ball(0.045, goldMetal); toe.position.set(0.15*s, 0.06, 0.2); robot.add(toe);
 });
-var rBody = capsule(0.32, 0.42, blueBody); rBody.position.y = 1.02; rBody.scale.set(1, 1, 0.82); robot.add(rBody);
+var rBody = capsule(0.32, 0.42, bodyGrad); rBody.position.y = 1.02; rBody.scale.set(1, 1, 0.82); robot.add(rBody);
+/* thắt lưng vàng kim quanh thân */
+var belt = new THREE.Mesh(new THREE.TorusGeometry(0.335, 0.028, 10, 32), goldMetal);
+belt.rotation.x = Math.PI/2; belt.scale.set(1, 0.82, 1); belt.position.y = 0.78; robot.add(belt);
 var aiTex = canvasTex(256, 128, function(ctx, w, h){
   ctx.fillStyle = '#ffffff'; ctx.beginPath(); ctx.arc(w/2, h/2, 52, 0, 6.283); ctx.fill();
   ctx.fillStyle = '#1565c0'; ctx.font = "bold 64px 'Segoe UI', Arial, sans-serif";
   ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText('AI', w/2, h/2 + 2);
 });
-var aiLabel = new THREE.Mesh(new THREE.PlaneGeometry(0.34, 0.17),
+var aiLabel = new THREE.Mesh(new THREE.PlaneGeometry(0.38, 0.19),
   new THREE.MeshStandardMaterial({ map: aiTex, transparent: true, roughness: 0.5 }));
 aiLabel.position.set(0, 1.12, 0.27); robot.add(aiLabel);
+/* vòng vàng kim quanh nhãn AI + 3 đèn ngực (xanh ngọc / vàng / hồng) */
+var aiRing = new THREE.Mesh(new THREE.TorusGeometry(0.1, 0.014, 10, 32), goldMetal);
+aiRing.position.set(0, 1.12, 0.285); robot.add(aiRing);
+[cyanGlow, goldGlow, pinkGlow].forEach(function(m, i){
+  var led = ball(0.026, m); led.position.set(-0.09 + i*0.09, 0.9, 0.26); robot.add(led);
+});
 var head = new THREE.Group(); head.position.y = 1.78; robot.add(head);
-var skull = ball(0.34, blueBody, 1, 0.92, 0.95); head.add(skull);
+var skull = ball(0.34, bodyGrad, 1, 0.92, 0.95); head.add(skull);
 var faceVisor = ball(0.27, faceDark, 1, 0.72, 0.5); faceVisor.position.set(0, 0.01, 0.14); head.add(faceVisor);
 [-1, 1].forEach(function(s){
-  var eye = ball(0.062, cyanGlow); eye.position.set(0.11*s, 0.05, 0.32); head.add(eye);
+  var eye = ball(0.062, goldGlow); eye.position.set(0.11*s, 0.05, 0.32); head.add(eye);
   var hi = ball(0.02, robotWhite); hi.position.set(0.11*s + 0.025, 0.08, 0.36); head.add(hi);
 });
 var smile = new THREE.Mesh(new THREE.TorusGeometry(0.07, 0.014, 8, 20, Math.PI*0.7), cyanGlow);
 smile.position.set(0, -0.1, 0.3);
 smile.rotation.z = Math.PI + (Math.PI - Math.PI*0.7)/2; smile.rotation.x = -0.15; head.add(smile);
-var ant = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, 0.22, 8), robotMetal);
+var ant = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, 0.22, 8), goldMetal);
 ant.position.y = 0.4; head.add(ant);
-var antTip = ball(0.05, cyanGlow); antTip.position.y = 0.53; head.add(antTip);
+var antTip = ball(0.05, goldGlow); antTip.position.y = 0.53; head.add(antTip);
 [-1, 1].forEach(function(s){
-  var ear = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.05, 0.08, 12), robotMetal);
+  var ear = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.05, 0.08, 12), purpleMat);
   ear.rotation.z = Math.PI/2; ear.position.set(0.35*s, 0, 0); head.add(ear);
+  var earCap = ball(0.035, goldMetal); earCap.position.set(0.41*s, 0, 0); head.add(earCap);
 });
 function makeRobotArm(side, withMag){
   var pivot = new THREE.Group();
   pivot.position.set(0.4*side, 1.32, 0);
-  var sh = ball(0.11, blueDark); pivot.add(sh);
-  var up = capsule(0.085, 0.3, blueBody); up.position.y = -0.22; pivot.add(up);
+  var sh = ball(0.11, purpleMat); pivot.add(sh);
+  var up = capsule(0.085, 0.3, bodyGrad); up.position.y = -0.22; pivot.add(up);
   var hand = new THREE.Group(); hand.position.y = -0.46; pivot.add(hand);
-  var palm = ball(0.09, blueDark, 1, 1, 0.7); hand.add(palm);
+  var palm = ball(0.09, purpleMat, 1, 1, 0.7); hand.add(palm);
   if (withMag){
     var mag = new THREE.Group(); mag.position.set(0, -0.05, 0.1); hand.add(mag);
     var handle = new THREE.Mesh(new THREE.CylinderGeometry(0.025, 0.03, 0.3, 10), mat(0x5d4037, 0.6));
     handle.position.y = -0.12; mag.add(handle);
-    var ring = new THREE.Mesh(new THREE.TorusGeometry(0.16, 0.028, 10, 28), robotMetal);
+    var ring = new THREE.Mesh(new THREE.TorusGeometry(0.16, 0.028, 10, 28), goldMetal);
     ring.position.y = 0.16; mag.add(ring);
     var glass = new THREE.Mesh(new THREE.CircleGeometry(0.15, 28),
       new THREE.MeshPhysicalMaterial({ color:0xbbdefb, transparent:true, opacity:0.35, roughness:0.1, metalness:0 }));
@@ -787,6 +811,75 @@ function makeRobotArm(side, withMag){
 var armWave = makeRobotArm(-1, false);
 var armMag = makeRobotArm(1, true);
 var glintMat = armMag.userData.mag.userData.glint.material;
+
+/* ---------- THẺ QUẢNG CÁO BAY (3D) — quảng cáo nhân lên, vây quanh bạn ----------
+   5 thẻ quảng cáo màu mè (giày / tai nghe + nhãn ngắn) bay vào từ hai bên,
+   mỗi đoạn truyện thêm 1 thẻ, tới cao trào thì vây kín quanh bạn học sinh.
+   Tới màn cuối (thấy lạ — dừng lại — kiểm tra) thì các thẻ bay đi. */
+function adCardTex(bg, product, label, labelBg){
+  return canvasTex(512, 320, function(ctx, w, h){
+    ctx.fillStyle = bg; rr(ctx, 0, 0, w, h, 36);
+    ctx.fillStyle = 'rgba(255,255,255,0.94)'; rr(ctx, 18, 18, w - 36, h - 110, 24);
+    if (product === 'shoe') drawShoe(ctx, w/2, 152, 0.95, '#e53935');
+    else drawHeadphones(ctx, w/2, 142, 0.95, '#37474f');
+    ctx.fillStyle = labelBg; rr(ctx, 18, h - 78, w - 36, 60, 30);
+    ctx.fillStyle = '#ffffff'; ctx.font = "bold 44px 'Segoe UI', Arial, sans-serif";
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillText(label, w/2, h - 46);
+  });
+}
+var adCards = [];
+[
+  { bg:'#e53935', product:'shoe', label:'MUA NGAY!', labelBg:'#b71c1c', at:5 },
+  { bg:'#2e7d32', product:'head', label:'GIẢM GIÁ!', labelBg:'#1b5e20', at:6 },
+  { bg:'#f57c00', product:'shoe', label:'SALE 50%!', labelBg:'#e65100', at:7 },
+  { bg:'#7b1fa2', product:'head', label:'HOT!', labelBg:'#4a148c', at:8 },
+  { bg:'#1565c0', product:'shoe', label:'MUA NGAY!', labelBg:'#0d47a1', at:9 }
+].forEach(function(d, i){
+  var m = new THREE.Mesh(new THREE.PlaneGeometry(1.15, 0.72),
+    new THREE.MeshBasicMaterial({ map: adCardTex(d.bg, d.product, d.label, d.labelBg), transparent: true, side: THREE.DoubleSide }));
+  m.castShadow = true;
+  var from = new THREE.Vector3((i % 2 ? 8.5 : -8.5), 3.4, 0.5);
+  m.position.copy(from); m.scale.setScalar(0.01); m.visible = false;
+  scene.add(m);
+  adCards.push({ mesh: m, from: from, ang: -0.9 + i*0.45, h: 1.35 + (i % 3)*0.45, prog: 0, at: d.at, phase: i*1.3 });
+});
+
+/* ---------- GIÀY ĐỎ + TAI NGHE 3D — đồ mình thích bay lơ lửng quanh bạn ---------- */
+var shoe3d = new THREE.Group();
+(function(){
+  var sole = new THREE.Mesh(new THREE.BoxGeometry(0.55, 0.09, 0.24), mat(0xffffff, 0.4));
+  shoe3d.add(sole);
+  var upper = new THREE.Mesh(new THREE.BoxGeometry(0.44, 0.17, 0.22), mat(0xe53935, 0.4));
+  upper.position.set(-0.02, 0.13, 0); shoe3d.add(upper);
+  var toe = ball(0.11, mat(0xe53935, 0.4), 1, 0.8, 1);
+  toe.position.set(0.24, 0.1, 0); shoe3d.add(toe);
+  var heel = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.2, 0.22), mat(0xc62828, 0.4));
+  heel.position.set(-0.24, 0.14, 0); shoe3d.add(heel);
+  shoe3d.traverse(function(o){ if (o.isMesh) o.castShadow = true; });
+})();
+shoe3d.position.set(-2.5, 1.15, 0.7);
+shoe3d.rotation.y = -0.3;
+shoe3d.scale.setScalar(0.01); shoe3d.visible = false;
+scene.add(shoe3d);
+var shoeProg = 0;
+
+var hp3d = new THREE.Group();
+(function(){
+  var band = new THREE.Mesh(new THREE.TorusGeometry(0.2, 0.045, 10, 24, Math.PI), mat(0x37474f, 0.4));
+  hp3d.add(band);
+  [-1, 1].forEach(function(s){
+    var cup = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.1, 0.07, 18), mat(0x37474f, 0.4));
+    cup.rotation.z = Math.PI/2; cup.position.set(0.2*s, -0.02, 0); hp3d.add(cup);
+    var dot = ball(0.03, cyanGlow); dot.position.set(0.24*s, -0.02, 0); hp3d.add(dot);
+  });
+  hp3d.traverse(function(o){ if (o.isMesh) o.castShadow = true; });
+})();
+hp3d.position.set(-4.7, 1.3, 0.7);
+hp3d.rotation.y = 0.25;
+hp3d.scale.setScalar(0.01); hp3d.visible = false;
+scene.add(hp3d);
+var hpProg = 0;
 
 /* ---------- MÀN HÌNH LỚN (máy) ---------- */
 var scrCanvas = document.createElement('canvas');
@@ -863,6 +956,23 @@ function wrapText(ctx, text, maxW){
   if (line) lines.push(line);
   return lines;
 }
+/* đầu mũi tên (tam giác) chỉ theo hướng ang, tại (x, y) */
+function arrowHead(ctx, x, y, ang, size){
+  ctx.save(); ctx.translate(x, y); ctx.rotate(ang);
+  ctx.beginPath(); ctx.moveTo(size, 0); ctx.lineTo(-size*0.7, -size*0.62); ctx.lineTo(-size*0.7, size*0.62);
+  ctx.closePath(); ctx.fill(); ctx.restore();
+}
+/* ngôi sao nổ (huy hiệu SALE): 12 cánh nhọn xen kẽ */
+function starburst(ctx, cx, cy, rOut, rIn, points){
+  ctx.beginPath();
+  for (var i = 0; i < points*2; i++){
+    var r = (i % 2 === 0) ? rOut : rIn;
+    var a = (i/(points*2))*Math.PI*2 - Math.PI/2;
+    var x = cx + Math.cos(a)*r, y = cy + Math.sin(a)*r;
+    if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+  }
+  ctx.closePath(); ctx.fill();
+}
 function drawShoe(ctx, x, y, s, col){
   ctx.save(); ctx.translate(x, y); ctx.scale(s, s);
   ctx.fillStyle = '#ffffff';
@@ -906,13 +1016,18 @@ function drawIdle(){
   ctx.fillText('QUẢNG CÁO BÁM ĐUỔI', W/2, 220);
   ctx.fillStyle = '#e53935'; ctx.font = "bold 84px 'Segoe UI', Arial, sans-serif";
   ctx.fillText('KHẮP NƠI?', W/2, 320);
+  drawShoe(ctx, 185, 445, 0.85, '#e53935');
+  drawHeadphones(ctx, 839, 445, 0.85, '#37474f');
   ctx.fillStyle = '#546e7a'; ctx.font = "40px 'Segoe UI', Arial, sans-serif";
   ctx.fillText('Câu chuyện của một bạn lớp 8', W/2, 430);
   ctx.fillStyle = '#1565c0'; ctx.font = "bold 40px 'Segoe UI', Arial, sans-serif";
   ctx.fillText('Bấm nút ▶ Phát để bắt đầu!', W/2, 520);
   scrTex.needsUpdate = true;
 }
-/* Mở đầu (câu 1–5): điện thoại mượn của bố mẹ, đồ mình thích hiện dần ra */
+/* Mở đầu (câu 1–5): điện thoại mượn của bố mẹ, đồ mình thích hiện dần ra.
+   Màn hình LỚN — chỉ hình, ít chữ: điện thoại to, giày + tai nghe to, chỉ còn
+   nhãn ngắn của quảng cáo ("MUA NGAY!", "GIẢM GIÁ!"); lời thoại đã có ở
+   dải chữ dưới màn hình. */
 function drawPhoneScreen(step){
   var ctx = scrCtx, W = 1024, H = 620;
   var g = ctx.createLinearGradient(0, 0, 0, H);
@@ -920,91 +1035,118 @@ function drawPhoneScreen(step){
   ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
   ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
   ctx.fillStyle = '#0d47a1'; ctx.font = "bold 44px 'Segoe UI', Arial, sans-serif";
-  ctx.fillText('ĐIỆN THOẠI CỦA BỐ MẸ', W/2, 44);
-  var px = 312, py = 80, pw = 400, ph = 500;
+  ctx.fillText('ĐIỆN THOẠI CỦA BỐ MẸ', W/2, 40);
+  var px = 262, py = 64, pw = 500, ph = 520;
   ctx.fillStyle = '#263238'; rr(ctx, px, py, pw, ph, 36);
   ctx.fillStyle = '#ffffff'; rr(ctx, px + 14, py + 14, pw - 28, ph - 28, 26);
-  ctx.fillStyle = '#eceff1'; ctx.fillRect(px + 14, py + 14, pw - 28, 44);
+  ctx.fillStyle = '#eceff1'; ctx.fillRect(px + 14, py + 14, pw - 28, 46);
   ctx.fillStyle = '#37474f'; ctx.font = "bold 26px 'Segoe UI', Arial, sans-serif";
-  ctx.textAlign = 'left'; ctx.fillText('15:20', px + 34, py + 37);
-  ctx.textAlign = 'right'; ctx.fillText('Mượn một lúc thôi', px + pw - 34, py + 37);
+  ctx.textAlign = 'left'; ctx.fillText('15:20', px + 36, py + 37);
+  ctx.textAlign = 'right'; ctx.fillText('⏰', px + pw - 36, py + 37);
   ctx.textAlign = 'center';
-  ctx.fillStyle = '#fff3e0'; rr(ctx, px + 44, py + 78, pw - 88, 56, 28);
+  ctx.fillStyle = '#fff3e0'; rr(ctx, px + 44, py + 72, pw - 88, 54, 27);
   ctx.fillStyle = '#e65100'; ctx.font = "bold 30px 'Segoe UI', Arial, sans-serif";
-  ctx.fillText('⏰ Chỉ được dùng một lúc', W/2, py + 107);
+  ctx.fillText('⏰ Chỉ được dùng một lúc', W/2, py + 100);
   if (step >= 1){
-    ctx.fillStyle = '#ffebee'; rr(ctx, px + 34, py + 156, pw - 68, 130, 18);
-    drawShoe(ctx, px + 130, py + 252, 0.62, '#e53935');
-    ctx.fillStyle = '#c62828'; ctx.font = "bold 32px 'Segoe UI', Arial, sans-serif";
-    ctx.textAlign = 'left'; ctx.fillText('Giày đỏ mình thích', px + 220, py + 200);
-    ctx.fillStyle = '#e53935'; ctx.font = "bold 28px 'Segoe UI', Arial, sans-serif";
-    ctx.fillText('MUA NGAY!', px + 220, py + 244);
+    ctx.fillStyle = '#ffebee'; rr(ctx, px + 30, py + 140, pw - 60, 150, 18);
+    drawShoe(ctx, px + 140, py + 235, 0.78, '#e53935');
+    ctx.fillStyle = '#e53935'; ctx.font = "bold 34px 'Segoe UI', Arial, sans-serif";
+    ctx.textAlign = 'left'; ctx.fillText('MUA NGAY!', px + 260, py + 215);
     ctx.textAlign = 'center';
   }
   if (step >= 2){
-    ctx.fillStyle = '#e8f5e9'; rr(ctx, px + 34, py + 306, pw - 68, 130, 18);
-    drawHeadphones(ctx, px + 110, py + 372, 0.62, '#37474f');
-    ctx.fillStyle = '#1b5e20'; ctx.font = "bold 32px 'Segoe UI', Arial, sans-serif";
-    ctx.textAlign = 'left'; ctx.fillText('Tai nghe đang để ý', px + 200, py + 350);
-    ctx.fillStyle = '#2e7d32'; ctx.font = "bold 28px 'Segoe UI', Arial, sans-serif";
-    ctx.fillText('GIẢM GIÁ!', px + 200, py + 394);
+    ctx.fillStyle = '#e8f5e9'; rr(ctx, px + 30, py + 304, pw - 60, 150, 18);
+    drawHeadphones(ctx, px + 130, py + 379, 0.78, '#37474f');
+    ctx.fillStyle = '#2e7d32'; ctx.font = "bold 34px 'Segoe UI', Arial, sans-serif";
+    ctx.textAlign = 'left'; ctx.fillText('GIẢM GIÁ!', px + 250, py + 379);
     ctx.textAlign = 'center';
   }
   if (step >= 3){
-    ctx.fillStyle = '#1565c0'; ctx.font = "bold 34px 'Segoe UI', Arial, sans-serif";
-    ctx.fillText('Chưa tìm gì cả — mà toàn đồ mình thích!', W/2, py + 478);
+    ctx.fillStyle = '#ffd740';
+    ctx.beginPath(); ctx.arc(W/2, py + 492, 24, 0, 6.283); ctx.fill();
+    ctx.fillStyle = '#1565c0'; ctx.font = "bold 44px 'Segoe UI', Arial, sans-serif";
+    ctx.fillText('?', W/2, py + 494);
   }
   scrTex.needsUpdate = true;
 }
-/* Giữa (câu 6–11): ảnh mẫu thầy gửi — quảng cáo bám đuổi khắp nơi */
+/* Giữa (câu 6–11): ảnh mẫu thầy gửi — quảng cáo bám đuổi khắp nơi.
+   Ảnh hiện toàn màn hình, phóng to nhẹ nhàng theo nhịp (Ken Burns) và phủ
+   thêm 2 mũi tên đứt nét CHẠY (marching ants) để thấy quảng cáo đang đuổi
+   theo bạn — giống hệt các mũi tên trong ảnh mẫu, nhưng có chuyển động. */
 function drawRef(){
   var ctx = scrCtx, W = 1024, H = 620;
   ctx.fillStyle = '#0d47a1'; ctx.fillRect(0, 0, W, H);
-  drawCover(ctx, refImg, 0, 0, W, H);
+  if (refImg.complete && refImg.naturalWidth){
+    var zoom = 1.03 + 0.03*Math.sin(curT*0.22);
+    var s = Math.max(W/refImg.naturalWidth, H/refImg.naturalHeight) * zoom;
+    var dw = refImg.naturalWidth*s, dh = refImg.naturalHeight*s;
+    ctx.save(); ctx.beginPath(); ctx.rect(0, 0, W, H); ctx.clip();
+    ctx.drawImage(refImg, (W - dw)/2, (H - dh)/2, dw, dh);
+    ctx.restore();
+  } else {
+    drawCover(ctx, refImg, 0, 0, W, H);
+  }
+  ctx.save();
+  ctx.strokeStyle = 'rgba(21,101,192,0.95)'; ctx.fillStyle = '#1565c0';
+  ctx.lineWidth = 10; ctx.lineCap = 'round';
+  ctx.setLineDash([22, 16]); ctx.lineDashOffset = -curT*60;
+  ctx.beginPath(); ctx.moveTo(60, 150); ctx.quadraticCurveTo(512, 40, 964, 150); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(964, 500); ctx.quadraticCurveTo(512, 600, 60, 500); ctx.stroke();
+  ctx.setLineDash([]);
+  arrowHead(ctx, 964, 150, 0.24, 22);
+  arrowHead(ctx, 60, 500, Math.PI - 0.24, 22);
+  ctx.restore();
   scrTex.needsUpdate = true;
 }
-/* Cao trào (câu 12–13): đồng hồ đếm ngược — "CÒN 10 PHÚT" to nhất màn hình */
+/* Cao trào (câu 12–13): đồng hồ đếm ngược — "CÒN 10 PHÚT" to nhất màn hình.
+   Đồng hồ TO hơn, vòng đỏ đập theo nhịp, chữ to có ánh đỏ — nhìn là thấy gấp. */
 function drawCountdown(){
   var ctx = scrCtx, W = 1024, H = 620;
   var g = ctx.createLinearGradient(0, 0, 0, H);
   g.addColorStop(0, '#fffde7'); g.addColorStop(1, '#ffffff');
   ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
-  var cx = W/2, cy = 185, r = 98;
+  var cx = W/2, cy = 185, r = 118;
+  var pulse = 1 + 0.04*Math.sin(curT*5);
   ctx.fillStyle = '#ffffff';
   ctx.beginPath(); ctx.arc(cx, cy, r, 0, 6.283); ctx.fill();
-  ctx.strokeStyle = '#e53935'; ctx.lineWidth = 10;
+  ctx.strokeStyle = '#e53935'; ctx.lineWidth = 12*pulse;
   ctx.beginPath(); ctx.arc(cx, cy, r, 0, 6.283); ctx.stroke();
   ctx.strokeStyle = '#37474f'; ctx.lineWidth = 4;
   for (var i = 0; i < 12; i++){
     var a = i*Math.PI/6;
     ctx.beginPath();
-    ctx.moveTo(cx + Math.cos(a)*(r - 14), cy + Math.sin(a)*(r - 14));
-    ctx.lineTo(cx + Math.cos(a)*(r - 4), cy + Math.sin(a)*(r - 4));
+    ctx.moveTo(cx + Math.cos(a)*(r - 16), cy + Math.sin(a)*(r - 16));
+    ctx.lineTo(cx + Math.cos(a)*(r - 5), cy + Math.sin(a)*(r - 5));
     ctx.stroke();
   }
   var ma = -Math.PI/2 + ((curT*0.9) % 60)/60*2*Math.PI; /* kim phút quay theo tốc độ đã chọn */
-  ctx.strokeStyle = '#e53935'; ctx.lineWidth = 7; ctx.lineCap = 'round';
+  ctx.strokeStyle = '#e53935'; ctx.lineWidth = 8; ctx.lineCap = 'round';
   ctx.beginPath(); ctx.moveTo(cx, cy);
-  ctx.lineTo(cx + Math.cos(ma)*(r - 26), cy + Math.sin(ma)*(r - 26)); ctx.stroke();
+  ctx.lineTo(cx + Math.cos(ma)*(r - 30), cy + Math.sin(ma)*(r - 30)); ctx.stroke();
   var ha = -Math.PI/2 + 1.1;
-  ctx.strokeStyle = '#37474f'; ctx.lineWidth = 8;
+  ctx.strokeStyle = '#37474f'; ctx.lineWidth = 9;
   ctx.beginPath(); ctx.moveTo(cx, cy);
-  ctx.lineTo(cx + Math.cos(ha)*(r - 52), cy + Math.sin(ha)*(r - 52)); ctx.stroke();
+  ctx.lineTo(cx + Math.cos(ha)*(r - 60), cy + Math.sin(ha)*(r - 60)); ctx.stroke();
   ctx.fillStyle = '#e53935';
-  ctx.beginPath(); ctx.arc(cx, cy, 8, 0, 6.283); ctx.fill();
+  ctx.beginPath(); ctx.arc(cx, cy, 9, 0, 6.283); ctx.fill();
   ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
   var fs = 150;
   ctx.font = "bold " + fs + "px 'Segoe UI', Arial, sans-serif";
   while (ctx.measureText(COUNTDOWN_BIG).width > 940 && fs > 60){
     fs -= 10; ctx.font = "bold " + fs + "px 'Segoe UI', Arial, sans-serif";
   }
+  ctx.save();
+  ctx.shadowColor = 'rgba(229,57,53,0.55)'; ctx.shadowBlur = 30;
   ctx.fillStyle = '#e53935';
-  ctx.fillText(COUNTDOWN_BIG, W/2, 420);
+  ctx.fillText(COUNTDOWN_BIG, W/2, 440);
+  ctx.restore();
   ctx.fillStyle = '#546e7a'; ctx.font = "36px 'Segoe UI', Arial, sans-serif";
-  ctx.fillText('nữa là phải trả điện thoại cho bố mẹ', W/2, 530);
+  ctx.fillText('nữa là phải trả điện thoại cho bố mẹ', W/2, 545);
   scrTex.needsUpdate = true;
 }
-/* Cao trào (câu 14–16): quảng cáo giày sale + giá 150.000đ thật to */
+/* Cao trào (câu 14–16): quảng cáo giày sale + giá 150.000đ thật to.
+   Giày TO hơn, giá TO hơn, thêm huy hiệu sao nổ "50%" — nhìn là thấy rẻ,
+   thấy gấp, thấy đúng số tiền mình có. */
 function drawAd(){
   var ctx = scrCtx, W = 1024, H = 620;
   ctx.fillStyle = '#ffffff'; ctx.fillRect(0, 0, W, H);
@@ -1012,29 +1154,40 @@ function drawAd(){
   ctx.fillStyle = '#ffffff'; ctx.font = "bold 56px 'Segoe UI', Arial, sans-serif";
   ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
   ctx.fillText('⚡ SALE 50%!', W/2, 44);
-  drawShoe(ctx, 300, 400, 1.15, '#e53935');
+  drawShoe(ctx, 300, 410, 1.5, '#e53935');
+  ctx.fillStyle = '#ff8f00';
+  starburst(ctx, 500, 165, 68, 48, 12);
+  ctx.fillStyle = '#ffffff'; ctx.font = "bold 44px 'Segoe UI', Arial, sans-serif";
+  ctx.fillText('50%', 500, 167);
   ctx.fillStyle = '#12324a'; ctx.font = "bold 54px 'Segoe UI', Arial, sans-serif";
   ctx.textAlign = 'left';
   ctx.fillText('Trời sắp lạnh rồi,', 560, 210);
   ctx.fillText('mua đôi giày này', 560, 280);
   ctx.fillText('đang sale!', 560, 350);
-  ctx.fillStyle = '#fff176'; rr(ctx, 560, 400, 420, 120, 20);
-  ctx.strokeStyle = '#e53935'; ctx.lineWidth = 5;
+  ctx.fillStyle = '#fff176'; rr(ctx, 550, 395, 440, 130, 20);
+  ctx.strokeStyle = '#e53935'; ctx.lineWidth = 6;
   ctx.beginPath();
-  if (ctx.roundRect){ ctx.roundRect(560, 400, 420, 120, 20); } else { ctx.rect(560, 400, 420, 120); }
+  if (ctx.roundRect){ ctx.roundRect(550, 395, 440, 130, 20); } else { ctx.rect(550, 395, 440, 130); }
   ctx.stroke();
-  ctx.fillStyle = '#c62828'; ctx.font = "bold 92px 'Segoe UI', Arial, sans-serif";
+  ctx.fillStyle = '#c62828'; ctx.font = "bold 108px 'Segoe UI', Arial, sans-serif";
   ctx.textAlign = 'center';
   ctx.fillText(PRICE_TEXT, 770, 462);
   ctx.fillStyle = '#546e7a'; ctx.font = "32px 'Segoe UI', Arial, sans-serif";
   ctx.fillText('Đúng số tiền mình đang có...', W/2, 575);
   scrTex.needsUpdate = true;
 }
-/* Câu hỏi lớn (câu 17): thẻ hỏi toàn màn hình, giữ nguyên sau khi giọng dứt */
+/* Câu hỏi lớn (câu 17): thẻ hỏi toàn màn hình, giữ nguyên sau khi giọng dứt.
+   Câu hỏi nằm trên NỀN là ảnh mẫu (bạn học sinh + quảng cáo vây quanh) đã
+   làm tối đi — câu hỏi không còn nằm trên thẻ trơn nữa, mà nằm giữa cảnh
+   quảng cáo đang đeo bám. */
 function drawQuestion(){
   var ctx = scrCtx, W = 1024, H = 620;
   ctx.fillStyle = '#0d47a1'; ctx.fillRect(0, 0, W, H);
-  ctx.fillStyle = 'rgba(255,255,255,0.07)';
+  if (refImg.complete && refImg.naturalWidth){
+    drawCover(ctx, refImg, 0, 0, W, H);
+    ctx.fillStyle = 'rgba(10, 30, 60, 0.74)'; ctx.fillRect(0, 0, W, H);
+  }
+  ctx.fillStyle = 'rgba(255,255,255,0.08)';
   ctx.font = "bold 420px 'Segoe UI', Arial, sans-serif";
   ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
   ctx.fillText('?', 880, 330);
@@ -1050,21 +1203,42 @@ function drawQuestion(){
   });
   scrTex.needsUpdate = true;
 }
-/* Kết (câu 18–20 + màn cuối): câu chốt to, rõ */
+/* Kết (câu 18–20 + màn cuối): câu chốt to, rõ.
+   Thêm BIỂN DỪNG màu đỏ với bàn tay trắng giơ lên ở trên cùng — nhìn là
+   hiểu ngay "dừng lại", rồi mới tới câu chốt to. */
 function drawFinalScreen(){
   var ctx = scrCtx, W = 1024, H = 620;
   var g = ctx.createLinearGradient(0, 0, 0, H);
   g.addColorStop(0, '#1565c0'); g.addColorStop(1, '#0d47a1');
   ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+  /* biển dừng 8 cạnh + bàn tay trắng */
+  var ox = W/2, oy = 108, orr = 62;
+  ctx.fillStyle = '#e53935';
+  ctx.beginPath();
+  for (var k = 0; k < 8; k++){
+    var a = (k/8)*Math.PI*2 + Math.PI/8;
+    var px = ox + Math.cos(a)*orr, py = oy + Math.sin(a)*orr;
+    if (k === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+  }
+  ctx.closePath(); ctx.fill();
+  ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 5; ctx.stroke();
+  ctx.fillStyle = '#ffffff';
+  ctx.beginPath(); ctx.arc(ox, oy + 14, 19, 0, 6.283); ctx.fill();
+  rr(ctx, ox - 21, oy - 26, 10, 32, 5);
+  rr(ctx, ox - 7, oy - 30, 10, 36, 5);
+  rr(ctx, ox + 7, oy - 30, 10, 36, 5);
+  rr(ctx, ox + 21, oy - 26, 10, 32, 5);
+  ctx.save(); ctx.translate(ox - 26, oy + 8); ctx.rotate(-0.6);
+  rr(ctx, -5, -14, 10, 28, 5); ctx.restore();
   ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
   ctx.fillStyle = '#ffd740'; ctx.font = "bold 62px 'Segoe UI', Arial, sans-serif";
   var lines = wrapText(ctx, CHOT_TEXT, 900);
-  var y = 250;
+  var y = 285;
   lines.forEach(function(ln){ ctx.fillText(ln, W/2, y); y += 78; });
   ctx.fillStyle = '#ffffff'; ctx.font = "40px 'Segoe UI', Arial, sans-serif";
-  ctx.fillText('Bài 4 lớp 8', W/2, 400);
+  ctx.fillText('Bài 4 lớp 8', W/2, 420);
   ctx.fillStyle = '#bbdefb'; ctx.font = "34px 'Segoe UI', Arial, sans-serif";
-  ctx.fillText('Tiếp theo: xem app thật thu thập dữ liệu', W/2, 480);
+  ctx.fillText('Tiếp theo: xem app thật thu thập dữ liệu', W/2, 500);
   scrTex.needsUpdate = true;
 }
 function drawScreen(){
@@ -1269,6 +1443,45 @@ function applyState(tt){
   stNam.headG.rotation.z = lookQ ? 0.12 : 0;
   stNam.armR.rotation.z = 0.1;
   stNam.armR.rotation.x = -1.15; /* giơ điện thoại lên trước mặt */
+  /* thẻ quảng cáo bay: mỗi đoạn truyện thêm 1 thẻ, vây quanh bạn; tới câu
+     hỏi lớn thì xích lại gần hơn; màn cuối thì bay đi */
+  var crowd = (state.phase === 'story' && state.clipIdx === 16) ? 0.8 : 1;
+  adCards.forEach(function(c, i){
+    var active = (state.phase === 'story' && state.clipIdx >= c.at);
+    c.prog += ((active ? 1 : 0) - c.prog) * 0.08;
+    if (c.prog < 0.02){ c.mesh.visible = false; return; }
+    c.mesh.visible = true;
+    var e = c.prog*c.prog*(3 - 2*c.prog);
+    var hx = -3.6 + Math.sin(c.ang)*1.7*crowd;
+    var hz = 0.9 + Math.cos(c.ang)*1.1*crowd;
+    c.mesh.position.set(
+      c.from.x + (hx - c.from.x)*e,
+      c.from.y + ((c.h + Math.sin(tt*2 + c.phase)*0.08) - c.from.y)*e,
+      c.from.z + (hz - c.from.z)*e
+    );
+    c.mesh.scale.setScalar(0.15 + 0.85*e);
+    c.mesh.rotation.y = Math.sin(tt*0.7 + c.phase)*0.18;
+    c.mesh.rotation.z = Math.sin(tt*0.9 + c.phase)*0.05;
+  });
+  /* giày đỏ + tai nghe 3D: hiện từ câu 4, lúc cao trào giày to lên */
+  var showProps = (state.phase === 'story' && state.clipIdx >= 3) ? 1 : 0;
+  shoeProg += (showProps - shoeProg) * 0.08;
+  hpProg += (showProps - hpProg) * 0.08;
+  var shoeBig = (state.phase === 'story' && state.clipIdx >= 13 && state.clipIdx <= 15) ? 1.4 : 1;
+  if (shoeProg < 0.02){ shoe3d.visible = false; } else {
+    shoe3d.visible = true;
+    var se = shoeProg*shoeProg*(3 - 2*shoeProg);
+    shoe3d.scale.setScalar(0.15 + 0.85*se*shoeBig);
+    shoe3d.position.y = 1.15 + Math.sin(tt*2.2)*0.07;
+    shoe3d.rotation.y = -0.3 + Math.sin(tt*0.8)*0.08;
+  }
+  if (hpProg < 0.02){ hp3d.visible = false; } else {
+    hp3d.visible = true;
+    var he = hpProg*hpProg*(3 - 2*hpProg);
+    hp3d.scale.setScalar(0.15 + 0.85*he);
+    hp3d.position.y = 1.3 + Math.sin(tt*2.2 + 1.5)*0.07;
+    hp3d.rotation.y = 0.25 + Math.sin(tt*0.8 + 1)*0.08;
+  }
   drawScreen();
   lampMat.color.setHex(state.started ? 0x69f0ae : 0xff5252);
   clouds.forEach(function(c, i){
