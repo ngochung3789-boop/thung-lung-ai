@@ -1,6 +1,14 @@
 // ============================================================================
 //  ĐƯỜNG CHUYỂN TOÀN BỘ THÔNG TIN: ĐIỆN THOẠI (thầy) -> LAPTOP (thầy) -> CHIẾU LÊN TV
 //  Chỉ phục vụ thầy Phạm Ngọc Hưng và dữ liệu CỦA THẦY.
+//  PHIÊN BẢN 19 (21/11/2026):
+//  - SỬA LỖI ĐIỀU HƯỚNG TRONG KHUNG NHÚNG: bấm vào dòng menu / "Xem tất
+//    cả" / "← Quay lại menu" / "Làm mới trang" / nút xóa thì khung nhúng
+//    Apps Script báo "script.google.com đã từ chối kết nối" vì link điều
+//    hướng BÊN TRONG iframe. Tất cả link điều hướng trong trang trình
+//    chiếu giờ có target="_top" để mở ở cấp cao nhất, thoát khỏi khung
+//    nhúng. Link tải về (ảnh/danh bạ/giọng nói), link xem ảnh lớn (#...)
+//    và link Google Maps KHÔNG đổi.
 //  PHIÊN BẢN 18 (21/11/2026):
 //  - MENU XẾP THEO THỜI GIAN: máy gửi mới nhất lên TRÊN CÙNG, máy chưa
 //    gửi xuống cuối. Mỗi dòng menu hiện ngày + giờ gửi NHỎ Ở GÓC TRÊN PHẢI
@@ -970,7 +978,7 @@ function theMayMayChu(m, dangDung) {
   // chưa xóa gì ở bước này. Chỉ hiện trên thẻ đã có dữ liệu.
   var idXoa = laTheoTen ? String(m.idMay || '') : String(m.may).replace(/\D/g, '');
   if (idXoa !== '') {
-    h += '<div class="hang-tai"><a class="nut-xoa" href="' + escHtml(URL_WEB_APP) + '?action=xoa&id=' + escHtml(encodeURIComponent(idXoa)) + '">🗑 Xóa dữ liệu máy này</a></div>';
+    h += '<div class="hang-tai"><a class="nut-xoa" target="_top" href="' + escHtml(URL_WEB_APP) + '?action=xoa&id=' + escHtml(encodeURIComponent(idXoa)) + '">🗑 Xóa dữ liệu máy này</a></div>';
   }
   h += '</div>';
   return h;
@@ -997,8 +1005,8 @@ function taoTrangXacNhanXoa(idNhan, nhan) {
     '</style>\n</head>\n<body>\n<div class="hop">\n' +
     '<h1>Xóa dữ liệu máy này?</h1>\n' +
     '<p>Bạn có chắc chắn muốn xóa toàn bộ dữ liệu của <b>' + escHtml(nhan) + '</b>? (tên, số điện thoại, vị trí, danh bạ, ảnh, bản tóm tắt, giọng nói). Sau khi xóa sẽ <b>không lấy lại được</b>.</p>\n' +
-    '<a class="nut nut-xoa" href="' + escHtml(linkXoa) + '">🗑 Xóa ngay</a>' +
-    '<a class="nut nut-huy" href="' + escHtml(URL_WEB_APP) + '">Hủy — quay lại menu</a>\n' +
+    '<a class="nut nut-xoa" target="_top" href="' + escHtml(linkXoa) + '">🗑 Xóa ngay</a>' +
+    '<a class="nut nut-huy" target="_top" href="' + escHtml(URL_WEB_APP) + '">Hủy — quay lại menu</a>\n' +
     '</div>\n</body>\n</html>';
 }
 
@@ -1019,7 +1027,7 @@ function taoTrangKetQuaXoa(timThay, nhan) {
     '</style>\n</head>\n<body>\n<div class="hop">\n' +
     '<h1>' + tieuDe + '</h1>\n' +
     '<p>' + dong + '</p>\n' +
-    '<a class="nut" href="' + escHtml(URL_WEB_APP) + '">Quay lại menu</a>\n' +
+    '<a class="nut" target="_top" href="' + escHtml(URL_WEB_APP) + '">Quay lại menu</a>\n' +
     '</div>\n</body>\n</html>';
 }
 
@@ -1035,10 +1043,10 @@ function taoTrangKetQuaXoa(timThay, nhan) {
 //  nút "Làm mới trang" để xem máy mới gửi.
 //  Nút "Tải Album về": mỗi ảnh có 1 nút tải riêng (link thuần HTML, bấm là tải
 //  thẳng file ảnh đó về máy); bấm vào chính tấm ảnh cũng tải ảnh đó về.
-//  PHIÊN BẢN 18 (21/11/2026): MENU danh sách máy là trang mặc định — xếp theo thời gian, mới nhất lên trên.
+//  PHIÊN BẢN 19 (21/11/2026): MENU danh sách máy là trang mặc định — xếp theo thời gian, mới nhất lên trên. Link điều hướng có target="_top" (thoát khung nhúng).
 // ============================================================================
 
-// ---------- Trang MENU / CHI TIẾT / XEM TẤT CẢ (Phiên bản 18) ----------
+// ---------- Trang MENU / CHI TIẾT / XEM TẤT CẢ (Phiên bản 19) ----------
 // Menu là trang mặc định: danh sách tất cả các máy, mỗi dòng hiện TÊN MÁY to
 // + GIỜ GỬI ("Gửi lúc HH:MM ngày DD/MM/YYYY") + huy hiệu "ĐANG DÙNG" cho
 // máy gửi gần nhất. Bấm 1 dòng -> trang chi tiết chỉ 1 máy đó
@@ -1194,12 +1202,12 @@ function moDauTrangTrinhChieu(tieuDe, trangThai, urlLamMoi, linkQuayLai) {
     '<meta name="viewport" content="width=device-width, initial-scale=1">\n' +
     '<title>' + escHtml(tieuDe) + '</title>\n<style>\n' + CSS_TRINH_CHIEU + '</style>\n</head>\n<body>\n' +
     '<div class="dau"><h1>' + escHtml(tieuDe) + '</h1><div class="trang-thai">' + escHtml(trangThai) + '</div>' +
-    '<div style="margin-top:10px;">' + linkQuayLai + '<a class="nut-tai" href="' + escHtml(urlLamMoi) + '">Làm mới trang</a></div></div>\n';
+    '<div style="margin-top:10px;">' + linkQuayLai + '<a class="nut-tai" target="_top" href="' + escHtml(urlLamMoi) + '">Làm mới trang</a></div></div>\n';
 }
 
 // Cuối trang trình chiếu: chân trang ghi phiên bản + đóng thẻ.
 function dongTrangTrinhChieu() {
-  return '<div class="chan-trang">Trình chiếu Avatar AI — Phiên bản 18 (21/11/2026)</div>\n</body>\n</html>';
+  return '<div class="chan-trang">Trình chiếu Avatar AI — Phiên bản 19 (21/11/2026)</div>\n</body>\n</html>';
 }
 
 // Hộp xanh + câu hỏi cho lớp (hiện dưới thẻ máy, chỉ khi máy đã có dữ liệu).
@@ -1225,7 +1233,7 @@ function taoTrangMenu() {
     for (var i = 0; i < danhSach.length; i++) {
       var m = danhSach[i];
       var coDuLieu = mayCoDuLieu(m);
-      hang += '<a class="hang-menu' + (coDuLieu ? '' : ' trong') + '" href="' + escHtml(URL_WEB_APP) + '?xem=' + escHtml(encodeURIComponent(khoaXemMay(m))) + '">';
+      hang += '<a class="hang-menu' + (coDuLieu ? '' : ' trong') + '" target="_top" href="' + escHtml(URL_WEB_APP) + '?xem=' + escHtml(encodeURIComponent(khoaXemMay(m))) + '">';
       hang += '<div class="ten-menu">' + escHtml(tenHienThiMay(m)) + '</div>';
       if (i === moiNhat) hang += '<div style="margin-top:8px;"><span class="huy-hieu-dang-dung">ĐANG DÙNG</span></div>';
       if (coDuLieu && m.thoiGianGui && m.thoiGianGui !== '') {
@@ -1236,7 +1244,7 @@ function taoTrangMenu() {
       hang += '</a>';
     }
     noiDung = '<div class="khung"><div class="menu-may">' + hang +
-      '<a class="xem-tat-ca" href="' + escHtml(URL_WEB_APP) + '?xem=tat-ca">Xem tất cả</a></div></div>';
+      '<a class="xem-tat-ca" target="_top" href="' + escHtml(URL_WEB_APP) + '?xem=tat-ca">Xem tất cả</a></div></div>';
     if (!coMayNaoGui(danhSach)) {
       noiDung += '<div style="padding:0 24px 24px;text-align:center;font-size:20px;color:#9ca3af;">Chưa có thông tin.<br>Thầy bấm "Đăng ký" trên điện thoại.</div>';
     }
@@ -1249,7 +1257,7 @@ function taoTrangChiTietMay(khoa) {
   var d = layThongTinTatCaMay();
   var danhSach = (d && d.may) || [];
   var moiNhat = chiSoMayMoiNhat(danhSach);
-  var linkQuayLai = '<a class="nut-quay-lai" href="' + escHtml(URL_WEB_APP) + '">← Quay lại menu</a>';
+  var linkQuayLai = '<a class="nut-quay-lai" target="_top" href="' + escHtml(URL_WEB_APP) + '">← Quay lại menu</a>';
   var urlLamMoi = URL_WEB_APP + '?xem=' + encodeURIComponent(khoa);
   if (d && d.loi) {
     return moDauTrangTrinhChieu('HỘP ĐEN THU THẬP DỮ LIỆU NGƯỜI DÙNG', 'Không tải được thông tin: ' + d.loi, urlLamMoi, linkQuayLai) +
@@ -1275,7 +1283,7 @@ function taoTrangTrinhChieu() {
   var d = layThongTinTatCaMay();
   var danhSach = (d && d.may) || [];
   var moiNhat = chiSoMayMoiNhat(danhSach);
-  var linkQuayLai = '<a class="nut-quay-lai" href="' + escHtml(URL_WEB_APP) + '">← Quay lại menu</a>';
+  var linkQuayLai = '<a class="nut-quay-lai" target="_top" href="' + escHtml(URL_WEB_APP) + '">← Quay lại menu</a>';
   var urlLamMoi = URL_WEB_APP + '?xem=tat-ca';
   var trangThai, noiDung;
   if (d && d.loi) {
@@ -1316,7 +1324,7 @@ function doGet(e) {
       .setTitle('Gửi thông tin lên laptop')
       .addMetaTag('viewport', 'width=device-width, initial-scale=1');
   }
-  // Trang trình chiếu (Phiên bản 18): MENU là mặc định.
+  // Trang trình chiếu (Phiên bản 19): MENU là mặc định.
   //   (không tham số) -> menu danh sách máy (tên + giờ gửi)
   //   ?xem=tat-ca    -> xem tất cả các thẻ cùng lúc (lưới như trước)
   //   ?xem=<khóa>     -> chi tiết 1 máy (khóa "may-N" hoặc idMay)
