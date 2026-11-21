@@ -1,0 +1,1686 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="color-scheme" content="light dark" />
+    <link rel="icon" href="data:," />
+    <title>Biến Hình AI</title>
+    <style>
+      :root {
+        --backdrop: #dce8e2;
+        --backdrop-2: #b9d2c6;
+        --caption: #33523f;
+        --phone-edge: #10151c;
+        --bg: #eef2f0;
+        --card: #ffffff;
+        --ink: #16211c;
+        --muted: #54645c;
+        --line: #d3ddd8;
+        --accent: #0b6e4f;
+        --accent-ink: #ffffff;
+        --accent-soft: #e2f2ec;
+        --warn-bg: #fdf3e0;
+        --warn-line: #d97706;
+        --warn-ink: #7c4a03;
+        --ok: #177245;
+        --err: #b3261e;
+        --chip: #e8eeeb;
+        --shadow: 0 1px 3px rgba(16, 32, 24, 0.12);
+      }
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --backdrop: #0d1512;
+          --backdrop-2: #16241d;
+          --caption: #9fc4ae;
+          --phone-edge: #000;
+          --bg: #0e1512;
+          --card: #182420;
+          --ink: #e7f0eb;
+          --muted: #9db3a8;
+          --line: #2b3d35;
+          --accent: #2fbf8f;
+          --accent-ink: #06231a;
+          --accent-soft: #123528;
+          --warn-bg: #3a2a10;
+          --warn-line: #e09a2b;
+          --warn-ink: #ffd9a0;
+          --ok: #4cc984;
+          --err: #ff8a80;
+          --chip: #22352c;
+          --shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+        }
+      }
+      * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+      html, body { height: 100%; }
+      body {
+        margin: 0;
+        font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        background: radial-gradient(120% 90% at 50% 0%, var(--backdrop) 0%, var(--backdrop-2) 100%);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        min-height: 100dvh;
+        padding: 18px 10px 14px;
+        gap: 12px;
+      }
+      button { font-family: inherit; cursor: pointer; }
+      button, input { min-height: 44px; }
+      .hidden { display: none !important; }
+
+      /* ============ PHONE ============ */
+      .phone {
+        position: relative;
+        width: min(410px, 100%);
+        height: min(840px, calc(100dvh - 90px));
+        min-height: 560px;
+        background: #0b0f14;
+        border: 10px solid var(--phone-edge);
+        border-radius: 52px;
+        overflow: hidden;
+        box-shadow: 0 30px 60px rgba(10, 30, 20, .35), 0 4px 14px rgba(10, 30, 20, .25);
+        flex: none;
+      }
+      @media (max-width: 480px) {
+        body { padding: 0; gap: 0; }
+        .phone { width: 100%; height: 100dvh; min-height: 0; border: none; border-radius: 0; box-shadow: none; }
+        .caption { display: none; }
+      }
+      .caption {
+        color: var(--caption);
+        font-size: 14px;
+        font-weight: 600;
+        letter-spacing: .02em;
+        text-align: center;
+      }
+      .caption b { font-weight: 800; }
+      .screen {
+        position: absolute; inset: 0;
+        display: none;
+        flex-direction: column;
+        overflow: hidden;
+      }
+      .screen.active { display: flex; }
+      .statusbar {
+        flex: none;
+        display: flex; justify-content: space-between; align-items: center;
+        padding: 12px 26px 4px;
+        font-size: 14px; font-weight: 700;
+        position: relative; z-index: 5;
+      }
+      .statusbar .sicons { display: flex; gap: 6px; align-items: center; }
+      .notch {
+        position: absolute; top: 8px; left: 50%; transform: translateX(-50%);
+        width: 110px; height: 26px; background: #000; border-radius: 20px; z-index: 6;
+      }
+
+      /* ============ HOME SCREEN ============ */
+      #screen-home {
+        background:
+          radial-gradient(90% 55% at 85% -5%, rgba(255, 196, 86, .85) 0%, rgba(255,196,86,0) 60%),
+          radial-gradient(100% 60% at 0% 110%, rgba(20, 140, 110, .9) 0%, rgba(20,140,110,0) 65%),
+          linear-gradient(165deg, #2f7f9f 0%, #2a9d8f 55%, #57b26a 100%);
+        color: #fff;
+      }
+      .home-clock { text-align: center; margin-top: 26px; text-shadow: 0 2px 14px rgba(0,0,0,.25); }
+      .home-clock .time { font-size: 74px; font-weight: 800; line-height: 1; letter-spacing: -1px; }
+      .home-clock .date { font-size: 17px; font-weight: 600; margin-top: 6px; }
+      .appgrid {
+        margin-top: 34px; padding: 0 26px;
+        display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px 14px;
+      }
+      .appicon {
+        background: none; border: none; padding: 0; min-height: 0;
+        display: flex; flex-direction: column; align-items: center; gap: 6px;
+        color: #fff; font-size: 12.5px; font-weight: 600;
+        text-shadow: 0 1px 6px rgba(0,0,0,.35);
+      }
+      .appicon .tile {
+        width: 62px; height: 62px; border-radius: 16px;
+        display: flex; align-items: center; justify-content: center;
+        box-shadow: 0 6px 14px rgba(0,0,0,.28), inset 0 1px 0 rgba(255,255,255,.35);
+        transition: transform .12s ease;
+      }
+      .appicon:active .tile { transform: scale(.9); }
+      .tile-bienhinh { background: linear-gradient(150deg, #ff9f43, #ee5a6f 60%, #c44569); position: relative; }
+      .tile-bienhinh .hot {
+        position: absolute; top: -7px; right: -7px;
+        background: #e8323a; color: #fff; font-size: 11px; font-weight: 800;
+        min-width: 22px; height: 22px; border-radius: 12px;
+        display: flex; align-items: center; justify-content: center; padding: 0 5px;
+        border: 2px solid #fff;
+      }
+      .tile-tiktok { background: #111; }
+      .tile-zalo { background: linear-gradient(150deg, #2f9df4, #0b6fd6); }
+      .tile-face { background: linear-gradient(150deg, #3b8bff, #1663d9); }
+      .home-spacer { flex: 1; }
+      .modecard {
+        margin: 0 16px 14px;
+        background: rgba(255,255,255,.94);
+        color: #17301f;
+        border-radius: 24px;
+        padding: 16px 16px 14px;
+        box-shadow: 0 14px 30px rgba(0,0,0,.28);
+      }
+      .modecard h2 { margin: 0 0 4px; font-size: 18px; font-weight: 800; }
+      .modecard p { margin: 0 0 12px; font-size: 13.5px; color: #4b5d50; line-height: 1.45; }
+      .teacher-notice {
+        background: #fdf3e0; border: 2px solid #d97706; color: #7c4a03;
+        border-radius: 14px; padding: 10px 12px; margin: 0 0 12px;
+        font-size: 14px; font-weight: 700; line-height: 1.45;
+      }
+      .devicename-line { font-size: 14px; font-weight: 700; color: #0c5c40; margin: 0 0 8px; line-height: 1.4; }
+      .devicename-line span { word-break: break-word; }
+      .renamebtn {
+        width: 100%; border: 2px solid #cfdccf; background: #fff; color: #17301f;
+        border-radius: 14px; padding: 10px 8px; font-size: 14.5px; font-weight: 800;
+      }
+      .nameprompt { margin-top: 12px; border-top: 1.5px dashed #cfdccf; padding-top: 12px; }
+      .nameprompt h3 { margin: 0 0 4px; font-size: 16px; font-weight: 800; }
+      .nameprompt p { margin: 0 0 8px; font-size: 13px; color: #4b5d50; line-height: 1.45; }
+      .namewarn {
+        background: #fff3d6; border: 1.5px solid #e0a92e; color: #7a5b00;
+        border-radius: 12px; padding: 8px 10px; margin: 8px 0;
+        font-size: 13px; font-weight: 700; line-height: 1.45;
+      }
+      .finput {
+        width: 100%; max-width: 100%; min-width: 0; border: 2px solid #d5ded5; border-radius: 14px;
+        padding: 12px 14px; font-size: 17px; font-family: inherit; font-weight: 600;
+        background: #fff; color: #16211a;
+      }
+      .finput:focus { outline: none; border-color: #1d9e75; }
+      .savebtn {
+        width: 100%; margin-top: 10px; border: none; border-radius: 14px; padding: 13px;
+        background: #0c5c40; color: #fff; font-size: 16px; font-weight: 800;
+      }
+      .dock {
+        margin: 0 14px 16px; padding: 10px 18px;
+        background: rgba(255,255,255,.28);
+        border-radius: 26px;
+        display: flex; justify-content: space-around;
+      }
+      .dock .appicon .tile { width: 56px; height: 56px; }
+      .toast {
+        position: absolute; left: 50%; top: 40%; transform: translate(-50%, -50%) scale(.96);
+        width: calc(100% - 44px); max-width: 340px;
+        background: rgba(12, 18, 14, .95); color: #fff;
+        border-radius: 16px; padding: 13px 16px;
+        font-size: 14.5px; font-weight: 600; line-height: 1.45; text-align: center;
+        opacity: 0; pointer-events: none; transition: all .25s ease; z-index: 30;
+        box-shadow: 0 12px 28px rgba(0,0,0,.4);
+      }
+      .toast.show { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+      .toast b { color: #ffd166; }
+
+      /* ============ APP SCREEN ============ */
+      #screen-app { background: #f4f6f4; color: #16211a; }
+      #screen-app .statusbar { color: #16211a; }
+      .apphead {
+        flex: none; display: flex; align-items: center; gap: 8px 10px;
+        padding: 8px 14px 10px; flex-wrap: wrap;
+      }
+      .apphead > div { flex: 1 1 auto; min-width: 0; }
+      .backbtn {
+        width: 44px; height: 44px; min-height: 44px; border-radius: 50%;
+        border: none; background: #e4eae4; color: #16211a;
+        font-size: 22px; font-weight: 800; line-height: 1; flex: none;
+      }
+      .apphead .tile-sm {
+        width: 46px; height: 46px; border-radius: 13px; flex: none;
+        background: linear-gradient(150deg, #ff9f43, #ee5a6f 60%, #c44569);
+        display: flex; align-items: center; justify-content: center;
+        box-shadow: 0 4px 10px rgba(238,90,111,.4);
+      }
+      .apphead h1 { margin: 0; font-size: 20px; font-weight: 900; letter-spacing: -.01em; white-space: nowrap; }
+      .apphead .sub { font-size: 12.5px; color: #5c6d61; font-weight: 600; margin-top: 1px; white-space: nowrap; }
+      .modechip {
+        margin-left: auto; flex: 0 1 auto; min-width: 0; max-width: 100%;
+        font-size: 11.5px; font-weight: 800;
+        background: #dff3e9; color: #0c5c40;
+        border-radius: 999px; padding: 7px 9px;
+        white-space: normal; text-align: center; line-height: 1.3;
+      }
+      .appbody { flex: 1; overflow-y: auto; overflow-x: hidden; padding: 4px 18px 18px; }
+      .lesson-tag {
+        display: inline-block; font-size: 13px; font-weight: 600;
+        color: var(--accent); background: var(--accent-soft);
+        border-radius: 999px; padding: 4px 12px; margin-bottom: 4px;
+      }
+      .appbody h1 { font-size: 26px; line-height: 1.2; margin: 8px 0 6px; }
+      .lead { color: var(--muted); margin: 10px 0 14px; font-size: 15px; line-height: 1.5; }
+      .notice {
+        background: var(--warn-bg); border: 2px solid var(--warn-line);
+        border-radius: 12px; padding: 12px 14px; margin: 12px 0;
+        color: var(--warn-ink); font-weight: 700; font-size: 15px; line-height: 1.45;
+      }
+      .card {
+        background: var(--card); border: 1px solid var(--line);
+        border-radius: 14px; box-shadow: var(--shadow);
+        padding: 16px; margin: 0 0 14px;
+      }
+      .step-head { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; margin-bottom: 4px; }
+      .step-title { font-size: 18px; font-weight: 700; margin: 0; }
+      .step-status { font-size: 13px; font-weight: 700; white-space: nowrap; color: var(--muted); }
+      .step-status.active { color: var(--warn-line); }
+      .step-status.done { color: var(--ok); }
+      .step-status.bad { color: var(--err); }
+      .step-body { color: var(--ink); }
+      .step-body p { margin: 6px 0; }
+      .dim { color: var(--muted); font-size: 14px; }
+      .result-line {
+        background: var(--chip); border-radius: 8px; padding: 8px 10px;
+        font-size: 15px; word-break: break-word; margin: 8px 0;
+      }
+      .btn-primary {
+        background: var(--accent); border-color: var(--accent); color: var(--accent-ink);
+        width: 100%; font-size: 18px; min-height: 54px;
+        font-weight: 600; border-radius: 10px; border: 1px solid var(--line);
+        display: inline-flex; align-items: center; justify-content: center; gap: 8px; text-align: center;
+      }
+      .btn-primary:disabled { opacity: .55; }
+      .btn-block { width: 100%; margin-top: 10px; }
+      .btn-row { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 10px; }
+      .btn-row > button { flex: 1 1 auto; }
+      .appbody button {
+        font: inherit; font-weight: 600; border-radius: 10px;
+        border: 1px solid var(--line); background: var(--card); color: var(--ink);
+        padding: 10px 16px; min-height: 44px; cursor: pointer;
+        display: inline-flex; align-items: center; justify-content: center; gap: 8px; text-align: center;
+      }
+      .appbody button:active { transform: translateY(1px); }
+      .appbody button:disabled { opacity: .55; cursor: default; }
+      .btn-like {
+        font: inherit; font-weight: 600; border-radius: 10px;
+        border: 1px solid var(--line); background: var(--card); color: var(--ink);
+        padding: 10px 16px; min-height: 44px; cursor: pointer;
+        display: inline-flex; align-items: center; justify-content: center; gap: 8px; text-align: center;
+      }
+      video.cam { width: 100%; border-radius: 10px; background: #000; display: block; margin: 10px 0 4px; }
+      img.captured { width: 100%; border-radius: 10px; display: block; margin: 10px 0 4px; }
+      .thumbs { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+      .thumb {
+        position: relative; width: 76px; height: 76px; border-radius: 10px; overflow: hidden;
+        border: 3px solid var(--line); padding: 0; min-height: 0; background: var(--chip);
+      }
+      .thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+      .thumb.selected { border-color: var(--accent); }
+      .thumb .tick {
+        position: absolute; right: 4px; bottom: 4px; width: 22px; height: 22px; border-radius: 50%;
+        background: var(--accent); color: var(--accent-ink); font-size: 14px; line-height: 22px;
+        text-align: center; display: none; font-weight: 800;
+      }
+      .thumb.selected .tick { display: block; }
+      .thumb .notick {
+        position: absolute; inset: 0; background: rgba(0, 0, 0, 0.45); color: #fff;
+        font-size: 12px; font-weight: 700; display: none; align-items: center; justify-content: center;
+        text-align: center; padding: 4px;
+      }
+      .thumb:not(.selected) .notick { display: flex; }
+      input[type="text"], input[type="tel"] {
+        font: inherit; width: 100%; padding: 10px 12px; min-height: 44px;
+        border: 1px solid var(--line); border-radius: 10px;
+        background: var(--card); color: var(--ink); margin-top: 8px;
+      }
+      .contact-list { list-style: none; margin: 10px 0 0; padding: 0; }
+      .contact-list li {
+        display: flex; align-items: center; justify-content: space-between; gap: 10px;
+        background: var(--chip); border-radius: 8px; padding: 8px 10px; margin-bottom: 6px;
+        font-size: 15px; word-break: break-word;
+      }
+      .contact-list .rm { flex: 0 0 auto; min-height: 36px; min-width: 36px; padding: 4px 8px; font-size: 15px; border-radius: 8px; }
+      .kv { margin: 4px 0; font-size: 15px; word-break: break-word; }
+      .kv b { font-weight: 700; }
+      .summary-text {
+        white-space: pre-wrap; word-break: break-word; font-family: inherit;
+        font-size: 15.5px; line-height: 1.6; margin: 0;
+      }
+      .send-status { font-weight: 700; margin-top: 10px; min-height: 24px; }
+      .send-status.ok { color: var(--ok); }
+      .send-status.err { color: var(--err); }
+      .review-thumbs { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+      .review-thumbs img { width: 64px; height: 64px; object-fit: cover; border-radius: 8px; border: 1px solid var(--line); }
+      .review-thumbs figure { margin: 0; width: 64px; }
+      .review-thumbs figcaption { font-size: 11px; color: var(--muted); text-align: center; word-break: break-all; }
+      .review-list { margin: 6px 0 0; padding-left: 18px; font-size: 15px; }
+      h2.section-title { font-size: 20px; margin: 22px 0 10px; }
+      .small-note { font-size: 13px; color: var(--muted); margin-top: 8px; }
+
+      /* Gold-frame avatar */
+      .camwrap { margin-top: 12px; }
+      .camframe {
+        position: relative; border-radius: 22px; overflow: hidden;
+        background: #10161d; aspect-ratio: 4 / 2.95;
+        box-shadow: inset 0 0 0 2px rgba(255,255,255,.08);
+      }
+      .camframe .camcontent { position: absolute; inset: 0; }
+      .camframe .camcontent svg, .camframe .camcontent img { width: 100%; height: 100%; object-fit: cover; display: block; }
+      .camframe .resultframe {
+        position: absolute; inset: 0; z-index: 5; pointer-events: none;
+        border: 6px solid #ffd166; border-radius: 22px;
+        box-shadow: inset 0 0 0 3px rgba(255,255,255,.65), inset 0 0 44px rgba(255,209,102,.35);
+      }
+      .vf { position: absolute; width: 34px; height: 34px; border: 4px solid rgba(255,255,255,.92); z-index: 3; }
+      .vf.tl { top: 12px; left: 12px; border-right: none; border-bottom: none; border-radius: 10px 0 0 0; }
+      .vf.tr { top: 12px; right: 12px; border-left: none; border-bottom: none; border-radius: 0 10px 0 0; }
+      .vf.bl { bottom: 12px; left: 12px; border-right: none; border-top: none; border-radius: 0 0 0 10px; }
+      .vf.br { bottom: 12px; right: 12px; border-left: none; border-top: none; border-radius: 0 0 10px 0; }
+      .camchip {
+        position: absolute; top: 12px; left: 50%; transform: translateX(-50%); z-index: 3;
+        background: rgba(0,0,0,.62); color: #fff; font-size: 11.5px; font-weight: 800; letter-spacing: .06em;
+        padding: 6px 12px; border-radius: 999px; display: flex; align-items: center; gap: 6px; white-space: nowrap;
+      }
+      .facemark {
+        position: absolute; left: 50%; top: 47%; transform: translate(-50%,-50%);
+        width: 46%; aspect-ratio: 1 / 1.18; border: 2.5px dashed rgba(255,209,102,.95);
+        border-radius: 48% 48% 46% 46%; z-index: 2; pointer-events: none;
+      }
+
+      /* ============ WARNING SCREEN ============ */
+      #screen-warn { background: #05070a; color: #f2f5f2; }
+      #screen-warn .statusbar { color: #f2f5f2; }
+      .warnbody { flex: 1; overflow-y: auto; padding: 8px 20px 22px; }
+      .warnbadge {
+        display: flex; align-items: center; gap: 10px;
+        background: rgba(232,50,58,.14); border: 1.5px solid rgba(232,50,58,.55);
+        border-radius: 16px; padding: 10px 13px; margin-bottom: 12px;
+      }
+      .warnbadge .wt { font-size: 17px; font-weight: 900; color: #ff6b72; line-height: 1.3; }
+      .warnlead { font-size: 16px; line-height: 1.5; color: #cfd8cf; margin: 0 0 12px; }
+      .warnlead b { color: #fff; }
+      .loot { display: flex; flex-direction: column; gap: 8px; margin-bottom: 13px; }
+      .lootrow {
+        display: flex; align-items: center; gap: 12px;
+        background: #10151c; border: 1px solid #232c38; border-radius: 15px; padding: 9px 12px;
+      }
+      .lootrow .ic {
+        width: 42px; height: 42px; border-radius: 12px; flex: none;
+        background: rgba(232,50,58,.16); display: flex; align-items: center; justify-content: center;
+      }
+      .lootrow .k { font-size: 12.5px; font-weight: 700; color: #8fa398; letter-spacing: .03em; }
+      .lootrow .v { font-size: 16.5px; font-weight: 800; color: #fff; line-height: 1.3; word-break: break-word; }
+      .lootrow .v.empty { color: #ffb3b7; font-size: 14.5px; }
+      .lootrow .v.small { font-size: 14px; font-weight: 700; line-height: 1.45; }
+      .lootthumb { width: 46px; height: 46px; border-radius: 11px; overflow: hidden; flex: none; border: 2px solid rgba(232,50,58,.6); }
+      .lootthumb svg, .lootthumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+      .safebox {
+        background: rgba(29,158,117,.15); border: 1.5px solid rgba(55,224,160,.55);
+        border-radius: 16px; padding: 11px 14px; margin-bottom: 15px;
+        font-size: 15px; line-height: 1.5; color: #c9f5df;
+      }
+      .safebox b { color: #5ff0b6; }
+      .bigq { font-size: 23px; font-weight: 900; line-height: 1.3; margin: 0 0 7px; color: #ffd166; }
+      .subq { font-size: 15px; line-height: 1.5; color: #cfd8cf; margin: 0 0 16px; }
+      .warncard {
+        background: #10151c; border: 1px solid #232c38; border-radius: 15px;
+        padding: 12px; margin-bottom: 14px; color: #e8f0ea;
+      }
+      .warncard .summary-text { font-size: 14.5px; color: #e8f0ea; }
+      .warncard h3 { margin: 0 0 8px; font-size: 15px; font-weight: 900; color: #fff; }
+      .warncard .dim { color: #8fa398; }
+      .warncard .review-list { color: #e8f0ea; }
+      .devicename-warn { font-size: 14.5px; font-weight: 700; color: #c9f5df; margin: 0 0 10px; line-height: 1.5; word-break: break-word; }
+      .sendbtn {
+        width: 100%; border: none; border-radius: 16px; padding: 16px;
+        background: #1663d9; color: #fff; font-size: 18px; font-weight: 900;
+        box-shadow: 0 10px 22px rgba(22,99,217,.4);
+      }
+      .sendbtn:active { transform: scale(.98); }
+      .sendbtn:disabled { opacity: .55; }
+      .sendstatus { margin: 9px 0 0; font-size: 14.5px; font-weight: 700; line-height: 1.5; text-align: center; min-height: 0; }
+      .sendstatus.ok { color: #5ff0b6; }
+      .sendstatus.err { color: #ffb3b7; }
+      .warnbtns { display: flex; gap: 10px; margin-top: 12px; }
+      .warnbtns button {
+        flex: 1; border-radius: 14px; padding: 13px 8px; font-size: 15px; font-weight: 800;
+        border: 2px solid #334155; background: #10151c; color: #cfd8cf;
+      }
+      .replaybtn {
+        width: 100%; border: none; border-radius: 16px; padding: 16px; margin-top: 12px;
+        background: #1d9e75; color: #fff; font-size: 18px; font-weight: 900;
+        box-shadow: 0 10px 22px rgba(29,158,117,.35);
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .scanline { animation: none !important; }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="phone" id="phone">
+
+      <!-- ================= HOME ================= -->
+      <section class="screen active" id="screen-home" aria-label="Màn hình chính điện thoại giả">
+        <div class="notch"></div>
+        <div class="statusbar">
+          <span id="home-clock">7:30</span>
+          <span class="sicons">
+            <svg width="17" height="12" viewBox="0 0 17 12" fill="#fff" aria-hidden="true"><rect x="0" y="7" width="3" height="5" rx="1"/><rect x="4.5" y="5" width="3" height="7" rx="1"/><rect x="9" y="2.5" width="3" height="9.5" rx="1"/><rect x="13.5" y="0" width="3" height="12" rx="1"/></svg>
+            <svg width="25" height="12" viewBox="0 0 25 12" aria-hidden="true"><rect x="0.5" y="0.5" width="20" height="11" rx="3" fill="none" stroke="#fff" opacity=".6"/><rect x="2.5" y="2.5" width="13" height="7" rx="1.5" fill="#fff"/><path d="M23 4v4a2.2 2.2 0 0 0 0-4z" fill="#fff" opacity=".6"/></svg>
+          </span>
+        </div>
+
+        <div class="home-clock">
+          <div class="time" id="home-time">7:30</div>
+          <div class="date" id="home-date">Thứ Bảy, ngày 21 tháng 11</div>
+        </div>
+
+        <div class="appgrid">
+          <button class="appicon" id="app-bienhinh" aria-label="Mở ứng dụng Biến Hình AI">
+            <span class="tile tile-bienhinh">
+              <svg width="36" height="36" viewBox="0 0 48 48" aria-hidden="true"><circle cx="24" cy="19" r="9" fill="#fff"/><path d="M8 42c1.5-8.5 8-12.5 16-12.5S38.5 33.5 40 42z" fill="#fff"/><circle cx="20.5" cy="18" r="1.6" fill="#c44569"/><circle cx="27.5" cy="18" r="1.6" fill="#c44569"/><path d="M21 23.2c1 1.1 5 1.1 6 0" stroke="#c44569" stroke-width="1.8" fill="none" stroke-linecap="round"/></svg>
+              <span class="hot">1</span>
+            </span>
+            Biến Hình AI
+          </button>
+          <button class="appicon app-locked" data-app="TikTok" aria-label="Ứng dụng TikTok">
+            <span class="tile tile-tiktok">
+              <svg width="32" height="32" viewBox="0 0 48 48" aria-hidden="true"><path d="M33 6v22.5a8.75 8.75 0 1 1-6.5-8.45" fill="none" stroke="#fff" stroke-width="4.5" stroke-linecap="round"/><path d="M33 6c.6 5.4 4 9 9.5 9.6" fill="none" stroke="#25f4ee" stroke-width="4.5" stroke-linecap="round"/><path d="M33 6c.6 5.4 4 9 9.5 9.6" fill="none" stroke="#fe2c55" stroke-width="4.5" stroke-linecap="round" opacity=".45"/></svg>
+            </span>
+            TikTok
+          </button>
+          <button class="appicon app-locked" data-app="Zalo" aria-label="Ứng dụng Zalo">
+            <span class="tile tile-zalo">
+              <svg width="34" height="34" viewBox="0 0 48 48" aria-hidden="true"><path d="M24 7C14.6 7 7 13.6 7 21.8c0 4.7 2.5 8.8 6.4 11.4-.3 2.4-1.3 5-3 6.8 3.4-.3 6.6-1.7 8.8-3.4 1.5.3 3.1.5 4.8.5 9.4 0 17-6.6 17-14.8S33.4 7 24 7z" fill="#fff"/><circle cx="17" cy="21.5" r="2.2" fill="#0b6fd6"/><circle cx="24" cy="21.5" r="2.2" fill="#0b6fd6"/><circle cx="31" cy="21.5" r="2.2" fill="#0b6fd6"/></svg>
+            </span>
+            Zalo
+          </button>
+          <button class="appicon app-locked" data-app="Facebook" aria-label="Ứng dụng Facebook">
+            <span class="tile tile-face">
+              <svg width="32" height="32" viewBox="0 0 48 48" aria-hidden="true"><path d="M30 42v-13h4.6l.8-5.6H30v-3.2c0-1.5.6-2.7 2.9-2.7h2.3V12.2c-.6-.1-1.9-.2-3.3-.2-3.9 0-6.4 2.2-6.4 6.7v4.7H21V29h4.5v13z" fill="#fff"/></svg>
+            </span>
+            Facebook
+          </button>
+        </div>
+
+        <div class="home-spacer"></div>
+
+        <div class="modecard">
+          <div class="teacher-notice">CHỈ CHẠY TRÊN MÁY THẦY — dữ liệu thật trên máy thầy, thầy tự cho phép. Không dùng cho học sinh.</div>
+          <h2>Biến Hình AI</h2>
+          <p>Chạm vào biểu tượng <b>Biến Hình AI</b> ở trên để mở app và bắt đầu quét thật trên máy thầy — vị trí, camera, album, danh bạ, thiết bị và micro.</p>
+          <p class="devicename-line" id="devicename-line">Tên máy này: <span id="devicename-current">chưa đặt tên</span></p>
+          <button class="renamebtn" id="btn-rename" type="button">Đổi tên máy</button>
+          <div class="nameprompt hidden" id="name-prompt">
+            <h3>Đặt tên cho máy này</h3>
+            <p>Đặt tên để laptop biết bản tóm tắt này gửi từ máy nào. Tên chỉ lưu trên chính máy này.</p>
+            <div class="namewarn">Mỗi máy nên đặt tên khác nhau — hai máy cùng tên sẽ ghi đè lên nhau trên laptop.</div>
+            <input class="finput" id="in-tenmay" type="text" autocomplete="off" maxlength="60" placeholder="Ví dụ: Điện thoại của thầy" />
+            <div class="namewarn hidden" id="name-default-warn">Thầy đang dùng tên mặc định “Điện thoại của thầy”. Nếu thầy dùng hơn một điện thoại thì nên đổi tên khác nhau cho từng máy, kẻo hai máy ghi đè lên nhau trên laptop.</div>
+            <button class="savebtn" id="btn-save-name" type="button">Lưu tên máy</button>
+          </div>
+        </div>
+
+        <div class="dock" aria-hidden="true">
+          <span class="appicon"><span class="tile" style="background:linear-gradient(150deg,#4cd964,#1faa3c)"><svg width="30" height="30" viewBox="0 0 48 48"><path d="M14 9c1 0 2.5 3.4 2.5 4.8 0 1.7-2 2.6-2 4.4 0 3.7 8.8 13.4 12.4 13.4 1.8 0 2.7-2 4.4-2 1.4 0 4.8 1.5 4.8 2.5 0 2.3-2.3 4.5-4.7 4.5C20.4 39.7 8.3 27.6 8.3 13.7 8.3 11.3 11.7 9 14 9z" fill="#fff"/></svg></span></span>
+          <span class="appicon"><span class="tile" style="background:linear-gradient(150deg,#5ac8fa,#0a84ff)"><svg width="30" height="30" viewBox="0 0 48 48"><circle cx="24" cy="24" r="15" fill="none" stroke="#fff" stroke-width="3.5"/><path d="M31 17l-3.4 7.6L20 28l3.4-7.6z" fill="#fff"/></svg></span></span>
+          <span class="appicon"><span class="tile" style="background:linear-gradient(150deg,#ffd60a,#ff9f0a)"><svg width="30" height="30" viewBox="0 0 48 48"><rect x="10" y="12" width="28" height="24" rx="4" fill="#fff"/><circle cx="24" cy="24" r="6.5" fill="#ff9f0a"/><circle cx="33" cy="17" r="2" fill="#ff9f0a"/></svg></span></span>
+          <span class="appicon"><span class="tile" style="background:linear-gradient(150deg,#bf5af2,#5e5ce6)"><svg width="30" height="30" viewBox="0 0 48 48"><path d="M18 33V15l16-3v18" fill="none" stroke="#fff" stroke-width="3.5" stroke-linejoin="round"/><circle cx="14.5" cy="33" r="4.5" fill="#fff"/><circle cx="30.5" cy="30" r="4.5" fill="#fff"/></svg></span></span>
+        </div>
+
+        <div class="toast" id="toast" role="status"></div>
+      </section>
+
+      <!-- ================= APP / SCAN ================= -->
+      <section class="screen" id="screen-app" aria-label="Ứng dụng Biến Hình AI">
+        <div class="statusbar">
+          <span>7:31</span>
+          <span class="sicons">
+            <svg width="17" height="12" viewBox="0 0 17 12" fill="#16211a" aria-hidden="true"><rect x="0" y="7" width="3" height="5" rx="1"/><rect x="4.5" y="5" width="3" height="7" rx="1"/><rect x="9" y="2.5" width="3" height="9.5" rx="1"/><rect x="13.5" y="0" width="3" height="12" rx="1"/></svg>
+            <svg width="25" height="12" viewBox="0 0 25 12" aria-hidden="true"><rect x="0.5" y="0.5" width="20" height="11" rx="3" fill="none" stroke="#16211a" opacity=".5"/><rect x="2.5" y="2.5" width="13" height="7" rx="1.5" fill="#16211a"/><path d="M23 4v4a2.2 2.2 0 0 0 0-4z" fill="#16211a" opacity=".5"/></svg>
+          </span>
+        </div>
+
+        <div class="apphead">
+          <button class="backbtn" id="btn-back-home" aria-label="Quay lại màn hình chính">‹</button>
+          <span class="tile-sm">
+            <svg width="27" height="27" viewBox="0 0 48 48" aria-hidden="true"><circle cx="24" cy="19" r="9" fill="#fff"/><path d="M8 42c1.5-8.5 8-12.5 16-12.5S38.5 33.5 40 42z" fill="#fff"/><circle cx="20.5" cy="18" r="1.6" fill="#c44569"/><circle cx="27.5" cy="18" r="1.6" fill="#c44569"/><path d="M21 23.2c1 1.1 5 1.1 6 0" stroke="#c44569" stroke-width="1.8" fill="none" stroke-linecap="round"/></svg>
+          </span>
+          <div>
+            <h1>Biến Hình AI</h1>
+            <div class="sub">Bài 8.A2.2 · AI theo dõi người dùng</div>
+          </div>
+          <span class="modechip">Bản thật — chỉ trên máy thầy</span>
+        </div>
+
+        <div class="appbody" id="appbody">
+          <!-- Màn hình bắt đầu quét -->
+          <div id="appStart">
+            <span class="lesson-tag">Bài 8.A2.2 — AI theo dõi người dùng</span>
+            <h1>Biến Hình AI</h1>
+            <div class="notice">CHỈ CHẠY TRÊN MÁY THẦY — dữ liệu thật trên máy thầy, thầy tự cho phép. Không dùng cho học sinh.</div>
+            <p class="lead">Trang này sẽ xin quyền từng mục một ngay trên máy thầy: vị trí, camera, album, danh bạ, micro và thông tin máy. Quét xong, trang viết thành một bản tóm tắt cho thấy một AI có thể biết được những gì về người dùng — chỉ từ chiếc điện thoại này.</p>
+            <div class="camwrap">
+              <div class="camframe">
+                <div class="camcontent" id="cam-content"></div>
+                <span class="vf tl"></span><span class="vf tr"></span><span class="vf bl"></span><span class="vf br"></span>
+                <span class="camchip">KHUÔN MẶT</span>
+                <span class="facemark"></span>
+                <div class="resultframe"></div>
+              </div>
+            </div>
+            <p class="dim" style="margin-top:10px;">Khung vàng là ảnh của thầy — ảnh chụp bằng camera thật, hoặc ảnh đầu tiên thầy chọn trong album. Chưa có ảnh thật thì khung hiện ảnh mẫu.</p>
+            <button id="btnStart" class="btn-primary" type="button">Bắt đầu quét</button>
+            <p class="small-note">Mỗi quyền đều do thầy tự bấm cho phép trên máy thầy. Ảnh và dữ liệu chỉ nằm trong trang này, không gửi đi đâu cho tới khi thầy bấm nút “Gửi lên laptop”.</p>
+          </div>
+
+          <!-- Các bước quét -->
+          <div id="scanStepsWrap" class="hidden">
+            <h1 style="font-size:24px;">Đang quét trên máy thầy</h1>
+            <p class="lead">Từng mục một — thầy cho phép mục nào thì trang đọc mục đó.</p>
+
+            <div class="card hidden" id="stepGps">
+              <div class="step-head">
+                <p class="step-title">1. Vị trí GPS</p>
+                <span class="step-status" id="statusGps">Chưa bắt đầu</span>
+              </div>
+              <div class="step-body">
+                <p class="dim">Trang xin quyền vị trí một lần để lấy tọa độ hiện tại của máy thầy.</p>
+                <div class="result-line hidden" id="resultGps"></div>
+              </div>
+            </div>
+
+            <div class="card hidden" id="stepCam">
+              <div class="step-head">
+                <p class="step-title">2. Camera</p>
+                <span class="step-status" id="statusCam">Chưa bắt đầu</span>
+              </div>
+              <div class="step-body">
+                <p class="dim">Camera mở trực tiếp trên máy thầy. Thầy bấm “Chụp ảnh” để chụp một tấm thật, hoặc bỏ qua.</p>
+                <div id="camLive" class="hidden">
+                  <video class="cam" id="camVideo" autoplay muted playsinline></video>
+                  <div class="btn-row">
+                    <button id="btnCapture" type="button">Chụp ảnh</button>
+                    <button id="btnSkipCam" type="button">Bỏ qua ảnh</button>
+                  </div>
+                </div>
+                <img class="captured hidden" id="camPhoto" alt="Ảnh vừa chụp bằng camera trên máy thầy" />
+                <div class="result-line hidden" id="resultCam"></div>
+              </div>
+            </div>
+
+            <div class="card hidden" id="stepAlbum">
+              <div class="step-head">
+                <p class="step-title">3. Album ảnh</p>
+                <span class="step-status" id="statusAlbum">Chưa bắt đầu</span>
+              </div>
+              <div class="step-body">
+                <p class="dim">Thầy tự chọn ảnh từ album trên máy thầy. Bấm vào từng ảnh để chọn / bỏ chọn — chỉ ảnh đang chọn mới được gửi.</p>
+                <label class="btn-like btn-block" for="albumInput">Mở Album — chọn ảnh từ máy thầy</label>
+                <input type="file" id="albumInput" accept="image/*" multiple class="hidden" />
+                <div class="thumbs" id="albumThumbs"></div>
+                <p class="dim" id="albumCount"></p>
+                <button id="btnAlbumDone" class="btn-primary btn-block hidden" type="button">Tiếp tục</button>
+              </div>
+            </div>
+
+            <div class="card hidden" id="stepContacts">
+              <div class="step-head">
+                <p class="step-title">4. Danh bạ</p>
+                <span class="step-status" id="statusContacts">Chưa bắt đầu</span>
+              </div>
+              <div class="step-body">
+                <p class="dim">Chọn vài người trong danh bạ máy thầy, hoặc gõ tay. Chỉ nên chọn 1–2 số thầy thoải mái cho cả lớp thấy.</p>
+                <div class="btn-row">
+                  <button id="btnPickContacts" type="button">Chọn từ danh bạ máy</button>
+                  <button id="btnSampleContacts" type="button">Dùng danh bạ mẫu</button>
+                </div>
+                <p class="dim hidden" id="contactsUnsupported">Máy/trình duyệt này không hỗ trợ chọn thẳng từ danh bạ — thầy gõ tay hoặc dùng danh bạ mẫu nhé.</p>
+                <input type="text" id="contactName" placeholder="Tên người" autocomplete="off" />
+                <input type="tel" id="contactTel" placeholder="Số điện thoại" autocomplete="off" />
+                <button id="btnAddContact" class="btn-block" type="button">Thêm</button>
+                <ul class="contact-list" id="contactList"></ul>
+                <button id="btnContactsDone" class="btn-primary btn-block hidden" type="button">Tiếp tục</button>
+              </div>
+            </div>
+
+            <div class="card hidden" id="stepDevice">
+              <div class="step-head">
+                <p class="step-title">5. Thông tin thiết bị</p>
+                <span class="step-status" id="statusDevice">Chưa bắt đầu</span>
+              </div>
+              <div class="step-body">
+                <p class="dim">Mục này không cần xin quyền — trang web nào cũng đọc được ngay khi mở trang.</p>
+                <div id="deviceInfo"></div>
+              </div>
+            </div>
+
+            <div class="card hidden" id="stepMic">
+              <div class="step-head">
+                <p class="step-title">6. Micro</p>
+                <span class="step-status" id="statusMic">Chưa bắt đầu</span>
+              </div>
+              <div class="step-body">
+                <p class="dim">Trang chỉ xin quyền micro để kiểm tra thầy có cho phép hay không, rồi tắt ngay. Không ghi âm bất cứ thứ gì.</p>
+                <div class="result-line hidden" id="resultMic"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Tóm tắt + xem lại -->
+          <div id="summarySection" class="hidden">
+            <h2 class="section-title">Bản tóm tắt — AI biết gì về bạn?</h2>
+            <div class="card">
+              <pre class="summary-text" id="summaryText"></pre>
+            </div>
+            <div class="card">
+              <p class="step-title">Xem lại trước khi gửi</p>
+              <p class="dim">Đây là đúng những gì sẽ gửi lên laptop: các ảnh đang chọn và danh bạ dưới đây, kèm bản tóm tắt ở trên.</p>
+              <p style="margin:10px 0 0;"><b>Ảnh sẽ gửi:</b></p>
+              <div class="review-thumbs" id="reviewPhotos"></div>
+              <p class="dim" id="reviewNoPhotos">Chưa có ảnh nào được chọn.</p>
+              <p style="margin:12px 0 0;"><b>Danh bạ sẽ gửi:</b></p>
+              <ul class="review-list" id="reviewContacts"></ul>
+              <p class="dim" id="reviewNoContacts">Chưa có liên hệ nào.</p>
+            </div>
+            <button id="btnToWarn" class="btn-primary" type="button">Xem điều app vừa biết</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= WARNING ================= -->
+      <section class="screen" id="screen-warn" aria-label="Màn hình cảnh báo">
+        <div class="statusbar">
+          <span>7:32</span>
+          <span class="sicons">
+            <svg width="17" height="12" viewBox="0 0 17 12" fill="#f2f5f2" aria-hidden="true"><rect x="0" y="7" width="3" height="5" rx="1"/><rect x="4.5" y="5" width="3" height="7" rx="1"/><rect x="9" y="2.5" width="3" height="9.5" rx="1"/><rect x="13.5" y="0" width="3" height="12" rx="1"/></svg>
+            <svg width="25" height="12" viewBox="0 0 25 12" aria-hidden="true"><rect x="0.5" y="0.5" width="20" height="11" rx="3" fill="none" stroke="#f2f5f2" opacity=".5"/><rect x="2.5" y="2.5" width="13" height="7" rx="1.5" fill="#f2f5f2"/><path d="M23 4v4a2.2 2.2 0 0 0 0-4z" fill="#f2f5f2" opacity=".5"/></svg>
+          </span>
+        </div>
+        <div class="warnbody">
+          <div class="warnbadge">
+            <svg width="34" height="34" viewBox="0 0 48 48" aria-hidden="true"><path d="M24 5L45 41H3z" fill="#e8323a"/><rect x="22.2" y="17" width="3.6" height="13" rx="1.8" fill="#fff"/><circle cx="24" cy="35.4" r="2.2" fill="#fff"/></svg>
+            <span class="wt">DỪNG LẠI MỘT CHÚT!<br />Hãy nhìn xem app vừa biết gì về bạn</span>
+          </div>
+
+          <div class="camwrap" style="margin:0 0 12px;">
+            <div class="camframe">
+              <div class="camcontent" id="warn-cam-content"></div>
+              <div class="resultframe"></div>
+            </div>
+          </div>
+
+          <p class="warnlead">Đây là những gì <b>thật</b> app vừa lấy được trên <b>máy thầy</b>, chỉ sau vài giây:</p>
+
+          <div class="loot">
+            <div class="lootrow">
+              <span class="ic"><svg width="23" height="23" viewBox="0 0 48 48" aria-hidden="true"><path d="M24 44S10 29.6 10 18.5A14 14 0 1 1 38 18.5C38 29.6 24 44 24 44z" fill="none" stroke="#ff6b72" stroke-width="3.4"/><circle cx="24" cy="18.5" r="5" fill="#ff6b72"/></svg></span>
+              <div style="flex:1"><div class="k">VỊ TRÍ</div><div class="v" id="loot-location">—</div></div>
+            </div>
+            <div class="lootrow">
+              <span class="ic"><svg width="23" height="23" viewBox="0 0 48 48" aria-hidden="true"><rect x="6" y="10" width="36" height="29" rx="4" fill="none" stroke="#ff6b72" stroke-width="3.4"/><circle cx="17" cy="19" r="3" fill="#ff6b72"/><path d="M6 34l10-9 8 7 7-6 11 10" fill="none" stroke="#ff6b72" stroke-width="3.4" stroke-linejoin="round"/></svg></span>
+              <div style="flex:1"><div class="k">ẢNH</div><div class="v small" id="loot-photo">—</div></div>
+              <span class="lootthumb" id="loot-photo-thumb"></span>
+            </div>
+            <div class="lootrow">
+              <span class="ic"><svg width="23" height="23" viewBox="0 0 48 48" aria-hidden="true"><rect x="9" y="7" width="30" height="34" rx="4" fill="none" stroke="#ff6b72" stroke-width="3.4"/><circle cx="24" cy="19" r="5" fill="none" stroke="#ff6b72" stroke-width="3"/><path d="M15 34c1.2-3.8 4.6-5.6 9-5.6s7.8 1.8 9 5.6" fill="none" stroke="#ff6b72" stroke-width="3" stroke-linecap="round"/></svg></span>
+              <div style="flex:1"><div class="k">DANH BẠ ĐÃ CHỌN</div><div class="v small" id="loot-contacts">—</div></div>
+            </div>
+            <div class="lootrow">
+              <span class="ic"><svg width="23" height="23" viewBox="0 0 48 48" aria-hidden="true"><rect x="15" y="5" width="18" height="38" rx="4" fill="none" stroke="#ff6b72" stroke-width="3.4"/><line x1="21" y1="37" x2="27" y2="37" stroke="#ff6b72" stroke-width="3.4" stroke-linecap="round"/></svg></span>
+              <div style="flex:1"><div class="k">THIẾT BỊ</div><div class="v small" id="loot-device">—</div></div>
+            </div>
+            <div class="lootrow">
+              <span class="ic"><svg width="23" height="23" viewBox="0 0 48 48" aria-hidden="true"><circle cx="24" cy="24" r="14" fill="none" stroke="#ff6b72" stroke-width="3.4"/><rect x="21" y="14" width="6" height="14" rx="3" fill="#ff6b72"/><path d="M18 32c0 3.4 2.7 6 6 6s6-2.6 6-6" fill="none" stroke="#ff6b72" stroke-width="3.4" stroke-linecap="round"/></svg></span>
+              <div style="flex:1"><div class="k">MICRO</div><div class="v small" id="loot-mic">—</div></div>
+            </div>
+          </div>
+
+          <div class="safebox"><b>Đây là demo trên máy thầy — thầy tự cho phép.</b> Camera, vị trí, ảnh và danh bạ ở trên đều là thật trên máy thầy và chỉ hiện trên máy này, không lưu lại — đóng trang là mất. Chỉ khi thầy bấm nút <b>Gửi lên laptop</b> ở dưới thì bản tóm tắt và những ảnh, liên hệ đã chọn mới được gửi sang trang trình chiếu trên laptop của thầy.</div>
+
+          <p class="bigq">Nếu đây là app thật thì sao?</p>
+          <p class="subq">Thầy vừa tự tay cho phép hết trên máy của mình. Nếu một app lạ cũng xin như vậy trên máy học sinh — và các em cũng bấm Cho phép nhanh như thầy vừa bấm — thì người lạ sẽ có đúng những thứ này của các em. Cả lớp nghĩ sao?</p>
+
+          <div class="warncard">
+            <h3>Bản tóm tắt — AI biết gì về bạn?</h3>
+            <pre class="summary-text" id="summaryTextWarn"></pre>
+          </div>
+
+          <div class="warncard">
+            <h3>Gửi lên laptop</h3>
+            <p class="devicename-warn" id="send-devicename">Gửi từ máy: chưa đặt tên</p>
+            <p class="dim" style="margin:0 0 10px;">Xem lại trước khi gửi — đúng những ảnh đang chọn và danh bạ dưới đây sẽ được gửi kèm bản tóm tắt.</p>
+            <p style="margin:0 0 4px;"><b>Ảnh sẽ gửi:</b></p>
+            <div class="review-thumbs" id="warnReviewPhotos"></div>
+            <p class="dim" id="warnReviewNoPhotos">Chưa có ảnh nào được chọn.</p>
+            <p style="margin:12px 0 0;"><b>Danh bạ sẽ gửi:</b></p>
+            <ul class="review-list" id="warnReviewContacts"></ul>
+            <p class="dim" id="warnReviewNoContacts">Chưa có liên hệ nào.</p>
+            <button class="sendbtn" id="btnSend" type="button" style="margin-top:14px;">Gửi lên laptop</button>
+            <p class="sendstatus" id="sendStatus" role="status"></p>
+            <div class="warnbtns">
+              <button id="btnCopy" type="button">Sao chép bản tóm tắt</button>
+              <button id="btnRescan" type="button">Quét lại</button>
+            </div>
+            <p class="sendstatus" id="copyStatus" role="status"></p>
+          </div>
+
+          <button class="replaybtn" id="btn-replay">Chơi lại từ đầu</button>
+        </div>
+      </section>
+    </div>
+
+    <p class="caption"><b>Biến Hình AI</b> · Bản thật chỉ trên máy thầy · Mở đầu Bài 4 lớp 8 · Mã 8.A2.2</p>
+
+    <script>
+      "use strict";
+
+      var WEBAPP_URL = "https://script.google.com/macros/s/AKfycbw6K57VCKeT8w5oLfaUZsrLyfuJDcJaGWn0Crp5AP8IECVzo4zwse8CilJ5B5ckGTQ0/exec";
+
+      /* ---------- Ảnh mẫu: tranh minh họa vẽ bằng SVG, không phải ảnh thật của ai ---------- */
+      function faceSVG() {
+        return '<svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Ảnh mẫu minh họa">' +
+          '<rect width="200" height="200" fill="#bfe8d8"/>' +
+          '<circle cx="34" cy="36" r="15" fill="#ffffff" opacity=".35"/><circle cx="172" cy="52" r="10" fill="#ffffff" opacity=".3"/>' +
+          '<path d="M60 62c-14 4-20 20-20 44v34h14V96c0-16 2-26 6-30zM140 62c14 4 20 20 20 44v34h-14V96c0-16-2-26-6-30z" fill="#3a2a22"/>' +
+          '<path d="M52 200c4-30 22-44 48-44s44 14 48 44z" fill="#ef6f9c"/>' +
+          '<path d="M88 148h24v18c0 7-5 11-12 11s-12-4-12-11z" fill="#f6c79b"/>' +
+          '<ellipse cx="100" cy="102" rx="43" ry="48" fill="#f6c79b"/>' +
+          '<ellipse cx="56" cy="104" rx="6" ry="9" fill="#f6c79b"/><ellipse cx="144" cy="104" rx="6" ry="9" fill="#f6c79b"/>' +
+          '<path d="M58 78c0-26 18-42 42-42s42 16 42 42c0 4-1 8-2 11-3-14-10-24-22-29 2 6 2 10 1 14-6-10-16-16-30-17-13 0-24 6-29 15-1-3-2-6-2-6z" fill="#3a2a22"/>' +
+          '<ellipse cx="83" cy="100" rx="4.6" ry="6" fill="#2b2320"/><ellipse cx="117" cy="100" rx="4.6" ry="6" fill="#2b2320"/>' +
+          '<circle cx="84.8" cy="97.8" r="1.7" fill="#fff"/><circle cx="118.8" cy="97.8" r="1.7" fill="#fff"/>' +
+          '<path d="M74 86c3-2.4 8-2.6 11-.8M115 85.2c3-1.8 8-1.6 11 .8" stroke="#2b2320" stroke-width="2.6" fill="none" stroke-linecap="round"/>' +
+          '<path d="M100 104v10c0 2.4-2 3.6-4.4 3.8" stroke="#d99e78" stroke-width="2.4" fill="none" stroke-linecap="round"/>' +
+          '<ellipse cx="72" cy="120" rx="7.5" ry="4.4" fill="#ff9d9d" opacity=".55"/><ellipse cx="128" cy="120" rx="7.5" ry="4.4" fill="#ff9d9d" opacity=".55"/>' +
+          '<path d="M86 128c4 5 9 7.4 14 7.4s10-2.4 14-7.4c-9 2.4-19 2.4-28 0z" fill="#a4442f"/>' +
+          '</svg>';
+      }
+
+      /* ---------- Trạng thái (chỉ nằm trong bộ nhớ của trang) ---------- */
+      var state = null;
+      var camStream = null;
+      var summaryBuilt = false;
+
+      function freshState() {
+        return {
+          viTri: "",            // "lat, lng" — vĩ độ trước, 6 chữ số thập phân
+          viTriStatus: "",      // ok | denied | unsupported
+          cameraPhoto: null,    // { ten, dataUrl } — đã nén JPEG
+          cameraStatus: "",     // ok | skipped | denied | unsupported
+          albumPhotos: [],      // { ten, file, url, selected }
+          contacts: [],         // { ten, so }
+          device: null,         // object thông tin thiết bị
+          microStatus: ""       // ok | denied | unsupported
+        };
+      }
+      state = freshState();
+
+      function $(id) { return document.getElementById(id); }
+
+      function showScreen(id) {
+        var screens = document.querySelectorAll(".screen");
+        for (var i = 0; i < screens.length; i++) screens[i].classList.remove("active");
+        $(id).classList.add("active");
+      }
+
+      /* ---------- Tên máy: lưu duy nhất bằng localStorage, khóa tenMay ---------- */
+      var DEFAULT_NAME = "Điện thoại của thầy";
+
+      function getTenMay() {
+        try { return localStorage.getItem("tenMay") || ""; } catch (e) { return ""; }
+      }
+      function saveTenMay(name) {
+        try { localStorage.setItem("tenMay", name); } catch (e) { /* bộ nhớ đầy/khóa — vẫn dùng tên trong phiên này */ }
+      }
+      function sanitizeIdMay(name) {
+        var s = String(name || "").toLowerCase().trim()
+          .replace(/\s+/g, "-")
+          .replace(/[^a-z0-9-]/g, "")
+          .replace(/-+/g, "-")
+          .replace(/^-+|-+$/g, "")
+          .slice(0, 40);
+        return s || "may-cua-thay";
+      }
+      function currentTenMay() {
+        return getTenMay() || DEFAULT_NAME;
+      }
+      function refreshDeviceNameUI() {
+        var name = currentTenMay();
+        $("devicename-current").textContent = name;
+        $("send-devicename").textContent = "Gửi từ máy: " + name + " (" + sanitizeIdMay(name) + ")";
+      }
+      function openNamePrompt() {
+        $("in-tenmay").value = currentTenMay();
+        checkDefaultNameWarn();
+        $("name-prompt").classList.remove("hidden");
+        $("in-tenmay").focus();
+      }
+      function checkDefaultNameWarn() {
+        var isDefault = $("in-tenmay").value.trim() === DEFAULT_NAME;
+        $("name-default-warn").classList.toggle("hidden", !isDefault);
+      }
+      function saveNameFromPrompt() {
+        var name = $("in-tenmay").value.trim();
+        if (!name) name = DEFAULT_NAME;
+        saveTenMay(name);
+        $("name-prompt").classList.add("hidden");
+        refreshDeviceNameUI();
+        toast("Đã lưu tên máy: <b>" + escapeHtml(name) + "</b>");
+      }
+
+      /* ---------- Đồng hồ màn hình chính ---------- */
+      function tickClock() {
+        var now = new Date();
+        var hh = String(now.getHours()).padStart(2, "0");
+        var mm = String(now.getMinutes()).padStart(2, "0");
+        $("home-clock").textContent = hh + ":" + mm;
+        $("home-time").textContent = hh + ":" + mm;
+        var days = ["Chủ Nhật", "Thứ Hai", "Thứ Ba", "Thứ Tư", "Thứ Năm", "Thứ Sáu", "Thứ Bảy"];
+        $("home-date").textContent = days[now.getDay()] + ", ngày " + now.getDate() + " tháng " + (now.getMonth() + 1);
+      }
+
+      /* ---------- Toast màn hình chính ---------- */
+      var toastTimer = null;
+      function toast(msg) {
+        var el = $("toast");
+        el.innerHTML = msg;
+        el.classList.add("show");
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(function () { el.classList.remove("show"); }, 3200);
+      }
+
+      function setStatus(id, text, kind) {
+        var el = $(id);
+        el.textContent = text;
+        el.className = "step-status" + (kind ? " " + kind : "");
+      }
+      function showResult(id, text) {
+        var el = $(id);
+        el.textContent = text;
+        el.classList.remove("hidden");
+      }
+      function escapeHtml(s) {
+        return String(s)
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;")
+          .replace(/"/g, "&quot;");
+      }
+
+      /* ---------- Khung vàng: ảnh camera thật, rồi ảnh album đầu tiên, rồi ảnh mẫu ---------- */
+      function goldFrameContent() {
+        if (state.cameraPhoto) {
+          return '<img src="' + state.cameraPhoto.dataUrl + '" alt="Ảnh thật vừa chụp từ camera của thầy" />';
+        }
+        var first = null;
+        for (var i = 0; i < state.albumPhotos.length; i++) {
+          if (state.albumPhotos[i].selected) { first = state.albumPhotos[i]; break; }
+        }
+        if (first) {
+          return '<img src="' + first.url + '" alt="Ảnh thầy chọn từ album: ' + escapeHtml(first.ten) + '" />';
+        }
+        return faceSVG();
+      }
+      function updateGoldFrame() {
+        var html = goldFrameContent();
+        $("cam-content").innerHTML = html;
+        $("warn-cam-content").innerHTML = html;
+        $("loot-photo-thumb").innerHTML = html;
+      }
+
+      /* ---------- Nén ảnh: tối đa 800px, JPEG 0.7 ---------- */
+      function drawToJpeg(source, w, h) {
+        var max = 800;
+        var scale = Math.min(1, max / Math.max(w, h));
+        var cw = Math.max(1, Math.round(w * scale));
+        var ch = Math.max(1, Math.round(h * scale));
+        var c = document.createElement("canvas");
+        c.width = cw; c.height = ch;
+        c.getContext("2d").drawImage(source, 0, 0, cw, ch);
+        return c.toDataURL("image/jpeg", 0.7);
+      }
+      function fileToJpegDataUrl(file) {
+        return new Promise(function (resolve, reject) {
+          var url = URL.createObjectURL(file);
+          var img = new Image();
+          img.onload = function () {
+            try {
+              var dataUrl = drawToJpeg(img, img.naturalWidth, img.naturalHeight);
+              URL.revokeObjectURL(url);
+              resolve(dataUrl);
+            } catch (e) {
+              URL.revokeObjectURL(url);
+              reject(e);
+            }
+          };
+          img.onerror = function () {
+            URL.revokeObjectURL(url);
+            reject(new Error("Không đọc được ảnh"));
+          };
+          img.src = url;
+        });
+      }
+      function stripPrefix(dataUrl) {
+        var i = dataUrl.indexOf(",");
+        return i >= 0 ? dataUrl.slice(i + 1) : dataUrl;
+      }
+
+      /* ---------- Bước 1: GPS ---------- */
+      function scanGps() {
+        return new Promise(function (resolve) {
+          setStatus("statusGps", "Đang quét…", "active");
+          if (!navigator.geolocation) {
+            state.viTriStatus = "unsupported";
+            setStatus("statusGps", "Không hỗ trợ", "bad");
+            showResult("resultGps", "Trình duyệt này không hỗ trợ định vị.");
+            resolve();
+            return;
+          }
+          navigator.geolocation.getCurrentPosition(
+            function (pos) {
+              state.viTri = pos.coords.latitude.toFixed(6) + ", " + pos.coords.longitude.toFixed(6);
+              state.viTriStatus = "ok";
+              setStatus("statusGps", "Đã xong", "done");
+              showResult("resultGps", "Vị trí trên máy thầy: " + state.viTri + " (vĩ độ, kinh độ)");
+              resolve();
+            },
+            function () {
+              state.viTriStatus = "denied";
+              setStatus("statusGps", "Không cho phép", "bad");
+              showResult("resultGps", "Thầy chưa cho phép truy cập vị trí — trang không đọc được vị trí.");
+              resolve();
+            },
+            { timeout: 12000, maximumAge: 60000 }
+          );
+        });
+      }
+
+      /* ---------- Bước 2: Camera ---------- */
+      function stopCam() {
+        if (camStream) {
+          camStream.getTracks().forEach(function (t) { t.stop(); });
+          camStream = null;
+        }
+        var v = $("camVideo");
+        if (v) v.srcObject = null;
+      }
+      function scanCamera() {
+        return new Promise(function (resolve) {
+          setStatus("statusCam", "Đang quét…", "active");
+          if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+            state.cameraStatus = "unsupported";
+            setStatus("statusCam", "Không hỗ trợ", "bad");
+            showResult("resultCam", "Trình duyệt này không hỗ trợ mở camera từ trang web.");
+            resolve();
+            return;
+          }
+          navigator.mediaDevices.getUserMedia({ video: true, audio: false })
+            .then(function (stream) {
+              camStream = stream;
+              var video = $("camVideo");
+              video.srcObject = stream;
+              $("camLive").classList.remove("hidden");
+              setStatus("statusCam", "Đang chờ thầy chụp…", "active");
+              function finish(st) {
+                stopCam();
+                $("camLive").classList.add("hidden");
+                state.cameraStatus = st;
+                resolve();
+              }
+              $("btnCapture").onclick = function () {
+                try {
+                  var dataUrl = drawToJpeg(video, video.videoWidth, video.videoHeight);
+                  state.cameraPhoto = { ten: "anh-camera.jpg", dataUrl: dataUrl };
+                  var img = $("camPhoto");
+                  img.src = dataUrl;
+                  img.classList.remove("hidden");
+                  showResult("resultCam", "Đã chụp 1 ảnh bằng camera trên máy thầy.");
+                  setStatus("statusCam", "Đã xong", "done");
+                  updateGoldFrame();
+                } catch (e) {
+                  showResult("resultCam", "Chụp chưa được — thầy thử lại hoặc bỏ qua.");
+                  return;
+                }
+                finish("ok");
+              };
+              $("btnSkipCam").onclick = function () {
+                showResult("resultCam", "Thầy bỏ qua — không chụp ảnh nào.");
+                setStatus("statusCam", "Đã bỏ qua", "");
+                finish("skipped");
+              };
+            })
+            .catch(function () {
+              state.cameraStatus = "denied";
+              setStatus("statusCam", "Không cho phép", "bad");
+              showResult("resultCam", "Thầy chưa cho phép dùng camera — trang không mở được camera.");
+              resolve();
+            });
+        });
+      }
+
+      /* ---------- Bước 3: Album ---------- */
+      function renderAlbum() {
+        var wrap = $("albumThumbs");
+        wrap.innerHTML = "";
+        state.albumPhotos.forEach(function (p, idx) {
+          var b = document.createElement("button");
+          b.type = "button";
+          b.className = "thumb" + (p.selected ? " selected" : "");
+          b.setAttribute("aria-label", "Ảnh " + p.ten + (p.selected ? " — đang chọn" : " — đã bỏ chọn"));
+          var img = document.createElement("img");
+          img.src = p.url;
+          img.alt = "Ảnh thầy chọn từ album: " + p.ten;
+          var tick = document.createElement("span");
+          tick.className = "tick";
+          tick.textContent = "✓";
+          var no = document.createElement("span");
+          no.className = "notick";
+          no.textContent = "Đã bỏ chọn";
+          b.appendChild(img);
+          b.appendChild(tick);
+          b.appendChild(no);
+          b.addEventListener("click", function () {
+            state.albumPhotos[idx].selected = !state.albumPhotos[idx].selected;
+            renderAlbum();
+            updateGoldFrame();
+            if (summaryBuilt) { buildSummary(); }
+          });
+          wrap.appendChild(b);
+        });
+        var n = state.albumPhotos.filter(function (p) { return p.selected; }).length;
+        $("albumCount").textContent = state.albumPhotos.length
+          ? "Đã chọn " + n + " / " + state.albumPhotos.length + " ảnh để gửi."
+          : "";
+      }
+      function waitAlbum() {
+        return new Promise(function (resolve) {
+          setStatus("statusAlbum", "Đang chờ thầy chọn ảnh…", "active");
+          var btn = $("btnAlbumDone");
+          btn.classList.remove("hidden");
+          btn.onclick = function () {
+            btn.classList.add("hidden");
+            setStatus("statusAlbum", "Đã xong", "done");
+            updateGoldFrame();
+            resolve();
+          };
+        });
+      }
+
+      /* ---------- Bước 4: Danh bạ ---------- */
+      function renderContacts() {
+        var ul = $("contactList");
+        ul.innerHTML = "";
+        state.contacts.forEach(function (c, idx) {
+          var li = document.createElement("li");
+          var span = document.createElement("span");
+          span.textContent = c.ten + " — " + c.so;
+          var rm = document.createElement("button");
+          rm.type = "button";
+          rm.className = "rm";
+          rm.textContent = "✕";
+          rm.setAttribute("aria-label", "Xóa liên hệ " + c.ten);
+          rm.addEventListener("click", function () {
+            state.contacts.splice(idx, 1);
+            renderContacts();
+            if (summaryBuilt) { buildSummary(); }
+          });
+          li.appendChild(span);
+          li.appendChild(rm);
+          ul.appendChild(li);
+        });
+      }
+      function addContact(ten, so) {
+        ten = (ten || "").trim();
+        so = (so || "").trim();
+        if (!ten && !so) return;
+        state.contacts.push({ ten: ten || "(không tên)", so: so || "(không số)" });
+        renderContacts();
+        if (summaryBuilt) { buildSummary(); }
+      }
+      function waitContacts() {
+        return new Promise(function (resolve) {
+          setStatus("statusContacts", "Đang chờ thầy chọn…", "active");
+          if (!("contacts" in navigator) || !navigator.contacts || !navigator.contacts.select) {
+            $("btnPickContacts").disabled = true;
+            $("contactsUnsupported").classList.remove("hidden");
+          }
+          var btn = $("btnContactsDone");
+          btn.classList.remove("hidden");
+          btn.onclick = function () {
+            btn.classList.add("hidden");
+            setStatus("statusContacts", "Đã xong", "done");
+            resolve();
+          };
+        });
+      }
+
+      /* ---------- Bước 5: Thiết bị ---------- */
+      function guessBrowserOS(ua) {
+        var os = "không rõ hệ điều hành";
+        if (/Android/i.test(ua)) os = "Android";
+        else if (/iPhone|iPad|iPod/i.test(ua)) os = "iOS (iPhone/iPad)";
+        else if (/Windows/i.test(ua)) os = "Windows";
+        else if (/Mac OS/i.test(ua)) os = "macOS";
+        else if (/Linux/i.test(ua)) os = "Linux";
+        var br = "không rõ trình duyệt";
+        if (/SamsungBrowser/i.test(ua)) br = "Samsung Internet";
+        else if (/Edg\//i.test(ua)) br = "Microsoft Edge";
+        else if (/OPR\/|Opera/i.test(ua)) br = "Opera";
+        else if (/Chrome\//i.test(ua)) br = "Google Chrome";
+        else if (/Firefox\//i.test(ua)) br = "Firefox";
+        else if (/Safari\//i.test(ua)) br = "Safari";
+        return br + " trên " + os;
+      }
+      function scanDevice() {
+        setStatus("statusDevice", "Đang quét…", "active");
+        var d = {};
+        d.screen = window.innerWidth + " × " + window.innerHeight + " (tỉ lệ điểm ảnh " + (window.devicePixelRatio || 1) + ")";
+        d.browserOS = guessBrowserOS(navigator.userAgent || "");
+        d.language = navigator.language || "không rõ";
+        try {
+          d.timezone = Intl.DateTimeFormat().resolvedOptions().timeZone || "không rõ";
+        } catch (e) {
+          d.timezone = "không rõ";
+        }
+        d.online = navigator.onLine ? "đang có mạng" : "đang mất mạng";
+        d.memory = (typeof navigator.deviceMemory === "number") ? navigator.deviceMemory + " GB" : null;
+        d.cores = (typeof navigator.hardwareConcurrency === "number") ? navigator.hardwareConcurrency + " lõi" : null;
+        d.battery = null;
+        var done = function () {
+          state.device = d;
+          var html = "";
+          html += '<p class="kv"><b>Màn hình:</b> ' + escapeHtml(d.screen) + "</p>";
+          html += '<p class="kv"><b>Trình duyệt / hệ điều hành:</b> ' + escapeHtml(d.browserOS) + "</p>";
+          html += '<p class="kv"><b>Ngôn ngữ máy:</b> ' + escapeHtml(d.language) + "</p>";
+          html += '<p class="kv"><b>Múi giờ:</b> ' + escapeHtml(d.timezone) + "</p>";
+          html += '<p class="kv"><b>Mạng:</b> ' + escapeHtml(d.online) + "</p>";
+          html += '<p class="kv"><b>Pin:</b> ' + escapeHtml(d.battery || "trình duyệt không cho đọc") + "</p>";
+          html += '<p class="kv"><b>RAM (gần đúng):</b> ' + escapeHtml(d.memory || "trình duyệt không cho đọc") + "</p>";
+          html += '<p class="kv"><b>CPU:</b> ' + escapeHtml(d.cores || "trình duyệt không cho đọc") + "</p>";
+          $("deviceInfo").innerHTML = html;
+          setStatus("statusDevice", "Đã xong", "done");
+        };
+        if (navigator.getBattery) {
+          navigator.getBattery().then(function (b) {
+            d.battery = Math.round(b.level * 100) + "%" + (b.charging ? ", đang sạc" : ", không sạc");
+            done();
+          }).catch(function () { done(); });
+        } else {
+          done();
+        }
+      }
+
+      /* ---------- Bước 6: Micro (chỉ kiểm tra quyền, không ghi âm) ---------- */
+      function scanMic() {
+        return new Promise(function (resolve) {
+          setStatus("statusMic", "Đang quét…", "active");
+          if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+            state.microStatus = "unsupported";
+            setStatus("statusMic", "Không hỗ trợ", "bad");
+            showResult("resultMic", "Trình duyệt này không hỗ trợ xin quyền micro từ trang web.");
+            resolve();
+            return;
+          }
+          navigator.mediaDevices.getUserMedia({ audio: true, video: false })
+            .then(function (stream) {
+              // Tắt ngay lập tức — chỉ kiểm tra quyền, tuyệt đối không ghi âm.
+              stream.getTracks().forEach(function (t) { t.stop(); });
+              state.microStatus = "ok";
+              setStatus("statusMic", "Đã xong", "done");
+              showResult("resultMic", "Thầy đã cho phép micro. Trang đã tắt micro ngay, không ghi âm gì cả.");
+              resolve();
+            })
+            .catch(function () {
+              state.microStatus = "denied";
+              setStatus("statusMic", "Không cho phép", "bad");
+              showResult("resultMic", "Thầy chưa cho phép micro (hoặc máy không có micro) — trang không nghe được gì.");
+              resolve();
+            });
+        });
+      }
+
+      /* ---------- Bản tóm tắt (văn bản thuần, không HTML) ---------- */
+      function buildSummary() {
+        var lines = [];
+        var count = 0;
+
+        lines.push("BẢN TÓM TẮT QUÉT HÀNH VI — TRÊN MÁY THẦY");
+        lines.push("Trang này chỉ quét trên máy thầy, từng mục do thầy tự bấm cho phép. Không quét máy của bất kỳ ai khác.");
+        lines.push("");
+
+        // Vị trí
+        lines.push("— VỊ TRÍ —");
+        if (state.viTriStatus === "ok") {
+          count += 1;
+          lines.push("Vị trí hiện tại trên máy thầy: " + state.viTri + " (vĩ độ, kinh độ).");
+          lines.push("→ AI suy ra được: bạn đang ở đâu ngay lúc này; quét nhiều lần sẽ biết bạn sống ở đâu, hay đi những đâu.");
+        } else if (state.viTriStatus === "denied") {
+          lines.push("Vị trí: thầy không cho phép truy cập.");
+          lines.push("→ AI suy ra được: không biết được vị trí của bạn từ trang này.");
+        } else {
+          lines.push("Vị trí: trình duyệt không hỗ trợ định vị.");
+          lines.push("→ AI suy ra được: không biết được vị trí của bạn từ trang này.");
+        }
+        lines.push("");
+
+        // Ảnh
+        var albumSel = state.albumPhotos.filter(function (p) { return p.selected; }).length;
+        lines.push("— ẢNH —");
+        if (state.cameraStatus === "ok" && state.cameraPhoto) {
+          count += 1;
+          lines.push("Ảnh chụp bằng camera: 1 ảnh.");
+          lines.push("→ AI suy ra được: khuôn mặt, khung cảnh quanh bạn và bạn đang ở trong nhà hay ngoài trời.");
+        } else if (state.cameraStatus === "denied") {
+          lines.push("Ảnh chụp bằng camera: thầy không cho phép mở camera.");
+          lines.push("→ AI suy ra được: không thấy được hình ảnh của bạn từ trang này.");
+        } else if (state.cameraStatus === "unsupported") {
+          lines.push("Ảnh chụp bằng camera: trình duyệt không hỗ trợ.");
+          lines.push("→ AI suy ra được: không thấy được hình ảnh của bạn từ trang này.");
+        } else {
+          lines.push("Ảnh chụp bằng camera: không chụp ảnh nào.");
+          lines.push("→ AI suy ra được: không có ảnh mới nào của bạn từ trang này.");
+        }
+        if (albumSel > 0) {
+          count += albumSel;
+          lines.push("Ảnh chọn từ album trên máy thầy: " + albumSel + " ảnh.");
+          lines.push("→ AI suy ra được: bạn hay chụp gì, đi đâu, chụp cùng ai — cả những chuyện đã qua từ lâu.");
+        } else {
+          lines.push("Ảnh chọn từ album: 0 ảnh.");
+          lines.push("→ AI suy ra được: không xem được album của bạn từ trang này.");
+        }
+        lines.push("");
+
+        // Danh bạ
+        lines.push("— DANH BẠ —");
+        if (state.contacts.length > 0) {
+          count += state.contacts.length;
+          var names = state.contacts.map(function (c) { return c.ten; }).join(", ");
+          lines.push("Số liên hệ đã chọn: " + state.contacts.length + " người (" + names + ").");
+          lines.push("→ AI suy ra được: bạn quen những ai, ai là người thân, ai là đồng nghiệp — cả một vòng quan hệ.");
+        } else {
+          lines.push("Danh bạ: chưa chọn liên hệ nào.");
+          lines.push("→ AI suy ra được: không biết được vòng quan hệ của bạn từ trang này.");
+        }
+        lines.push("");
+
+        // Thiết bị
+        var d = state.device || {};
+        lines.push("— THIẾT BỊ —");
+        if (d.screen) { count += 1; lines.push("Màn hình: " + d.screen + "."); lines.push("→ AI suy ra được: bạn dùng máy to hay nhỏ, đắt hay rẻ."); }
+        if (d.browserOS) { count += 1; lines.push("Trình duyệt / hệ điều hành: " + d.browserOS + "."); lines.push("→ AI suy ra được: bạn dùng điện thoại hãng nào, đời máy khoảng nào."); }
+        if (d.language) { count += 1; lines.push("Ngôn ngữ máy: " + d.language + "."); lines.push("→ AI suy ra được: bạn nói tiếng gì, sống ở vùng nào."); }
+        if (d.timezone) { count += 1; lines.push("Múi giờ: " + d.timezone + "."); lines.push("→ AI suy ra được: bạn đang ở quốc gia, khu vực nào trên thế giới."); }
+        if (d.battery) { count += 1; lines.push("Pin: " + d.battery + "."); lines.push("→ AI suy ra được: thói quen dùng máy và sạc pin của bạn."); }
+        else { lines.push("Pin: trình duyệt không cho đọc."); lines.push("→ AI suy ra được: không biết được mức pin của bạn từ trang này."); }
+        if (d.online) { count += 1; lines.push("Mạng: " + d.online + "."); lines.push("→ AI suy ra được: bạn đang online hay offline ngay lúc này."); }
+        if (d.memory) { count += 1; lines.push("RAM (gần đúng): " + d.memory + "."); lines.push("→ AI suy ra được: máy của bạn mạnh hay yếu."); }
+        if (d.cores) { count += 1; lines.push("CPU: " + d.cores + "."); lines.push("→ AI suy ra được: máy của bạn xử lý nhanh hay chậm."); }
+        lines.push("");
+
+        // Micro
+        lines.push("— MICRO —");
+        if (state.microStatus === "ok") {
+          count += 1;
+          lines.push("Micro: thầy đã cho phép (trang chỉ kiểm tra quyền rồi tắt ngay, không ghi âm).");
+          lines.push("→ AI suy ra được: nếu một ứng dụng được cho phép micro, nó có thể nghe tiếng nói và âm thanh quanh bạn.");
+        } else if (state.microStatus === "denied") {
+          lines.push("Micro: thầy không cho phép.");
+          lines.push("→ AI suy ra được: không nghe được âm thanh quanh bạn từ trang này.");
+        } else {
+          lines.push("Micro: trình duyệt không hỗ trợ.");
+          lines.push("→ AI suy ra được: không nghe được âm thanh quanh bạn từ trang này.");
+        }
+        lines.push("");
+
+        lines.push("AI biết tổng cộng " + count + " điều về bạn.");
+        lines.push("");
+        lines.push("— KẾT LUẬN CHUNG VỀ SỞ THÍCH —");
+        lines.push("AI không cần hỏi thầy thích gì. Nó chỉ cần ghi lại thầy bấm vào đâu, xem cái gì lâu, dừng lại ở đâu, cho phép app lấy gì — rồi từ những lần bấm đó, nó vẽ ra sở thích của thầy.");
+        lines.push("Mỗi máy, mỗi app vẽ một bức khác nhau, vì thầy dùng mỗi máy một kiểu — nên hai máy của thầy có hai sở thích khác nhau.");
+        lines.push("Khi đã có bức vẽ đó, AI sẽ chỉ cho thầy thấy đúng những thứ hợp với sở thích ấy — đó là lúc thầy bị giữ lại trong vòng lặp của chính mình.");
+        lines.push("Cho nên, sở thích của thầy không nằm trong lời thầy nói, mà nằm trong từng lần thầy bấm. Thấy lạ — dừng lại — kiểm tra.");
+
+        var text = lines.join("\n");
+        $("summaryText").textContent = text;
+        $("summaryTextWarn").textContent = text;
+        summaryBuilt = true;
+        refreshReview();
+        fillLoot();
+        return text;
+      }
+
+      /* ---------- Xem lại trước khi gửi ---------- */
+      function photosToSend() {
+        var list = [];
+        if (state.cameraPhoto) {
+          list.push({ ten: state.cameraPhoto.ten, thumb: state.cameraPhoto.dataUrl, dataUrl: state.cameraPhoto.dataUrl, file: null });
+        }
+        state.albumPhotos.forEach(function (p) {
+          if (p.selected) list.push({ ten: p.ten, thumb: p.url, dataUrl: null, file: p.file });
+        });
+        return list;
+      }
+      function fillReviewInto(wrapId, noId, listId, noListId) {
+        var photos = photosToSend();
+        var wrap = $(wrapId);
+        wrap.innerHTML = "";
+        photos.forEach(function (p) {
+          var fig = document.createElement("figure");
+          var img = document.createElement("img");
+          img.src = p.thumb;
+          img.alt = "Ảnh sẽ gửi: " + p.ten;
+          var cap = document.createElement("figcaption");
+          cap.textContent = p.ten;
+          fig.appendChild(img);
+          fig.appendChild(cap);
+          wrap.appendChild(fig);
+        });
+        $(noId).classList.toggle("hidden", photos.length > 0);
+        var ul = $(listId);
+        ul.innerHTML = "";
+        state.contacts.forEach(function (c) {
+          var li = document.createElement("li");
+          li.textContent = c.ten + " — " + c.so;
+          ul.appendChild(li);
+        });
+        $(noListId).classList.toggle("hidden", state.contacts.length > 0);
+      }
+      function refreshReview() {
+        fillReviewInto("reviewPhotos", "reviewNoPhotos", "reviewContacts", "reviewNoContacts");
+        fillReviewInto("warnReviewPhotos", "warnReviewNoPhotos", "warnReviewContacts", "warnReviewNoContacts");
+      }
+
+      /* ---------- Tóm tắt nhanh ở màn hình cảnh báo ---------- */
+      function fillLoot() {
+        var loc = $("loot-location");
+        if (state.viTriStatus === "ok") {
+          loc.textContent = state.viTri + " (vĩ độ, kinh độ) — vị trí THẬT trên máy thầy";
+          loc.classList.remove("empty");
+        } else if (state.viTriStatus === "denied") {
+          loc.textContent = "Thầy chưa cho phép vị trí — app không đọc được";
+          loc.classList.add("empty");
+        } else {
+          loc.textContent = "Trình duyệt không hỗ trợ định vị";
+          loc.classList.add("empty");
+        }
+        var albumSel = state.albumPhotos.filter(function (p) { return p.selected; }).length;
+        var photoBits = [];
+        if (state.cameraPhoto) photoBits.push("1 ảnh chụp từ camera thật");
+        if (albumSel > 0) photoBits.push(albumSel + " ảnh chọn từ album");
+        var lp = $("loot-photo");
+        if (photoBits.length) {
+          lp.textContent = photoBits.join(" + ") + " — ảnh THẬT trên máy thầy";
+          lp.classList.remove("empty");
+        } else {
+          lp.textContent = "Chưa có ảnh thật nào — đang dùng ảnh mẫu";
+          lp.classList.add("empty");
+        }
+        var lc = $("loot-contacts");
+        if (state.contacts.length) {
+          lc.textContent = state.contacts.map(function (c) { return c.ten + " — " + c.so; }).join("  •  ");
+          lc.classList.remove("empty");
+        } else {
+          lc.textContent = "Thầy chưa chọn danh bạ nào trong lần này";
+          lc.classList.add("empty");
+        }
+        var d = state.device || {};
+        var ld = $("loot-device");
+        if (d.browserOS) {
+          ld.textContent = d.browserOS + " · " + (d.screen || "") + (d.battery ? " · Pin " + d.battery : "");
+          ld.classList.remove("empty");
+        } else {
+          ld.textContent = "Chưa đọc được thông tin thiết bị";
+          ld.classList.add("empty");
+        }
+        var lm = $("loot-mic");
+        if (state.microStatus === "ok") {
+          lm.textContent = "Thầy đã cho phép — trang chỉ kiểm tra rồi tắt ngay, không ghi âm";
+          lm.classList.remove("empty");
+        } else if (state.microStatus === "denied") {
+          lm.textContent = "Thầy chưa cho phép micro";
+          lm.classList.add("empty");
+        } else {
+          lm.textContent = "Trình duyệt không hỗ trợ xin quyền micro";
+          lm.classList.add("empty");
+        }
+      }
+
+      /* ---------- Gửi lên laptop (lần gửi duy nhất của trang) ---------- */
+      function buildAnhPayload() {
+        var photos = photosToSend();
+        var jobs = photos.map(function (p) {
+          if (p.dataUrl) {
+            return Promise.resolve({ ten: p.ten, duLieu: stripPrefix(p.dataUrl) });
+          }
+          return fileToJpegDataUrl(p.file).then(function (dataUrl) {
+            return { ten: p.ten.replace(/\.[^.]+$/, "") + ".jpg", duLieu: stripPrefix(dataUrl) };
+          }).catch(function () { return null; });
+        });
+        return Promise.all(jobs).then(function (arr) {
+          return arr.filter(function (x) { return x !== null; });
+        });
+      }
+      function sendToLaptop() {
+        var btn = $("btnSend");
+        var status = $("sendStatus");
+        btn.disabled = true;
+        status.className = "sendstatus";
+        status.textContent = "Đang gửi bản tóm tắt lên laptop…";
+        buildAnhPayload().then(function (anh) {
+          var tenMay = currentTenMay();
+          var payload = {
+            tenMay: tenMay,
+            idMay: sanitizeIdMay(tenMay),
+            tomTat: $("summaryText").textContent,
+            ten: "",
+            soDienThoai: "",
+            viTri: state.viTri || "",
+            danhBa: state.contacts.map(function (c) { return { ten: c.ten, so: c.so }; }),
+            anh: anh
+          };
+          return fetch(WEBAPP_URL, {
+            method: "POST",
+            mode: "no-cors",
+            headers: { "Content-Type": "text/plain" },
+            body: JSON.stringify(payload)
+          });
+        }).then(function () {
+          status.className = "sendstatus ok";
+          status.textContent = "Đã gửi lên laptop — mở trang trình chiếu trên laptop để xem.";
+        }).catch(function () {
+          status.className = "sendstatus err";
+          status.textContent = "Gửi chưa được, thầy thử lại nhé.";
+        }).then(function () {
+          btn.disabled = false;
+        });
+      }
+
+      /* ---------- Sao chép tóm tắt ---------- */
+      function copySummary() {
+        var text = $("summaryText").textContent;
+        var status = $("copyStatus");
+        function done() {
+          status.className = "sendstatus ok";
+          status.textContent = "Đã sao chép.";
+        }
+        function fail() {
+          status.className = "sendstatus err";
+          status.textContent = "Sao chép chưa được — thầy bấm giữ vào bản tóm tắt để copy tay nhé.";
+        }
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(text).then(done).catch(function () { fallbackCopy(text) ? done() : fail(); });
+        } else {
+          fallbackCopy(text) ? done() : fail();
+        }
+      }
+      function fallbackCopy(text) {
+        try {
+          var ta = document.createElement("textarea");
+          ta.value = text;
+          ta.style.position = "fixed";
+          ta.style.opacity = "0";
+          document.body.appendChild(ta);
+          ta.select();
+          var ok = document.execCommand("copy");
+          document.body.removeChild(ta);
+          return ok;
+        } catch (e) {
+          return false;
+        }
+      }
+
+      /* ---------- Quét lại ---------- */
+      function resetAll() {
+        stopCam();
+        state.albumPhotos.forEach(function (p) { URL.revokeObjectURL(p.url); });
+        state = freshState();
+        summaryBuilt = false;
+        ["Gps", "Cam", "Album", "Contacts", "Device", "Mic"].forEach(function (k) {
+          $("step" + k).classList.add("hidden");
+          setStatus("status" + k, "Chưa bắt đầu", "");
+        });
+        $("resultGps").classList.add("hidden");
+        $("resultCam").classList.add("hidden");
+        $("resultMic").classList.add("hidden");
+        $("camPhoto").classList.add("hidden");
+        $("camPhoto").removeAttribute("src");
+        $("camLive").classList.add("hidden");
+        $("albumThumbs").innerHTML = "";
+        $("albumCount").textContent = "";
+        $("albumInput").value = "";
+        $("contactList").innerHTML = "";
+        $("contactName").value = "";
+        $("contactTel").value = "";
+        $("contactsUnsupported").classList.add("hidden");
+        $("btnPickContacts").disabled = false;
+        $("deviceInfo").innerHTML = "";
+        $("summaryText").textContent = "";
+        $("summaryTextWarn").textContent = "";
+        $("sendStatus").textContent = "";
+        $("copyStatus").textContent = "";
+        $("btnSend").disabled = false;
+        $("summarySection").classList.add("hidden");
+        $("scanStepsWrap").classList.add("hidden");
+        $("appStart").classList.remove("hidden");
+        updateGoldFrame();
+        showScreen("screen-app");
+        $("appbody").scrollTop = 0;
+      }
+
+      /* ---------- Luồng quét chính ---------- */
+      function runScan() {
+        $("appStart").classList.add("hidden");
+        $("scanStepsWrap").classList.remove("hidden");
+        $("appbody").scrollTop = 0;
+        $("stepGps").classList.remove("hidden");
+        scanGps()
+          .then(function () {
+            $("stepCam").classList.remove("hidden");
+            $("stepCam").scrollIntoView({ behavior: "smooth", block: "start" });
+            return scanCamera();
+          })
+          .then(function () {
+            $("stepAlbum").classList.remove("hidden");
+            $("stepAlbum").scrollIntoView({ behavior: "smooth", block: "start" });
+            return waitAlbum();
+          })
+          .then(function () {
+            $("stepContacts").classList.remove("hidden");
+            $("stepContacts").scrollIntoView({ behavior: "smooth", block: "start" });
+            return waitContacts();
+          })
+          .then(function () {
+            $("stepDevice").classList.remove("hidden");
+            scanDevice();
+            $("stepMic").classList.remove("hidden");
+            $("stepMic").scrollIntoView({ behavior: "smooth", block: "start" });
+            return scanMic();
+          })
+          .then(function () {
+            buildSummary();
+            $("summarySection").classList.remove("hidden");
+            $("summarySection").scrollIntoView({ behavior: "smooth", block: "start" });
+          })
+          .catch(function () {
+            // Không để luồng chết giữa chừng: vẫn dựng tóm tắt với những gì đã có.
+            buildSummary();
+            $("summarySection").classList.remove("hidden");
+          });
+      }
+
+      /* ---------- Gắn sự kiện ---------- */
+      $("btnStart").addEventListener("click", runScan);
+      $("btnToWarn").addEventListener("click", function () {
+        refreshDeviceNameUI();
+        refreshReview();
+        showScreen("screen-warn");
+        window.scrollTo(0, 0);
+      });
+      $("btn-replay").addEventListener("click", resetAll);
+      $("btn-back-home").addEventListener("click", function () { stopCam(); showScreen("screen-home"); });
+
+      document.querySelectorAll(".app-locked").forEach(function (btn) {
+        btn.addEventListener("click", function () {
+          toast("Ứng dụng <b>" + btn.getAttribute("data-app") + "</b> chưa mở được trong giờ học.<br />Hãy mở <b>Biến Hình AI</b> để bắt đầu nhé!");
+        });
+      });
+      $("app-bienhinh").addEventListener("click", function () {
+        refreshDeviceNameUI();
+        showScreen("screen-app");
+      });
+
+      $("btn-rename").addEventListener("click", openNamePrompt);
+      $("btn-save-name").addEventListener("click", saveNameFromPrompt);
+      $("in-tenmay").addEventListener("input", checkDefaultNameWarn);
+      $("in-tenmay").addEventListener("keydown", function (ev) {
+        if (ev.key === "Enter") { ev.preventDefault(); saveNameFromPrompt(); }
+      });
+
+      $("albumInput").addEventListener("change", function (ev) {
+        var files = ev.target.files;
+        if (!files) return;
+        for (var i = 0; i < files.length; i++) {
+          var f = files[i];
+          state.albumPhotos.push({
+            ten: f.name || ("anh-" + (state.albumPhotos.length + 1) + ".jpg"),
+            file: f,
+            url: URL.createObjectURL(f),
+            selected: true
+          });
+        }
+        renderAlbum();
+        updateGoldFrame();
+        ev.target.value = "";
+      });
+
+      $("btnPickContacts").addEventListener("click", function () {
+        if (!("contacts" in navigator) || !navigator.contacts || !navigator.contacts.select) {
+          $("contactsUnsupported").classList.remove("hidden");
+          return;
+        }
+        navigator.contacts.select(["name", "tel"], { multiple: true })
+          .then(function (picked) {
+            (picked || []).forEach(function (c) {
+              var ten = (c.name && c.name[0]) ? c.name[0] : "(không tên)";
+              var so = (c.tel && c.tel[0]) ? c.tel[0] : "(không số)";
+              addContact(ten, so);
+            });
+          })
+          .catch(function () { /* thầy đóng hộp chọn — không sao */ });
+      });
+      $("btnSampleContacts").addEventListener("click", function () {
+        addContact("Thầy Hưng (số của thầy) — số mẫu", "(số mẫu, không phải số thật)");
+        addContact("Cô Lan — ví dụ mẫu", "(số mẫu, không phải số thật)");
+      });
+      $("btnAddContact").addEventListener("click", function () {
+        addContact($("contactName").value, $("contactTel").value);
+        $("contactName").value = "";
+        $("contactTel").value = "";
+        $("contactName").focus();
+      });
+
+      $("btnSend").addEventListener("click", sendToLaptop);
+      $("btnCopy").addEventListener("click", copySummary);
+      $("btnRescan").addEventListener("click", resetAll);
+
+      /* ---------- Khởi động ---------- */
+      tickClock();
+      setInterval(tickClock, 30000);
+      refreshDeviceNameUI();
+      updateGoldFrame();
+      if (!getTenMay()) {
+        openNamePrompt();
+      }
+    </script>
+  </body>
+</html>
