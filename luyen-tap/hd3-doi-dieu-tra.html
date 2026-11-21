@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Đội điều tra — Bài 3 lớp 8</title>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; padding: 0 0 48px;
+    font-family: -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+    background: #f2f5f9; color: #111827;
+    font-size: 19px; line-height: 1.5;
+  }
+  .timer-bar {
+    position: sticky; top: 0; z-index: 10;
+    background: #1e3a8a; color: #ffffff;
+    text-align: center; padding: 12px 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,.25);
+  }
+  .timer-bar .label { font-size: 17px; font-weight: 600; letter-spacing: .04em; }
+  .timer-bar .time { font-size: 44px; font-weight: 800; line-height: 1.1; font-variant-numeric: tabular-nums; }
+  .timer-bar.over { background: #b91c1c; }
+  .timer-bar.over .time { font-size: 26px; padding: 6px 0; }
+  .wrap { max-width: 640px; margin: 0 auto; padding: 16px 16px 0; }
+  h1 { font-size: 26px; line-height: 1.25; margin: 8px 0 4px; color: #1e3a8a; }
+  .sub { font-size: 17px; color: #4b5563; margin: 0 0 16px; }
+  .card {
+    background: #ffffff; border: 1px solid #d1d5db; border-radius: 14px;
+    padding: 18px; margin-bottom: 16px;
+  }
+  .card h2 { font-size: 21px; margin: 0 0 10px; color: #1e3a8a; }
+  .case {
+    background: #fffbeb; border: 2px solid #f59e0b; border-radius: 14px;
+    padding: 18px; margin-bottom: 16px; font-size: 20px;
+  }
+  .case strong { color: #92400e; }
+  .ref-tag {
+    display: inline-block; background: #dbeafe; color: #1e40af;
+    font-size: 15px; font-weight: 700; border-radius: 999px;
+    padding: 3px 12px; margin-bottom: 8px;
+  }
+  ol.ref { margin: 8px 0 0; padding-left: 26px; }
+  ol.ref li { margin-bottom: 8px; }
+  label.field-label { display: block; font-weight: 700; font-size: 20px; margin: 0 0 8px; }
+  input[type="text"], textarea {
+    width: 100%; font-size: 20px; padding: 14px;
+    border: 2px solid #9ca3af; border-radius: 12px;
+    font-family: inherit; background: #ffffff; color: #111827;
+  }
+  input[type="text"]:focus, textarea:focus { outline: 3px solid #2563eb; border-color: #2563eb; }
+  textarea { min-height: 120px; resize: vertical; }
+  .hint { font-size: 16px; color: #6b7280; margin: 6px 0 0; }
+  .hint.warn { color: #b45309; font-weight: 600; }
+  .hint.err { color: #b91c1c; font-weight: 700; }
+  .toggle-row { display: flex; gap: 12px; }
+  .toggle-btn {
+    flex: 1; min-height: 76px; font-size: 21px; font-weight: 800;
+    font-family: inherit; border-radius: 14px; cursor: pointer;
+    border: 3px solid #9ca3af; background: #f9fafb; color: #111827;
+    padding: 12px 8px;
+  }
+  .toggle-btn.sel-no { background: #dc2626; border-color: #7f1d1d; color: #ffffff; }
+  .toggle-btn.sel-yes { background: #16a34a; border-color: #14532d; color: #ffffff; }
+  .sign { display: flex; align-items: flex-start; gap: 12px;
+    padding: 14px 12px; border: 2px solid #d1d5db; border-radius: 12px;
+    margin-bottom: 10px; cursor: pointer; background: #f9fafb; font-size: 20px; }
+  .sign input { width: 28px; height: 28px; flex: none; margin-top: 2px; accent-color: #1d4ed8; }
+  .sign.checked { border-color: #1d4ed8; background: #eff6ff; }
+  .sign b { color: #1e40af; }
+  .send-btn {
+    width: 100%; min-height: 68px; font-size: 23px; font-weight: 800;
+    font-family: inherit; border: none; border-radius: 14px; cursor: pointer;
+    background: #1d4ed8; color: #ffffff; margin-top: 6px;
+  }
+  .send-btn:disabled { background: #9ca3af; cursor: default; }
+  .ok-box {
+    display: none; background: #f0fdf4; border: 2px solid #16a34a; border-radius: 14px;
+    padding: 18px; margin-bottom: 16px; font-size: 21px; font-weight: 700; color: #14532d;
+    text-align: center;
+  }
+  .ok-box.show { display: block; }
+  .edit-link {
+    display: block; text-align: center; margin-top: 10px;
+    font-size: 18px; color: #1d4ed8; background: none; border: none;
+    text-decoration: underline; cursor: pointer; font-family: inherit; padding: 10px;
+  }
+  #nhanxet-box { display: none; }
+  #nhanxet-box.show { display: block; }
+  .sent-note { display: none; color: #15803d; font-weight: 700; font-size: 19px; margin-top: 10px; }
+  .sent-note.show { display: block; }
+  fieldset { border: none; margin: 0; padding: 0; }
+  fieldset:disabled { opacity: .55; }
+  .foot { text-align: center; color: #6b7280; font-size: 15px; margin-top: 8px; }
+</style>
+</head>
+<body>
+
+<div class="timer-bar" id="timer-bar">
+  <div class="label">⏱ THỜI GIAN ĐIỀU TRA</div>
+  <div class="time" id="timer">Còn 07:00</div>
+</div>
+
+<div class="wrap">
+  <h1>🔍 ĐỘI ĐIỀU TRA</h1>
+  <p class="sub">Lớp 8 — Bài 3: Nguy cơ rò rỉ dữ liệu cá nhân · HĐ3 Luyện tập</p>
+
+  <div class="case">
+    <strong>VỤ VIỆC CẦN ĐIỀU TRA:</strong><br>
+    Một app học tập miễn phí đòi nhập số điện thoại của bố mẹ để “mở khóa thêm bài tập”.
+  </div>
+
+  <div class="card">
+    <span class="ref-tag">📋 THAM KHẢO — 5 CÂU HỎI TỰ KIỂM TRA</span>
+    <p style="margin:6px 0 0;font-size:17px;color:#4b5563;">Dùng 5 câu hỏi này để bàn bạc rồi mới kết luận:</p>
+    <ol class="ref">
+      <li>Vì sao app liên tục đề xuất nội dung này cho mình?</li>
+      <li>Mình có đang xem một loại nội dung quá nhiều không?</li>
+      <li>App có xin quyền không cần thiết không?</li>
+      <li>Mình có tắt, bỏ qua hoặc thay đổi đề xuất được không?</li>
+      <li>Thông tin này có cần kiểm chứng từ nguồn khác không?</li>
+    </ol>
+  </div>
+
+  <form id="form-dieutra" novalidate>
+    <fieldset id="fieldset">
+      <div class="card">
+        <label class="field-label" for="team">👥 Tên đội của em</label>
+        <input type="text" id="team" placeholder="Ví dụ: Tổ 1, Đội A…" autocomplete="off">
+        <p class="hint">Tên đội đã lưu từ phần trước — sửa lại nếu chưa đúng.</p>
+        <p class="hint err" id="err-team" hidden>⚠️ Nhập tên đội rồi mới gửi nhé!</p>
+      </div>
+
+      <div class="card">
+        <span class="field-label">(a) Có nên nhập số điện thoại không?</span>
+        <div class="toggle-row">
+          <button type="button" class="toggle-btn" id="btn-khong" aria-pressed="false">✋<br>Không nên nhập</button>
+          <button type="button" class="toggle-btn" id="btn-co" aria-pressed="false">👉<br>Nên nhập</button>
+        </div>
+        <p class="hint err" id="err-chon" hidden>⚠️ Đội phải chọn 1 trong 2 nút trên!</p>
+      </div>
+
+      <div class="card">
+        <span class="field-label">(b) Dính dấu hiệu số mấy?</span>
+        <p class="hint" style="margin-top:0;">Chọn tất cả dấu hiệu đội thấy có trong vụ việc này.</p>
+        <label class="sign"><input type="checkbox" name="dauhieu" value="1"> <span><b>Dấu hiệu 1.</b> Theo dõi không minh bạch.</span></label>
+        <label class="sign"><input type="checkbox" name="dauhieu" value="2"> <span><b>Dấu hiệu 2.</b> Đề xuất nội dung một chiều.</span></label>
+        <label class="sign"><input type="checkbox" name="dauhieu" value="3"> <span><b>Dấu hiệu 3.</b> Thao túng suy nghĩ và hành động.</span></label>
+        <label class="sign"><input type="checkbox" name="dauhieu" value="4"> <span><b>Dấu hiệu 4.</b> Mất quyền kiểm soát dữ liệu cá nhân.</span></label>
+        <p class="hint warn" id="hint-signs" hidden>💡 Đội chưa chọn dấu hiệu nào — vẫn gửi được, nhưng nên chọn ít nhất 1 dấu hiệu.</p>
+      </div>
+
+      <div class="card">
+        <label class="field-label" for="action">(c) Cách làm đúng là gì?</label>
+        <textarea id="action" placeholder="Ví dụ: Không nhập số điện thoại, hỏi ý kiến bố mẹ và thầy cô trước khi cấp quyền cho app…"></textarea>
+        <p class="hint warn" id="hint-action" hidden>💡 Đội nên viết cách làm đúng — chỉ 1–2 câu thôi cũng được!</p>
+      </div>
+
+      <button type="submit" class="send-btn" id="btn-gui">📤 GỬI KẾT LUẬN</button>
+    </fieldset>
+  </form>
+
+  <div class="ok-box" id="ok-box">
+    ✓ ĐÃ GỬI — chờ thầy chiếu kết quả.
+    <button type="button" class="edit-link" id="btn-sua">↩ Sửa lại kết luận</button>
+  </div>
+
+  <div class="card" id="nhanxet-box">
+    <h2>💬 Nhận xét đội khác</h2>
+    <p class="hint" style="margin-top:0;">Xem kết luận của đội khác trên TV của thầy rồi nhận xét tại đây. Có thể nhận xét nhiều đội.</p>
+    <label class="field-label" for="to-team">Tên đội được nhận xét</label>
+    <input type="text" id="to-team" placeholder="Ví dụ: Tổ 2" autocomplete="off">
+    <p class="hint err" id="err-nhanxet-team" hidden>⚠️ Nhập tên đội được nhận xét!</p>
+    <label class="field-label" for="comment" style="margin-top:14px;">Nhận xét của đội em</label>
+    <textarea id="comment" placeholder="Ví dụ: Đội bạn kết luận đúng, nhưng chưa nói rõ cách làm đúng…"></textarea>
+    <p class="hint err" id="err-nhanxet-text" hidden>⚠️ Viết vài chữ nhận xét rồi mới gửi!</p>
+    <button type="button" class="send-btn" id="btn-gui-nhanxet">💬 GỬI NHẬN XÉT</button>
+    <p class="sent-note" id="note-nhanxet">✓ Đã gửi nhận xét.</p>
+  </div>
+
+  <p class="foot">Chỉ gửi tên đội + kết luận điều tra + nhận xét. Không thu thập tên, số điện thoại, ảnh hay vị trí của học sinh.</p>
+</div>
+
+<script>
+"use strict";
+var WEBAPP_URL = "https://script.google.com/macros/s/AKfycbw6K57VCKeT8w5oLfaUZsrLyfuJDcJaGWn0Crp5AP8IECVzo4zwse8CilJ5B5ckGTQ0/exec";
+
+function postData(payload) {
+  return fetch(WEBAPP_URL, {
+    method: "POST",
+    mode: "no-cors",
+    headers: { "Content-Type": "text/plain" },
+    body: JSON.stringify(payload)
+  });
+}
+
+/* ---- Đồng hồ đếm ngược 7 phút (chỉ để tham khảo, thầy vẫn quản giờ thật) ---- */
+var TOTAL_SECONDS = 7 * 60;
+var remain = TOTAL_SECONDS;
+var timerEl = document.getElementById("timer");
+var timerBar = document.getElementById("timer-bar");
+
+function renderTimer() {
+  if (remain <= 0) {
+    timerEl.textContent = "Hết giờ — gửi kết luận ngay!";
+    timerBar.classList.add("over");
+    return;
+  }
+  var m = Math.floor(remain / 60);
+  var s = remain % 60;
+  timerEl.textContent = "Còn " + (m < 10 ? "0" + m : m) + ":" + (s < 10 ? "0" + s : s);
+  if (remain <= 60) { timerEl.style.color = "#fca5a5"; }
+}
+renderTimer();
+setInterval(function () {
+  if (remain > 0) { remain--; renderTimer(); }
+}, 1000);
+
+/* ---- Tên đội: lấy từ App 1 (localStorage), sửa được ---- */
+var teamInput = document.getElementById("team");
+try {
+  var savedTeam = localStorage.getItem("hd3-team");
+  if (savedTeam) { teamInput.value = savedTeam; }
+} catch (e) { /* bộ nhớ trình duyệt không dùng được thì để trống */ }
+teamInput.addEventListener("input", function () {
+  try { localStorage.setItem("hd3-team", teamInput.value.trim()); } catch (e) {}
+});
+
+/* ---- (a) Hai nút chọn: Không nên nhập / Nên nhập ---- */
+var shouldEnter = null;
+var btnKhong = document.getElementById("btn-khong");
+var btnCo = document.getElementById("btn-co");
+
+function setChoice(value) {
+  shouldEnter = value;
+  btnKhong.classList.toggle("sel-no", value === "khong");
+  btnCo.classList.toggle("sel-yes", value === "co");
+  btnKhong.setAttribute("aria-pressed", value === "khong" ? "true" : "false");
+  btnCo.setAttribute("aria-pressed", value === "co" ? "true" : "false");
+  document.getElementById("err-chon").hidden = true;
+}
+btnKhong.addEventListener("click", function () { setChoice("khong"); });
+btnCo.addEventListener("click", function () { setChoice("co"); });
+
+/* ---- (b) Tô sáng ô dấu hiệu khi tick ---- */
+var signBoxes = document.querySelectorAll('input[name="dauhieu"]');
+signBoxes.forEach(function (box) {
+  box.addEventListener("change", function () {
+    box.closest(".sign").classList.toggle("checked", box.checked);
+    document.getElementById("hint-signs").hidden = true;
+  });
+});
+document.getElementById("action").addEventListener("input", function () {
+  document.getElementById("hint-action").hidden = true;
+});
+
+/* ---- Gửi kết luận ---- */
+var form = document.getElementById("form-dieutra");
+var fieldset = document.getElementById("fieldset");
+var okBox = document.getElementById("ok-box");
+var btnGui = document.getElementById("btn-gui");
+
+form.addEventListener("submit", function (ev) {
+  ev.preventDefault();
+  var team = teamInput.value.trim();
+  var errTeam = document.getElementById("err-team");
+  var errChon = document.getElementById("err-chon");
+  var ok = true;
+  if (!team) { errTeam.hidden = false; teamInput.focus(); ok = false; }
+  else { errTeam.hidden = true; }
+  if (!shouldEnter) { errChon.hidden = false; ok = false; }
+  else { errChon.hidden = true; }
+  if (!ok) { return; }
+
+  var signs = [];
+  signBoxes.forEach(function (box) { if (box.checked) { signs.push(Number(box.value)); } });
+  if (signs.length === 0) {
+    document.getElementById("hint-signs").hidden = false;
+  }
+  var action = document.getElementById("action").value.trim();
+  if (!action) {
+    document.getElementById("hint-action").hidden = false;
+  }
+
+  btnGui.disabled = true;
+  btnGui.textContent = "⏳ Đang gửi…";
+  postData({ loai: "dieutra", team: team, shouldEnter: shouldEnter, signs: signs, action: action })
+    .catch(function () { /* no-cors: không đọc được phản hồi, cứ coi như đã gửi */ })
+    .finally(function () {
+      fieldset.disabled = true;
+      btnGui.disabled = false;
+      btnGui.textContent = "📤 GỬI KẾT LUẬN";
+      okBox.classList.add("show");
+      document.getElementById("nhanxet-box").classList.add("show");
+      window.scrollTo({ top: okBox.offsetTop - 90, behavior: "smooth" });
+    });
+});
+
+/* ---- Sửa lại: mở lại form để gửi đè ---- */
+document.getElementById("btn-sua").addEventListener("click", function () {
+  fieldset.disabled = false;
+  okBox.classList.remove("show");
+  window.scrollTo({ top: 0, behavior: "smooth" });
+});
+
+/* ---- Nhận xét đội khác (gửi được nhiều lần) ---- */
+document.getElementById("btn-gui-nhanxet").addEventListener("click", function () {
+  var fromTeam = teamInput.value.trim();
+  var toTeam = document.getElementById("to-team").value.trim();
+  var text = document.getElementById("comment").value.trim();
+  var errTeam = document.getElementById("err-nhanxet-team");
+  var errText = document.getElementById("err-nhanxet-text");
+  var note = document.getElementById("note-nhanxet");
+  var ok = true;
+  if (!toTeam) { errTeam.hidden = false; ok = false; }
+  else { errTeam.hidden = true; }
+  if (!text) { errText.hidden = false; ok = false; }
+  else { errText.hidden = true; }
+  if (!ok) { return; }
+  var btn = document.getElementById("btn-gui-nhanxet");
+  btn.disabled = true;
+  btn.textContent = "⏳ Đang gửi…";
+  postData({ loai: "nhanxet", fromTeam: fromTeam, toTeam: toTeam, text: text })
+    .catch(function () {})
+    .finally(function () {
+      btn.disabled = false;
+      btn.textContent = "💬 GỬI NHẬN XÉT";
+      document.getElementById("comment").value = "";
+      document.getElementById("to-team").value = "";
+      note.classList.add("show");
+    });
+});
+</script>
+</body>
+</html>

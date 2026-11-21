@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Trắc nghiệm nhanh — Bài 4 Lớp 8</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; }
+  body {
+    font-family: -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+    background: #0b3d91;
+    color: #fff;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 16px;
+    text-align: center;
+  }
+  h1 { font-size: 26px; line-height: 1.3; margin: 8px 0 4px; }
+  .sub { font-size: 17px; color: #cfe3ff; margin-bottom: 16px; }
+  .card {
+    width: 100%; max-width: 520px;
+    background: #fff; color: #111;
+    border-radius: 18px; padding: 20px 16px;
+    box-shadow: 0 6px 24px rgba(0,0,0,.35);
+  }
+  .card p { font-size: 18px; line-height: 1.5; margin-bottom: 12px; }
+  label { display: block; font-size: 19px; font-weight: 700; margin-bottom: 8px; }
+  input[type="text"] {
+    width: 100%; font-size: 22px; padding: 14px 12px;
+    border: 3px solid #0b3d91; border-radius: 12px;
+    text-align: center; color: #111;
+  }
+  button { font-family: inherit; cursor: pointer; border: none; }
+  .btn-primary {
+    width: 100%; margin-top: 14px; padding: 16px;
+    font-size: 22px; font-weight: 800; color: #fff;
+    background: #0b3d91; border-radius: 12px;
+  }
+  .btn-primary:active { background: #072a66; }
+  /* Màn hình chính */
+  #main { display: none; width: 100%; max-width: 520px; flex-direction: column; align-items: center; flex: 1; }
+  .team-bar {
+    width: 100%; background: #fff; color: #111; border-radius: 14px;
+    padding: 12px 14px; margin-bottom: 14px;
+    display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  }
+  .team-bar .team-name { font-size: 22px; font-weight: 800; text-align: left; word-break: break-word; }
+  .team-bar a { font-size: 15px; color: #0b3d91; white-space: nowrap; }
+  .rounds { display: flex; gap: 8px; width: 100%; margin-bottom: 18px; }
+  .rounds button {
+    flex: 1; padding: 14px 4px; font-size: 19px; font-weight: 800;
+    background: #123f7a; color: #cfe3ff; border: 3px solid #4d7fc4; border-radius: 12px;
+  }
+  .rounds button.active { background: #ffd23f; color: #111; border-color: #ffd23f; }
+  #buzzer {
+    width: 100%; max-width: 420px; aspect-ratio: 1 / 1; max-height: 46vh;
+    border-radius: 50%;
+    background: radial-gradient(circle at 35% 30%, #ff5a5a, #d60000 70%);
+    color: #fff; font-size: 34px; font-weight: 900; line-height: 1.25;
+    border: 8px solid #fff;
+    box-shadow: 0 10px 0 #7a0000, 0 16px 32px rgba(0,0,0,.45);
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    touch-action: manipulation; user-select: none; -webkit-user-select: none;
+  }
+  #buzzer:active { transform: translateY(6px); box-shadow: 0 4px 0 #7a0000, 0 8px 18px rgba(0,0,0,.45); }
+  #buzzer:disabled {
+    background: radial-gradient(circle at 35% 30%, #9aa5b1, #5b6773 70%);
+    border-color: #dfe6ee; box-shadow: 0 10px 0 #3c454f, 0 16px 32px rgba(0,0,0,.35);
+    color: #eef2f6;
+  }
+  #buzzer .bell { font-size: 64px; line-height: 1; }
+  #status { margin-top: 18px; font-size: 22px; font-weight: 800; min-height: 32px; }
+  #status.ok { color: #7dff9b; }
+  .hint { margin-top: 10px; font-size: 16px; color: #cfe3ff; line-height: 1.5; }
+  #done { display: none; margin-top: 18px; background: #ffd23f; color: #111;
+    border-radius: 14px; padding: 16px; font-size: 22px; font-weight: 800; line-height: 1.4; width: 100%; }
+  .foot { margin-top: auto; padding-top: 18px; font-size: 14px; color: #9db8dd; }
+</style>
+</head>
+<body>
+
+<h1>🔔 Trắc nghiệm nhanh</h1>
+<p class="sub">Bài 4 — Lớp 8 &nbsp;•&nbsp; Luyện tập: 4 câu, mỗi câu 30 giây</p>
+
+<!-- BƯỚC 1: NHẬP TÊN ĐỘI -->
+<div class="card" id="setup">
+  <p>Nhập tên đội của nhóm em, rồi bấm <b>“Vào chơi”</b>.<br>
+  Câu hỏi hiện trên màn hình của thầy — điện thoại chỉ để bấm chuông.</p>
+  <label for="teamInput">Tên đội</label>
+  <input type="text" id="teamInput" maxlength="40" placeholder="Ví dụ: Tổ 1" autocomplete="off">
+  <button class="btn-primary" id="joinBtn" type="button">Vào chơi</button>
+</div>
+
+<!-- MÀN HÌNH CHÍNH -->
+<div id="main">
+  <div class="team-bar">
+    <span class="team-name">Đội: <span id="teamLabel"></span></span>
+    <a href="#" id="renameLink">Đổi tên đội</a>
+  </div>
+
+  <div class="rounds" role="group" aria-label="Chọn câu">
+    <button type="button" data-round="1" class="active">Câu 1</button>
+    <button type="button" data-round="2">Câu 2</button>
+    <button type="button" data-round="3">Câu 3</button>
+    <button type="button" data-round="4">Câu 4</button>
+  </div>
+
+  <button id="buzzer" type="button">
+    <span class="bell">🔔</span>
+    <span>BẤM<br>TRẢ LỜI</span>
+  </button>
+
+  <div id="status"></div>
+  <div id="done">✅ Đã xong 4 câu — chờ thầy tổng kết.</div>
+  <p class="hint">Thầy đọc “bấm!” thì bấm ngay.<br>Mỗi câu chỉ bấm được 1 lần.</p>
+</div>
+
+<p class="foot">Chỉ gửi tên đội + lượt bấm. Không thu thập thông tin cá nhân.</p>
+
+<script>
+"use strict";
+var WEBAPP_URL = "https://script.google.com/macros/s/AKfycbw6K57VCKeT8w5oLfaUZsrLyfuJDcJaGWn0Crp5AP8IECVzo4zwse8CilJ5B5ckGTQ0/exec";
+var TEAM_KEY = "hd3-team";
+
+var setupEl = document.getElementById("setup");
+var mainEl = document.getElementById("main");
+var teamInput = document.getElementById("teamInput");
+var joinBtn = document.getElementById("joinBtn");
+var teamLabel = document.getElementById("teamLabel");
+var renameLink = document.getElementById("renameLink");
+var buzzer = document.getElementById("buzzer");
+var statusEl = document.getElementById("status");
+var doneEl = document.getElementById("done");
+var roundBtns = Array.prototype.slice.call(document.querySelectorAll(".rounds button"));
+
+var team = "";
+var round = 1;
+var pressed = { 1: false, 2: false, 3: false, 4: false };
+
+function showMain() {
+  teamLabel.textContent = team;
+  setupEl.style.display = "none";
+  mainEl.style.display = "flex";
+  refreshBuzzer();
+}
+
+function refreshBuzzer() {
+  buzzer.disabled = !!pressed[round];
+  if (pressed[round]) {
+    statusEl.textContent = "Đã bấm!";
+    statusEl.className = "ok";
+  } else {
+    statusEl.textContent = "";
+    statusEl.className = "";
+  }
+  var allDone = pressed[1] && pressed[2] && pressed[3] && pressed[4];
+  doneEl.style.display = allDone ? "block" : "none";
+}
+
+function join() {
+  var name = teamInput.value.trim();
+  if (!name) {
+    teamInput.focus();
+    return;
+  }
+  team = name;
+  try { localStorage.setItem(TEAM_KEY, team); } catch (e) {}
+  showMain();
+}
+
+joinBtn.addEventListener("click", join);
+teamInput.addEventListener("keydown", function (e) {
+  if (e.key === "Enter") join();
+});
+
+renameLink.addEventListener("click", function (e) {
+  e.preventDefault();
+  teamInput.value = team;
+  mainEl.style.display = "none";
+  setupEl.style.display = "block";
+  teamInput.focus();
+});
+
+roundBtns.forEach(function (btn) {
+  btn.addEventListener("click", function () {
+    round = parseInt(btn.getAttribute("data-round"), 10);
+    roundBtns.forEach(function (b) { b.classList.toggle("active", b === btn); });
+    refreshBuzzer();
+  });
+});
+
+buzzer.addEventListener("click", function () {
+  if (!team || pressed[round]) return;
+  pressed[round] = true;
+  refreshBuzzer();
+  var payload = {
+    loai: "buzzer",
+    team: team,
+    round: round,
+    clientTime: new Date().toISOString()
+  };
+  fetch(WEBAPP_URL, {
+    method: "POST",
+    mode: "no-cors",
+    headers: { "Content-Type": "text/plain" },
+    body: JSON.stringify(payload)
+  }).catch(function () { /* no-cors: không đọc được kết quả, đã hiển thị "Đã bấm!" */ });
+});
+
+// Tên đội đã lưu thì vào thẳng màn hình chính
+try {
+  var saved = localStorage.getItem(TEAM_KEY);
+  if (saved && saved.trim()) {
+    team = saved.trim();
+    showMain();
+  }
+} catch (e) {}
+</script>
+</body>
+</html>
