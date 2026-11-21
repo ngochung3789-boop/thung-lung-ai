@@ -1,6 +1,25 @@
 // ============================================================================
 //  ĐƯỜNG CHUYỂN TOÀN BỘ THÔNG TIN: ĐIỆN THOẠI (thầy) -> LAPTOP (thầy) -> CHIẾU LÊN TV
 //  Chỉ phục vụ thầy Phạm Ngọc Hưng và dữ liệu CỦA THẦY.
+//  PHIÊN BẢN 23 (21/11/2026):
+//  - DỮ LIỆU GIẢ LẬP — THỜI GIAN DÙNG APP + KẾT LUẬN SỞ THÍCH: thầy dạy bài 4
+//    lớp 8 (8.A2.1) muốn trang trình chiếu "bịa" ra thời gian dùng TikTok /
+//    YouTube / Facebook / Zalo (tính theo tuần) và 1 đoạn kết luận sở thích
+//    cho MỖI MÁY — mỗi máy 1 con số khác nhau, 1 sở thích khác nhau — để
+//    minh họa cách AI dùng dữ liệu hành vi để định hướng lựa chọn.
+//      + Số liệu TÍNH NGAY TRÊN MÁY CHỦ từ khóa máy (băm chuỗi "may-N" /
+//        idMay) nên CÙNG 1 máy LUÔN hiện CÙNG 1 con số (mở lại vẫn vậy),
+//        máy khác thì số khác. Không đọc từ điện thoại, không lưu lên
+//        Drive, không gửi từ app điện thoại.
+//      + CHỈ hiện khi máy KHÔNG có thoiGianDungApp THẬT (APK, bản 14).
+//        Máy nào đã có dữ liệu thật thì hiện bảng thật như bản 14, không
+//        thêm giả lập.
+//      + NHÃN RÕ RÀNG "GIẢ LẬP" + dòng "(Dữ liệu mô phỏng để minh họa —
+//        không phải dữ liệu thật)" — đây là bài dạy về AI thao túng nên
+//        tuyệt đối không được để học sinh tưởng số liệu giả là thật.
+//      + Hiện trên THẺ MÁY (trang chi tiết ?xem=<khóa> và "Xem tất cả"
+//        ?xem=tat-ca). MENU không đổi (chỉ tên + giờ gửi, vẫn nhanh).
+//      + Không động vào doPost / app điện thoại / file JSON trên Drive.
 //  PHIÊN BẢN 22 (21/11/2026):
 //  - MENU CHỈ HIỆN ĐÚNG 6 MÁY GỬI GẦN NHẤT (thay thế luật 60 phút của
 //    bản 21): xếp mới nhất lên trên, lấy đúng 6 máy đầu; máy cũ hơn
@@ -628,7 +647,7 @@ function layThongTinTatCaMay() {
     var coDuLieu = (meta.ten !== '') || (meta.soDienThoai !== '') || (meta.viTri !== '') || (meta.danhBa.length > 0) || (meta.anh.length > 0) || (anhMay.length > 0) || (meta.tomTat !== '') || (amThanhMay !== '');
     if (!coDuLieu) continue;
     daCo[n] = true;
-    ketQua.push({
+    ketQua.push(ganGiaLapChoMay({
       loai: 'may',
       may: 'Máy ' + n,
       ten: meta.ten,
@@ -641,7 +660,7 @@ function layThongTinTatCaMay() {
       tenFileAmThanh: meta.tenFileAmThanh,
       tomTat: meta.tomTat,
       thoiGianGui: meta.thoiGianGui || ''
-    });
+    }));
   }
   // Các máy THEO TÊN (app "Biến Hình AI" v1.1): file thong-tin-id_*.json.
   // Mỗi máy một thẻ riêng, đầu thẻ là tên máy (tenMay).
@@ -669,7 +688,7 @@ function layThongTinTatCaMay() {
       var amThanhTen = docAmThanhMayChu(thuMuc, sachChuoi(goiTen.tenFileAmThanh), sachChuoi(goiTen.dinhDangAmThanh));
       var coDuLieuTen = (sachChuoi(goiTen.ten) !== '') || (sachChuoi(goiTen.soDienThoai) !== '') || (sachChuoi(goiTen.viTri) !== '') || (goiTen.danhBa && goiTen.danhBa.length > 0) || anhTen.length > 0 || (sachChuoi(goiTen.tomTat) !== '') || !!goiTen.thoiGianDungApp || (amThanhTen !== '');
       if (!coDuLieuTen) continue;
-      ketQua.push({
+      ketQua.push(ganGiaLapChoMay({
         loai: 'ten',
         may: sachChuoi(goiTen.tenMay) || (goiTen.idMay || ''),
         tenMay: sachChuoi(goiTen.tenMay) || (goiTen.idMay || ''),
@@ -685,7 +704,7 @@ function layThongTinTatCaMay() {
         tomTat: sachChuoi(goiTen.tomTat),
         thoiGianDungApp: sachThoiGianDungApp(goiTen.thoiGianDungApp),
         thoiGianGui: sachChuoi(goiTen.thoiGianGui)
-      });
+      }));
     } catch (loiTen) {
       // File JSON của máy theo tên bị lỗi thì bỏ qua máy đó.
     }
@@ -873,7 +892,7 @@ function layThongTinMotMay(khoa, mNhe) {
         anhTen.push({ ten: tenA, anh: 'data:' + kieuA + ';base64,' + b64A });
       }
       var amThanhTen = docAmThanhMayChu(thuMuc, sachChuoi(goiTen.tenFileAmThanh), sachChuoi(goiTen.dinhDangAmThanh));
-      return {
+      return ganGiaLapChoMay({
         loai: 'ten',
         may: sachChuoi(goiTen.tenMay) || (goiTen.idMay || ''),
         tenMay: sachChuoi(goiTen.tenMay) || (goiTen.idMay || ''),
@@ -889,7 +908,7 @@ function layThongTinMotMay(khoa, mNhe) {
         tomTat: sachChuoi(goiTen.tomTat),
         thoiGianDungApp: sachThoiGianDungApp(goiTen.thoiGianDungApp),
         thoiGianGui: sachChuoi(goiTen.thoiGianGui)
-      };
+      });
     }
     // Ô Máy: khóa "may-N".
     var soMay = chuanHoaSoMay(khoa);
@@ -910,7 +929,7 @@ function layThongTinMotMay(khoa, mNhe) {
       anhMay.push({ ten: ten, anh: 'data:' + kieu + ';base64,' + base64 });
     }
     var amThanhMay = docAmThanhMayChu(thuMuc, meta.tenFileAmThanh, meta.dinhDangAmThanh);
-    return {
+    return ganGiaLapChoMay({
       loai: 'may',
       may: 'Máy ' + soMay,
       ten: meta.ten,
@@ -923,7 +942,7 @@ function layThongTinMotMay(khoa, mNhe) {
       tenFileAmThanh: meta.tenFileAmThanh,
       tomTat: meta.tomTat,
       thoiGianGui: meta.thoiGianGui || ''
-    };
+    });
   } catch (loi) {
     return null;
   }
@@ -1394,6 +1413,168 @@ function bangThoiGianDungApp(tg) {
   return h;
 }
 
+// ---------- DỮ LIỆU GIẢ LẬP — THỜI GIAN DÙNG APP + KẾT LUẬN SỞ THÍCH (PHIÊN BẢN 23) ----------
+// Thầy dạy bài 4 lớp 8 (8.A2.1): muốn trang trình chiếu "bịa" ra thời gian
+// dùng TikTok / YouTube / Facebook / Zalo (giả lập, tính theo tuần) và 1 đoạn
+// kết luận sở thích cho MỖI MÁY — mỗi máy 1 con số khác nhau, 1 sở thích
+// khác nhau — để minh họa cách AI dùng dữ liệu hành vi để định hướng lựa chọn.
+//   * KHÔNG phải dữ liệu thật: không đọc từ điện thoại, không lưu lên Drive,
+//     không gửi từ app. Số liệu được TÍNH NGAY TRÊN MÁY CHỦ từ khóa máy
+//     (băm chuỗi "may-N" / idMay) nên CÙNG 1 máy LUÔN hiện CÙNG 1 con số
+//     (mở lại trang vẫn vậy), máy khác thì số khác.
+//   * CHỈ hiện khi máy KHÔNG có thoiGianDungApp THẬT (APK, bản 14). Máy nào
+//     đã có dữ liệu thật thì hiện bảng thật như bản 14, không thêm giả lập.
+//   * NHÃN RÕ RÀNG: tiêu đề "GIẢ LẬP" + dòng "(Dữ liệu mô phỏng để minh họa
+//     — không phải dữ liệu thật)" — đây là bài dạy về AI thao túng nên tuyệt
+//     đối không được để học sinh tưởng số liệu giả là thật.
+//   * Không động vào doPost / app điện thoại / file JSON trên Drive.
+// Gắn vào mục máy bằng ganGiaLapChoMay(m) — gọi trong layThongTinTatCaMay
+// và layThongTinMotMay (cả 2 đều gọi trước khi trả mục máy). Thẻ máy vẽ
+// bảng + kết luận bằng bangGiaLapDungApp(g) trong theMayMayChu.
+
+// Băm 1 chuỗi thành số nguyên không âm (djb2 + trộn cuối kiểu MurmurHash3
+// fmix32) — dùng để rút số giả lập theo khóa máy. Cùng khóa -> cùng số;
+// khóa khác -> số khác. Bước trộn cuối là BẮT BUỘC: không có nó, "may-1"
+// với "may-2" chỉ khác nhau 1 đơn vị ở mã băm, làm tròn 15 phút sẽ gộp
+// chúng về cùng 1 con số (đã bắt lỗi này khi kiểm thử — 3 máy đầu trùng
+// nhau). Math.imul có sẵn trên Apps Script (runtime V8).
+function bamMaChuoi(chu) {
+  var h = 5381;
+  chu = String(chu || '');
+  for (var i = 0; i < chu.length; i++) {
+    h = ((h << 5) + h + chu.charCodeAt(i)) >>> 0;
+  }
+  h ^= h >>> 16;
+  h = Math.imul(h, 0x85ebca6b) >>> 0;
+  h ^= h >>> 13;
+  h = Math.imul(h, 0xc2b2ae35) >>> 0;
+  h ^= h >>> 16;
+  return h >>> 0;
+}
+
+// 8 hồ sơ sở thích giả lập — mỗi hồ sơ: tên sở thích + câu kết luận của AI
+// (AI đoán người này thích gì, rồi sẽ đề xuất / quảng cáo gì tiếp theo).
+var HO_SO_GIA_LAP = [
+  {
+    ten: 'xem ca nhạc',
+    ketLuan: 'Người này thích xem ca nhạc và video biểu diễn. AI sẽ đoán bạn ấy mê âm nhạc, rồi đề xuất thêm video ca nhạc mới, quảng cáo nhạc cụ, vé xem ca nhạc và các buổi hòa nhạc gần đây.'
+  },
+  {
+    ten: 'xem phim AI giả tưởng',
+    ketLuan: 'Người này thích xem phim viễn tưởng về AI và robot. AI sẽ đoán bạn ấy mê thế giới tương lai, rồi đề xuất thêm phim khoa học viễn tưởng mới, quảng cáo đồ chơi robot và các video "AI sẽ thay thế con người không?".'
+  },
+  {
+    ten: 'nghe nhạc TikTok',
+    ketLuan: 'Người này thích nghe nhạc trên TikTok và xem video nhảy theo nhạc. AI sẽ đoán bạn ấy mê nhạc thịnh hành, rồi đề xuất thêm các bài nhạc đang hot, quảng cáo tai nghe và thử thách nhảy mới.'
+  },
+  {
+    ten: 'xem video game',
+    ketLuan: 'Người này thích xem video chơi game và review game mới. AI sẽ đoán bạn ấy mê game, rồi đề xuất thêm video game hot, quảng cáo thiết bị chơi game và các giải đấu sắp diễn ra.'
+  },
+  {
+    ten: 'xem video nấu ăn',
+    ketLuan: 'Người này thích xem video nấu ăn và ẩm thực. AI sẽ đoán bạn ấy thích nấu nướng, rồi đề xuất thêm công thức mới, quảng cáo dụng cụ bếp và các quán ăn đang được nhiều người nhắc đến.'
+  },
+  {
+    ten: 'xem tin tức và thời sự',
+    ketLuan: 'Người này thích xem tin tức và thời sự. AI sẽ đoán bạn ấy quan tâm chuyện đang xảy ra, rồi đề xuất thêm các bản tin mới nhất, quảng cáo báo chí và các video bình luận thời sự.'
+  },
+  {
+    ten: 'xem video hài',
+    ketLuan: 'Người này thích xem video hài và tiểu phẩm vui. AI sẽ đoán bạn ấy thích cười, rồi đề xuất thêm các video hài mới, quảng cáo vé xem hài kịch và các chương trình giải trí đang hot.'
+  },
+  {
+    ten: 'xem video học tập',
+    ketLuan: 'Người này thích xem video học tập và kỹ năng mới. AI sẽ đoán bạn ấy thích học hỏi, rồi đề xuất thêm các khóa học trực tuyến, quảng cáo sách hay và các video hướng dẫn kỹ năng.'
+  }
+];
+
+// Tính dữ liệu giả lập cho 1 máy từ khóa máy (deterministic — cùng khóa
+// luôn ra cùng số). Trả về {tiktok, youtube, facebook, zalo (phút/tuần),
+// tong (phút/tuần), hoSo: 1 trong 8 hồ sơ trên}.
+// Phạm vi (giờ/tuần): TikTok 4–28, YouTube 3–20, Facebook 2–15, Zalo 1–8.
+// Số phút làm tròn theo 15 phút cho tự nhiên (ví dụ "7 giờ 30 phút").
+function duLieuGiaLapMay(khoa) {
+  var h = bamMaChuoi(khoa);
+  function rutPhut(min, max, dich) {
+    // Lấy 1 số trong [min, max] (phút), làm tròn xuống bội số 15.
+    var khoang = max - min + 1;
+    var so = min + ((h >>> dich) % khoang);
+    return Math.floor(so / 15) * 15;
+  }
+  var tiktok = rutPhut(4 * 60, 28 * 60, 0);
+  var youtube = rutPhut(3 * 60, 20 * 60, 5);
+  var facebook = rutPhut(2 * 60, 15 * 60, 11);
+  var zalo = rutPhut(1 * 60, 8 * 60, 17);
+  var hoSo = HO_SO_GIA_LAP[(h >>> 23) % HO_SO_GIA_LAP.length];
+  return {
+    tiktok: tiktok,
+    youtube: youtube,
+    facebook: facebook,
+    zalo: zalo,
+    tong: tiktok + youtube + facebook + zalo,
+    hoSo: hoSo
+  };
+}
+
+// Định dạng số phút thành "X giờ Y phút" (dưới 1 giờ thì "X phút",
+// đúng giờ chẵn thì "X giờ").
+function dinhDangPhut(phut) {
+  phut = Math.floor(Number(phut) || 0);
+  if (phut < 0) phut = 0;
+  if (phut < 60) return phut + ' phút';
+  var gio = Math.floor(phut / 60);
+  var phutLe = phut % 60;
+  if (phutLe === 0) return gio + ' giờ';
+  return gio + ' giờ ' + phutLe + ' phút';
+}
+
+// Gắn dữ liệu GIẢ LẬP vào 1 mục máy (đã xây xong) — chỉ khi máy KHÔNG có
+// thoiGianDungApp THẬT (APK, bản 14) và máy ĐÃ CÓ dữ liệu thật khác (tên /
+// số / vị trí / danh bạ / ảnh / tóm tắt / giọng nói). Trả về chính mục đó
+// (đã thêm m.giaLap, hoặc m.giaLap = null nếu không gắn).
+// Khóa băm lấy bằng khoaXemMay(m): ô Máy -> "may-N", máy theo tên -> idMay.
+function ganGiaLapChoMay(m) {
+  if (!m) return m;
+  if (m.thoiGianDungApp) { m.giaLap = null; return m; }
+  var co = (m.ten && m.ten !== '') || (m.soDienThoai && m.soDienThoai !== '') ||
+    (m.viTri && m.viTri !== '') || (m.danhBa && m.danhBa.length > 0) ||
+    (m.anh && m.anh.length > 0) || (m.tomTat && m.tomTat !== '') ||
+    (m.amThanh && m.amThanh !== '');
+  if (!co) { m.giaLap = null; return m; }
+  m.giaLap = duLieuGiaLapMay(khoaXemMay(m));
+  return m;
+}
+
+// Vẽ bảng "THỜI GIAN DÙNG APP — GIẢ LẬP" + đoạn "KẾT LUẬN CỦA AI — GIẢ LẬP"
+// cho 1 máy (dữ liệu đã tính bằng duLieuGiaLapMay).
+// Cùng kiểu bảng .bang-app với bảng thật (bản 14) để nhìn quen mắt.
+// Đoạn kết luận: (a) app nào dùng nhiều nhất + bao nhiêu giờ/tuần,
+// (b) sở thích của người này theo hồ sơ, (c) AI sẽ đề xuất / quảng cáo gì
+// tiếp theo vì sở thích đó; cuối đoạn chốt 1 câu nối với bài học (8.A2.1).
+function bangGiaLapDungApp(g) {
+  if (!g) return '';
+  var h = '<div class="hang-thong-tin"><div class="nhan">Thời gian dùng app — GIẢ LẬP (mỗi tuần)</div>' +
+    '<div class="ghi-chu-gia-lap">(Dữ liệu mô phỏng để minh họa — không phải dữ liệu thật)</div>' +
+    '<table class="bang-app">';
+  h += '<tr><td>TikTok</td><td>' + dinhDangPhut(g.tiktok) + '/tuần</td></tr>';
+  h += '<tr><td>YouTube</td><td>' + dinhDangPhut(g.youtube) + '/tuần</td></tr>';
+  h += '<tr><td>Facebook</td><td>' + dinhDangPhut(g.facebook) + '/tuần</td></tr>';
+  h += '<tr><td>Zalo</td><td>' + dinhDangPhut(g.zalo) + '/tuần</td></tr>';
+  h += '<tr class="tong"><td>Tổng cộng</td><td>' + dinhDangPhut(g.tong) + '/tuần</td></tr>';
+  h += '</table></div>';
+  var appNhieuNhat = 'TikTok';
+  var gioNhieuNhat = g.tiktok;
+  if (g.youtube > gioNhieuNhat) { appNhieuNhat = 'YouTube'; gioNhieuNhat = g.youtube; }
+  if (g.facebook > gioNhieuNhat) { appNhieuNhat = 'Facebook'; gioNhieuNhat = g.facebook; }
+  if (g.zalo > gioNhieuNhat) { appNhieuNhat = 'Zalo'; gioNhieuNhat = g.zalo; }
+  h += '<div class="hang-thong-tin"><div class="nhan">Kết luận của AI — GIẢ LẬP</div>' +
+    '<div class="tom-tat">Máy này dùng ' + appNhieuNhat + ' nhiều nhất (' + dinhDangPhut(gioNhieuNhat) + ' mỗi tuần, trong tổng số ' + dinhDangPhut(g.tong) + ' dùng app mỗi tuần). ' +
+    escHtml(g.hoSo.ketLuan) +
+    '<br><br>Đây chính là cách AI dùng dữ liệu hành vi để định hướng lựa chọn — YCCĐ 8.A2.1.</div></div>';
+  return h;
+}
+
 // "Gửi lúc HH:MM ngày DD/MM/YYYY" từ chuỗi ISO (giờ Việt Nam).
 function dinhDangThoiGianGui(iso) {
   try {
@@ -1447,6 +1628,12 @@ function theMayMayChu(m, dangDung) {
   h += '</ul></div>';
   if (laTheoTen && m.thoiGianDungApp) {
     h += bangThoiGianDungApp(m.thoiGianDungApp);
+  }
+  // Dữ liệu GIẢ LẬP (Phiên bản 23): chỉ hiện khi máy KHÔNG có
+  // thoiGianDungApp THẬT (m.giaLap đã gắn trong layThongTinTatCaMay /
+  // layThongTinMotMay). Máy nào có dữ liệu thật thì hiện bảng thật ở trên.
+  if (m.giaLap) {
+    h += bangGiaLapDungApp(m.giaLap);
   }
   if (m.tomTat && m.tomTat !== '') {
     h += '<div class="hang-thong-tin"><div class="nhan">Bản tóm tắt hành vi (AI quét được trên máy thầy)</div><div class="tom-tat">' + escHtml(m.tomTat) + '</div></div>';
@@ -1668,6 +1855,7 @@ var CSS_TRINH_CHIEU = `
   .bang-app { width: 100%; border-collapse: collapse; margin-top: 8px; }
   .bang-app td { font-size: 19px; padding: 8px 6px; border-top: 1px solid #374151; }
   .bang-app tr.tong td { font-weight: 800; border-top: 2px solid #6b7280; }
+  .ghi-chu-gia-lap { color: #9ca3af; font-size: 15px; margin-top: 4px; }
   .hang-thong-tin { margin: 12px 0; }
   .nhan { font-size: 14px; color: #9ca3af; text-transform: uppercase; letter-spacing: 1px; }
   .gia-tri { font-size: 26px; font-weight: 700; margin-top: 4px; line-height: 1.3; }
@@ -1724,7 +1912,7 @@ function moDauTrangTrinhChieu(tieuDe, trangThai, urlLamMoi, linkQuayLai) {
 
 // Cuối trang trình chiếu: chân trang ghi phiên bản + đóng thẻ.
 function dongTrangTrinhChieu() {
-  return '<div class="chan-trang">Trình chiếu Avatar AI — Phiên bản 22 (21/11/2026)</div>\n</body>\n</html>';
+  return '<div class="chan-trang">Trình chiếu Avatar AI — Phiên bản 23 (21/11/2026)</div>\n</body>\n</html>';
 }
 
 // Hộp xanh + câu hỏi cho lớp (hiện dưới thẻ máy, chỉ khi máy đã có dữ liệu).
