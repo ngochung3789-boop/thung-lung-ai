@@ -339,6 +339,7 @@ body.dang-choi header h1{font-size:15px} /* LOP-RONG 15/11 */
 .nut-minh-hoa, .nut-video-3d{display:block; text-align:center; background:linear-gradient(180deg,#E8C95A,#C9A227); color:#1A2340; font-weight:900; font-size:21px; padding:12px 16px; border-radius:12px; text-decoration:none; margin:0 0 10px; border:3px solid #8A6D1B; box-shadow:0 4px 14px rgba(0,0,0,.35); flex:none}
 .nut-minh-hoa:active, .nut-video-3d:active{transform:scale(.98)}
 .nut-minh-hoa.nut-video-3d{background:linear-gradient(180deg,#7FB3FF,#3D7EDB); color:#fff; border-color:#1F4E9C}
+.nut-minh-hoa.nut-ket-qua{background:linear-gradient(180deg,#607D8B,#455A64); color:#fff; border-color:#263238}
 #noi-dung-phong .ndp-dau{position:sticky; top:0; display:flex; justify-content:space-between; align-items:center; gap:8px; background:#FDF6E3; padding:2px 0 8px; margin:0 0 4px; font-weight:800; color:#8A6D1B; font-size:17px; z-index:2}
 #noi-dung-phong .ndp-dau button{font-family:inherit; font-size:15px; font-weight:800; padding:6px 12px; border-radius:999px; border:2px solid #C9A227; background:#fff; color:#1A2340; cursor:pointer; white-space:nowrap}
 #noi-dung-phong.da-thu-gon{width:auto; max-height:none; overflow:visible; padding:10px 12px}
@@ -12517,6 +12518,17 @@ function datNoiDungPhong(b){
     if(cacNutV3.length) cacNutV3[cacNutV3.length - 1].insertAdjacentHTML('afterend', htmlTro);
     else { const nutMH2 = p.querySelector('.nut-minh-hoa'); if(nutMH2) nutMH2.insertAdjacentHTML('afterend', htmlTro); else p.insertAdjacentHTML('afterbegin', htmlTro); }
   }
+  /* Nút Xem kết quả trình diễn (21/11, phòng Bài 4 lớp 8 t4-f3): đặt sau nút
+     Video 3D (nút .nut-video-3d cuối cùng), mở tab mới tới trang trình chiếu
+     Hộp đen — thẻ chi tiết máy test id_cph2781. Chỉ hiện khi phòng có trong
+     SK_LINK_KET_QUA. KHÔNG động vào 2 nút cũ, KHÔNG đổi thứ tự của chúng. */
+  const lkKetQua = (typeof SK_LINK_KET_QUA !== 'undefined') ? SK_LINK_KET_QUA[idCu] : null;
+  if(lkKetQua){
+    const htmlKQ = '<a class="nut-minh-hoa nut-ket-qua" href="' + lkKetQua.url + '" target="_blank" rel="noopener">📊 ' + lkKetQua.ten + ' ↗</a>';
+    const cacNutKQ = p.querySelectorAll('.nut-video-3d');
+    if(cacNutKQ.length) cacNutKQ[cacNutKQ.length - 1].insertAdjacentHTML('afterend', htmlKQ);
+    else { const nutMH3 = p.querySelector('.nut-minh-hoa'); if(nutMH3) nutMH3.insertAdjacentHTML('afterend', htmlKQ); else p.insertAdjacentHTML('afterbegin', htmlKQ); }
+  }
   /* Build 13: nút chung 'Bắt đầu trò này' ra khỏi vùng cuộn — làm con trực tiếp
      của panel (dưới link minh họa, trên vùng cuộn) để luôn thấy, không bị cuộn đi.
      Build 11 căn thẻ đầu đẩy nút lên dưới link (bi-che-boi:nut-minh-hoa); build 12
@@ -15254,6 +15266,13 @@ const SK_LINK_VIDEO3D = {
 const SK_LINK_TROCHOI = {
   't11-f2': {ten: 'Trò chơi — Dạy máy học', url: 'https://ngochung3789-boop.github.io/thung-lung-ai/videos/7c51-tro-choi-day-may-hoc.html'},
   't11-f3': {ten: 'Trò chơi — Bot nói lạc ở đâu?', url: 'https://ngochung3789-boop.github.io/thung-lung-ai/videos/8d21-tro-choi-chatbot-lac.html'}
+};
+/* Link xem ket qua trinh dien (21/11, phong Bai 4 lop 8 t4-f3): trang trinh chieu
+   Hop den — mo thang the chi tiet may test id_cph2781, thay dung de check ket qua
+   sau khi trinh dien app Bien hinh. Map RIENG vi SK_LINK_MINH_HOA /
+   SK_LINK_VIDEO3D moi key chi giu 1 link. */
+const SK_LINK_KET_QUA = {
+  't4-f3': {ten: 'Xem kết quả trình diễn (Hộp đen)', url: 'https://script.google.com/macros/s/AKfycbw6K57VCKeT8w5oLfaUZsrLyfuJDcJaGWn0Crp5AP8IECVzo4zwse8CilJ5B5ckGTQ0/exec?xem=id_cph2781'}
 };
 let skNhom = null, skHS = null, skRobot = null, skVongDo = null, skDenDo = null;
 let skDenHS = null, skDenRobot = null;
