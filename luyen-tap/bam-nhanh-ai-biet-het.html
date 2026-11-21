@@ -1,0 +1,503 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="color-scheme" content="light" />
+    <link rel="icon" href="data:," />
+    <title>Bấm nhanh — AI biết hết</title>
+    <style>
+      :root {
+        --bg: #edf4f9;
+        --card: #ffffff;
+        --ink: #17324a;
+        --ink-soft: #47617a;
+        --line: #d7e4ee;
+        --green: #159947;
+        --green-dark: #0f7a37;
+        --green-soft: #e3f6ea;
+        --red: #d92d20;
+        --red-soft: #fdecea;
+        --amber: #b45309;
+        --amber-soft: #fdf3e0;
+        --blue: #1668c4;
+        --blue-dark: #0f529e;
+        --gray-btn: #66788a;
+        --shadow: 0 10px 30px rgba(23, 50, 74, 0.14);
+        --radius: 22px;
+      }
+      * { box-sizing: border-box; }
+      html { -webkit-text-size-adjust: 100%; }
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--ink);
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        font-size: 18px;
+        line-height: 1.5;
+        min-height: 100dvh;
+      }
+      .wrap {
+        max-width: 480px;
+        margin: 0 auto;
+        padding: 20px 16px 40px;
+        min-height: 100dvh;
+        display: flex;
+        flex-direction: column;
+      }
+      .screen { display: none; flex: 1; flex-direction: column; }
+      .screen.active { display: flex; }
+
+      /* ---------- Màn hình bắt đầu ---------- */
+      .badge-lesson {
+        align-self: flex-start;
+        background: var(--amber-soft);
+        color: var(--amber);
+        font-size: 15px;
+        font-weight: 700;
+        padding: 6px 12px;
+        border-radius: 999px;
+        margin-bottom: 18px;
+      }
+      h1.title {
+        font-size: 40px;
+        line-height: 1.15;
+        margin: 0 0 14px;
+        letter-spacing: -0.5px;
+      }
+      h1.title .hl { color: var(--red); }
+      .lead { font-size: 20px; color: var(--ink-soft); margin: 0 0 26px; }
+      .lead strong { color: var(--ink); }
+
+      .demo-card {
+        background: var(--card);
+        border: 1px solid var(--line);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow);
+        padding: 18px;
+        margin-bottom: 26px;
+      }
+      .demo-head {
+        display: flex; align-items: center; gap: 10px;
+        font-weight: 700; font-size: 17px; margin-bottom: 12px;
+      }
+      .demo-head .app-ico {
+        width: 38px; height: 38px; border-radius: 11px; flex: none;
+        background: var(--blue); display: grid; place-items: center;
+      }
+      .demo-perm { font-size: 19px; margin: 0 0 4px; }
+      .demo-fine { font-size: 15px; color: var(--ink-soft); margin: 0 0 16px; }
+      .demo-allow {
+        background: var(--green-soft); color: var(--green-dark);
+        border-radius: 12px; text-align: center;
+        font-weight: 800; font-size: 19px; padding: 13px;
+      }
+      .demo-note { font-size: 15px; color: var(--ink-soft); text-align: center; margin: 10px 0 0; }
+
+      .btn-big {
+        display: block; width: 100%;
+        min-height: 64px;
+        border: none; border-radius: 16px;
+        font-size: 22px; font-weight: 800;
+        cursor: pointer;
+        font-family: inherit;
+      }
+      .btn-start { background: var(--blue); color: #fff; box-shadow: 0 6px 0 var(--blue-dark); }
+      .btn-start:active { transform: translateY(3px); box-shadow: 0 3px 0 var(--blue-dark); }
+      .privacy-note {
+        margin-top: 18px; font-size: 16px; color: var(--ink-soft);
+        background: var(--card); border: 1px dashed var(--line);
+        border-radius: 14px; padding: 12px 14px; text-align: center;
+      }
+      .privacy-note strong { color: var(--green-dark); }
+
+      /* ---------- Màn hình chơi ---------- */
+      .hud {
+        display: flex; gap: 10px; margin-bottom: 14px;
+      }
+      .hud-box {
+        flex: 1; background: var(--card); border: 1px solid var(--line);
+        border-radius: 14px; padding: 10px 12px; text-align: center;
+      }
+      .hud-label { font-size: 14px; color: var(--ink-soft); font-weight: 600; }
+      .hud-value { font-size: 24px; font-weight: 800; line-height: 1.2; }
+      .hud-value.green { color: var(--green-dark); }
+
+      .loadbar-wrap { margin-bottom: 20px; }
+      .loadbar-label {
+        display: flex; justify-content: space-between;
+        font-size: 15px; font-weight: 700; color: var(--ink-soft); margin-bottom: 6px;
+      }
+      .loadbar {
+        height: 14px; background: #dbe7f1; border-radius: 999px; overflow: hidden;
+      }
+      .loadbar-fill {
+        height: 100%; width: 0%;
+        background: var(--amber);
+        border-radius: 999px;
+        transition: width 0.35s ease;
+      }
+      .urgent { font-size: 16px; color: var(--red); font-weight: 700; text-align: center; margin: 0 0 14px; }
+
+      .dialog {
+        background: var(--card);
+        border-radius: 26px;
+        box-shadow: var(--shadow);
+        border: 1px solid var(--line);
+        padding: 26px 22px 20px;
+        text-align: center;
+        animation: pop 0.25s ease;
+      }
+      @keyframes pop {
+        from { transform: scale(0.94) translateY(10px); opacity: 0; }
+        to { transform: scale(1) translateY(0); opacity: 1; }
+      }
+      .perm-ico {
+        width: 76px; height: 76px; margin: 0 auto 14px;
+        border-radius: 22px; display: grid; place-items: center;
+      }
+      .perm-step { font-size: 15px; font-weight: 700; color: var(--ink-soft); margin: 0 0 6px; }
+      .perm-name { font-size: 27px; font-weight: 800; margin: 0 0 10px; line-height: 1.25; }
+      .perm-ask { font-size: 19px; margin: 0 0 8px; }
+      .perm-fine { font-size: 15px; color: var(--ink-soft); margin: 0 0 22px; }
+      .btn-allow {
+        background: var(--green); color: #fff;
+        box-shadow: 0 6px 0 var(--green-dark);
+        margin-bottom: 8px;
+      }
+      .btn-allow:active { transform: translateY(3px); box-shadow: 0 3px 0 var(--green-dark); }
+      .btn-deny {
+        display: block; width: 100%;
+        min-height: 48px;
+        background: none; border: none;
+        color: var(--gray-btn);
+        font-size: 17px; font-weight: 600;
+        cursor: pointer; font-family: inherit;
+        text-decoration: underline; text-underline-offset: 3px;
+      }
+
+      /* ---------- Màn hình lật lại ---------- */
+      .reveal-top {
+        background: var(--red-soft);
+        border: 2px solid var(--red);
+        border-radius: var(--radius);
+        padding: 22px 18px;
+        text-align: center;
+        margin-bottom: 20px;
+      }
+      .reveal-top.good { background: var(--green-soft); border-color: var(--green); }
+      .reveal-big { font-size: 30px; font-weight: 800; line-height: 1.3; margin: 0 0 8px; }
+      .reveal-big .num { color: var(--red); }
+      .reveal-top.good .reveal-big .num { color: var(--green-dark); }
+      .reveal-q { font-size: 21px; font-weight: 700; margin: 0; }
+
+      h2.sec { font-size: 20px; margin: 22px 0 10px; }
+      ul.perm-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+      ul.perm-list li {
+        display: flex; align-items: center; gap: 12px;
+        background: var(--card); border: 1px solid var(--line);
+        border-radius: 14px; padding: 12px 14px;
+        font-size: 18px; font-weight: 600;
+      }
+      .tag {
+        flex: none; font-size: 14px; font-weight: 800;
+        padding: 4px 10px; border-radius: 999px;
+      }
+      .tag.yes { background: var(--red-soft); color: var(--red); }
+      .tag.no { background: var(--green-soft); color: var(--green-dark); }
+      .empty-note { color: var(--ink-soft); font-size: 17px; margin: 0; }
+
+      .know-box {
+        background: var(--ink); color: #fff;
+        border-radius: var(--radius);
+        padding: 20px 18px; margin-top: 22px;
+      }
+      .know-box .know-title { font-size: 17px; font-weight: 700; color: #ffd9d4; margin: 0 0 8px; }
+      .know-box.good .know-title { color: #b9ecc9; }
+      .know-box p.know-list { font-size: 22px; font-weight: 800; line-height: 1.45; margin: 0; }
+
+      .reflect {
+        font-size: 22px; font-weight: 800; text-align: center;
+        margin: 26px 0 18px;
+      }
+      .btn-replay { background: var(--blue); color: #fff; box-shadow: 0 6px 0 var(--blue-dark); }
+      .btn-replay:active { transform: translateY(3px); box-shadow: 0 3px 0 var(--blue-dark); }
+
+      .book-quote {
+        margin-top: 26px; font-size: 14.5px; color: var(--ink-soft);
+        border-top: 1px solid var(--line); padding-top: 14px;
+      }
+      .book-quote em { font-style: italic; }
+
+      @media (prefers-reduced-motion: reduce) {
+        .dialog { animation: none; }
+        .loadbar-fill { transition: none; }
+        .btn-start:active, .btn-allow:active, .btn-replay:active { transform: none; }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+
+      <!-- ======= MÀN HÌNH 1: BẮT ĐẦU ======= -->
+      <section class="screen active" id="scr-start">
+        <span class="badge-lesson">Bài 4 lớp 8 · AI theo dõi, dẫn dắt</span>
+        <h1 class="title">Bấm nhanh —<br /><span class="hl">AI biết hết</span></h1>
+        <p class="lead">Trò chơi <strong>30 giây</strong>: bấm thật nhanh để vào chơi. Mỗi lần hiện bảng hỏi, bấm <strong>“Cho phép”</strong> để đi tiếp.</p>
+
+        <div class="demo-card" aria-hidden="true">
+          <div class="demo-head">
+            <span class="app-ico">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M6 4.5v15l13-7.5-13-7.5Z" fill="#fff"/></svg>
+            </span>
+            Trò Chơi Vui muốn xin quyền
+          </div>
+          <p class="demo-perm"><strong>Truy cập vị trí của em</strong></p>
+          <p class="demo-fine">Ứng dụng sẽ biết em đang ở đâu, mọi lúc.</p>
+          <div class="demo-allow">Cho phép</div>
+          <p class="demo-note">Bấm càng nhanh, vào chơi càng sớm!</p>
+        </div>
+
+        <button class="btn-big btn-start" id="btn-start" type="button">Bắt đầu chơi</button>
+        <p class="privacy-note"><strong>Yên tâm:</strong> Trò này không lưu gì cả, chỉ là giả lập trên máy của em.</p>
+      </section>
+
+      <!-- ======= MÀN HÌNH 2: CHƠI ======= -->
+      <section class="screen" id="scr-play">
+        <div class="hud">
+          <div class="hud-box">
+            <div class="hud-label">Thời gian</div>
+            <div class="hud-value" id="hud-time">0 giây</div>
+          </div>
+          <div class="hud-box">
+            <div class="hud-label">Tiến độ</div>
+            <div class="hud-value green" id="hud-progress">Đã cho phép: 0/5</div>
+          </div>
+        </div>
+
+        <div class="loadbar-wrap">
+          <div class="loadbar-label"><span>Đang vào trò chơi…</span><span id="load-pct">0%</span></div>
+          <div class="loadbar"><div class="loadbar-fill" id="load-fill"></div></div>
+        </div>
+
+        <p class="urgent">Nhanh lên! Bấm “Cho phép” để vào chơi ngay!</p>
+
+        <div class="dialog" id="dialog"><!-- JS điền nội dung --></div>
+      </section>
+
+      <!-- ======= MÀN HÌNH 3: LẬT LẠI ======= -->
+      <section class="screen" id="scr-reveal">
+        <div class="reveal-top" id="reveal-top">
+          <p class="reveal-big" id="reveal-big"></p>
+          <p class="reveal-q">Em có nhớ mình vừa cho phép cái gì không?</p>
+        </div>
+
+        <div id="reveal-allowed-wrap">
+          <h2 class="sec">Em đã cho phép:</h2>
+          <ul class="perm-list" id="list-allowed"></ul>
+          <p class="empty-note" id="empty-allowed" hidden>Không có quyền nào — em đã từ chối tất cả. Rất tốt!</p>
+        </div>
+
+        <div id="reveal-denied-wrap">
+          <h2 class="sec">Em đã từ chối:</h2>
+          <ul class="perm-list" id="list-denied"></ul>
+          <p class="empty-note" id="empty-denied" hidden>Không có — em đã cho phép tất cả.</p>
+        </div>
+
+        <div class="know-box" id="know-box">
+          <p class="know-title" id="know-title">AI GIỜ BIẾT VỀ EM:</p>
+          <p class="know-list" id="know-list"></p>
+        </div>
+
+        <p class="reflect">Em có đọc kĩ trước khi bấm không?</p>
+
+        <button class="btn-big btn-replay" id="btn-replay" type="button">Chơi lại</button>
+
+        <p class="book-quote">Sách viết: <em>“Nhiều học sinh có thói quen bấm ‘đồng ý’ rất nhanh khi ứng dụng yêu cầu quyền truy cập camera, micro, vị trí hoặc danh bạ.”</em> (§1.3.3.4)</p>
+      </section>
+
+    </div>
+
+    <script>
+      var PERMS = [
+        {
+          key: "vitri",
+          name: "Vị trí",
+          ask: "Cho phép “Trò Chơi Vui” truy cập vị trí của em?",
+          fine: "Ứng dụng sẽ biết em đang ở đâu mọi lúc, kể cả khi em không mở ứng dụng.",
+          know: "em ở đâu",
+          bg: "#e3f6ea",
+          icon: '<svg width="40" height="40" viewBox="0 0 24 24" fill="none"><path d="M12 21s-7-5.6-7-11a7 7 0 1 1 14 0c0 5.4-7 11-7 11Z" fill="#159947"/><circle cx="12" cy="10" r="2.8" fill="#fff"/></svg>'
+        },
+        {
+          key: "danhba",
+          name: "Danh bạ",
+          ask: "Cho phép “Trò Chơi Vui” truy cập danh bạ của em?",
+          fine: "Ứng dụng sẽ đọc được số điện thoại của bố mẹ, thầy cô và bạn bè của em.",
+          know: "bạn em là ai",
+          bg: "#e7eefc",
+          icon: '<svg width="40" height="40" viewBox="0 0 24 24" fill="none"><rect x="5" y="3" width="14" height="18" rx="2.5" fill="#1668c4"/><circle cx="12" cy="9.5" r="2.6" fill="#fff"/><path d="M7.8 17.2c.7-2 2.3-3 4.2-3s3.5 1 4.2 3" stroke="#fff" stroke-width="1.8" stroke-linecap="round"/></svg>'
+        },
+        {
+          key: "anh",
+          name: "Ảnh",
+          ask: "Cho phép “Trò Chơi Vui” truy cập ảnh của em?",
+          fine: "Ứng dụng sẽ xem được toàn bộ ảnh trong máy em, kể cả ảnh gia đình.",
+          know: "ảnh của em",
+          bg: "#fdf3e0",
+          icon: '<svg width="40" height="40" viewBox="0 0 24 24" fill="none"><rect x="3.5" y="5" width="17" height="14" rx="2.5" fill="#b45309"/><circle cx="9" cy="10" r="1.8" fill="#fff"/><path d="M4 17.5 9.5 12l3.5 3.5 3-3L20.5 17" stroke="#fff" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/></svg>'
+        },
+        {
+          key: "micro",
+          name: "Micro",
+          ask: "Cho phép “Trò Chơi Vui” sử dụng micro của em?",
+          fine: "Ứng dụng có thể nghe và ghi lại giọng nói của em, cả khi em đang nói chuyện riêng.",
+          know: "giọng nói của em",
+          bg: "#fdecea",
+          icon: '<svg width="40" height="40" viewBox="0 0 24 24" fill="none"><rect x="9" y="3" width="6" height="11" rx="3" fill="#d92d20"/><path d="M6 11a6 6 0 0 0 12 0M12 17v3.5" stroke="#d92d20" stroke-width="2" stroke-linecap="round"/></svg>'
+        },
+        {
+          key: "thongbao",
+          name: "Gửi thông báo",
+          ask: "Cho phép “Trò Chơi Vui” gửi thông báo cho em?",
+          fine: "Ứng dụng có thể nhắn cho em bất cứ lúc nào, kể cả nửa đêm, để rủ em quay lại chơi và mua đồ trong trò chơi.",
+          know: "nhắn cho em bất cứ lúc nào",
+          bg: "#efe9fb",
+          icon: '<svg width="40" height="40" viewBox="0 0 24 24" fill="none"><path d="M6 16v-5a6 6 0 1 1 12 0v5l1.2 2.6a.8.8 0 0 1-.7 1.1H5.5a.8.8 0 0 1-.7-1.1L6 16Z" fill="#7c4dc4"/><circle cx="12" cy="20.8" r="1.6" fill="#7c4dc4"/></svg>'
+        }
+      ];
+
+      var state = { idx: 0, results: [], startTime: 0, timerId: null, elapsed: 0 };
+
+      var scrStart = document.getElementById("scr-start");
+      var scrPlay = document.getElementById("scr-play");
+      var scrReveal = document.getElementById("scr-reveal");
+      var dialogEl = document.getElementById("dialog");
+      var hudTime = document.getElementById("hud-time");
+      var hudProgress = document.getElementById("hud-progress");
+      var loadFill = document.getElementById("load-fill");
+      var loadPct = document.getElementById("load-pct");
+
+      function showScreen(el) {
+        scrStart.classList.remove("active");
+        scrPlay.classList.remove("active");
+        scrReveal.classList.remove("active");
+        el.classList.add("active");
+        window.scrollTo(0, 0);
+      }
+
+      function allowedCount() {
+        var n = 0;
+        for (var i = 0; i < state.results.length; i++) if (state.results[i]) n++;
+        return n;
+      }
+
+      function updateHud() {
+        hudProgress.textContent = "Đã cho phép: " + allowedCount() + "/5";
+        var pct = Math.round((state.results.length / PERMS.length) * 100);
+        loadFill.style.width = pct + "%";
+        loadPct.textContent = pct + "%";
+      }
+
+      function tick() {
+        state.elapsed = (Date.now() - state.startTime) / 1000;
+        hudTime.textContent = Math.floor(state.elapsed) + " giây";
+      }
+
+      function renderDialog() {
+        var p = PERMS[state.idx];
+        dialogEl.innerHTML =
+          '<div class="perm-ico" style="background:' + p.bg + '">' + p.icon + "</div>" +
+          '<p class="perm-step">Bảng hỏi ' + (state.idx + 1) + " / 5</p>" +
+          '<p class="perm-name">Quyền: ' + p.name + "</p>" +
+          '<p class="perm-ask">' + p.ask + "</p>" +
+          '<p class="perm-fine">' + p.fine + "</p>" +
+          '<button class="btn-big btn-allow" id="btn-allow" type="button">Cho phép</button>' +
+          '<button class="btn-deny" id="btn-deny" type="button">Từ chối</button>';
+        // Gắn lại hiệu ứng xuất hiện
+        dialogEl.style.animation = "none";
+        void dialogEl.offsetWidth;
+        dialogEl.style.animation = "";
+        document.getElementById("btn-allow").addEventListener("click", function () { answer(true); });
+        document.getElementById("btn-deny").addEventListener("click", function () { answer(false); });
+      }
+
+      function answer(allowed) {
+        state.results.push(allowed);
+        state.idx++;
+        updateHud();
+        if (state.idx < PERMS.length) {
+          renderDialog();
+        } else {
+          finish();
+        }
+      }
+
+      function startGame() {
+        state = { idx: 0, results: [], startTime: Date.now(), timerId: null, elapsed: 0 };
+        hudTime.textContent = "0 giây";
+        updateHud();
+        showScreen(scrPlay);
+        renderDialog();
+        state.timerId = setInterval(tick, 200);
+      }
+
+      function finish() {
+        clearInterval(state.timerId);
+        state.elapsed = (Date.now() - state.startTime) / 1000;
+        var secs = Math.max(1, Math.round(state.elapsed));
+        var allowed = [], denied = [];
+        for (var i = 0; i < PERMS.length; i++) {
+          if (state.results[i]) allowed.push(PERMS[i]); else denied.push(PERMS[i]);
+        }
+
+        var top = document.getElementById("reveal-top");
+        var big = document.getElementById("reveal-big");
+        if (allowed.length === 0) {
+          top.classList.add("good");
+          big.innerHTML = "Em đã <span class='num'>từ chối cả 5 quyền</span> trong <span class='num'>" + secs + " giây</span>.";
+        } else {
+          top.classList.remove("good");
+          big.innerHTML = "Em vừa cho phép <span class='num'>" + allowed.length + " quyền</span> trong <span class='num'>" + secs + " giây</span>.";
+        }
+
+        var la = document.getElementById("list-allowed");
+        la.innerHTML = "";
+        allowed.forEach(function (p) {
+          var li = document.createElement("li");
+          li.innerHTML = '<span class="tag yes">ĐÃ CHO PHÉP</span> ' + p.name;
+          la.appendChild(li);
+        });
+        document.getElementById("empty-allowed").hidden = allowed.length > 0;
+
+        var ld = document.getElementById("list-denied");
+        ld.innerHTML = "";
+        denied.forEach(function (p) {
+          var li = document.createElement("li");
+          li.innerHTML = '<span class="tag no">ĐÃ TỪ CHỐI</span> ' + p.name;
+          ld.appendChild(li);
+        });
+        document.getElementById("empty-denied").hidden = denied.length > 0;
+
+        var knowBox = document.getElementById("know-box");
+        var knowTitle = document.getElementById("know-title");
+        var knowList = document.getElementById("know-list");
+        if (allowed.length === 0) {
+          knowBox.classList.add("good");
+          knowTitle.textContent = "KẾT QUẢ:";
+          knowList.textContent = "AI chưa biết gì về em cả — vì em đã dừng lại và từ chối. Giữ thói quen này nhé!";
+        } else {
+          knowBox.classList.remove("good");
+          knowTitle.textContent = "AI GIỜ BIẾT VỀ EM:";
+          var parts = allowed.map(function (p) { return p.know; });
+          knowList.textContent = parts.join(", ") + ".";
+        }
+
+        showScreen(scrReveal);
+      }
+
+      document.getElementById("btn-start").addEventListener("click", startGame);
+      document.getElementById("btn-replay").addEventListener("click", startGame);
+    </script>
+  </body>
+</html>
