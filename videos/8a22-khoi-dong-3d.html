@@ -178,6 +178,8 @@
    biết đúng mình còn 150.000đ → CÂU HỎI LỚN, kết bằng chốt + cả 2 YCCĐ.
    Màn cuối chia 2: màn 1 = chốt + YCCĐ 8.A2.1 + 8.A2.2; màn 2 = Thử nghiệm:
    giải thích hệ thống (dẫn vào app demo "Biến hình siêu ngầu").
+   Đầu video giới thiệu qua tên 2 bạn khoảng vài giây (nhãn "Bạn Minh" trên đầu
+   học sinh, "Bạn Máy AI" trên đầu robot) rồi mờ đi — KHÔNG giữ suốt video.
    Đồ họa/engine Three.js như cảnh Bài 12 lớp 7 (7d11): sân trường nắng, màn hình
    lớn, robot AI màu xanh dẫn chuyện, học sinh cầm điện thoại.
    Giọng nữ Bắc 1 thu trước (20 câu), nhúng base64, phát qua Web Audio API.
@@ -722,16 +724,16 @@ function makeStudent(name, hairStyle, skinColor){
   return { g:g, name:name, headG:headG, armL:armL, armR:armR, legL:legL, legR:legR };
 }
 
-/* ---------- HỌC SINH — bạn lớp 8 cầm điện thoại mượn của bố mẹ ---------- */
-var stNam = makeStudent('Nam', 'flat', skinTones.nam);
-stNam.g.position.set(-3.6, 0, 0.9);
-stNam.g.rotation.y = -0.3; /* quay mặt về phía lớp, hơi nghiêng về màn hình */
+/* ---------- HỌC SINH — bạn Minh cầm điện thoại mượn của bố mẹ ---------- */
+var stMinh = makeStudent('Minh', 'flat', skinTones.minh);
+stMinh.g.position.set(-3.6, 0, 0.9);
+stMinh.g.rotation.y = -0.3; /* quay mặt về phía lớp, hơi nghiêng về màn hình */
 (function(){
   var phone = new THREE.Mesh(new THREE.BoxGeometry(0.15, 0.27, 0.025), mat(0x263238, 0.3));
-  phone.position.set(0, -0.5, 0.06); stNam.armR.add(phone);
+  phone.position.set(0, -0.5, 0.06); stMinh.armR.add(phone);
   var phoneScr = new THREE.Mesh(new THREE.PlaneGeometry(0.12, 0.23),
     new THREE.MeshBasicMaterial({ color: 0x90caf9 }));
-  phoneScr.position.set(0, -0.5, 0.075); stNam.armR.add(phoneScr);
+  phoneScr.position.set(0, -0.5, 0.075); stMinh.armR.add(phoneScr);
 })();
 
 /* ---------- ROBOT AI CAO CẤP (theo ảnh mẫu thầy gửi, phối nhiều màu) ----------
@@ -828,6 +830,56 @@ function makeRobotArm(side, withMag){
 var armWave = makeRobotArm(-1, false);
 var armMag = makeRobotArm(1, true);
 var glintMat = armMag.userData.mag.userData.glint.material;
+
+/* ---------- NHÃN TÊN GIỚI THIỆU NGẮN (thầy 21/11 21:43: giới thiệu qua tên
+   2 bạn khoảng ít giây ở đầu video, đủ để các em biết — KHÔNG giữ suốt) -----
+   Hai nhãn 3D trên đầu nhân vật, chỉ hiện vài giây đầu khi bấm Phát rồi mờ
+   dần và biến mất; sau đó video y như cũ. Nhãn "Bạn Máy AI" đặt thấp hơn
+   vùng bong bóng thoại (bong bóng nằm trên đầu robot) để không bị che. */
+var INTRO_HOLD_S = 4.2; /* hiện rõ 4,2 giây đầu */
+var INTRO_FADE_S = 0.8; /* rồi mờ dần trong 0,8 giây (tổng ~5 giây) */
+function nameLabelTex(text, bg, fg){
+  return canvasTex(768, 256, function(ctx, w, h){
+    ctx.fillStyle = bg; rr(ctx, 10, 34, w - 20, h - 68, 64);
+    ctx.strokeStyle = 'rgba(255,255,255,0.95)'; ctx.lineWidth = 7; ctx.stroke();
+    var fs = 118;
+    ctx.fillStyle = fg; ctx.font = "bold " + fs + "px 'Segoe UI', Arial, sans-serif";
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    while (ctx.measureText(text).width > 660 && fs > 60){
+      fs -= 6; ctx.font = "bold " + fs + "px 'Segoe UI', Arial, sans-serif";
+    }
+    ctx.fillText(text, w/2, h/2 + 4);
+  });
+}
+var introLabels = [];
+function addNameLabel(text, bg, fg, x, y, z, pw, ph){
+  var m = new THREE.Mesh(new THREE.PlaneGeometry(pw, ph),
+    new THREE.MeshBasicMaterial({ map: nameLabelTex(text, bg, fg), transparent: true, opacity: 0, depthWrite: false }));
+  m.position.set(x, y, z);
+  m.visible = false;
+  scene.add(m);
+  introLabels.push(m);
+  return m;
+}
+addNameLabel('Bạn Minh', '#1565c0', '#ffffff', -3.6, 2.1, 1.4, 2.4, 0.8);
+addNameLabel('Bạn Máy AI', '#ffb300', '#1a237e', 4.0, 2.3, -0.6, 2.4, 0.7);
+var introStartMs = 0;
+function showIntroLabels(){
+  introStartMs = performance.now();
+  introLabels.forEach(function(l){ l.visible = true; l.material.opacity = 1; });
+}
+function hideIntroLabels(){
+  introStartMs = 0;
+  introLabels.forEach(function(l){ l.visible = false; });
+}
+function updateIntroLabels(){
+  if (!introStartMs) return;
+  var age = (performance.now() - introStartMs)/1000;
+  var op = 1;
+  if (age > INTRO_HOLD_S) op = Math.max(0, 1 - (age - INTRO_HOLD_S)/INTRO_FADE_S);
+  introLabels.forEach(function(l){ l.material.opacity = op; l.visible = op > 0; });
+  if (op <= 0) introStartMs = 0;
+}
 
 /* ---------- THẺ QUẢNG CÁO BAY (3D) — quảng cáo nhân lên, vây quanh bạn ----------
    5 thẻ quảng cáo màu mè (giày / tai nghe + nhãn ngắn) bay vào từ hai bên,
@@ -1420,7 +1472,7 @@ function setText(el, txt){
   if (el._txt !== txt){ el.textContent = txt; el._txt = txt; }
 }
 function bubbleText(){
-  if (state.phase === 'lead') return 'Chào cả lớp! Mình là robot AI, bạn đồng hành hôm nay.';
+  if (state.phase === 'lead') return 'Chào cả lớp! Mình là bạn Máy AI, đồng hành cùng các em hôm nay.';
   if (state.phase === 'story') return CLIPS[state.clipIdx].bubble;
   if (state.phase === 'final') return 'Các em nhớ nhé: thấy lạ thì dừng lại, kiểm tra!';
   if (state.phase === 'final2') return 'Giờ thầy cho xem app thật nhé — xem hệ thống làm việc ra sao!';
@@ -1428,7 +1480,7 @@ function bubbleText(){
 }
 function teacherText(){
   if (state.phase === 'idle') return { txt:'Bấm nút ▶ Phát để bắt đầu câu chuyện.', q:false };
-  if (state.phase === 'lead') return { txt:'Câu chuyện của một bạn lớp 8 — mượn điện thoại của bố mẹ.', q:false };
+  if (state.phase === 'lead') return { txt:'Câu chuyện của bạn Minh — mượn điện thoại của bố mẹ.', q:false };
   if (state.phase === 'story') return { txt:CLIPS[state.clipIdx].text, q: state.clipIdx === 16 };
   if (state.phase === 'final') return { txt:CHOT_TEXT, q:true };
   if (state.phase === 'final2') return { txt:'Thử nghiệm: Giải thích hệ thống. Thầy cho các em xem một app thật thu thập dữ liệu như thế nào.', q:false };
@@ -1468,17 +1520,20 @@ function showFinal2(){
 function resetGame(){
   stopVoice();
   clearFinalTimer();
+  hideIntroLabels();
   state.phase = 'idle'; state.clipIdx = 0; state.phaseT = 0; state.started = false;
   updateDOM();
 }
 function play(){
   if (state.started && state.phase !== 'idle') return;
   playFrom(0);
+  showIntroLabels(); /* giới thiệu tên 2 bạn vài giây đầu */
 }
 
 /* ---------- khung hình chính ---------- */
 function applyState(tt){
   curT = tt;
+  updateIntroLabels(); /* nhãn tên giới thiệu: hiện vài giây đầu rồi mờ đi */
   var ck = smooth(0, 1.5, (state.phase === 'final' || state.phase === 'final2') ? state.phaseT : 0);
   camera.position.set(0, lerp(2.6, 3.0, ck), lerp(8.6, 11.5, ck));
   camera.lookAt(0, lerp(1.25, 1.15, ck), -0.3);
@@ -1499,13 +1554,13 @@ function applyState(tt){
   armMag.rotation.x = -0.15 + Math.sin(tt*1.6)*0.06;
   if (glintMat) glintMat.opacity = 0.45 + 0.4*Math.sin(tt*3);
   /* học sinh: nhún nhẹ, cúi đầu nhìn điện thoại; lúc câu hỏi lớn thì ngẩng lên */
-  stNam.g.position.y = Math.sin(tt*2 + 1)*0.015;
+  stMinh.g.position.y = Math.sin(tt*2 + 1)*0.015;
   var lookQ = (state.phase === 'story' && state.clipIdx === 16);
-  stNam.headG.rotation.y = -0.35 + Math.sin(tt*1.1)*0.03;
-  stNam.headG.rotation.x = lookQ ? -0.12 : 0.18;
-  stNam.headG.rotation.z = lookQ ? 0.12 : 0;
-  stNam.armR.rotation.z = 0.1;
-  stNam.armR.rotation.x = -1.15; /* giơ điện thoại lên trước mặt */
+  stMinh.headG.rotation.y = -0.35 + Math.sin(tt*1.1)*0.03;
+  stMinh.headG.rotation.x = lookQ ? -0.12 : 0.18;
+  stMinh.headG.rotation.z = lookQ ? 0.12 : 0;
+  stMinh.armR.rotation.z = 0.1;
+  stMinh.armR.rotation.x = -1.15; /* giơ điện thoại lên trước mặt */
   /* thẻ quảng cáo bay: mỗi đoạn truyện thêm 1 thẻ, vây quanh bạn; tới câu
      hỏi lớn thì xích lại gần hơn; màn cuối thì bay đi */
   var crowd = (state.phase === 'story' && state.clipIdx === 16) ? 0.8 : 1;
@@ -1641,6 +1696,7 @@ window.__game = {
   state: function(){ return { phase:state.phase, clipIdx:state.clipIdx, started:state.started, phaseT:state.phaseT }; },
   speed: function(){ return playSpeed; },
   voice: function(){ return { playing: voicePlaying, muted: voiceMuted, decoded: Object.keys(voiceBufs).length }; },
+  intro: function(){ return introLabels.map(function(l){ return { visible: l.visible, opacity: l.material.opacity, x: l.position.x, y: l.position.y, z: l.position.z }; }); },
   setSpeed: function(v){ setPlaySpeed(v); },
   effSpeed: function(){ return effSpeed(); }
 };
