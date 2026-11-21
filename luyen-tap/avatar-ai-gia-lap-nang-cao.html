@@ -258,6 +258,46 @@
         display: flex; align-items: center; justify-content: center; gap: 9px;
       }
       .teachernote { font-size: 12.5px; color: #5c6d61; line-height: 1.5; margin-top: 8px; }
+      .realnote {
+        margin-top: 12px; background: #fff8e1; border: 1.5px solid #e0a92e; color: #6b5200;
+        border-radius: 14px; padding: 10px 12px; font-size: 13px; line-height: 1.5; font-weight: 600;
+      }
+      .realnote b { color: #4a3800; }
+      .contactsbox {
+        margin-top: 14px; background: #fff; border: 2px solid #d5ded5; border-radius: 18px; padding: 13px 13px 11px;
+      }
+      .contactsbox h3 { margin: 0 0 4px; font-size: 15.5px; font-weight: 900; }
+      .contactsbox p { margin: 0 0 10px; font-size: 12.8px; color: #5c6d61; line-height: 1.5; }
+      .contactbtns { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 10px; }
+      .cbtn {
+        border-radius: 13px; padding: 11px 8px; font-size: 13.5px; font-weight: 800; line-height: 1.3; min-height: 48px;
+      }
+      .cbtn-primary { border: 2px solid #0c5c40; background: #0c5c40; color: #fff; }
+      .cbtn-ghost { border: 2px solid #cfdccf; background: #f4f6f4; color: #17301f; }
+      .cbtn:disabled { opacity: .55; }
+      .contactmanual { display: grid; grid-template-columns: 1fr; gap: 7px; }
+      .contactmanual .finput { font-size: 15px; padding: 10px 12px; }
+      .addcontactbtn {
+        width: 100%; border: 2px dashed #1d9e75; background: #eafaf3; color: #0c5c40;
+        border-radius: 12px; font-size: 14.5px; font-weight: 800; padding: 10px;
+      }
+      .contactslist { list-style: none; margin: 10px 0 0; padding: 0; display: flex; flex-direction: column; gap: 7px; }
+      .contactslist li {
+        display: flex; align-items: center; justify-content: space-between; gap: 10px;
+        background: #f0f6f1; border: 1px solid #d5ded5; border-radius: 12px; padding: 8px 10px;
+        font-size: 14px; line-height: 1.35;
+      }
+      .contactslist li b { display: block; font-size: 14.5px; }
+      .contactslist li span { color: #4b5d50; font-weight: 600; font-size: 13.5px; }
+      .contactslist .rm {
+        min-height: 36px; min-width: 36px; width: 36px; height: 36px; border-radius: 50%; border: none;
+        background: #ffe1e3; color: #9b1c24; font-weight: 900; font-size: 16px; flex: none;
+      }
+      .contactsempty { font-size: 13px; color: #75847a; font-weight: 600; margin-top: 8px; }
+      .camframe video, .scanphoto video { width: 100%; height: 100%; object-fit: cover; display: block; }
+      .scanstatus { margin-top: 12px; font-size: 13.5px; line-height: 1.5; color: #b9cabd; text-align: center; min-height: 20px; }
+      .scanstatus.err { color: #ffb3b7; }
+      .lootrow .v.small { font-size: 14px; font-weight: 700; line-height: 1.45; }
       .scanbtn {
         width: 100%; margin-top: 14px;
         border: none; border-radius: 18px; padding: 17px 14px;
@@ -424,11 +464,11 @@
           <div class="modebtns">
             <button class="modebtn" id="mode-teacher" aria-pressed="false">
               Thầy trình diễn
-              <small>Dùng ảnh của thầy</small>
+              <small>Bản THẬT — camera &amp; GPS thật trên máy thầy</small>
             </button>
             <button class="modebtn sel" id="mode-student" aria-pressed="true">
               Học sinh chơi
-              <small>Dùng ảnh mẫu có sẵn</small>
+              <small>Giả lập — dùng ảnh mẫu có sẵn</small>
             </button>
           </div>
           <div class="modehint" id="mode-hint">Đang chọn: Học sinh chơi — chạm Avatar AI để mở</div>
@@ -473,13 +513,16 @@
           <input class="finput" id="in-name" type="text" autocomplete="off" placeholder="Ví dụ: Nguyễn Văn A" />
           <label class="flabel" for="in-phone">Số điện thoại <span>(không bắt buộc)</span></label>
           <input class="finput" id="in-phone" type="tel" autocomplete="off" placeholder="Ví dụ: 0912 345 678" />
-          <p class="localnote">Thông tin em gõ chỉ hiện trên máy này để chơi giả lập, không gửi đi đâu cả.</p>
+          <p class="localnote" id="local-note">Thông tin em gõ chỉ hiện trên máy này để chơi giả lập, không gửi đi đâu cả.</p>
+          <div class="realnote" id="real-note" hidden>
+            <b>Chế độ thầy — bản THẬT trên máy thầy:</b> khi thầy bấm <b>QUÉT &amp; TẠO AVATAR AI</b>, trình duyệt sẽ hỏi quyền <b>camera thật</b> và <b>vị trí thật</b> — thầy bấm Cho phép thì app mới bật được. Mọi thứ chỉ hiện trên máy thầy, không gửi đi đâu.
+          </div>
 
           <div class="camwrap">
             <div class="camframe">
               <div class="camcontent" id="cam-content"></div>
               <span class="vf tl"></span><span class="vf tr"></span><span class="vf bl"></span><span class="vf br"></span>
-              <span class="camchip"><span class="dot"></span> CAMERA GIẢ LẬP</span>
+              <span class="camchip" id="cam-chip"><span class="dot"></span> <span id="cam-chip-text">CAMERA GIẢ LẬP</span></span>
               <span class="facemark"></span>
             </div>
           </div>
@@ -491,6 +534,23 @@
             </button>
             <p class="teachernote" id="teacher-note">Thầy tự chọn ảnh của mình trên máy này. Ảnh chỉ hiện ngay trên máy thầy, không tải lên đâu, không lưu lại — thoát trang là mất. Chưa chọn ảnh thì app dùng ảnh mẫu.</p>
             <input type="file" id="file-pick" accept="image/*" multiple hidden />
+          </div>
+
+          <div class="contactsbox" id="contacts-box" hidden>
+            <h3>Bước danh bạ — chỉ ở chế độ thầy</h3>
+            <p>Thầy tự chọn <b>1–2 người</b> thầy thoải mái cho cả lớp thấy (ví dụ số của chính thầy). Không chiếu toàn bộ danh bạ. Trang web không tự đọc được danh bạ — thầy phải tự bấm chọn.</p>
+            <div class="contactbtns">
+              <button class="cbtn cbtn-primary" id="btn-pick-contacts" type="button">Chọn từ danh bạ máy</button>
+              <button class="cbtn cbtn-ghost" id="btn-sample-contacts" type="button">Dùng danh bạ mẫu</button>
+            </div>
+            <p id="contacts-support" style="margin-bottom:8px"></p>
+            <div class="contactmanual">
+              <input class="finput" id="in-contact-name" type="text" autocomplete="off" placeholder="Tên người trong danh bạ — ví dụ: Thầy Hưng" />
+              <input class="finput" id="in-contact-phone" type="tel" autocomplete="off" placeholder="Số điện thoại — ví dụ: 09xx xxx xxx" />
+              <button class="addcontactbtn" id="btn-add-contact" type="button">+ Thêm người này vào danh sách</button>
+            </div>
+            <ul class="contactslist" id="contacts-list"></ul>
+            <div class="contactsempty" id="contacts-empty">Chưa chọn ai. Thầy có thể bỏ qua bước này — màn hình cảnh báo sẽ ghi rõ là chưa chọn danh bạ.</div>
           </div>
 
           <div class="albumhead">
@@ -524,16 +584,18 @@
             <svg class="sparkle" style="top:16px;right:44px;animation-delay:.8s" width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 1l2.4 7.6L22 11l-7.6 2.4L12 21l-2.4-7.6L2 11l7.6-2.4z" fill="#ffd166"/></svg>
           </div>
           <ul class="steps" id="scan-steps">
-            <li data-step="0"><span class="st"></span>Nhận diện khuôn mặt</li>
-            <li data-step="1"><span class="st"></span>Đọc họ tên và số điện thoại</li>
-            <li data-step="2"><span class="st"></span>Xác định vị trí của bạn</li>
-            <li data-step="3"><span class="st"></span>Tạo avatar hoạt hình</li>
+            <li data-step="0"><span class="st"></span><span class="step-label">Nhận diện khuôn mặt</span></li>
+            <li data-step="1"><span class="st"></span><span class="step-label">Đọc họ tên và số điện thoại</span></li>
+            <li data-step="2"><span class="st"></span><span class="step-label">Xác định vị trí của bạn</span></li>
+            <li data-step="3"><span class="st"></span><span class="step-label">Đọc danh bạ đã chọn</span></li>
+            <li data-step="4"><span class="st"></span><span class="step-label">Tạo avatar hoạt hình</span></li>
           </ul>
+          <div class="scanstatus" id="scan-status" role="status"></div>
           <div class="resultbox" id="result-box">
-            <div class="big">Avatar của em đã sẵn sàng!</div>
-            <p>Đẹp quá phải không? Nhưng khoan — hãy xem app vừa “biết” thêm những gì về em…</p>
+            <div class="big" id="result-big">Avatar của em đã sẵn sàng!</div>
+            <p id="result-desc">Đẹp quá phải không? Nhưng khoan — hãy xem app vừa “biết” thêm những gì về em…</p>
             <button class="gobtn" id="btn-to-warn">Xem điều app vừa biết</button>
-            <div class="autonote">Màn hình cảnh báo sẽ tự hiện sau vài giây…</div>
+            <div class="autonote" id="auto-note">Màn hình cảnh báo sẽ tự hiện sau vài giây…</div>
           </div>
         </div>
       </section>
@@ -553,7 +615,7 @@
             <span class="wt">DỪNG LẠI MỘT CHÚT!<br />Hãy nhìn xem app vừa biết gì về em</span>
           </div>
 
-          <p class="warnlead">Nếu đây là một <b>app thật</b>, chỉ sau vài giây nó đã có trong tay:</p>
+          <p class="warnlead" id="warn-lead">Nếu đây là một <b>app thật</b>, chỉ sau vài giây nó đã có trong tay:</p>
 
           <div class="loot">
             <div class="lootrow">
@@ -566,26 +628,30 @@
             </div>
             <div class="lootrow">
               <span class="ic"><svg width="23" height="23" viewBox="0 0 48 48" aria-hidden="true"><rect x="6" y="10" width="36" height="29" rx="4" fill="none" stroke="#ff6b72" stroke-width="3.4"/><circle cx="17" cy="19" r="3" fill="#ff6b72"/><path d="M6 34l10-9 8 7 7-6 11 10" fill="none" stroke="#ff6b72" stroke-width="3.4" stroke-linejoin="round"/></svg></span>
-              <div style="flex:1"><div class="k">ẢNH KHUÔN MẶT</div><div class="v">Bức ảnh em vừa “chụp”</div></div>
+              <div style="flex:1"><div class="k" id="loot-photo-k">ẢNH KHUÔN MẶT</div><div class="v" id="loot-photo-v">Bức ảnh em vừa “chụp”</div></div>
               <span class="lootthumb" id="loot-photo"></span>
             </div>
             <div class="lootrow">
               <span class="ic"><svg width="23" height="23" viewBox="0 0 48 48" aria-hidden="true"><path d="M24 44S10 29.6 10 18.5A14 14 0 1 1 38 18.5C38 29.6 24 44 24 44z" fill="none" stroke="#ff6b72" stroke-width="3.4"/><circle cx="24" cy="18.5" r="5" fill="#ff6b72"/></svg></span>
-              <div><div class="k">VỊ TRÍ</div><div class="v">Nơi em đang đứng lúc này</div></div>
+              <div style="flex:1"><div class="k">VỊ TRÍ</div><div class="v" id="loot-location">Nơi em đang đứng lúc này</div></div>
+            </div>
+            <div class="lootrow" id="loot-contacts-row">
+              <span class="ic"><svg width="23" height="23" viewBox="0 0 48 48" aria-hidden="true"><rect x="9" y="7" width="30" height="34" rx="4" fill="none" stroke="#ff6b72" stroke-width="3.4"/><circle cx="24" cy="19" r="5" fill="none" stroke="#ff6b72" stroke-width="3"/><path d="M15 34c1.2-3.8 4.6-5.6 9-5.6s7.8 1.8 9 5.6" fill="none" stroke="#ff6b72" stroke-width="3" stroke-linecap="round"/></svg></span>
+              <div style="flex:1"><div class="k">DANH BẠ ĐÃ CHỌN</div><div class="v small" id="loot-contacts">—</div></div>
             </div>
           </div>
 
-          <div class="safebox"><b>Đây chỉ là giả lập</b> — không có gì được chụp, được ghi hay được gửi đi. Tên, số điện thoại và ảnh chỉ nằm trên máy này và biến mất khi đóng trang.</div>
+          <div class="safebox" id="safe-box"><b>Đây chỉ là giả lập</b> — không có gì được chụp, được ghi hay được gửi đi. Tên, số điện thoại và ảnh chỉ nằm trên máy này và biến mất khi đóng trang.</div>
 
           <p class="bigq">Nếu đây là app thật thì sao?</p>
-          <p class="subq">Một người lạ ở rất xa sẽ biết em tên gì, số điện thoại của em, mặt em trông thế nào và em đang ở đâu. Em có muốn như vậy không?</p>
+          <p class="subq" id="warn-subq">Một người lạ ở rất xa sẽ biết em tên gì, số điện thoại của em, mặt em trông thế nào và em đang ở đâu. Em có muốn như vậy không?</p>
 
           <button class="replaybtn" id="btn-replay">Chơi lại từ đầu</button>
         </div>
       </section>
     </div>
 
-    <p class="caption"><b>Avatar AI — bản giả lập</b> · Mở đầu Bài 4 lớp 8 · Mã 8.A2.2</p>
+    <p class="caption"><b>Avatar AI</b> · Chế độ thầy là bản thật trên máy thầy · Chế độ học sinh là giả lập · Mở đầu Bài 4 lớp 8 · Mã 8.A2.2</p>
 
     <script>
       "use strict";
@@ -631,12 +697,20 @@
       ];
 
       /* ---------- Trạng thái ---------- */
+      var SAMPLE_CONTACTS = [
+        { name: "Thầy Hưng (số của thầy)", tel: "09xx xxx xxx — số mẫu" },
+        { name: "Cô Lan — ví dụ mẫu", tel: "09xx xxx xxx — số mẫu" }
+      ];
       var state = {
         mode: "student",           /* "teacher" | "student" */
-        source: "sample",          /* "sample" | "teacher" */
+        source: "sample",          /* "sample" | "teacher" | "captured" */
         sampleIdx: 0,
         teacherIdx: 0,
-        teacherImgs: []            /* object URLs, chỉ sống trong lần mở trang */
+        teacherImgs: [],           /* object URLs, chỉ sống trong lần mở trang */
+        teacherContacts: [],       /* [{name, tel}] thầy tự chọn/gõ — chỉ trong phiên này */
+        capturedPhoto: null,       /* dataURL ảnh chụp từ camera thật (chế độ thầy) */
+        realLocation: null,        /* {lat, lon, acc} hoặc {error: "..."} */
+        cameraStream: null
       };
       var timers = [];
 
@@ -652,18 +726,56 @@
         if (body) body.scrollTop = 0;
       }
 
+      function stopCamera() {
+        if (state.cameraStream) {
+          state.cameraStream.getTracks().forEach(function (t) { try { t.stop(); } catch (e) {} });
+          state.cameraStream = null;
+        }
+      }
       function currentContent() {
+        if (state.source === "captured" && state.capturedPhoto) {
+          return '<img src="' + state.capturedPhoto + '" alt="Ảnh thật vừa chụp từ camera của thầy" />';
+        }
         if (state.source === "teacher" && state.teacherImgs.length) {
           return '<img src="' + state.teacherImgs[state.teacherIdx] + '" alt="Ảnh thầy đã chọn trên máy này" />';
         }
         return SAMPLES[state.sampleIdx].svg;
       }
+      function currentPhotoHTML() { return currentContent(); }
 
       function renderCamera() { $("cam-content").innerHTML = currentContent(); }
 
       function renderAlbum() {
         var album = $("album");
         album.innerHTML = "";
+        if (state.source === "captured" && state.capturedPhoto) {
+          $("album-title").textContent = "Ảnh thật vừa chụp";
+          $("album-sub").textContent = "Từ camera thật của thầy";
+          var bc = document.createElement("button");
+          bc.className = "thumb sel";
+          bc.setAttribute("aria-label", "Ảnh thật vừa chụp từ camera");
+          bc.innerHTML = '<img src="' + state.capturedPhoto + '" alt="" />';
+          album.appendChild(bc);
+          if (state.teacherImgs.length) {
+            state.teacherImgs.forEach(function (url, i) {
+              var b2 = document.createElement("button");
+              b2.className = "thumb";
+              b2.setAttribute("aria-label", "Chọn ảnh thầy số " + (i + 1));
+              b2.innerHTML = '<img src="' + url + '" alt="" />';
+              b2.addEventListener("click", function () { state.source = "teacher"; state.teacherIdx = i; renderAlbum(); renderCamera(); });
+              album.appendChild(b2);
+            });
+          }
+          SAMPLES.forEach(function (s, i) {
+            var bs = document.createElement("button");
+            bs.className = "thumb";
+            bs.setAttribute("aria-label", "Chọn ảnh mẫu: " + s.name);
+            bs.innerHTML = s.svg;
+            bs.addEventListener("click", function () { state.source = "sample"; state.sampleIdx = i; renderAlbum(); renderCamera(); });
+            album.appendChild(bs);
+          });
+          return;
+        }
         if (state.source === "teacher" && state.teacherImgs.length) {
           $("album-title").textContent = "Ảnh của thầy";
           $("album-sub").textContent = state.teacherImgs.length + " ảnh đã chọn";
@@ -676,7 +788,7 @@
             album.appendChild(b);
           });
         } else {
-          $("album-title").textContent = state.mode === "teacher" ? "Album mẫu (chưa chọn ảnh)" : "Album mẫu";
+          $("album-title").textContent = state.mode === "teacher" ? "Album mẫu (chưa chọn ảnh — hoặc chụp bằng camera thật khi quét)" : "Album mẫu";
           $("album-sub").textContent = "Chạm để đổi khuôn mặt";
           SAMPLES.forEach(function (s, i) {
             var b = document.createElement("button");
@@ -689,6 +801,51 @@
             album.appendChild(b);
           });
         }
+      }
+
+      /* ---------- Danh bạ (chế độ thầy) ---------- */
+      function contactsSupported() {
+        return !!(navigator.contacts && typeof navigator.contacts.select === "function");
+      }
+      function renderContactsSupport() {
+        var el = $("contacts-support");
+        if (!el) return;
+        if (contactsSupported()) {
+          el.textContent = "Máy này hỗ trợ chọn danh bạ trực tiếp: bấm “Chọn từ danh bạ máy”, trình duyệt sẽ mở danh bạ để thầy tự chọn 1–2 người.";
+        } else {
+          el.textContent = "Máy/trình duyệt này không hỗ trợ chọn danh bạ trực tiếp (thường chỉ Android Chrome mới có) — thầy gõ tay ở dưới hoặc bấm “Dùng danh bạ mẫu”.";
+        }
+        var btn = $("btn-pick-contacts");
+        if (btn) btn.disabled = false;
+      }
+      function renderContacts() {
+        var list = $("contacts-list");
+        var empty = $("contacts-empty");
+        if (!list) return;
+        list.innerHTML = "";
+        state.teacherContacts.forEach(function (c, i) {
+          var li = document.createElement("li");
+          var left = document.createElement("div");
+          var b = document.createElement("b"); b.textContent = c.name || "Không tên";
+          var s = document.createElement("span"); s.textContent = c.tel || "Chưa có số";
+          left.appendChild(b); left.appendChild(s);
+          var rm = document.createElement("button");
+          rm.className = "rm"; rm.type = "button"; rm.textContent = "×";
+          rm.setAttribute("aria-label", "Xóa " + (c.name || "liên hệ"));
+          rm.addEventListener("click", function () { state.teacherContacts.splice(i, 1); renderContacts(); });
+          li.appendChild(left); li.appendChild(rm);
+          list.appendChild(li);
+        });
+        if (empty) empty.style.display = state.teacherContacts.length ? "none" : "block";
+      }
+      function addContacts(items) {
+        items.forEach(function (c) {
+          if (!c.name && !c.tel) return;
+          var exists = state.teacherContacts.some(function (x) { return x.name === c.name && x.tel === c.tel; });
+          if (!exists) state.teacherContacts.push({ name: c.name || "", tel: c.tel || "" });
+        });
+        if (state.teacherContacts.length > 4) state.teacherContacts = state.teacherContacts.slice(0, 4);
+        renderContacts();
       }
 
       /* ---------- Chế độ ---------- */
@@ -722,15 +879,61 @@
       });
 
       $("app-avatar").addEventListener("click", function () {
-        $("teacher-box").hidden = state.mode !== "teacher";
-        $("mode-chip").textContent = state.mode === "teacher" ? "Thầy trình diễn" : "Học sinh chơi";
-        if (state.mode !== "teacher") state.source = "sample";
+        var isTeacher = state.mode === "teacher";
+        $("teacher-box").hidden = !isTeacher;
+        $("contacts-box").hidden = !isTeacher;
+        $("real-note").hidden = !isTeacher;
+        $("mode-chip").textContent = isTeacher ? "Thầy trình diễn — BẢN THẬT" : "Học sinh chơi";
+        $("cam-chip-text").textContent = isTeacher ? "CAMERA THẬT — BẬT KHI BẤM QUÉT" : "CAMERA GIẢ LẬP";
+        $("local-note").textContent = isTeacher
+          ? "Ở chế độ thầy, tên và số thầy gõ chỉ hiện trên máy này. Camera, vị trí và danh bạ chỉ lấy khi thầy tự cho phép trên máy thầy."
+          : "Thông tin em gõ chỉ hiện trên máy này để chơi giả lập, không gửi đi đâu cả.";
+        if (!isTeacher) { state.source = "sample"; stopCamera(); }
+        renderContactsSupport();
+        renderContacts();
         renderAlbum();
         renderCamera();
         showScreen("screen-app");
       });
 
-      $("btn-back-home").addEventListener("click", function () { showScreen("screen-home"); });
+      $("btn-back-home").addEventListener("click", function () { stopCamera(); showScreen("screen-home"); });
+
+      /* ---------- Danh bạ: chọn / mẫu / gõ tay ---------- */
+      $("btn-pick-contacts").addEventListener("click", function () {
+        if (!contactsSupported()) {
+          toast("Máy này <b>không hỗ trợ</b> chọn danh bạ trực tiếp.<br />Thầy gõ tay ở dưới hoặc dùng <b>danh bạ mẫu</b> nhé.");
+          return;
+        }
+        navigator.contacts.select(["name", "tel"], { multiple: true }).then(function (picked) {
+          var items = (picked || []).map(function (p) {
+            var tel = "";
+            if (p.tel && p.tel.length) tel = String(p.tel[0]);
+            var nm = "";
+            if (p.name && p.name.length) nm = String(p.name[0]);
+            return { name: nm, tel: tel };
+          }).filter(function (x) { return x.name || x.tel; });
+          if (!items.length) { toast("Thầy chưa chọn ai trong danh bạ."); return; }
+          if (items.length > 2) {
+            toast("Thầy đã chọn <b>" + items.length + "</b> người — em chỉ giữ <b>2 người đầu</b> để trình chiếu cho gọn và an toàn.");
+            items = items.slice(0, 2);
+          }
+          addContacts(items);
+        }).catch(function () {
+          /* Thầy bấm hủy — không làm gì */
+        });
+      });
+      $("btn-sample-contacts").addEventListener("click", function () {
+        addContacts(SAMPLE_CONTACTS.map(function (c) { return { name: c.name, tel: c.tel }; }));
+        toast("Đã thêm <b>danh bạ mẫu</b> (không phải số thật).");
+      });
+      $("btn-add-contact").addEventListener("click", function () {
+        var n = $("in-contact-name").value.trim();
+        var t = $("in-contact-phone").value.trim();
+        if (!n && !t) { toast("Thầy gõ <b>tên</b> hoặc <b>số điện thoại</b> trước khi thêm nhé."); return; }
+        addContacts([{ name: n, tel: t }]);
+        $("in-contact-name").value = "";
+        $("in-contact-phone").value = "";
+      });
 
       /* ---------- Thầy chọn ảnh (chỉ trên máy thầy) ---------- */
       $("btn-pick").addEventListener("click", function () { $("file-pick").click(); });
@@ -748,39 +951,203 @@
       });
 
       /* ---------- Quét & tạo avatar ---------- */
-      var warnTimerStarted = false;
-      $("btn-scan").addEventListener("click", function () {
-        clearTimers();
-        warnTimerStarted = false;
-        $("scan-content").innerHTML = currentContent();
-        $("scan-photo").classList.remove("done");
-        $("scan-title").textContent = "Đang quét khuôn mặt…";
-        $("result-box").classList.remove("show");
+      function setStep(idx, cls) {
         var lis = document.querySelectorAll("#scan-steps li");
-        lis.forEach(function (li) { li.classList.remove("doing", "done"); });
-        showScreen("screen-scan");
-
+        if (!lis[idx]) return;
+        lis[idx].classList.remove("doing", "done");
+        if (cls) lis[idx].classList.add(cls);
+      }
+      function setStepLabel(idx, text) {
+        var lis = document.querySelectorAll("#scan-steps li");
+        if (!lis[idx]) return;
+        var lab = lis[idx].querySelector(".step-label");
+        if (lab) lab.textContent = text;
+      }
+      function resetScanUI(isTeacher) {
+        clearTimers();
+        stopCamera();
+        $("scan-photo").classList.remove("done");
+        $("scan-title").textContent = isTeacher ? "Đang dùng camera thật & vị trí thật…" : "Đang quét khuôn mặt…";
+        $("result-box").classList.remove("show");
+        $("scan-status").textContent = "";
+        $("scan-status").classList.remove("err");
+        var labels = isTeacher
+          ? ["Chụp ảnh thật từ camera của thầy", "Đọc họ tên và số điện thoại thầy đã gõ", "Đọc vị trí GPS thật của máy thầy", "Đọc danh bạ thầy đã chọn", "Tạo avatar từ ảnh thật"]
+          : ["Nhận diện khuôn mặt", "Đọc họ tên và số điện thoại", "Xác định vị trí của bạn", "Đọc danh bạ đã chọn", "Tạo avatar hoạt hình"];
+        var lis = document.querySelectorAll("#scan-steps li");
         lis.forEach(function (li, i) {
-          later(function () { li.classList.add("doing"); }, 250 + i * 950);
-          later(function () { li.classList.remove("doing"); li.classList.add("done"); }, 250 + (i + 1) * 950);
+          li.classList.remove("doing", "done");
+          var lab = li.querySelector(".step-label");
+          if (lab && labels[i]) lab.textContent = labels[i];
         });
-        later(function () {
-          $("scan-photo").classList.add("done");
-          $("scan-title").textContent = "Tạo avatar xong!";
-          $("result-box").classList.add("show");
-          warnTimerStarted = true;
-          later(goWarn, 6000);
-        }, 250 + 4 * 950 + 350);
+        $("result-big").textContent = isTeacher ? "Avatar của thầy đã sẵn sàng!" : "Avatar của em đã sẵn sàng!";
+        $("result-desc").textContent = isTeacher
+          ? "Đây là ảnh thật của thầy, vừa chụp trên chính máy thầy. Hãy xem app vừa lấy được những gì thật…"
+          : "Đẹp quá phải không? Nhưng khoan — hãy xem app vừa “biết” thêm những gì về em…";
+      }
+      function finishScan() {
+        $("scan-photo").classList.add("done");
+        $("scan-title").textContent = "Tạo avatar xong!";
+        $("scan-content").innerHTML = currentContent();
+        $("result-box").classList.add("show");
+        later(goWarn, 9000);
+      }
+      function wait(ms) { return new Promise(function (r) { setTimeout(r, ms); }); }
+
+      function getRealLocation() {
+        return new Promise(function (resolve) {
+          if (!navigator.geolocation) { resolve({ error: "Máy này không hỗ trợ định vị GPS." }); return; }
+          var done = false;
+          var to = setTimeout(function () { if (!done) { done = true; resolve({ error: "Chờ vị trí quá lâu — thầy kiểm tra đã bật định vị chưa." }); } }, 9000);
+          navigator.geolocation.getCurrentPosition(function (pos) {
+            if (done) return; done = true; clearTimeout(to);
+            resolve({ lat: pos.coords.latitude, lon: pos.coords.longitude, acc: pos.coords.accuracy });
+          }, function (err) {
+            if (done) return; done = true; clearTimeout(to);
+            var msg = "Thầy chưa cho phép vị trí (hoặc đã từ chối).";
+            if (err && err.code === 2) msg = "Máy chưa xác định được vị trí lúc này.";
+            if (err && err.code === 3) msg = "Hết thời gian chờ vị trí.";
+            resolve({ error: msg });
+          }, { enableHighAccuracy: true, timeout: 8000, maximumAge: 0 });
+        });
+      }
+
+      async function runTeacherScan() {
+        resetScanUI(true);
+        state.realLocation = null;
+        showScreen("screen-scan");
+        var status = $("scan-status");
+        /* Bước 0 — camera thật */
+        setStep(0, "doing");
+        status.textContent = "Trình duyệt đang hỏi quyền camera — thầy bấm Cho phép. Hãy nhìn vào camera, app sẽ tự chụp sau khoảng 2 giây…";
+        var video = document.createElement("video");
+        video.setAttribute("playsinline", ""); video.muted = true; video.autoplay = true;
+        var cameraOk = false;
+        try {
+          if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) throw new Error("no-cam-api");
+          var stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" }, audio: false });
+          state.cameraStream = stream;
+          video.srcObject = stream;
+          $("scan-content").innerHTML = "";
+          $("scan-content").appendChild(video);
+          await video.play().catch(function () {});
+          await wait(2200);
+          if (video.videoWidth > 0) {
+            var canvas = document.createElement("canvas");
+            canvas.width = video.videoWidth; canvas.height = video.videoHeight;
+            var ctx = canvas.getContext("2d");
+            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+            state.capturedPhoto = canvas.toDataURL("image/jpeg", 0.88);
+            state.source = "captured";
+            cameraOk = true;
+          }
+        } catch (e) {
+          cameraOk = false;
+        }
+        stopCamera();
+        if (cameraOk) {
+          $("scan-content").innerHTML = currentContent();
+          status.textContent = "Đã chụp được ảnh thật từ camera của thầy.";
+        } else {
+          $("scan-content").innerHTML = currentContent();
+          status.textContent = "Không bật được camera thật (thầy chưa cho phép, hoặc máy không hỗ trợ) — app dùng ảnh thầy đã chọn / ảnh mẫu thay thế. Thầy vẫn xem tiếp được phần vị trí và danh bạ.";
+          status.classList.add("err");
+          if (state.capturedPhoto) { /* giữ ảnh cũ nếu có */ } else if (state.teacherImgs.length) state.source = "teacher";
+        }
+        setStep(0, "done");
+        /* Bước 1 — tên / số */
+        setStep(1, "doing"); await wait(700); setStep(1, "done");
+        /* Bước 2 — GPS thật */
+        setStep(2, "doing");
+        status.textContent = "Đang đọc vị trí GPS thật — trình duyệt sẽ hỏi quyền vị trí, thầy bấm Cho phép…";
+        status.classList.remove("err");
+        var loc = await getRealLocation();
+        state.realLocation = loc;
+        if (loc && typeof loc.lat === "number") {
+          status.textContent = "Đã đọc được vị trí thật: " + loc.lat.toFixed(5) + ", " + loc.lon.toFixed(5) + " (sai số khoảng " + Math.round(loc.acc || 0) + " m).";
+        } else {
+          status.textContent = (loc && loc.error) ? loc.error : "Chưa đọc được vị trí thật.";
+          status.classList.add("err");
+        }
+        setStep(2, "done");
+        /* Bước 3 — danh bạ */
+        setStep(3, "doing"); await wait(650); setStep(3, "done");
+        /* Bước 4 — avatar */
+        setStep(4, "doing"); await wait(800); setStep(4, "done");
+        status.textContent = "";
+        status.classList.remove("err");
+        finishScan();
+      }
+
+      function runStudentScan() {
+        resetScanUI(false);
+        state.realLocation = null;
+        $("scan-content").innerHTML = currentContent();
+        showScreen("screen-scan");
+        var lis = document.querySelectorAll("#scan-steps li");
+        lis.forEach(function (li, i) {
+          later(function () { li.classList.add("doing"); }, 250 + i * 800);
+          later(function () { li.classList.remove("doing"); li.classList.add("done"); }, 250 + (i + 1) * 800);
+        });
+        later(finishScan, 250 + 5 * 800 + 350);
+      }
+
+      $("btn-scan").addEventListener("click", function () {
+        if (state.mode === "teacher") { runTeacherScan(); }
+        else { runStudentScan(); }
       });
 
+      function formatLocation() {
+        var loc = state.realLocation;
+        if (!loc) return null;
+        if (typeof loc.lat === "number") {
+          return "Vĩ độ " + loc.lat.toFixed(5) + " · Kinh độ " + loc.lon.toFixed(5) + " · Sai số khoảng " + Math.round(loc.acc || 0) + " m — vị trí THẬT của máy thầy vừa đọc được";
+        }
+        return loc.error || "Chưa đọc được vị trí";
+      }
+
       function goWarn() {
+        var isTeacher = state.mode === "teacher";
         var name = $("in-name").value.trim();
         var phone = $("in-phone").value.trim();
         var ln = $("loot-name"), lp = $("loot-phone");
-        if (name) { ln.textContent = name; ln.classList.remove("empty"); }
-        else { ln.textContent = "Em chưa gõ — app thật vẫn sẽ tìm cách lấy"; ln.classList.add("empty"); }
-        if (phone) { lp.textContent = phone; lp.classList.remove("empty"); }
-        else { lp.textContent = "Em chưa gõ — app thật vẫn sẽ tìm cách lấy"; lp.classList.add("empty"); }
+        if (isTeacher) {
+          if (name) { ln.textContent = name; ln.classList.remove("empty"); }
+          else { ln.textContent = "Thầy chưa gõ tên — ô này trống"; ln.classList.add("empty"); }
+          if (phone) { lp.textContent = phone; lp.classList.remove("empty"); }
+          else { lp.textContent = "Thầy chưa gõ số — ô này trống"; lp.classList.add("empty"); }
+          $("loot-photo-k").textContent = state.source === "captured" ? "ẢNH THẬT TỪ CAMERA" : (state.source === "teacher" ? "ẢNH THẬT THẦY ĐÃ CHỌN" : "ẢNH ĐANG DÙNG");
+          $("loot-photo-v").textContent = state.source === "captured" ? "Ảnh thật vừa chụp từ camera của thầy" : (state.source === "teacher" ? "Ảnh thật thầy tự chọn từ máy thầy" : "Chưa chụp được camera thật — đang dùng ảnh mẫu");
+          var locText = formatLocation();
+          var ll = $("loot-location");
+          ll.textContent = locText || "Chưa đọc vị trí";
+          ll.classList.toggle("empty", !locText || !state.realLocation || typeof state.realLocation.lat !== "number");
+          var lc = $("loot-contacts");
+          if (state.teacherContacts.length) {
+            lc.textContent = state.teacherContacts.map(function (c) { return (c.name || "Không tên") + (c.tel ? " — " + c.tel : ""); }).join("  •  ");
+            lc.classList.remove("empty");
+          } else {
+            lc.textContent = "Thầy chưa chọn danh bạ nào trong lần này";
+            lc.classList.add("empty");
+          }
+          $("warn-lead").innerHTML = "Đây là những gì <b>thật</b> app vừa lấy được trên <b>máy thầy</b>, chỉ sau vài giây:";
+          $("safe-box").innerHTML = "<b>Đây là demo trên máy thầy — thầy tự cho phép.</b> Camera, vị trí, ảnh và danh bạ ở trên đều là thật trên máy thầy và chỉ hiện trên máy này, không gửi đi đâu, không lưu lại — đóng trang là mất. Học sinh chơi ở chế độ riêng, hoàn toàn giả lập.";
+          $("warn-subq").textContent = "Thầy vừa tự tay cho phép hết trên máy của mình. Nếu một app lạ cũng xin như vậy trên máy học sinh — và các em cũng bấm Cho phép nhanh như thầy vừa bấm — thì người lạ sẽ có đúng những thứ này của các em. Cả lớp nghĩ sao?";
+        } else {
+          if (name) { ln.textContent = name; ln.classList.remove("empty"); }
+          else { ln.textContent = "Em chưa gõ — app thật vẫn sẽ tìm cách lấy"; ln.classList.add("empty"); }
+          if (phone) { lp.textContent = phone; lp.classList.remove("empty"); }
+          else { lp.textContent = "Em chưa gõ — app thật vẫn sẽ tìm cách lấy"; lp.classList.add("empty"); }
+          $("loot-photo-k").textContent = "ẢNH KHUÔN MẶT";
+          $("loot-photo-v").textContent = "Bức ảnh em vừa “chụp”";
+          $("loot-location").textContent = "Nơi em đang đứng lúc này";
+          $("loot-location").classList.remove("empty");
+          $("loot-contacts").textContent = "Ở chế độ học sinh, app không chạm vào danh bạ thật — đây chỉ là giả lập";
+          $("loot-contacts").classList.remove("empty");
+          $("warn-lead").innerHTML = "Nếu đây là một <b>app thật</b>, chỉ sau vài giây nó đã có trong tay:";
+          $("safe-box").innerHTML = "<b>Đây chỉ là giả lập</b> — không có gì được chụp, được ghi hay được gửi đi. Tên, số điện thoại và ảnh chỉ nằm trên máy này và biến mất khi đóng trang. App không xin quyền camera, vị trí hay danh bạ thật ở chế độ học sinh.";
+          $("warn-subq").textContent = "Một người lạ ở rất xa sẽ biết em tên gì, số điện thoại của em, mặt em trông thế nào và em đang ở đâu. Em có muốn như vậy không?";
+        }
         $("loot-photo").innerHTML = currentContent();
         showScreen("screen-warn");
       }
@@ -789,19 +1156,27 @@
       /* ---------- Chơi lại ---------- */
       $("btn-replay").addEventListener("click", function () {
         clearTimers();
+        stopCamera();
         $("in-name").value = "";
         $("in-phone").value = "";
+        $("in-contact-name").value = "";
+        $("in-contact-phone").value = "";
         state.teacherImgs.forEach(function (u) { URL.revokeObjectURL(u); });
         state.teacherImgs = [];
+        state.teacherContacts = [];
+        state.capturedPhoto = null;
+        state.realLocation = null;
         state.source = "sample";
         state.sampleIdx = 0;
         state.teacherIdx = 0;
         $("teacher-note").textContent = "Thầy tự chọn ảnh của mình trên máy này. Ảnh chỉ hiện ngay trên máy thầy, không tải lên đâu, không lưu lại — thoát trang là mất. Chưa chọn ảnh thì app dùng ảnh mẫu.";
+        renderContacts();
         renderAlbum();
         renderCamera();
         showScreen("screen-home");
       });
 
+      renderContacts();
       renderAlbum();
       renderCamera();
     </script>
