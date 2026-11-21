@@ -1,9 +1,20 @@
 // ============================================================================
 //  ĐƯỜNG CHUYỂN TOÀN BỘ THÔNG TIN: ĐIỆN THOẠI (thầy) -> LAPTOP (thầy) -> CHIẾU LÊN TV
 //  Chỉ phục vụ thầy Phạm Ngọc Hưng và dữ liệu CỦA THẦY.
-//  - Hỗ trợ NHIỀU MÁY gửi cùng lúc (Máy 1..Máy 5, có thể tới Máy 6):
-//    mỗi máy lưu riêng, gửi mới chỉ thay dữ liệu của đúng máy đó.
-//  - Trang gửi: thầy chọn số máy của mình trước khi gửi.
+//  PHIÊN BẢN 14 (21/11/2026):
+//  - Hỗ trợ NHIỀU MÁY gửi cùng lúc theo 2 cách:
+//    (a) Ô Máy 1..Máy 5 (app Avatar AI + trang gửi ?page=gui + trang quét web cũ):
+//        mỗi máy lưu riêng, gửi mới chỉ thay dữ liệu của đúng máy đó.
+//    (b) Máy THEO TÊN (app "Biến Hình AI" v1.1): mỗi điện thoại có tên riêng
+//        (tenMay, mặc định theo model máy) + mã duy nhất (idMay = Android ID).
+//        Lưu theo idMay, không động vào các ô Máy. Hai máy trùng tên cũng
+//        không bao giờ nhầm nhau.
+//  - App "Biến Hình AI" gửi kèm thời gian dùng app CÓ CẤU TRÚC
+//    (thoiGianDungApp: ngày, tổng ms, từng app ms + số lần mở) — trang trình
+//    chiếu hiện thành bảng "THỜI GIAN DÙNG APP" trên thẻ của máy đó.
+//  - Thẻ của máy gửi GẦN NHẤT (theo thoiGianGui, tính trên CẢ ô Máy lẫn máy
+//    theo tên) được gắn huy hiệu "ĐANG DÙNG"; mỗi thẻ có giờ gửi.
+//  - Trang gửi: thầy chọn số máy của mình trước khi gửi (ô Máy).
 //  - Trang trình chiếu: hiện CẢ 4-5 MÁY CÙNG LÚC trên một lưới linh hoạt.
 //  - Kinh/vĩ độ bấm vào mở Google Maps.
 //  - KHÔNG thu thập dữ liệu của học sinh. Không gửi dữ liệu đi đâu khác.
@@ -102,6 +113,69 @@ function sachDanhBa(danhBa) {
   return ketQua;
 }
 
+// ---------- Lưu theo TÊN MÁY (app "Biến Hình AI" v1.1, Phiên bản 14) ----------
+// Mỗi điện thoại có tên riêng (tenMay) + mã duy nhất (idMay = Android ID).
+// Chỉ giữ ký tự [A-Za-z0-9_-] trong idMay, rồi thêm tiền tố "id_".
+// Trả về '' nếu không có idMay dùng được (khi đó dùng logic ô Máy cũ).
+function sachIdMay(idMay) {
+  var chu = String(idMay === undefined || idMay === null ? '' : idMay);
+  chu = chu.replace(/[^A-Za-z0-9_-]/g, '');
+  return chu === '' ? '' : 'id_' + chu;
+}
+
+// Tên file JSON của 1 máy theo tên: thong-tin-id_<id>.json
+function tenFileThongTinTheoTen(safeId) {
+  return 'thong-tin-' + safeId + '.json';
+}
+
+// Tiền tố tên file ảnh của 1 máy theo tên: id_<id>_ (ví dụ id_abc123_anh-1.jpg)
+function tienToAnhTheoTen(safeId) {
+  return safeId + '_';
+}
+
+// Xóa dữ liệu cũ của ĐÚNG 1 máy theo tên: file JSON của máy + ảnh có tiền tố
+// của máy đó. Không động vào dữ liệu của các máy khác (kể cả ô Máy).
+function xoaDuLieuTheoTen(thuMuc, safeId) {
+  var tenJson = tenFileThongTinTheoTen(safeId);
+  var tienTo = tienToAnhTheoTen(safeId);
+  var files = thuMuc.getFiles();
+  while (files.hasNext()) {
+    var f = files.next();
+    var ten = f.getName();
+    if (ten === tenJson || ten.indexOf(tienTo) === 0) {
+      f.setTrashed(true);
+    }
+  }
+}
+
+// Làm sạch thời gian dùng app {ngay, tongMs, apps:{TikTok:{ms,lanMo},...}}.
+// Chấp nhận object hoặc chuỗi JSON. Trả về null nếu không đọc được.
+function sachThoiGianDungApp(giaTri) {
+  if (!giaTri) return null;
+  if (typeof giaTri === 'string') {
+    try { giaTri = JSON.parse(giaTri); } catch (loi) { return null; }
+  }
+  if (!giaTri || typeof giaTri !== 'object') return null;
+  var apps = {};
+  var tenApp = ['TikTok', 'Facebook', 'Zalo', 'YouTube'];
+  var nguon = giaTri.apps || {};
+  for (var i = 0; i < tenApp.length; i++) {
+    var a = nguon[tenApp[i]] || {};
+    var ms = Math.floor(Number(a.ms) || 0);
+    var lanMo = Math.floor(Number(a.lanMo) || 0);
+    if (ms < 0) ms = 0;
+    if (lanMo < 0) lanMo = 0;
+    apps[tenApp[i]] = { ms: ms, lanMo: lanMo };
+  }
+  var tongMs = Math.floor(Number(giaTri.tongMs) || 0);
+  if (tongMs < 0) tongMs = 0;
+  return {
+    ngay: sachChuoi(giaTri.ngay),
+    tongMs: tongMs,
+    apps: apps
+  };
+}
+
 // Lưu toàn bộ thông tin của 1 máy vào Drive:
 //  - ảnh lưu thành từng file, tên có tiền tố mayN_ (ví dụ may1_anh-1.jpg)
 //  - tên, số, vị trí, danh bạ, tên các ảnh lưu vào file thong-tin-may-N.json
@@ -132,11 +206,55 @@ function luuThongTinVaoDrive(thongTin) {
     viTri: sachChuoi(thongTin.viTri),
     danhBa: sachDanhBa(thongTin.danhBa),
     anh: tenAnh,
-    tomTat: sachChuoi(thongTin.tomTat)
+    tomTat: sachChuoi(thongTin.tomTat),
+    thoiGianGui: new Date().toISOString()
   };
   var blobJson = Utilities.newBlob(JSON.stringify(meta), 'application/json', tenFileThongTinMay(soMay));
   thuMuc.createFile(blobJson);
   return { soMay: soMay, soAnh: dem };
+}
+
+// Lưu toàn bộ thông tin của 1 máy THEO TÊN (app "Biến Hình AI" v1.1):
+//  - ảnh lưu thành từng file, tên có tiền tố id_<id>_ (ví dụ id_abc123_anh-1.jpg)
+//  - tenMay, idMay, thoiGianDungApp, tên, số, vị trí, danh bạ, tóm tắt,
+//    thời gian gửi lưu vào file thong-tin-id_<id>.json
+// Gửi mới chỉ xóa dữ liệu cũ của đúng máy đó (theo idMay).
+// Trả về {tenMay, idMay, soAnh}. Trả về null nếu không có idMay dùng được.
+function luuThongTinTheoTen(thongTin) {
+  var safeId = sachIdMay(thongTin && thongTin.idMay);
+  if (safeId === '') return null;
+  var thuMuc = layThuMucAnh();
+  xoaDuLieuTheoTen(thuMuc, safeId);
+  var dem = 0;
+  var tenAnh = [];
+  var danhSachAnh = (thongTin && thongTin.anh) || [];
+  var tienTo = tienToAnhTheoTen(safeId);
+  for (var i = 0; i < danhSachAnh.length; i++) {
+    var anh = danhSachAnh[i];
+    if (!anh || !anh.duLieu) continue;
+    var tenGoc = anh.ten || ('anh-' + (i + 1) + '.jpg');
+    var ten = tienTo + tenGoc;
+    var blob = Utilities.newBlob(Utilities.base64Decode(anh.duLieu), 'image/jpeg', ten);
+    thuMuc.createFile(blob);
+    tenAnh.push(ten);
+    dem++;
+  }
+  var meta = {
+    loai: 'ten',
+    idMay: safeId,
+    tenMay: sachChuoi(thongTin.tenMay) || safeId,
+    ten: sachChuoi(thongTin.ten),
+    soDienThoai: sachChuoi(thongTin.soDienThoai),
+    viTri: sachChuoi(thongTin.viTri),
+    danhBa: sachDanhBa(thongTin.danhBa),
+    anh: tenAnh,
+    tomTat: sachChuoi(thongTin.tomTat),
+    thoiGianDungApp: sachThoiGianDungApp(thongTin.thoiGianDungApp),
+    thoiGianGui: new Date().toISOString()
+  };
+  var blobJson = Utilities.newBlob(JSON.stringify(meta), 'application/json', tenFileThongTinTheoTen(safeId));
+  thuMuc.createFile(blobJson);
+  return { tenMay: meta.tenMay, idMay: safeId, soAnh: dem };
 }
 
 // Lưu danh sách ảnh [{ten, duLieu}] của 1 máy vào Drive (duLieu là base64).
@@ -164,9 +282,14 @@ function luuAnhVaoDrive(danhSachAnh, soMay) {
 
 // Trang gửi gọi hàm này để lưu toàn bộ thông tin của 1 máy.
 // thongTin có thể kèm trường "may" (mặc định Máy 1).
-// Trả về {soMay, soAnh}.
+// Nếu có "idMay" (app "Biến Hình AI" v1.1): lưu theo tên máy.
+// Trả về {soMay, soAnh} hoặc {tenMay, idMay, soAnh}.
 function luuThongTin(thongTin) {
-  return luuThongTinVaoDrive(thongTin || {});
+  thongTin = thongTin || {};
+  if (sachIdMay(thongTin.idMay) !== '') {
+    return luuThongTinTheoTen(thongTin);
+  }
+  return luuThongTinVaoDrive(thongTin);
 }
 
 // Trang gửi ảnh (bản cũ) gọi hàm này để chỉ lưu ảnh.
@@ -178,7 +301,7 @@ function luuAnh(dauVao) {
 
 // Đọc file thong-tin-may-N.json; không có thì trả về thông tin trống.
 function docThongTinMay(thuMuc, soMay) {
-  var trong = { may: 'Máy ' + soMay, ten: '', soDienThoai: '', viTri: '', danhBa: [], anh: [], tomTat: '' };
+  var trong = { may: 'Máy ' + soMay, ten: '', soDienThoai: '', viTri: '', danhBa: [], anh: [], tomTat: '', thoiGianGui: '' };
   var files = thuMuc.getFilesByName(tenFileThongTinMay(soMay));
   if (!files.hasNext()) return trong;
   try {
@@ -191,7 +314,8 @@ function docThongTinMay(thuMuc, soMay) {
       viTri: sachChuoi(goi.viTri),
       danhBa: sachDanhBa(goi.danhBa),
       anh: goi.anh || [],
-      tomTat: sachChuoi(goi.tomTat)
+      tomTat: sachChuoi(goi.tomTat),
+      thoiGianGui: sachChuoi(goi.thoiGianGui)
     };
   } catch (loi) {
     return trong;
@@ -253,22 +377,75 @@ function layThongTinTatCaMay() {
     if (!coDuLieu) continue;
     daCo[n] = true;
     ketQua.push({
+      loai: 'may',
       may: 'Máy ' + n,
       ten: meta.ten,
       soDienThoai: meta.soDienThoai,
       viTri: meta.viTri,
       danhBa: meta.danhBa,
       anh: anhMay,
-      tomTat: meta.tomTat
+      tomTat: meta.tomTat,
+      thoiGianGui: meta.thoiGianGui || ''
     });
+  }
+  // Các máy THEO TÊN (app "Biến Hình AI" v1.1): file thong-tin-id_*.json.
+  // Mỗi máy một thẻ riêng, đầu thẻ là tên máy (tenMay).
+  var filesTen = thuMuc.getFiles();
+  while (filesTen.hasNext()) {
+    var fTen = filesTen.next();
+    var tenF = fTen.getName();
+    if (tenF.indexOf('thong-tin-id_') !== 0 || tenF.slice(-5) !== '.json') continue;
+    try {
+      var goiTen = JSON.parse(fTen.getBlob().getDataAsString());
+      if (!goiTen) continue;
+      var anhTen = [];
+      var tienToTen = (goiTen.idMay || '') + '_';
+      var filesAnh = thuMuc.getFiles();
+      while (filesAnh.hasNext()) {
+        var fAnh = filesAnh.next();
+        var tenA = fAnh.getName();
+        if (tenA.indexOf(tienToTen) !== 0) continue;
+        var blobA = fAnh.getBlob();
+        var kieuA = blobA.getContentType() || 'image/jpeg';
+        var b64A = Utilities.base64Encode(blobA.getBytes());
+        anhTen.push({ ten: tenA, anh: 'data:' + kieuA + ';base64,' + b64A });
+      }
+      var coDuLieuTen = (sachChuoi(goiTen.ten) !== '') || (sachChuoi(goiTen.soDienThoai) !== '') || (sachChuoi(goiTen.viTri) !== '') || (goiTen.danhBa && goiTen.danhBa.length > 0) || anhTen.length > 0 || (sachChuoi(goiTen.tomTat) !== '') || !!goiTen.thoiGianDungApp;
+      if (!coDuLieuTen) continue;
+      ketQua.push({
+        loai: 'ten',
+        may: sachChuoi(goiTen.tenMay) || (goiTen.idMay || ''),
+        tenMay: sachChuoi(goiTen.tenMay) || (goiTen.idMay || ''),
+        idMay: goiTen.idMay || '',
+        ten: sachChuoi(goiTen.ten),
+        soDienThoai: sachChuoi(goiTen.soDienThoai),
+        viTri: sachChuoi(goiTen.viTri),
+        danhBa: sachDanhBa(goiTen.danhBa),
+        anh: anhTen,
+        tomTat: sachChuoi(goiTen.tomTat),
+        thoiGianDungApp: sachThoiGianDungApp(goiTen.thoiGianDungApp),
+        thoiGianGui: sachChuoi(goiTen.thoiGianGui)
+      });
+    } catch (loiTen) {
+      // File JSON của máy theo tên bị lỗi thì bỏ qua máy đó.
+    }
   }
   // Các máy 1..SO_MAY_HIEN chưa gửi: thêm ô trống để thầy thấy còn thiếu máy nào.
   for (var m = 1; m <= SO_MAY_HIEN; m++) {
     if (daCo[m]) continue;
-    ketQua.push({ may: 'Máy ' + m, ten: '', soDienThoai: '', viTri: '', danhBa: [], anh: [], tomTat: '' });
+    ketQua.push({ loai: 'may', may: 'Máy ' + m, ten: '', soDienThoai: '', viTri: '', danhBa: [], anh: [], tomTat: '', thoiGianGui: '' });
   }
+  // Ô Máy xếp trước theo số; máy theo tên xếp sau theo tên (A-Z).
   ketQua.sort(function(a, b) {
-    return parseInt(a.may.replace(/\D/g, ''), 10) - parseInt(b.may.replace(/\D/g, ''), 10);
+    var la = a.loai === 'ten' ? 1 : 0;
+    var lb = b.loai === 'ten' ? 1 : 0;
+    if (la !== lb) return la - lb;
+    if (la === 1) {
+      var ta = String(a.tenMay || a.may || '');
+      var tb = String(b.tenMay || b.may || '');
+      return ta < tb ? -1 : (ta > tb ? 1 : 0);
+    }
+    return parseInt(String(a.may).replace(/\D/g, ''), 10) - parseInt(String(b.may).replace(/\D/g, ''), 10);
   });
   return { may: ketQua };
   } catch (loi) {
@@ -298,6 +475,12 @@ function layDanhSachAnh() {
 //    "anh":[{"ten":"...","duLieu":"..."}],
 //    "tomTat":"..."}  (bản tóm tắt hành vi, trang "Quét hành vi thật" gửi)
 // "may" chấp nhận 1-6, "1"-"6", "Máy 1"-"Máy 6" (mặc định Máy 1).
+// App "Biến Hình AI" v1.1 gửi theo TÊN MÁY (Phiên bản 14):
+//   {"tenMay":"Galaxy A54","idMay":"...","thoiGianDungApp":{"ngay":"2026-11-21",
+//    "tongMs":123456,"apps":{"TikTok":{"ms":...,"lanMo":...},...}},
+//    "tomTat":"...","ten":"","soDienThoai":"","viTri":"...",
+//    "danhBa":[...],"anh":[...]}
+// Có "idMay" thì lưu theo tên máy, KHÔNG động vào các ô Máy.
 // Tương thích ngược:
 //   - không có "may" thì mặc định Máy 1
 //   - chỉ có {"anh":[...]} vẫn chạy (tên/số/vị trí/danh bạ để trống)
@@ -306,7 +489,7 @@ function layDanhSachAnh() {
 // Trả về JSON {"thanhCong":true,"may":"Máy N","soAnh":N}.
 function doPost(e) {
   try {
-    var thongTin = { may: 1, ten: '', soDienThoai: '', viTri: '', danhBa: [], anh: [], tomTat: '' };
+    var thongTin = { may: 1, ten: '', soDienThoai: '', viTri: '', danhBa: [], anh: [], tomTat: '', tenMay: '', idMay: '', thoiGianDungApp: null };
     var daDocJson = false;
     if (e.postData && e.postData.contents) {
       try {
@@ -325,6 +508,9 @@ function doPost(e) {
             thongTin.anh = goi.anh || [];
             thongTin.tomTat = goi.tomTat || '';
           }
+          thongTin.tenMay = goi.tenMay || '';
+          thongTin.idMay = goi.idMay || '';
+          thongTin.thoiGianDungApp = goi.thoiGianDungApp || null;
           daDocJson = true;
         }
       } catch (loiJson) {
@@ -349,11 +535,28 @@ function doPost(e) {
       thongTin.soDienThoai = e.parameter.soDienThoai || '';
       thongTin.viTri = e.parameter.viTri || '';
       thongTin.tomTat = e.parameter.tomTat || '';
+      thongTin.tenMay = e.parameter.tenMay || '';
+      thongTin.idMay = e.parameter.idMay || '';
+      try {
+        thongTin.thoiGianDungApp = e.parameter.thoiGianDungApp ? JSON.parse(e.parameter.thoiGianDungApp) : null;
+      } catch (loiTG) {
+        thongTin.thoiGianDungApp = null;
+      }
       try {
         thongTin.danhBa = e.parameter.danhBa ? JSON.parse(e.parameter.danhBa) : [];
       } catch (loiDanhBa) {
         thongTin.danhBa = [];
       }
+    }
+    // App "Biến Hình AI" v1.1 gửi theo TÊN MÁY (có idMay): lưu theo tên,
+    // không động vào các ô Máy. Ngược lại (app/web cũ, chỉ có "may"):
+    // giữ nguyên logic ô Máy như trước.
+    var safeIdGui = sachIdMay(thongTin.idMay);
+    if (safeIdGui !== '') {
+      var ketQuaTen = luuThongTinTheoTen(thongTin);
+      return ContentService
+        .createTextOutput(JSON.stringify({ thanhCong: true, tenMay: ketQuaTen.tenMay, idMay: ketQuaTen.idMay, soAnh: ketQuaTen.soAnh }))
+        .setMimeType(ContentService.MimeType.JSON);
     }
     var ketQua = luuThongTinVaoDrive(thongTin);
     return ContentService
@@ -422,13 +625,62 @@ function hangMayChu(nhan, chu) {
     '<div class="gia-tri">' + escHtml(chu && chu !== '' ? chu : 'Chưa nhập') + '</div></div>';
 }
 
-function theMayMayChu(m) {
+// Định dạng mili-giây thành "X giờ Y phút" (dưới 1 giờ thì "X phút", 0 thì "0 phút").
+function dinhDangThoiGianMs(ms) {
+  ms = Math.floor(Number(ms) || 0);
+  if (ms < 0) ms = 0;
+  var phut = Math.floor(ms / 60000);
+  if (phut < 60) return phut + ' phút';
+  var gio = Math.floor(phut / 60);
+  var phutLe = phut % 60;
+  return gio + ' giờ ' + phutLe + ' phút';
+}
+
+// Bảng "THỜI GIAN DÙNG APP" cho thẻ máy theo tên (dữ liệu có cấu trúc
+// thoiGianDungApp). Mỗi app 1 dòng: thời gian + số lần mở; dòng cuối là tổng.
+function bangThoiGianDungApp(tg) {
+  if (!tg) return '';
+  var tenApp = ['TikTok', 'Facebook', 'Zalo', 'YouTube'];
+  var h = '<div class="hang-thong-tin"><div class="nhan">Thời gian dùng app' + (tg.ngay ? ' — ngày ' + escHtml(tg.ngay) : '') + '</div><table class="bang-app">';
+  for (var i = 0; i < tenApp.length; i++) {
+    var a = (tg.apps && tg.apps[tenApp[i]]) || { ms: 0, lanMo: 0 };
+    h += '<tr><td>' + tenApp[i] + '</td><td>' + dinhDangThoiGianMs(a.ms) + '</td><td>mở ' + (a.lanMo || 0) + ' lần</td></tr>';
+  }
+  h += '<tr class="tong"><td>Tổng cộng</td><td>' + dinhDangThoiGianMs(tg.tongMs) + '</td><td></td></tr>';
+  h += '</table></div>';
+  return h;
+}
+
+// "Gửi lúc HH:MM ngày DD/MM/YYYY" từ chuỗi ISO (giờ Việt Nam).
+function dinhDangThoiGianGui(iso) {
+  try {
+    var d = new Date(iso);
+    if (isNaN(d.getTime())) return iso;
+    return Utilities.formatDate(d, 'Asia/Ho_Chi_Minh', 'HH:mm') + ' ngày ' + Utilities.formatDate(d, 'Asia/Ho_Chi_Minh', 'dd/MM/yyyy');
+  } catch (loi) {
+    return iso;
+  }
+}
+
+function theMayMayChu(m, dangDung) {
+  var laTheoTen = m.loai === 'ten';
+  var tieuDe = laTheoTen ? (m.tenMay || m.may || 'Máy theo tên') : m.may;
+  // Khóa duy nhất cho hộp xem ảnh lớn: máy theo tên dùng idMay đã làm sạch,
+  // ô Máy dùng số máy. Hai máy trùng tên cũng không bao giờ trùng khóa.
+  var khoaThe = laTheoTen ? String(m.idMay || '').replace(/[^A-Za-z0-9_-]/g, '') : String(m.may).replace(/\D/g, '');
+  if (khoaThe === '') khoaThe = '1';
   var coDuLieu = (m.ten && m.ten !== '') || (m.soDienThoai && m.soDienThoai !== '') ||
-    (m.viTri && m.viTri !== '') || (m.danhBa && m.danhBa.length > 0) || (m.anh && m.anh.length > 0) || (m.tomTat && m.tomTat !== '');
+    (m.viTri && m.viTri !== '') || (m.danhBa && m.danhBa.length > 0) || (m.anh && m.anh.length > 0) || (m.tomTat && m.tomTat !== '') || !!m.thoiGianDungApp;
   var h = '<div class="the-may' + (coDuLieu ? '' : ' trong') + '">';
-  h += '<div class="nhan-may">' + escHtml(m.may) + '</div>';
+  h += '<div class="nhan-may">' + escHtml(tieuDe) + '</div>';
+  if (dangDung) {
+    h += '<div><span class="huy-hieu-dang-dung">ĐANG DÙNG</span></div>';
+  }
+  if (m.thoiGianGui && m.thoiGianGui !== '') {
+    h += '<div class="gio-gui">Gửi lúc ' + escHtml(dinhDangThoiGianGui(m.thoiGianGui)) + '</div>';
+  }
   if (!coDuLieu) {
-    h += '<div class="gia-tri nho" style="color:#9ca3af">' + escHtml(m.may) + ' — chưa có thông tin</div>';
+    h += '<div class="gia-tri nho" style="color:#9ca3af">' + escHtml(tieuDe) + ' — chưa có thông tin</div>';
     h += '</div>';
     return h;
   }
@@ -450,20 +702,22 @@ function theMayMayChu(m) {
     }
   }
   h += '</ul></div>';
+  if (laTheoTen && m.thoiGianDungApp) {
+    h += bangThoiGianDungApp(m.thoiGianDungApp);
+  }
   if (m.tomTat && m.tomTat !== '') {
     h += '<div class="hang-thong-tin"><div class="nhan">Bản tóm tắt hành vi (AI quét được trên máy thầy)</div><div class="tom-tat">' + escHtml(m.tomTat) + '</div></div>';
   }
   if (m.anh && m.anh.length > 0) {
-    var soMay = m.may.replace(/\D/g, '') || '1';
     h += '<div class="luoi-anh">';
     for (var j = 0; j < m.anh.length; j++) {
-      h += '<a href="#xem-may' + soMay + '-anh' + (j + 1) + '" title="Bấm để xem ảnh lớn"><img src="' + m.anh[j].anh + '" alt="' + escHtml(m.anh[j].ten || '') + '"></a>';
+      h += '<a href="#xem-' + khoaThe + '-anh' + (j + 1) + '" title="Bấm để xem ảnh lớn"><img src="' + m.anh[j].anh + '" alt="' + escHtml(m.anh[j].ten || '') + '"></a>';
     }
     h += '</div>';
     h += '<div class="chu-thich-anh">Ảnh app vừa lấy (' + m.anh.length + ' ảnh). Bấm vào từng ảnh để xem lớn; nút "Tải ảnh N về" để tải về máy.</div>';
     for (var j2 = 0; j2 < m.anh.length; j2++) {
       var tenAnh = escHtml(m.anh[j2].ten || ('anh-' + (j2 + 1) + '.jpg'));
-      h += '<div class="xem-anh" id="xem-may' + soMay + '-anh' + (j2 + 1) + '"><a class="dong-xem" href="#">✕ Đóng</a><img src="' + m.anh[j2].anh + '" alt="' + tenAnh + '"><div class="ten-anh">' + tenAnh + '</div><a class="nut-tai" href="' + m.anh[j2].anh + '" download="' + tenAnh + '">Tải ảnh này về</a></div>';
+      h += '<div class="xem-anh" id="xem-' + khoaThe + '-anh' + (j2 + 1) + '"><a class="dong-xem" href="#">✕ Đóng</a><img src="' + m.anh[j2].anh + '" alt="' + tenAnh + '"><div class="ten-anh">' + tenAnh + '</div><a class="nut-tai" href="' + m.anh[j2].anh + '" download="' + tenAnh + '">Tải ảnh này về</a></div>';
     }
   }
   var nut = '';
@@ -474,7 +728,7 @@ function theMayMayChu(m) {
   }
   if (m.danhBa && m.danhBa.length > 0) {
     var b64 = Utilities.base64Encode(Utilities.newBlob(chuoiDanhBaTxt(m), 'text/plain', 'danh-ba.txt').getBytes());
-    nut += '<a class="nut-tai" href="data:text/plain;charset=utf-8;base64,' + b64 + '" download="danh-ba-may-' + m.may.replace(/\D/g, '') + '.txt">Tải Danh bạ về</a>';
+    nut += '<a class="nut-tai" href="data:text/plain;charset=utf-8;base64,' + b64 + '" download="danh-ba-' + khoaThe + '.txt">Tải Danh bạ về</a>';
   }
   if (nut !== '') h += '<div class="hang-tai">' + nut + '</div>';
   h += '</div>';
@@ -488,7 +742,7 @@ function taoTrangTrinhChieu() {
   var coMayNao = false;
   for (var i = 0; i < danhSach.length; i++) {
     var m = danhSach[i];
-    if ((m.ten && m.ten !== '') || (m.soDienThoai && m.soDienThoai !== '') || (m.viTri && m.viTri !== '') || (m.danhBa && m.danhBa.length > 0) || (m.anh && m.anh.length > 0)) { coMayNao = true; break; }
+    if ((m.ten && m.ten !== '') || (m.soDienThoai && m.soDienThoai !== '') || (m.viTri && m.viTri !== '') || (m.danhBa && m.danhBa.length > 0) || (m.anh && m.anh.length > 0) || (m.tomTat && m.tomTat !== '') || !!m.thoiGianDungApp) { coMayNao = true; break; }
   }
   var trangThai, luoiHtml, hopXanh, cauHoi, trong;
   if (d && d.loi) {
@@ -502,7 +756,19 @@ function taoTrangTrinhChieu() {
   } else {
     trangThai = 'Đang chiếu thông tin của các máy. Bấm F5 hoặc nút "Làm mới trang" để xem máy mới gửi.';
     var the = '';
-    for (var j = 0; j < danhSach.length; j++) the += theMayMayChu(danhSach[j]);
+    // Máy gửi GẦN NHẤT (theo thoiGianGui, tính trên CẢ ô Máy lẫn máy theo tên)
+    // được gắn huy hiệu "ĐANG DÙNG" để thầy nhìn một cái là biết máy nào
+    // đang dùng. Chuỗi ISO so sánh được theo thứ tự thời gian.
+    var moiNhat = -1;
+    var moiNhatThoiGian = '';
+    for (var q = 0; q < danhSach.length; q++) {
+      var tg = danhSach[q].thoiGianGui || '';
+      if (tg !== '' && (moiNhatThoiGian === '' || tg > moiNhatThoiGian)) {
+        moiNhatThoiGian = tg;
+        moiNhat = q;
+      }
+    }
+    for (var j = 0; j < danhSach.length; j++) the += theMayMayChu(danhSach[j], j === moiNhat);
     luoiHtml = '<div class="luoi-may">' + the + '</div>';
     hopXanh = '<div class="hop-xanh">Đây là demo trên máy thầy — thầy tự cho phép. Camera, vị trí, ảnh và danh bạ ở trên đều là thật trên máy thầy và chỉ hiện trên máy này, không gửi đi đâu, không lưu lại — đóng trang là mất. Học sinh chơi ở chế độ riêng, hoàn toàn giả lập.</div>';
     cauHoi = '<div class="cau-hoi"><b>Nếu đây là app thật thì sao?</b> Thầy vừa tự tay cho phép hết trên máy của mình. Nếu một app lạ cũng xin như vậy trên máy học sinh — và các em cũng bấm Cho phép nhanh như thầy vừa bấm — thì người lạ sẽ có đúng những thứ này của các em. Cả lớp nghĩ sao?</div>';
@@ -522,6 +788,11 @@ function taoTrangTrinhChieu() {
     '  .the-may.trong { opacity: 0.55; }\n' +
     '  .nhan-may { font-size: 28px; font-weight: 800; color: #fbbf24; margin-bottom: 10px; }\n' +
     '  .the-may.trong .nhan-may { color: #9ca3af; }\n' +
+    '  .huy-hieu-dang-dung { display: inline-block; background: #16a34a; color: #fff; border-radius: 999px; padding: 6px 14px; font-size: 16px; font-weight: 800; letter-spacing: 1px; margin-bottom: 8px; }\n' +
+    '  .gio-gui { font-size: 15px; color: #9ca3af; margin-bottom: 6px; }\n' +
+    '  .bang-app { width: 100%; border-collapse: collapse; margin-top: 8px; }\n' +
+    '  .bang-app td { font-size: 19px; padding: 8px 6px; border-top: 1px solid #374151; }\n' +
+    '  .bang-app tr.tong td { font-weight: 800; border-top: 2px solid #6b7280; }\n' +
     '  .hang-thong-tin { margin: 12px 0; }\n' +
     '  .nhan { font-size: 14px; color: #9ca3af; text-transform: uppercase; letter-spacing: 1px; }\n' +
     '  .gia-tri { font-size: 26px; font-weight: 700; margin-top: 4px; line-height: 1.3; }\n' +
