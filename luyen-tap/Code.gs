@@ -1,6 +1,17 @@
 // ============================================================================
 //  ĐƯỜNG CHUYỂN TOÀN BỘ THÔNG TIN: ĐIỆN THOẠI (thầy) -> LAPTOP (thầy) -> CHIẾU LÊN TV
 //  Chỉ phục vụ thầy Phạm Ngọc Hưng và dữ liệu CỦA THẦY.
+//  PHIÊN BẢN 20 (21/11/2026):
+//  - CHẠY NHANH HƠN NHIỀU: trước đây mỗi lần mở trang đều gọi
+//    layThongTinTatCaMay() — đọc và base64 TOÀN BỘ ảnh + giọng nói của
+//    TẤT CẢ các máy nên trang rất nặng và rất chậm. Giờ:
+//      + Trang MENU chỉ gọi layDanhSachMayNhe() — chỉ đọc file JSON
+//        metadata (nhỏ) + TÊN file trong thư mục, KHÔNG đọc ảnh/âm
+//        thanh, KHÔNG base64. Menu chỉ cần tên + giờ gửi.
+//      + Trang CHI TIẾT chỉ tải ĐẦY ĐỦ dữ liệu của ĐÚNG 1 máy đó
+//        (layThongTinMotMay); huy hiệu "ĐANG DÙNG" vẫn tính bằng
+//        danh sách nhẹ (so giờ gửi).
+//      + "Xem tất cả" vẫn tải đủ mọi máy như trước (chỉ mở khi cần).
 //  PHIÊN BẢN 19 (21/11/2026):
 //  - SỬA LỖI ĐIỀU HƯỚNG TRONG KHUNG NHÚNG: bấm vào dòng menu / "Xem tất
 //    cả" / "← Quay lại menu" / "Làm mới trang" / nút xóa thì khung nhúng
@@ -679,6 +690,222 @@ function layThongTinTatCaMay() {
   }
 }
 
+// ---------- DANH SÁCH NHẸ + CHI TIẾT 1 MÁY (Phiên bản 20) ----------
+// Vấn đề: layThongTinTatCaMay() đọc và base64 TOÀN BỘ ảnh + giọng nói
+// của TẤT CẢ các máy nên mỗi lần mở trang đều nặng (hàng MB base64 nhúng
+// trong HTML) và rất chậm — dù trang MENU chỉ cần tên + giờ gửi, trang
+// CHI TIẾT chỉ cần dữ liệu của ĐÚNG 1 máy.
+//  - layDanhSachMayNhe(): chỉ đọc file JSON metadata (nhỏ) + TÊN file
+//    trong thư mục (không đọc nội dung ảnh/âm thanh, không base64).
+//    Trả về CÙNG tập máy và CÙNG thứ tự với layThongTinTatCaMay() (ô Máy
+//    trước theo số, máy theo tên sau theo A-Z, ô trống Máy 1..5 ở cuối),
+//    nhưng mỗi máy chỉ có các trường chữ/số nhỏ + soAnh (số ảnh, chỉ đếm
+//    file) + coAmThanh (true nếu có file giọng nói). anh: [] và amThanh:
+//    '' (không tải) — mayCoDuLieu() đã tính cả soAnh/coAmThanh nên menu
+//    vẫn nhận đúng máy nào có dữ liệu.
+//  - layThongTinMotMay(khoa, mNhe): lấy ĐẦY ĐỦ dữ liệu (ảnh + giọng nói
+//    base64) của ĐÚNG 1 máy để trang CHI TIẾT dùng; các máy khác không
+//    bị đọc. Trả về null nếu không tìm thấy / không đọc được.
+function layDanhSachMayNhe() {
+  try {
+    var thuMuc = layThuMucAnh();
+    // Một lần duyệt thư mục, CHỈ lấy tên file (không đọc nội dung).
+    var tenFile = [];
+    var files = thuMuc.getFiles();
+    while (files.hasNext()) {
+      tenFile.push(files.next().getName());
+    }
+    // Đếm số ảnh của 1 tiền tố (bỏ qua file âm thanh "_giong-noi." và file .json).
+    function demAnh(tienTo) {
+      var dem = 0;
+      for (var i = 0; i < tenFile.length; i++) {
+        var ten = tenFile[i];
+        if (ten.indexOf(tienTo) === 0 && ten.indexOf('_giong-noi.') === -1 && ten.slice(-5) !== '.json') dem++;
+      }
+      return dem;
+    }
+    // Có file giọng nói của 1 tiền tố không?
+    function coFileAmThanh(tienTo) {
+      for (var i = 0; i < tenFile.length; i++) {
+        if (tenFile[i].indexOf(tienTo) === 0 && tenFile[i].indexOf('_giong-noi.') !== -1) return true;
+      }
+      return false;
+    }
+    var ketQua = [];
+    var daCo = {};
+    for (var n = 1; n <= SO_MAY_TOI_DA; n++) {
+      var meta = docThongTinMay(thuMuc, n);
+      var tienTo = tienToAnhMay(n);
+      var soAnh = demAnh(tienTo);
+      var coAT = coFileAmThanh(tienTo);
+      var coDuLieu = (meta.ten !== '') || (meta.soDienThoai !== '') || (meta.viTri !== '') || (meta.danhBa.length > 0) || (meta.anh.length > 0) || (soAnh > 0) || (meta.tomTat !== '') || coAT;
+      if (!coDuLieu) continue;
+      daCo[n] = true;
+      ketQua.push({
+        loai: 'may',
+        may: 'Máy ' + n,
+        ten: meta.ten,
+        soDienThoai: meta.soDienThoai,
+        viTri: meta.viTri,
+        danhBa: meta.danhBa,
+        anh: [],
+        amThanh: '',
+        dinhDangAmThanh: meta.dinhDangAmThanh,
+        tenFileAmThanh: meta.tenFileAmThanh,
+        tomTat: meta.tomTat,
+        thoiGianGui: meta.thoiGianGui || '',
+        soAnh: soAnh,
+        coAmThanh: coAT
+      });
+    }
+    // Các máy THEO TÊN: file thong-tin-id_*.json (chỉ đọc JSON nhỏ).
+    for (var j = 0; j < tenFile.length; j++) {
+      var tenF = tenFile[j];
+      if (tenF.indexOf('thong-tin-id_') !== 0 || tenF.slice(-5) !== '.json') continue;
+      try {
+        var fJson = thuMuc.getFilesByName(tenF);
+        if (!fJson.hasNext()) continue;
+        var goiTen = JSON.parse(fJson.next().getBlob().getDataAsString());
+        if (!goiTen) continue;
+        var safeId = sachChuoi(goiTen.idMay) || tenF.slice('thong-tin-'.length, -5);
+        var tienToTen = tienToAnhTheoTen(safeId);
+        var soAnhTen = demAnh(tienToTen);
+        var coATTen = coFileAmThanh(tienToTen);
+        var coDuLieuTen = (sachChuoi(goiTen.ten) !== '') || (sachChuoi(goiTen.soDienThoai) !== '') || (sachChuoi(goiTen.viTri) !== '') || (goiTen.danhBa && goiTen.danhBa.length > 0) || (goiTen.anh && goiTen.anh.length > 0) || (soAnhTen > 0) || (sachChuoi(goiTen.tomTat) !== '') || !!goiTen.thoiGianDungApp || coATTen;
+        if (!coDuLieuTen) continue;
+        ketQua.push({
+          loai: 'ten',
+          may: sachChuoi(goiTen.tenMay) || (goiTen.idMay || ''),
+          tenMay: sachChuoi(goiTen.tenMay) || (goiTen.idMay || ''),
+          idMay: goiTen.idMay || '',
+          ten: sachChuoi(goiTen.ten),
+          soDienThoai: sachChuoi(goiTen.soDienThoai),
+          viTri: sachChuoi(goiTen.viTri),
+          danhBa: sachDanhBa(goiTen.danhBa),
+          anh: [],
+          amThanh: '',
+          dinhDangAmThanh: sachChuoi(goiTen.dinhDangAmThanh),
+          tenFileAmThanh: sachChuoi(goiTen.tenFileAmThanh),
+          tomTat: sachChuoi(goiTen.tomTat),
+          thoiGianDungApp: sachThoiGianDungApp(goiTen.thoiGianDungApp),
+          thoiGianGui: sachChuoi(goiTen.thoiGianGui),
+          soAnh: soAnhTen,
+          coAmThanh: coATTen
+        });
+      } catch (loiTen) {
+        // File JSON của máy theo tên bị lỗi thì bỏ qua máy đó.
+      }
+    }
+    // Các máy 1..SO_MAY_HIEN chưa gửi: thêm ô trống (giống layThongTinTatCaMay).
+    for (var m = 1; m <= SO_MAY_HIEN; m++) {
+      if (daCo[m]) continue;
+      ketQua.push({ loai: 'may', may: 'Máy ' + m, ten: '', soDienThoai: '', viTri: '', danhBa: [], anh: [], amThanh: '', tomTat: '', thoiGianGui: '', soAnh: 0, coAmThanh: false });
+    }
+    // Cùng thứ tự với layThongTinTatCaMay: ô Máy trước theo số, máy theo
+    // tên sau theo tên (A-Z).
+    ketQua.sort(function(a, b) {
+      var la = a.loai === 'ten' ? 1 : 0;
+      var lb = b.loai === 'ten' ? 1 : 0;
+      if (la !== lb) return la - lb;
+      if (la === 1) {
+        var ta = String(a.tenMay || a.may || '');
+        var tb = String(b.tenMay || b.may || '');
+        return ta < tb ? -1 : (ta > tb ? 1 : 0);
+      }
+      return parseInt(String(a.may).replace(/\D/g, ''), 10) - parseInt(String(b.may).replace(/\D/g, ''), 10);
+    });
+    return { may: ketQua };
+  } catch (loi) {
+    return { may: [], loi: (loi && loi.message ? loi.message : String(loi)) };
+  }
+}
+
+// Lấy ĐẦY ĐỦ dữ liệu của ĐÚNG 1 máy (ảnh + giọng nói base64 chỉ của máy
+// đó) để trang CHI TIẾT dùng. mNhe là mục nhẹ của máy đó trong danh sách
+// (đã tìm thấy bằng khóa xem). Trả về null nếu không tìm thấy / không
+// đọc được. Cùng hình dạng mục như layThongTinTatCaMay() trả về cho 1 máy.
+function layThongTinMotMay(khoa, mNhe) {
+  try {
+    var thuMuc = layThuMucAnh();
+    if (!mNhe) return null;
+    if (mNhe.loai === 'ten') {
+      var safeId = sachChuoi(mNhe.idMay);
+      if (safeId === '') return null;
+      var filesJson = thuMuc.getFilesByName(tenFileThongTinTheoTen(safeId));
+      if (!filesJson.hasNext()) return null;
+      var goiTen;
+      try { goiTen = JSON.parse(filesJson.next().getBlob().getDataAsString()); } catch (loiJson) { return null; }
+      if (!goiTen) return null;
+      var tienToTen = tienToAnhTheoTen(safeId);
+      var anhTen = [];
+      var filesAnh = thuMuc.getFiles();
+      while (filesAnh.hasNext()) {
+        var fAnh = filesAnh.next();
+        var tenA = fAnh.getName();
+        if (tenA.indexOf(tienToTen) !== 0) continue;
+        if (tenA.indexOf('_giong-noi.') !== -1) continue;
+        var blobA = fAnh.getBlob();
+        var kieuA = blobA.getContentType() || 'image/jpeg';
+        var b64A = Utilities.base64Encode(blobA.getBytes());
+        anhTen.push({ ten: tenA, anh: 'data:' + kieuA + ';base64,' + b64A });
+      }
+      var amThanhTen = docAmThanhMayChu(thuMuc, sachChuoi(goiTen.tenFileAmThanh), sachChuoi(goiTen.dinhDangAmThanh));
+      return {
+        loai: 'ten',
+        may: sachChuoi(goiTen.tenMay) || (goiTen.idMay || ''),
+        tenMay: sachChuoi(goiTen.tenMay) || (goiTen.idMay || ''),
+        idMay: goiTen.idMay || '',
+        ten: sachChuoi(goiTen.ten),
+        soDienThoai: sachChuoi(goiTen.soDienThoai),
+        viTri: sachChuoi(goiTen.viTri),
+        danhBa: sachDanhBa(goiTen.danhBa),
+        anh: anhTen,
+        amThanh: amThanhTen,
+        dinhDangAmThanh: sachChuoi(goiTen.dinhDangAmThanh),
+        tenFileAmThanh: sachChuoi(goiTen.tenFileAmThanh),
+        tomTat: sachChuoi(goiTen.tomTat),
+        thoiGianDungApp: sachThoiGianDungApp(goiTen.thoiGianDungApp),
+        thoiGianGui: sachChuoi(goiTen.thoiGianGui)
+      };
+    }
+    // Ô Máy: khóa "may-N".
+    var soMay = chuanHoaSoMay(khoa);
+    var meta = docThongTinMay(thuMuc, soMay);
+    var tienTo = tienToAnhMay(soMay);
+    var anhMay = [];
+    var filesMay = thuMuc.getFiles();
+    while (filesMay.hasNext()) {
+      var f = filesMay.next();
+      var ten = f.getName();
+      if (ten.slice(-5) === '.json') continue;
+      if (ten.indexOf('_giong-noi.') !== -1) continue;
+      var khop = ten.match(/^may(\d+)_/);
+      if (!khop || parseInt(khop[1], 10) !== soMay) continue;
+      var blob = f.getBlob();
+      var kieu = blob.getContentType() || 'image/jpeg';
+      var base64 = Utilities.base64Encode(blob.getBytes());
+      anhMay.push({ ten: ten, anh: 'data:' + kieu + ';base64,' + base64 });
+    }
+    var amThanhMay = docAmThanhMayChu(thuMuc, meta.tenFileAmThanh, meta.dinhDangAmThanh);
+    return {
+      loai: 'may',
+      may: 'Máy ' + soMay,
+      ten: meta.ten,
+      soDienThoai: meta.soDienThoai,
+      viTri: meta.viTri,
+      danhBa: meta.danhBa,
+      anh: anhMay,
+      amThanh: amThanhMay,
+      dinhDangAmThanh: meta.dinhDangAmThanh,
+      tenFileAmThanh: meta.tenFileAmThanh,
+      tomTat: meta.tomTat,
+      thoiGianGui: meta.thoiGianGui || ''
+    };
+  } catch (loi) {
+    return null;
+  }
+}
+
 // Trả về dữ liệu của Máy 1 (định dạng cũ) — giữ lại cho tương thích ngược.
 function layThongTin() {
   var tatCa = layThongTinTatCaMay().may;
@@ -1043,10 +1270,10 @@ function taoTrangKetQuaXoa(timThay, nhan) {
 //  nút "Làm mới trang" để xem máy mới gửi.
 //  Nút "Tải Album về": mỗi ảnh có 1 nút tải riêng (link thuần HTML, bấm là tải
 //  thẳng file ảnh đó về máy); bấm vào chính tấm ảnh cũng tải ảnh đó về.
-//  PHIÊN BẢN 19 (21/11/2026): MENU danh sách máy là trang mặc định — xếp theo thời gian, mới nhất lên trên. Link điều hướng có target="_top" (thoát khung nhúng).
+//  PHIÊN BẢN 20 (21/11/2026): MENU danh sách máy là trang mặc định — xếp theo thời gian, mới nhất lên trên. Link điều hướng có target="_top" (thoát khung nhúng). Menu + chi tiết chỉ dùng danh sách nhẹ (không tải ảnh/âm thanh của mọi máy).
 // ============================================================================
 
-// ---------- Trang MENU / CHI TIẾT / XEM TẤT CẢ (Phiên bản 19) ----------
+// ---------- Trang MENU / CHI TIẾT / XEM TẤT CẢ (Phiên bản 20) ----------
 // Menu là trang mặc định: danh sách tất cả các máy, mỗi dòng hiện TÊN MÁY to
 // + GIỜ GỬI ("Gửi lúc HH:MM ngày DD/MM/YYYY") + huy hiệu "ĐANG DÙNG" cho
 // máy gửi gần nhất. Bấm 1 dòng -> trang chi tiết chỉ 1 máy đó
@@ -1063,11 +1290,14 @@ function khoaXemMay(m) {
 }
 
 // Máy này đã gửi dữ liệu gì chưa? (cùng luật với theMayMayChu)
+// Phiên bản 20: thêm soAnh/coAmThanh để danh sách NHẸ (không tải ảnh/
+// âm thanh, chỉ đếm file) vẫn nhận đúng máy nào có dữ liệu.
 function mayCoDuLieu(m) {
   return (m.ten && m.ten !== '') || (m.soDienThoai && m.soDienThoai !== '') ||
     (m.viTri && m.viTri !== '') || (m.danhBa && m.danhBa.length > 0) ||
     (m.anh && m.anh.length > 0) || (m.tomTat && m.tomTat !== '') ||
-    !!m.thoiGianDungApp || (m.amThanh && m.amThanh !== '');
+    !!m.thoiGianDungApp || (m.amThanh && m.amThanh !== '') ||
+    (m.soAnh && m.soAnh > 0) || !!m.coAmThanh;
 }
 
 // Có máy nào đã gửi dữ liệu không?
@@ -1207,7 +1437,7 @@ function moDauTrangTrinhChieu(tieuDe, trangThai, urlLamMoi, linkQuayLai) {
 
 // Cuối trang trình chiếu: chân trang ghi phiên bản + đóng thẻ.
 function dongTrangTrinhChieu() {
-  return '<div class="chan-trang">Trình chiếu Avatar AI — Phiên bản 19 (21/11/2026)</div>\n</body>\n</html>';
+  return '<div class="chan-trang">Trình chiếu Avatar AI — Phiên bản 20 (21/11/2026)</div>\n</body>\n</html>';
 }
 
 // Hộp xanh + câu hỏi cho lớp (hiện dưới thẻ máy, chỉ khi máy đã có dữ liệu).
@@ -1219,8 +1449,10 @@ function hopXanhVaCauHoi() {
 
 // Trang MENU (mặc định): danh sách các máy, mỗi dòng hiện tên máy + giờ gửi.
 // Bấm 1 dòng -> trang chi tiết của máy đó (?xem=<khóa>).
+// (Phiên bản 20: chỉ dùng danh sách NHẸ layDanhSachMayNhe — không tải
+//  ảnh/âm thanh — nên menu mở nhanh.)
 function taoTrangMenu() {
-  var d = layThongTinTatCaMay();
+  var d = layDanhSachMayNhe();
   var danhSach = sapXepMenuTheoThoiGian((d && d.may) || []);
   var moiNhat = chiSoMayMoiNhat(danhSach);
   var trangThai, noiDung;
@@ -1253,8 +1485,11 @@ function taoTrangMenu() {
 }
 
 // Trang CHI TIẾT 1 máy (?xem=<khóa>): chỉ thẻ của máy đó + hộp xanh + câu hỏi.
+// (Phiên bản 20: chỉ tải ĐẦY ĐỦ dữ liệu của ĐÚNG 1 máy đó
+//  layThongTinMotMay — không tải ảnh/âm thanh của các máy khác.
+//  Huy hiệu "ĐANG DÙNG" tính bằng danh sách nhẹ.)
 function taoTrangChiTietMay(khoa) {
-  var d = layThongTinTatCaMay();
+  var d = layDanhSachMayNhe();
   var danhSach = (d && d.may) || [];
   var moiNhat = chiSoMayMoiNhat(danhSach);
   var linkQuayLai = '<a class="nut-quay-lai" target="_top" href="' + escHtml(URL_WEB_APP) + '">← Quay lại menu</a>';
@@ -1263,10 +1498,15 @@ function taoTrangChiTietMay(khoa) {
     return moDauTrangTrinhChieu('HỘP ĐEN THU THẬP DỮ LIỆU NGƯỜI DÙNG', 'Không tải được thông tin: ' + d.loi, urlLamMoi, linkQuayLai) +
       '<div class="trong">Không tải được thông tin.<br>' + escHtml(d.loi) + '</div>' + dongTrangTrinhChieu();
   }
-  var m = null, idx = -1;
+  var mNhe = null, idx = -1;
   for (var i2 = 0; i2 < danhSach.length; i2++) {
-    if (khoaXemMay(danhSach[i2]) === khoa) { m = danhSach[i2]; idx = i2; break; }
+    if (khoaXemMay(danhSach[i2]) === khoa) { mNhe = danhSach[i2]; idx = i2; break; }
   }
+  if (!mNhe) {
+    return moDauTrangTrinhChieu('HỘP ĐEN THU THẬP DỮ LIỆU NGƯỜI DÙNG', 'Không tìm thấy máy này.', urlLamMoi, linkQuayLai) +
+      '<div class="trong">Không tìm thấy máy này.<br>Bấm "← Quay lại menu" để xem danh sách máy.</div>' + dongTrangTrinhChieu();
+  }
+  var m = layThongTinMotMay(khoa, mNhe);
   if (!m) {
     return moDauTrangTrinhChieu('HỘP ĐEN THU THẬP DỮ LIỆU NGƯỜI DÙNG', 'Không tìm thấy máy này.', urlLamMoi, linkQuayLai) +
       '<div class="trong">Không tìm thấy máy này.<br>Bấm "← Quay lại menu" để xem danh sách máy.</div>' + dongTrangTrinhChieu();
@@ -1324,7 +1564,7 @@ function doGet(e) {
       .setTitle('Gửi thông tin lên laptop')
       .addMetaTag('viewport', 'width=device-width, initial-scale=1');
   }
-  // Trang trình chiếu (Phiên bản 19): MENU là mặc định.
+  // Trang trình chiếu (Phiên bản 20): MENU là mặc định.
   //   (không tham số) -> menu danh sách máy (tên + giờ gửi)
   //   ?xem=tat-ca    -> xem tất cả các thẻ cùng lúc (lưới như trước)
   //   ?xem=<khóa>     -> chi tiết 1 máy (khóa "may-N" hoặc idMay)
