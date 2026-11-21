@@ -92,6 +92,7 @@
     font-size:14px; line-height:1.5; box-shadow:0 10px 26px rgba(0,0,0,.4);
   }
   .home-toast strong{ color:#ffd76a; }
+  .version-label{ text-align:center; font-size:11.5px; color:rgba(255,255,255,.85); text-shadow:0 1px 3px rgba(0,0,0,.6); margin:10px 0 12px; }
 
   /* ---------- App screen ---------- */
   #appScreen{ background:#eef2f5; color:var(--ink); }
@@ -262,6 +263,7 @@
       <span class="app-icon" style="background:#fff"><svg width="28" height="28" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="3" fill="#ffd94d"/><circle cx="9" cy="10" r="1.8" fill="#fff"/><path d="M4 17l5-4 4 3 3-2 4 3v1a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2z" fill="#57b25e"/></svg></span>
       <span class="app-icon" style="background:#d9dde2"><svg width="28" height="28" viewBox="0 0 24 24" fill="#5a6672"><path d="M12 8.5A3.5 3.5 0 1 0 12 15.5 3.5 3.5 0 0 0 12 8.5zm9 4.6v-2.2l-2-.5a7 7 0 0 0-.7-1.7l1.1-1.7-1.6-1.6-1.7 1.1a7 7 0 0 0-1.7-.7L13.9 3h-2.2l-.5 2a7 7 0 0 0-1.7.7L7.8 4.6 6.2 6.2l1.1 1.7a7 7 0 0 0-.7 1.7l-2 .5v2.2l2 .5c.16.6.4 1.16.7 1.7L6.2 16.2l1.6 1.6 1.7-1.1c.54.3 1.1.54 1.7.7l.5 2h2.2l.5-2a7 7 0 0 0 1.7-.7l1.7 1.1 1.6-1.6-1.1-1.7c.3-.54.54-1.1.7-1.7z" transform="scale(.92) translate(1,1)"/></svg></span>
     </div>
+    <div class="version-label">Biến hình siêu ngầu · Bản 21/11 17:45</div>
   </section>
 
   <!-- ===== APP SCREEN ===== -->
@@ -270,7 +272,7 @@
       <button class="back-btn" id="backHomeBtn" type="button" aria-label="Về màn hình chính">‹</button>
       <div>
         <h1>Biến hình siêu ngầu</h1>
-        <p class="tag">Quét thật trên máy thầy — xem AI biết gì về bạn</p>
+        <p class="tag">Quét thật trên máy thầy — xem AI biết gì về bạn · Bản 21/11 17:45</p>
       </div>
     </div>
     <div class="app-scroll">
@@ -343,26 +345,26 @@
 
       <div class="card">
         <h2>6 · Nhập giọng nói</h2>
-        <p class="hint">Bước yêu cầu nhập giọng nói: đọc to câu dưới đây rồi bấm nút micro. Giọng nói chỉ lưu trên máy thầy để nghe lại — không gửi lên máy chủ. Nếu máy không cho phép micro thì cứ tiếp tục bước sau.</p>
+        <p class="hint">Bước yêu cầu nhập giọng nói: đọc to câu dưới đây rồi bấm nút micro. File âm thanh sẽ gửi kèm khi hoàn tất đăng ký để nghe lại trên laptop. Nếu máy không cho phép micro thì cứ tiếp tục bước sau.</p>
         <p class="voice-prompt">“Tôi là học sinh lớp 8”</p>
         <div class="btn-row">
           <button class="btn btn-primary" id="voiceBtn" type="button">🎙️ Bấm để nói</button>
           <button class="btn btn-soft" id="playVoiceBtn" type="button" hidden>Nghe lại</button>
         </div>
-        <p class="status-line" id="voiceStatus">Chưa nhập giọng nói.</p>
+        <p class="status-line" id="voiceStatus">Chưa ghi âm.</p>
         <p class="status-line" id="voiceResult"></p>
       </div>
 
       <div class="card">
         <h2>7 · Bản tóm tắt — AI biết gì về bạn?</h2>
-        <p class="hint">Bản này hiện ở đây, hiện trên màn hình kết quả và gửi kèm lên laptop của thầy.</p>
+        <p class="hint">Bản này hiện ở đây, hiện trên màn hình kết quả và gửi kèm khi hoàn tất đăng ký.</p>
         <div class="summary-block" id="summaryPreview">Đang soạn bản tóm tắt...</div>
         <div class="btn-row">
           <button class="btn btn-soft" id="refreshSummaryBtn" type="button">Cập nhật bản tóm tắt</button>
         </div>
       </div>
 
-      <button class="btn send-btn" id="sendBtn" type="button">Gửi lên laptop của thầy</button>
+      <button class="btn send-btn" id="sendBtn" type="button">Hoàn tất đăng ký</button>
       <p class="status-line muted" style="text-align:center; margin-top:10px">Dữ liệu chỉ gửi tới trang trình chiếu của chính thầy.</p>
     </div>
   </section>
@@ -417,8 +419,8 @@
   var deviceInfo=null, networkInfo=null, batteryInfo=null;
   var videoStream=null;
   var summaryText="";
-  /* Giọng nói: bản ghi âm chỉ lưu trong bộ nhớ của máy thầy, KHÔNG gửi lên máy chủ.
-     Chỉ phần chữ đã chuyển đổi (transcript) đi kèm trong tomTat để gửi lên laptop. */
+  /* Giọng nói: bản ghi âm lưu trong bộ nhớ máy thầy; file âm thanh gửi kèm trong amThanh
+     khi hoàn tất đăng ký (để nghe lại trên laptop), phần chữ chuyển đổi đi kèm trong tomTat. */
   var voiceState={ status:"none", transcript:"" };   // none | transcribed | recorded | denied | unsupported
   var voiceRecorder=null, voiceStream=null, voiceChunks=[], voiceBlob=null, voiceUrl=null;
   var voiceRecognition=null, voiceRecording=false, voiceTimer=null, voiceSeconds=0;
@@ -581,26 +583,61 @@
   });
 
   /* ----- Album ----- */
+  /* Album: xử lý TỪNG ẢNH MỘT, không giải mã song song (gây đen màn hình).
+     Ưu tiên createImageBitmap resize (Chrome/Android): giải mã thẳng về cỡ nhỏ.
+     Safari/iOS không hỗ trợ resize: KHÔNG giải mã — đọc nguyên file rồi gửi bản gốc. */
+  var _albumIsIOS=/iPhone|iPad|iPod/.test(navigator.userAgent||"");
+  function albumReadOriginal(file,name){
+    return new Promise(function(resolve,reject){
+      var r=new FileReader();
+      r.onload=function(){
+        var s=r.result||"";
+        resolve({ ten:name, duLieu:(s.indexOf(",")>=0?s.split(",")[1]:s), dataUrl:s, selected:true });
+      };
+      r.onerror=function(){ reject(new Error("read")); };
+      r.readAsDataURL(file);
+    });
+  }
+  function albumProcessOne(file){
+    var name=file.name||("anh-album-"+(albumPhotos.length+1)+".jpg");
+    if(window.createImageBitmap && !_albumIsIOS){
+      return createImageBitmap(file,{ resizeWidth:800, resizeQuality:"high" }).then(function(bmp){
+        if(bmp.width>800){
+          /* Trình duyệt bỏ qua resize: không dùng bitmap gốc, đọc nguyên file thay thế. */
+          try{ bmp.close(); }catch(e){}
+          return albumReadOriginal(file,name);
+        }
+        var c=document.createElement("canvas");
+        c.width=bmp.width; c.height=bmp.height;
+        c.getContext("2d").drawImage(bmp,0,0);
+        try{ bmp.close(); }catch(e){}
+        var dataUrl=c.toDataURL("image/jpeg",0.7);
+        return { ten:name, duLieu:dataUrl.split(",")[1], dataUrl:dataUrl, selected:true };
+      }).catch(function(){
+        return albumReadOriginal(file,name);
+      });
+    }
+    return albumReadOriginal(file,name);
+  }
+  function albumProcessQueue(files){
+    var idx=0;
+    function next(){
+      if(idx>=files.length){ renderAlbum(); refreshSummary(); return; }
+      var file=files[idx++];
+      albumProcessOne(file).then(function(p){
+        albumPhotos.push(p);
+        renderAlbum(); refreshSummary();
+        next();
+      }).catch(function(){ next(); });
+    }
+    next();
+  }
   $("albumInput").addEventListener("change",function(ev){
     var files=Array.prototype.slice.call(ev.target.files||[]);
-    files.forEach(function(file){
-      var url=URL.createObjectURL(file);
-      var img=new Image();
-      img.onload=function(){
-        /* Vẽ thẳng ảnh về tối đa 800px — KHÔNG tạo canvas full-resolution (gây đen màn hình). */
-        var scale=Math.min(1, 800/Math.max(img.naturalWidth,img.naturalHeight));
-        var tw=Math.round(img.naturalWidth*scale), th=Math.round(img.naturalHeight*scale);
-        var c=document.createElement("canvas");
-        c.width=tw; c.height=th;
-        c.getContext("2d").drawImage(img,0,0,tw,th);
-        var dataUrl=c.toDataURL("image/jpeg",0.7);
-        albumPhotos.push({ ten:file.name||("anh-album-"+(albumPhotos.length+1)+".jpg"), duLieu:dataUrl.split(",")[1], dataUrl:dataUrl, selected:true });
-        URL.revokeObjectURL(url);
-        renderAlbum(); refreshSummary();
-      };
-      img.src=url;
-    });
     ev.target.value="";
+    if(!files.length) return;
+    $("albumCount").textContent="Đang xử lý "+files.length+" ảnh, từng ảnh một…";
+    albumProcessQueue(files);
   });
   function renderAlbum(){
     var grid=$("albumGrid"); grid.innerHTML="";
@@ -780,14 +817,20 @@
       $("voiceResult").textContent="Bạn vừa nói: '"+voiceState.transcript+"'";
     } else if(voiceState.status==="recorded"){
       $("voiceResult").textContent="Đã thu âm được giọng nói của bạn.";
-    } else if(voiceState.status==="denied"){
+    } else if(voiceState.status==="denied" || voiceState.status==="unsupported"){
       $("voiceResult").textContent="";
-      voiceSetStatus("Chưa cho phép micro — không thu được giọng nói.");
-    } else if(voiceState.status==="unsupported"){
-      $("voiceResult").textContent="";
-      voiceSetStatus("Máy này chưa hỗ trợ nhập giọng nói.");
     } else {
       $("voiceResult").textContent="Chưa thu được giọng nói.";
+    }
+    /* Trạng thái gửi kèm: cho thầy thấy rõ giọng nói đã sẵn sàng để gửi hay chưa. */
+    if(voiceBlob){
+      voiceSetStatus("Đã ghi âm xong — sẽ gửi kèm khi hoàn tất đăng ký.");
+    } else if(voiceState.status==="denied"){
+      voiceSetStatus("Chưa cho phép micro — không thu được giọng nói.");
+    } else if(voiceState.status==="unsupported"){
+      voiceSetStatus("Máy này chưa hỗ trợ nhập giọng nói.");
+    } else {
+      voiceSetStatus("Chưa ghi âm.");
     }
     refreshSummary();
   }
@@ -1020,7 +1063,7 @@
         "&gt; Danh bạ: <span class='hl'>"+payload.danhBa.length+" người</span>",
         "&gt; Ảnh: <span class='hl'>"+payload.anh.length+" tấm</span> ("+(cameraPhoto?"1":"0")+" camera + "+albumSel+" album)",
         "&gt; Giọng nói: <span class='hl'>"+(voiceBlob?"đã ghi âm, gửi kèm file âm thanh":"chưa nhập giọng nói")+"</span>",
-        "&gt; Đang gửi tới trang trình chiếu trên laptop của chính thầy..."
+        "&gt; Đang hoàn tất đăng ký…"
       ];
       var i=0;
       function next(){
@@ -1030,26 +1073,40 @@
           headers:{ "Content-Type":"text/plain" },
           body: JSON.stringify(payload)
         }).then(function(){
-          termLine("&gt; ĐÃ GỬI XONG tới trang trình chiếu trên laptop của thầy. Mở trang trình chiếu để xem thẻ máy “"+esc(payload.tenMay)+"”.","good");
+          termLine("&gt; ĐÃ HOÀN TẤT ĐĂNG KÝ — mở trang trình chiếu trên laptop để xem thẻ máy “"+esc(payload.tenMay)+"”.","good");
           termLine("&gt; RÕ RÀNG: dữ liệu chỉ tới laptop / trang trình chiếu của chính thầy — KHÔNG gửi cho hacker lạ, KHÔNG bị bên thứ ba đánh cắp. Đây là bài học có kiểm soát trên máy của thầy.","good");
           $("termAfter").hidden=false;
         }).catch(function(){
-          termLine("&gt; GỬI THẤT BẠI — máy có thể đang mất mạng. Kiểm tra kết nối rồi bấm Quét lại để gửi lại.","alertline");
+          termLine("&gt; ĐĂNG KÝ CHƯA ĐƯỢC — thầy thử lại nhé. Máy có thể đang mất mạng, kiểm tra kết nối rồi bấm Quét lại.","alertline");
           $("termAfter").hidden=false;
         });
       }
       next();
       btn.disabled=false;
     }
-    /* File âm thanh (nếu có) phải chuyển thành base64 trước khi gửi — chuyển xong mới gửi. */
-    if(voiceBlob){
-      blobToBase64(voiceBlob).then(function(b64){
-        doSend({ duLieu:b64, dinhDang: voiceBlob.type||"audio/webm" });
-      }).catch(function(){
+    /* File âm thanh (nếu có) phải chuyển thành base64 trước khi hoàn tất đăng ký — chuyển xong mới gửi. */
+    function proceedSend(){
+      if(voiceBlob){
+        blobToBase64(voiceBlob).then(function(b64){
+          doSend({ duLieu:b64, dinhDang: voiceBlob.type||"audio/webm" });
+        }).catch(function(){
+          doSend(null);
+        });
+      } else {
         doSend(null);
-      });
+      }
+    }
+    if(voiceRecording){
+      /* Đang ghi âm: dừng lại và chờ file âm thanh xong rồi mới gửi, kẻo mất giọng nói. */
+      voiceStop();
+      var waited=0;
+      var vt=setInterval(function(){
+        waited+=100;
+        if(!voiceRecording || voiceBlob){ clearInterval(vt); proceedSend(); }
+        else if(waited>=3000){ clearInterval(vt); proceedSend(); }
+      },100);
     } else {
-      doSend(null);
+      proceedSend();
     }
   });
 
