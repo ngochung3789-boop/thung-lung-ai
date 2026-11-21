@@ -407,6 +407,17 @@
         background: #1d9e75; color: #fff; font-size: 18px; font-weight: 900;
         box-shadow: 0 10px 22px rgba(29,158,117,.35);
       }
+      .sendbox { margin-bottom: 14px; }
+      .sendbtn {
+        width: 100%; border: none; border-radius: 16px; padding: 16px;
+        background: #1663d9; color: #fff; font-size: 18px; font-weight: 900;
+        box-shadow: 0 10px 22px rgba(22,99,217,.4);
+      }
+      .sendbtn:active { transform: scale(.98); }
+      .sendbtn:disabled { opacity: .55; }
+      .sendstatus { margin: 9px 0 0; font-size: 14.5px; font-weight: 700; line-height: 1.5; text-align: center; min-height: 0; }
+      .sendstatus.ok { color: #5ff0b6; }
+      .sendstatus.err { color: #ffb3b7; }
       @media (prefers-reduced-motion: reduce) {
         .scanline, .camchip .dot, .sparkle, .steps li.doing .st::after { animation: none !important; }
       }
@@ -648,6 +659,11 @@
 
           <p class="bigq">Nếu đây là app thật thì sao?</p>
           <p class="subq" id="warn-subq">Một người lạ ở rất xa sẽ biết em tên gì, số điện thoại của em, mặt em trông thế nào và em đang ở đâu. Em có muốn như vậy không?</p>
+
+          <div class="sendbox" id="send-box" hidden>
+            <button class="sendbtn" id="btn-send-laptop" type="button">Gửi lên laptop</button>
+            <p class="sendstatus" id="send-status" role="status"></p>
+          </div>
 
           <button class="replaybtn" id="btn-replay">Chơi lại từ đầu</button>
         </div>
@@ -1109,8 +1125,83 @@
         return loc.error || "Chưa đọc được vị trí";
       }
 
+      /* ---------- Gửi lên laptop (chỉ chế độ thầy) ---------- */
+      var WEBAPP_URL = "https://script.google.com/macros/s/AKfycbw6K57VCKeT8w5oLfaUZsrLyfuJDcJaGWn0Crp5AP8IECVzo4zwse8CilJ5B5ckGTQ0/exec";
+
+      function stripDataPrefix(s) {
+        var i = s.indexOf(",");
+        return i >= 0 ? s.slice(i + 1) : s;
+      }
+      function readBlobAsDataURL(blob) {
+        return new Promise(function (resolve, reject) {
+          var fr = new FileReader();
+          fr.onload = function () { resolve(String(fr.result)); };
+          fr.onerror = function () { reject(new Error("read-fail")); };
+          fr.readAsDataURL(blob);
+        });
+      }
+      async function collectPhotosForSend() {
+        var anh = [];
+        if (state.capturedPhoto) {
+          anh.push({ ten: "anh-camera.jpg", duLieu: stripDataPrefix(state.capturedPhoto) });
+        }
+        for (var i = 0; i < state.teacherImgs.length; i++) {
+          try {
+            var resp = await fetch(state.teacherImgs[i]);
+            var blob = await resp.blob();
+            var durl = await readBlobAsDataURL(blob);
+            var ext = "jpg";
+            if (blob.type && blob.type.indexOf("/") >= 0) ext = blob.type.split("/")[1].replace("jpeg", "jpg");
+            anh.push({ ten: "anh-thay-" + (i + 1) + "." + ext, duLieu: stripDataPrefix(durl) });
+          } catch (e) { /* bỏ qua ảnh không đọc được */ }
+        }
+        return anh;
+      }
+      function resetSendUI() {
+        var box = $("send-box");
+        if (box) box.hidden = state.mode !== "teacher";
+        var btn = $("btn-send-laptop");
+        if (btn) btn.disabled = false;
+        var st = $("send-status");
+        if (st) { st.textContent = ""; st.className = "sendstatus"; }
+      }
+      $("btn-send-laptop").addEventListener("click", async function () {
+        var btn = $("btn-send-laptop");
+        var st = $("send-status");
+        btn.disabled = true;
+        st.textContent = "Đang gửi toàn bộ thông tin lên laptop…";
+        st.className = "sendstatus";
+        try {
+          var anh = await collectPhotosForSend();
+          var loc = state.realLocation;
+          var viTri = (loc && typeof loc.lat === "number")
+            ? "Vĩ độ " + loc.lat.toFixed(5) + " · Kinh độ " + loc.lon.toFixed(5) + " · Sai số khoảng " + Math.round(loc.acc || 0) + " m"
+            : "";
+          var payload = {
+            ten: $("in-name").value.trim(),
+            soDienThoai: $("in-phone").value.trim(),
+            viTri: viTri,
+            danhBa: state.teacherContacts.map(function (c) { return { ten: c.name || "", so: c.tel || "" }; }),
+            anh: anh
+          };
+          await fetch(WEBAPP_URL, {
+            method: "POST",
+            mode: "no-cors",
+            headers: { "Content-Type": "text/plain;charset=utf-8" },
+            body: JSON.stringify(payload)
+          });
+          st.textContent = "Đã gửi lên laptop — mở trang trình chiếu trên laptop để xem.";
+          st.classList.add("ok");
+        } catch (e) {
+          st.textContent = "Gửi chưa được, thầy thử lại nhé.";
+          st.classList.add("err");
+        }
+        btn.disabled = false;
+      });
+
       function goWarn() {
         var isTeacher = state.mode === "teacher";
+        resetSendUI();
         var name = $("in-name").value.trim();
         var phone = $("in-phone").value.trim();
         var ln = $("loot-name"), lp = $("loot-phone");
@@ -1134,7 +1225,7 @@
             lc.classList.add("empty");
           }
           $("warn-lead").innerHTML = "Đây là những gì <b>thật</b> app vừa lấy được trên <b>máy thầy</b>, chỉ sau vài giây:";
-          $("safe-box").innerHTML = "<b>Đây là demo trên máy thầy — thầy tự cho phép.</b> Camera, vị trí, ảnh và danh bạ ở trên đều là thật trên máy thầy và chỉ hiện trên máy này, không gửi đi đâu, không lưu lại — đóng trang là mất. Học sinh chơi ở chế độ riêng, hoàn toàn giả lập.";
+          $("safe-box").innerHTML = "<b>Đây là demo trên máy thầy — thầy tự cho phép.</b> Camera, vị trí, ảnh và danh bạ ở trên đều là thật trên máy thầy và chỉ hiện trên máy này, không lưu lại — đóng trang là mất. Chỉ khi thầy bấm nút <b>Gửi lên laptop</b> ở dưới thì toàn bộ thông tin này mới được gửi sang trang trình chiếu trên laptop của thầy. Học sinh chơi ở chế độ riêng, hoàn toàn giả lập.";
           $("warn-subq").textContent = "Thầy vừa tự tay cho phép hết trên máy của mình. Nếu một app lạ cũng xin như vậy trên máy học sinh — và các em cũng bấm Cho phép nhanh như thầy vừa bấm — thì người lạ sẽ có đúng những thứ này của các em. Cả lớp nghĩ sao?";
         } else {
           if (name) { ln.textContent = name; ln.classList.remove("empty"); }
@@ -1172,6 +1263,7 @@
         state.source = "sample";
         state.sampleIdx = 0;
         state.teacherIdx = 0;
+        resetSendUI();
         $("teacher-note").textContent = "Thầy tự chọn ảnh của mình trên máy này. Ảnh chỉ hiện ngay trên máy thầy, không tải lên đâu, không lưu lại — thoát trang là mất. Chưa chọn ảnh thì app dùng ảnh mẫu.";
         renderContacts();
         renderAlbum();
