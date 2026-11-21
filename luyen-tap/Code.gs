@@ -1,6 +1,30 @@
 // ============================================================================
 //  ĐƯỜNG CHUYỂN TOÀN BỘ THÔNG TIN: ĐIỆN THOẠI (thầy) -> LAPTOP (thầy) -> CHIẾU LÊN TV
 //  Chỉ phục vụ thầy Phạm Ngọc Hưng và dữ liệu CỦA THẦY.
+//  PHIÊN BẢN 24 (22/11/2026):
+//  - HĐ3 LUYỆN TẬP — BÀI 4 LỚP 8 ("Nguy cơ rò rỉ dữ liệu cá nhân"):
+//    backend cho 3 việc của học sinh trong giờ luyện tập, lưu RIÊNG trong
+//    thư mục Drive mới "HĐ3 Luyện tập Bài 4" (KHÔNG dùng chung thư mục
+//    "Anh trinh chieu Avatar AI", KHÔNG động vào dữ liệu "Biến hình").
+//      + CHUÔNG BẤM NHANH (loai "buzzer"): mỗi đội bấm chuông 1 lần cho
+//        mỗi câu (Câu 1-4). Máy chủ chỉ ghi lượt bấm ĐẦU TIÊN của mỗi đội
+//        trong mỗi câu; chỉ ghi khi đúng câu đang mở VÀ chuông đang mở
+//        (host mở câu, khóa câu). Trang host ?hd3=buzzer: mở Câu 1-4,
+//        khóa chuông, đặt lại, bảng xếp hạng theo giờ bấm của máy chủ
+//        (hiện số giây từ lúc mở chuông, ví dụ "0.8s" + giờ tuyệt đối).
+//        Đặt lại (datlai) XÓA HẾT lượt bấm của CẢ 4 câu + khóa chuông.
+//      + ĐIỀU TRA (loai "dieutra"): mỗi đội nộp 1 bản — "Không nên nhập"
+//        hay "Nên nhập" (shouldEnter "khong"/"co"), dấu hiệu đã chọn
+//        (signs: số 1-4), hành động sẽ làm (action). Gửi lại thì GHI ĐÈ
+//        bản cũ của đúng đội đó.
+//      + NHẬN XÉT (loai "nhanxet"): đội này nhận xét đội kia
+//        (fromTeam -> toTeam + text). Trang host ?hd3=dieutra hiện TẤT CẢ
+//        bản điều tra + nhận xét gom dưới từng đội.
+//    doPost: payload có loai "buzzer"/"dieutra"/"nhanxet" thì đi nhánh HĐ3
+//    rồi trả về ngay; loai vắng mặt thì luồng "Biến hình" cũ chạy y như
+//    trước. doGet: tham số hd3 kiểm tra TRƯỚC các nhánh cũ.
+//    Trang host vẽ sẵn phía máy chủ, KHÔNG google.script.run, KHÔNG meta
+//    refresh — thầy bấm "Làm mới trang" như trang trình chiếu cũ.
 //  PHIÊN BẢN 23 (21/11/2026):
 //  - DỮ LIỆU GIẢ LẬP — THỜI GIAN DÙNG APP + KẾT LUẬN SỞ THÍCH: thầy dạy bài 4
 //    lớp 8 (8.A2.1) muốn trang trình chiếu "bịa" ra thời gian dùng TikTok /
@@ -121,6 +145,14 @@ var TEN_THU_MUC = 'Anh trinh chieu Avatar AI';
 // doPost chấp nhận tới Máy 6; máy nào gửi thì cũng hiện thêm ô.
 var SO_MAY_HIEN = 5;
 var SO_MAY_TOI_DA = 6;
+
+// ---------- HĐ3 LUYỆN TẬP — BÀI 4 LỚP 8 (PHIÊN BẢN 24) ----------
+// Thư mục RIÊNG trên Drive cho HĐ3 — KHÔNG dùng chung TEN_THU_MUC.
+var TEN_THU_MUC_HD3 = 'HĐ3 Luyện tập Bài 4';
+var TEN_FILE_BUZZER_HD3 = 'buzzer.json';
+var TEN_FILE_DIEU_TRA_HD3 = 'dieutra.json';
+var TEN_FILE_NHAN_XET_HD3 = 'nhanxet.json';
+var TEN_FILE_TRANG_THAI_HD3 = 'hd3-trangthai.json';
 
 // Link web app (dùng cho nút "Làm mới trang" và các link Xóa).
 var URL_WEB_APP = 'https://script.google.com/macros/s/AKfycbw6K57VCKeT8w5oLfaUZsrLyfuJDcJaGWn0Crp5AP8IECVzo4zwse8CilJ5B5ckGTQ0/exec';
@@ -1238,8 +1270,374 @@ function layDanhSachAnh() {
 //   - một ảnh {"ten":"...","duLieu":"..."} (ten là tên file ảnh)
 //   - form: may, ten0/anh0, ten1/anh1... (+ soDienThoai, viTri, danhBa dạng JSON nếu có)
 // Trả về JSON {"thanhCong":true,"may":"Máy N","soAnh":N}.
+// ============================================================================
+//  HĐ3 LUYỆN TẬP — BÀI 4 LỚP 8 (PHIÊN BẢN 24)
+//  Backend cho 3 việc của học sinh trong giờ luyện tập:
+//    * Chuông bấm nhanh (loai "buzzer") — mỗi đội bấm 1 lần / 1 câu.
+//    * Điều tra (loai "dieutra") — mỗi đội nộp 1 bản, gửi lại thì ghi đè.
+//    * Nhận xét (loai "nhanxet") — đội này nhận xét đội kia.
+//  Dữ liệu lưu RIÊNG trong thư mục Drive "HĐ3 Luyện tập Bài 4" — không động
+//  vào thư mục "Anh trinh chieu Avatar AI" và luồng "Biến hình" cũ.
+//  Trang host (?hd3=buzzer / ?hd3=dieutra) vẽ sẵn phía máy chủ, KHÔNG
+//  google.script.run, KHÔNG meta refresh — thầy bấm "Làm mới trang".
+// ============================================================================
+
+// Lấy thư mục HĐ3 trên Drive; tạo mới nếu chưa có.
+function layThuMucHD3() {
+  var ds = DriveApp.getFoldersByName(TEN_THU_MUC_HD3);
+  if (ds.hasNext()) return ds.next();
+  return DriveApp.createFolder(TEN_THU_MUC_HD3);
+}
+
+// Đọc 1 file JSON trong thư mục HĐ3; thiếu file / hỏng thì trả về macDinh.
+function docJsonHD3(tenFile, macDinh) {
+  try {
+    var thuMuc = layThuMucHD3();
+    var ds = thuMuc.getFilesByName(tenFile);
+    if (!ds.hasNext()) return macDinh;
+    var noiDung = ds.next().getBlob().getDataAsString();
+    if (!noiDung) return macDinh;
+    var duLieu = JSON.parse(noiDung);
+    if (duLieu === undefined || duLieu === null) return macDinh;
+    return duLieu;
+  } catch (loi) {
+    return macDinh;
+  }
+}
+
+// Ghi đè 1 file JSON trong thư mục HĐ3 (xóa file cũ nếu có rồi tạo mới).
+function ghiJsonHD3(tenFile, duLieu) {
+  var thuMuc = layThuMucHD3();
+  var ds = thuMuc.getFilesByName(tenFile);
+  while (ds.hasNext()) { ds.next().setTrashed(true); }
+  var blob = Utilities.newBlob(JSON.stringify(duLieu), 'application/json', tenFile);
+  thuMuc.createFile(blob);
+}
+
+// Trạng thái chuông: { currentRound (1-4), armed (bool), armedAt (ISO) }.
+// armedAt là lúc host mở câu — dùng để tính số giây từ lúc mở chuông.
+function docTrangThaiHD3() {
+  var macDinh = { currentRound: 1, armed: false, armedAt: '' };
+  var tt = docJsonHD3(TEN_FILE_TRANG_THAI_HD3, macDinh);
+  if (!tt || typeof tt !== 'object') return macDinh;
+  var vong = parseInt(tt.currentRound, 10);
+  if (isNaN(vong) || vong < 1 || vong > 4) vong = 1;
+  return { currentRound: vong, armed: tt.armed === true, armedAt: tt.armedAt || '' };
+}
+
+function ghiTrangThaiHD3(tt) {
+  ghiJsonHD3(TEN_FILE_TRANG_THAI_HD3, tt);
+}
+
+// Chuẩn hóa tên đội: cắt khoảng trắng thừa, tối đa 40 ký tự.
+function sachTenDoiHD3(giaTri) {
+  var s = String(giaTri === undefined || giaTri === null ? '' : giaTri).replace(/\s+/g, ' ').replace(/^\s+|\s+$/g, '');
+  if (s.length > 40) s = s.substring(0, 40);
+  return s;
+}
+
+// Chuẩn hóa số câu: 1-4, ngoài khoảng thì về 0 (không hợp lệ).
+function chuanHoaVongHD3(giaTri) {
+  var v = parseInt(giaTri, 10);
+  if (isNaN(v) || v < 1 || v > 4) return 0;
+  return v;
+}
+
+// CHUÔNG BẤM NHANH: chỉ ghi lượt bấm ĐẦU TIÊN của mỗi đội trong mỗi câu,
+// và chỉ khi đúng câu đang mở VÀ chuông đang mở. Lượt bấm sau của cùng
+// đội trong cùng câu, hoặc bấm khi chuông khóa / sai câu, đều bị bỏ qua
+// (vẫn trả thanhCong để app điện thoại không báo lỗi, kèm daGhi=false).
+function xuLyBuzzerHD3(goi) {
+  var team = sachTenDoiHD3(goi.team);
+  if (team === '') return { thanhCong: false, daGhi: false, loi: 'Thiếu tên đội.' };
+  var vong = chuanHoaVongHD3(goi.round);
+  if (vong === 0) return { thanhCong: false, daGhi: false, loi: 'Số câu phải là 1-4.' };
+  var tt = docTrangThaiHD3();
+  if (!tt.armed || tt.currentRound !== vong) {
+    return { thanhCong: true, daGhi: false, loi: 'Chuông chưa mở cho Câu ' + vong + '.' };
+  }
+  var danhSach = docJsonHD3(TEN_FILE_BUZZER_HD3, []);
+  if (!(danhSach instanceof Array)) danhSach = [];
+  for (var i = 0; i < danhSach.length; i++) {
+    if (danhSach[i] && danhSach[i].team === team && danhSach[i].round === vong) {
+      return { thanhCong: true, daGhi: false, loi: 'Đội đã bấm chuông Câu ' + vong + ' rồi.' };
+    }
+  }
+  danhSach.push({
+    team: team,
+    round: vong,
+    serverTime: new Date().toISOString(),
+    clientTime: goi.clientTime ? String(goi.clientTime) : ''
+  });
+  ghiJsonHD3(TEN_FILE_BUZZER_HD3, danhSach);
+  return { thanhCong: true, daGhi: true, team: team, round: vong };
+}
+
+// ĐIỀU TRA: 1 đội chỉ có 1 bản — gửi lại thì GHI ĐÈ bản cũ của đúng đội đó.
+function xuLyDieuTraHD3(goi) {
+  var team = sachTenDoiHD3(goi.team);
+  if (team === '') return { thanhCong: false, daGhi: false, loi: 'Thiếu tên đội.' };
+  var nenNhap = String(goi.shouldEnter === undefined || goi.shouldEnter === null ? '' : goi.shouldEnter).toLowerCase();
+  if (nenNhap !== 'khong' && nenNhap !== 'co') {
+    return { thanhCong: false, daGhi: false, loi: 'shouldEnter phải là "khong" hoặc "co".' };
+  }
+  var dauHieu = [];
+  if (goi.signs instanceof Array) {
+    for (var i = 0; i < goi.signs.length; i++) {
+      var s = parseInt(goi.signs[i], 10);
+      if (!isNaN(s) && s >= 1 && s <= 4 && dauHieu.indexOf(s) === -1) dauHieu.push(s);
+    }
+  }
+  var hanhDong = String(goi.action === undefined || goi.action === null ? '' : goi.action).replace(/^\s+|\s+$/g, '');
+  if (hanhDong.length > 500) hanhDong = hanhDong.substring(0, 500);
+  var banMoi = {
+    team: team,
+    shouldEnter: nenNhap,
+    signs: dauHieu,
+    action: hanhDong,
+    time: new Date().toISOString()
+  };
+  var danhSach = docJsonHD3(TEN_FILE_DIEU_TRA_HD3, []);
+  if (!(danhSach instanceof Array)) danhSach = [];
+  var daThay = false;
+  for (var j = 0; j < danhSach.length; j++) {
+    if (danhSach[j] && danhSach[j].team === team) { danhSach[j] = banMoi; daThay = true; break; }
+  }
+  if (!daThay) danhSach.push(banMoi);
+  ghiJsonHD3(TEN_FILE_DIEU_TRA_HD3, danhSach);
+  return { thanhCong: true, daGhi: true, team: team, ghiDe: daThay };
+}
+
+// NHẬN XÉT: đội này nhận xét đội kia — cứ thêm vào danh sách.
+function xuLyNhanXetHD3(goi) {
+  var tuDoi = sachTenDoiHD3(goi.fromTeam);
+  var toiDoi = sachTenDoiHD3(goi.toTeam);
+  var noiDung = String(goi.text === undefined || goi.text === null ? '' : goi.text).replace(/^\s+|\s+$/g, '');
+  if (tuDoi === '' || toiDoi === '') return { thanhCong: false, daGhi: false, loi: 'Thiếu tên đội nhận xét / đội được nhận xét.' };
+  if (noiDung === '') return { thanhCong: false, daGhi: false, loi: 'Thiếu nội dung nhận xét.' };
+  if (noiDung.length > 500) noiDung = noiDung.substring(0, 500);
+  var danhSach = docJsonHD3(TEN_FILE_NHAN_XET_HD3, []);
+  if (!(danhSach instanceof Array)) danhSach = [];
+  danhSach.push({ fromTeam: tuDoi, toTeam: toiDoi, text: noiDung, time: new Date().toISOString() });
+  ghiJsonHD3(TEN_FILE_NHAN_XET_HD3, danhSach);
+  return { thanhCong: true, daGhi: true, fromTeam: tuDoi, toTeam: toiDoi };
+}
+
+// Điều phối HĐ3 theo loai — trả về JSON cho app điện thoại.
+function xuLyHD3(goi) {
+  try {
+    var ketQua;
+    if (goi.loai === 'buzzer') ketQua = xuLyBuzzerHD3(goi);
+    else if (goi.loai === 'dieutra') ketQua = xuLyDieuTraHD3(goi);
+    else if (goi.loai === 'nhanxet') ketQua = xuLyNhanXetHD3(goi);
+    else ketQua = { thanhCong: false, daGhi: false, loi: 'loai không hợp lệ.' };
+    return ContentService
+      .createTextOutput(JSON.stringify(ketQua))
+      .setMimeType(ContentService.MimeType.JSON);
+  } catch (loi) {
+    return ContentService
+      .createTextOutput(JSON.stringify({ thanhCong: false, daGhi: false, loi: String(loi) }))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
+}
+
+// Gói HĐ3 gửi dạng form (e.parameter): dựng lại object giống JSON.
+function xuLyHD3TuThamSo(p) {
+  var goi = { loai: p.loai, team: p.team || '', round: p.round || '', clientTime: p.clientTime || '' };
+  goi.shouldEnter = p.shouldEnter || '';
+  goi.action = p.action || '';
+  goi.fromTeam = p.fromTeam || '';
+  goi.toTeam = p.toTeam || '';
+  goi.text = p.text || '';
+  var dauHieu = [];
+  if (p.signs) {
+    try {
+      var s = JSON.parse(p.signs);
+      if (s instanceof Array) dauHieu = s;
+    } catch (loiJson) {
+      var phan = String(p.signs).split(',');
+      for (var i = 0; i < phan.length; i++) {
+        var n = parseInt(phan[i], 10);
+        if (!isNaN(n)) dauHieu.push(n);
+      }
+    }
+  }
+  goi.signs = dauHieu;
+  return goi;
+}
+
+// ---------- Trang host HĐ3 (vẽ sẵn phía máy chủ) ----------
+
+// Giờ HH:MM:SS từ chuỗi ISO (giờ theo múi giờ của Apps Script).
+function dinhDangGioHD3(iso) {
+  try {
+    var d = new Date(iso);
+    if (isNaN(d.getTime())) return '';
+    function haiChuSo(n) { return (n < 10 ? '0' : '') + n; }
+    return haiChuSo(d.getHours()) + ':' + haiChuSo(d.getMinutes()) + ':' + haiChuSo(d.getSeconds());
+  } catch (loi) {
+    return '';
+  }
+}
+
+// Số giây từ lúc mở chuông (armedAt) đến lúc bấm (serverTime), 1 số lẻ.
+function dinhDangGiayTuKhiMoHD3(mocIso, gioIso) {
+  try {
+    var moc = Date.parse(mocIso);
+    var gio = Date.parse(gioIso);
+    if (isNaN(moc) || isNaN(gio) || gio < moc) return '—';
+    return ((gio - moc) / 1000).toFixed(1) + 's';
+  } catch (loi) {
+    return '—';
+  }
+}
+
+// Mở đầu trang host HĐ3: cùng giao diện tối "HỘP ĐEN" + CSS riêng cho HĐ3.
+function moDauTrangHD3(tieuDe, trangThai, urlLamMoi) {
+  var cssThem = '\n  .hang-nut-hd3 { display: flex; gap: 10px; flex-wrap: wrap; margin: 16px 0; }\n' +
+    '  .nut-mo { background: #16a34a; color: #fff; border: 0; border-radius: 10px; padding: 14px 20px; font-size: 19px; font-weight: 800; cursor: pointer; text-decoration: none; display: inline-block; }\n' +
+    '  .nut-mo:hover { background: #15803d; }\n' +
+    '  .nut-khoa { background: #d97706; color: #fff; border: 0; border-radius: 10px; padding: 14px 20px; font-size: 19px; font-weight: 800; cursor: pointer; text-decoration: none; display: inline-block; }\n' +
+    '  .nut-khoa:hover { background: #b45309; }\n' +
+    '  .bang-hd3 { width: 100%; border-collapse: collapse; margin-top: 12px; }\n' +
+    '  .bang-hd3 th { text-align: left; font-size: 15px; color: #9ca3af; text-transform: uppercase; letter-spacing: 1px; padding: 10px 8px; border-bottom: 2px solid #374151; }\n' +
+    '  .bang-hd3 td { font-size: 22px; padding: 12px 8px; border-bottom: 1px solid #2e2f36; }\n' +
+    '  .bang-hd3 tr.hang-nhat td { font-weight: 800; color: #fbbf24; }\n' +
+    '  .huy-hieu-hd3-xanh { display: inline-block; background: #16a34a; color: #fff; border-radius: 999px; padding: 6px 14px; font-size: 16px; font-weight: 800; letter-spacing: 1px; }\n' +
+    '  .huy-hieu-hd3-do { display: inline-block; background: #dc2626; color: #fff; border-radius: 999px; padding: 6px 14px; font-size: 16px; font-weight: 800; letter-spacing: 1px; }\n' +
+    '  .huy-hieu-hd3-xam { display: inline-block; background: #4b5563; color: #fff; border-radius: 999px; padding: 6px 14px; font-size: 16px; font-weight: 800; letter-spacing: 1px; }\n' +
+    '  .nhan-xet-hd3 { background: #111827; border: 1px solid #374151; border-radius: 10px; padding: 10px 14px; margin-top: 8px; font-size: 18px; line-height: 1.5; }\n' +
+    '  .nhan-xet-hd3 b { color: #fbbf24; }\n';
+  var linkQuayLai = '<a class="nut-quay-lai" target="_top" href="' + escHtml(URL_WEB_APP) + '">← Quay lại menu</a>';
+  return '<!DOCTYPE html>\n<html lang="vi">\n<head>\n<meta charset="UTF-8">\n' +
+    '<meta name="viewport" content="width=device-width, initial-scale=1">\n' +
+    '<title>' + escHtml(tieuDe) + '</title>\n<style>\n' + CSS_TRINH_CHIEU + cssThem + '</style>\n</head>\n<body>\n' +
+    '<div class="dau"><h1>' + escHtml(tieuDe) + '</h1><div class="trang-thai">' + escHtml(trangThai) + '</div>' +
+    '<div style="margin-top:10px;">' + linkQuayLai + '<a class="nut-tai" target="_top" href="' + escHtml(urlLamMoi) + '">Làm mới trang</a></div></div>\n';
+}
+
+// Trang host CHUÔNG BẤM NHANH (?hd3=buzzer): mở/khóa câu + bảng xếp hạng.
+function taoTrangBuzzerHD3() {
+  var tt = docTrangThaiHD3();
+  var tatCa = docJsonHD3(TEN_FILE_BUZZER_HD3, []);
+  if (!(tatCa instanceof Array)) tatCa = [];
+  var urlLamMoi = URL_WEB_APP + '?hd3=buzzer';
+  var trangThai = tt.armed
+    ? 'Câu ' + tt.currentRound + ' — ĐANG MỞ CHUÔNG, đội bấm được. Bấm "Làm mới trang" để xem lượt bấm mới.'
+    : 'Chuông đang KHÓA. Bấm "Mở Câu N" để bắt đầu một câu.';
+  var nut = '<div class="hang-nut-hd3">';
+  for (var c = 1; c <= 4; c++) {
+    nut += '<a class="nut-mo" target="_top" href="' + escHtml(urlLamMoi + '&hanhdong=mo&vong=' + c) + '">Mở Câu ' + c + '</a>';
+  }
+  nut += '<a class="nut-khoa" target="_top" href="' + escHtml(urlLamMoi + '&hanhdong=khoa') + '">Khóa chuông</a>';
+  nut += '<a class="nut-xoa" target="_top" href="' + escHtml(urlLamMoi + '&hanhdong=datlai') + '">Đặt lại (xóa hết lượt bấm)</a></div>';
+  var huyHieu = tt.armed
+    ? '<span class="huy-hieu-hd3-xanh">ĐANG MỞ — CÂU ' + tt.currentRound + '</span>'
+    : '<span class="huy-hieu-hd3-xam">ĐÃ KHÓA</span>';
+  // Chỉ lượt bấm của câu hiện tại, xếp theo giờ bấm của máy chủ.
+  var luot = [];
+  for (var i = 0; i < tatCa.length; i++) {
+    if (tatCa[i] && tatCa[i].round === tt.currentRound) luot.push(tatCa[i]);
+  }
+  luot.sort(function(a, b) { return Date.parse(a.serverTime) - Date.parse(b.serverTime); });
+  var noiDung;
+  if (luot.length === 0) {
+    noiDung = '<div class="trong">Chưa có đội nào bấm chuông cho Câu ' + tt.currentRound + '.</div>';
+  } else {
+    var hang = '';
+    for (var j = 0; j < luot.length; j++) {
+      var muc = luot[j];
+      hang += '<tr' + (j === 0 ? ' class="hang-nhat"' : '') + '><td>' + (j + 1) + '</td>' +
+        '<td>' + escHtml(muc.team) + '</td>' +
+        '<td>' + escHtml(dinhDangGiayTuKhiMoHD3(tt.armedAt, muc.serverTime)) + '</td>' +
+        '<td>' + escHtml(dinhDangGioHD3(muc.serverTime)) + '</td></tr>';
+    }
+    noiDung = '<table class="bang-hd3"><tr><th>Hạng</th><th>Đội</th><th>Thời gian</th><th>Giờ bấm</th></tr>' + hang + '</table>';
+  }
+  return moDauTrangHD3('HĐ3 — CHUÔNG BẤM NHANH (Bài 4 lớp 8)', trangThai, urlLamMoi) +
+    '<div class="khung"><div style="margin: 8px 0 4px;">' + huyHieu + '</div>' + nut + noiDung + '</div>' + dongTrangTrinhChieu();
+}
+
+// Trang host ĐIỀU TRA (?hd3=dieutra): tất cả bản điều tra + nhận xét gom theo đội.
+function taoTrangDieuTraHD3() {
+  var danhSach = docJsonHD3(TEN_FILE_DIEU_TRA_HD3, []);
+  if (!(danhSach instanceof Array)) danhSach = [];
+  var nhanXet = docJsonHD3(TEN_FILE_NHAN_XET_HD3, []);
+  if (!(nhanXet instanceof Array)) nhanXet = [];
+  danhSach.sort(function(a, b) { return Date.parse(a.time) - Date.parse(b.time); });
+  var urlLamMoi = URL_WEB_APP + '?hd3=dieutra';
+  var trangThai = danhSach.length === 0
+    ? 'Chưa có đội nào nộp bản điều tra. Bấm "Làm mới trang" để xem bản mới nộp.'
+    : 'Đã có ' + danhSach.length + ' đội nộp bản điều tra. Bấm "Làm mới trang" để xem bản mới nộp.';
+  // Nhận xét gom theo đội được nhận xét.
+  var nxTheoDoi = {};
+  var doiDaCoDieuTra = {};
+  for (var i = 0; i < danhSach.length; i++) { if (danhSach[i]) doiDaCoDieuTra[danhSach[i].team] = true; }
+  for (var k = 0; k < nhanXet.length; k++) {
+    var nx = nhanXet[k];
+    if (!nx || !nx.toTeam) continue;
+    if (!nxTheoDoi[nx.toTeam]) nxTheoDoi[nx.toTeam] = [];
+    nxTheoDoi[nx.toTeam].push(nx);
+  }
+  function khoiNhanXet(doi) {
+    var ds = nxTheoDoi[doi] || [];
+    if (ds.length === 0) return '';
+    var s = '<div style="margin-top:14px;"><div class="nhan">Nhận xét của các đội khác</div>';
+    for (var q = 0; q < ds.length; q++) {
+      s += '<div class="nhan-xet-hd3"><b>' + escHtml(ds[q].fromTeam) + ':</b> ' + escHtml(ds[q].text) +
+        '<div class="gio-gui">' + escHtml(dinhDangGioHD3(ds[q].time)) + '</div></div>';
+    }
+    return s + '</div>';
+  }
+  var noiDung;
+  if (danhSach.length === 0) {
+    noiDung = '<div class="trong">Chưa có đội nào nộp bản điều tra.</div>';
+  } else {
+    var the = '';
+    for (var j = 0; j < danhSach.length; j++) {
+      var m = danhSach[j];
+      var ketLuan = m.shouldEnter === 'co'
+        ? '<span class="huy-hieu-hd3-xanh">NÊN NHẬP</span>'
+        : '<span class="huy-hieu-hd3-do">KHÔNG NÊN NHẬP</span>';
+      var dauHieu = (m.signs && m.signs.length > 0) ? ('Dấu hiệu đã chọn: ' + m.signs.join(', ')) : 'Chưa chọn dấu hiệu nào.';
+      the += '<div class="the-may"><div class="nhan-may">' + escHtml(m.team) + '</div>' + ketLuan +
+        '<div class="hang-thong-tin"><div class="nhan">Dấu hiệu</div><div class="gia-tri nho">' + escHtml(dauHieu) + '</div></div>' +
+        '<div class="hang-thong-tin"><div class="nhan">Hành động sẽ làm</div><div class="tom-tat">' + escHtml(m.action || '(không ghi)') + '</div></div>' +
+        '<div class="gio-gui">Nộp lúc ' + escHtml(dinhDangGioHD3(m.time)) + '</div>' +
+        khoiNhanXet(m.team) + '</div>';
+    }
+    noiDung = '<div class="khung"><div class="luoi-may">' + the + '</div></div>';
+  }
+  // Nhận xét gửi về đội chưa nộp điều tra (nếu có) — hiện riêng ở cuối.
+  var doiLa = [];
+  for (var doi in nxTheoDoi) { if (!doiDaCoDieuTra[doi]) doiLa.push(doi); }
+  if (doiLa.length > 0) {
+    var khoiLa = '';
+    for (var l = 0; l < doiLa.length; l++) khoiLa += khoiNhanXet(doiLa[l]);
+    noiDung += '<div class="khung"><div class="the-may"><div class="nhan-may">Nhận xét về đội chưa nộp điều tra</div>' + khoiLa + '</div></div>';
+  }
+  return moDauTrangHD3('HĐ3 — ĐIỀU TRA (Bài 4 lớp 8)', trangThai, urlLamMoi) + noiDung + dongTrangTrinhChieu();
+}
+
 function doPost(e) {
   try {
+    // PHIÊN BẢN 24 — HĐ3 Luyện tập (Bài 4 lớp 8): payload có loai là
+    // "buzzer" / "dieutra" / "nhanxet" thì xử lý riêng rồi trả về ngay.
+    // Luồng "Biến hình" bên dưới KHÔNG đổi — chỉ chạy khi loai vắng mặt.
+    if (e.postData && e.postData.contents) {
+      try {
+        var goiHD3 = JSON.parse(e.postData.contents);
+        if (goiHD3 && typeof goiHD3 === 'object' &&
+            (goiHD3.loai === 'buzzer' || goiHD3.loai === 'dieutra' || goiHD3.loai === 'nhanxet')) {
+          return xuLyHD3(goiHD3);
+        }
+      } catch (loiHD3Json) {
+        // Không phải JSON HĐ3 — rơi xuống luồng cũ bên dưới.
+      }
+    }
+    if (e.parameter && (e.parameter.loai === 'buzzer' || e.parameter.loai === 'dieutra' || e.parameter.loai === 'nhanxet')) {
+      return xuLyHD3(xuLyHD3TuThamSo(e.parameter));
+    }
     var thongTin = { may: 1, ten: '', soDienThoai: '', viTri: '', danhBa: [], anh: [], amThanh: null, tomTat: '', tenMay: '', idMay: '', thoiGianDungApp: null };
     var daDocJson = false;
     if (e.postData && e.postData.contents) {
@@ -1912,7 +2310,7 @@ function moDauTrangTrinhChieu(tieuDe, trangThai, urlLamMoi, linkQuayLai) {
 
 // Cuối trang trình chiếu: chân trang ghi phiên bản + đóng thẻ.
 function dongTrangTrinhChieu() {
-  return '<div class="chan-trang">Trình chiếu Avatar AI — Phiên bản 23 (21/11/2026)</div>\n</body>\n</html>';
+  return '<div class="chan-trang">Trình chiếu Avatar AI — Phiên bản 24 (22/11/2026)</div>\n</body>\n</html>';
 }
 
 // Hộp xanh + câu hỏi cho lớp (hiện dưới thẻ máy, chỉ khi máy đã có dữ liệu).
@@ -2029,6 +2427,37 @@ function taoTrangTrinhChieu() {
 
 function doGet(e) {
   var p = (e && e.parameter) || {};
+  // PHIÊN BẢN 24 — HĐ3 Luyện tập: trang host — kiểm tra tham số hd3 TRƯỚC
+  // các nhánh cũ bên dưới. Trang host vẽ sẵn phía máy chủ, không dùng
+  // google.script.run, không meta refresh — thầy bấm "Làm mới trang".
+  //   ?hd3=buzzer                 -> trang host chuông bấm nhanh
+  //   ?hd3=buzzer&hanhdong=mo&vong=N -> mở Câu N (chuông mở, ghi armedAt)
+  //   ?hd3=buzzer&hanhdong=khoa  -> khóa chuông (lượt bấm sau bị bỏ qua)
+  //   ?hd3=buzzer&hanhdong=datlai -> XÓA HẾT lượt bấm CẢ 4 câu + khóa chuông
+  //   ?hd3=dieutra               -> trang host điều tra + nhận xét
+  if (p.hd3 === 'buzzer') {
+    if (p.hanhdong === 'mo') {
+      var vongMo = chuanHoaVongHD3(p.vong);
+      if (vongMo !== 0) ghiTrangThaiHD3({ currentRound: vongMo, armed: true, armedAt: new Date().toISOString() });
+    } else if (p.hanhdong === 'khoa') {
+      var ttKhoa = docTrangThaiHD3();
+      ttKhoa.armed = false;
+      ghiTrangThaiHD3(ttKhoa);
+    } else if (p.hanhdong === 'datlai') {
+      ghiJsonHD3(TEN_FILE_BUZZER_HD3, []);
+      var ttDatLai = docTrangThaiHD3();
+      ttDatLai.armed = false;
+      ghiTrangThaiHD3(ttDatLai);
+    }
+    return HtmlService.createHtmlOutput(taoTrangBuzzerHD3())
+      .setTitle('HĐ3 — Chuông bấm nhanh')
+      .addMetaTag('viewport', 'width=device-width, initial-scale=1');
+  }
+  if (p.hd3 === 'dieutra') {
+    return HtmlService.createHtmlOutput(taoTrangDieuTraHD3())
+      .setTitle('HĐ3 — Điều tra')
+      .addMetaTag('viewport', 'width=device-width, initial-scale=1');
+  }
   // Xóa dữ liệu 1 máy (Phiên bản 15) — hai bước, không dùng JavaScript:
   //   ?action=xoa&id=<id>            -> trang xác nhận (chưa xóa gì)
   //   ?action=xoa&id=<id>&xacNhan=1  -> xóa thật rồi hiện kết quả
