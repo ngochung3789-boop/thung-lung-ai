@@ -1,6 +1,13 @@
 // ============================================================================
 //  ĐƯỜNG CHUYỂN TOÀN BỘ THÔNG TIN: ĐIỆN THOẠI (thầy) -> LAPTOP (thầy) -> CHIẾU LÊN TV
 //  Chỉ phục vụ thầy Phạm Ngọc Hưng và dữ liệu CỦA THẦY.
+//  PHIÊN BẢN 15 (21/11/2026):
+//  - XÓA DỮ LIỆU 1 MÁY: mỗi thẻ máy có nút "🗑 Xóa dữ liệu máy này".
+//    Bấm nút -> trang XÁC NHẬN (chưa xóa gì) -> bấm "Xóa ngay" mới xóa
+//    thật file JSON + ảnh của đúng máy đó khỏi Drive. Không có nút xóa tất cả.
+//  - Dữ liệu thu thập lưu trên Google Drive của thầy (thư mục
+//    "Anh trinh chieu Avatar AI"), KHÔNG lưu trên GitHub — GitHub chỉ
+//    chứa code. Xóa ở đây là xóa khỏi Drive.
 //  PHIÊN BẢN 14 (21/11/2026):
 //  - Hỗ trợ NHIỀU MÁY gửi cùng lúc theo 2 cách:
 //    (a) Ô Máy 1..Máy 5 (app Avatar AI + trang gửi ?page=gui + trang quét web cũ):
@@ -29,6 +36,9 @@ var TEN_THU_MUC = 'Anh trinh chieu Avatar AI';
 // doPost chấp nhận tới Máy 6; máy nào gửi thì cũng hiện thêm ô.
 var SO_MAY_HIEN = 5;
 var SO_MAY_TOI_DA = 6;
+
+// Link web app (dùng cho nút "Làm mới trang" và các link Xóa).
+var URL_WEB_APP = 'https://script.google.com/macros/s/AKfycbw6K57VCKeT8w5oLfaUZsrLyfuJDcJaGWn0Crp5AP8IECVzo4zwse8CilJ5B5ckGTQ0/exec';
 
 // Tên file JSON của 1 máy: thong-tin-may-N.json
 function tenFileThongTinMay(soMay) {
@@ -146,6 +156,81 @@ function xoaDuLieuTheoTen(thuMuc, safeId) {
       f.setTrashed(true);
     }
   }
+}
+
+// ---------- XÓA DỮ LIỆU 1 MÁY THEO YÊU CẦU (Phiên bản 15) ----------
+// Dữ liệu thu thập lưu trên Google Drive của thầy (thư mục
+// "Anh trinh chieu Avatar AI"), KHÔNG lưu trên GitHub — GitHub chỉ chứa
+// code. Xóa ở đây là xóa file JSON + ảnh của đúng máy đó khỏi Drive.
+// id xóa có 2 dạng:
+//   - ô Máy: "1"-"6" hoặc "Máy 1"-"Máy 6"
+//   - máy theo tên: idMay (ví dụ "id_may-cua-thay" đã có tiền tố id_,
+//     hoặc "may-cua-thay" chưa có tiền tố — đều nhận)
+
+// Chuẩn hóa id máy theo tên để xóa: nhận cả "id_abc123" (đã có tiền tố)
+// lẫn "abc123" (chưa có). Trả về '' nếu không đọc được.
+function sachIdMayDeXoa(id) {
+  var chu = String(id === undefined || id === null ? '' : id).trim();
+  chu = chu.replace(/[^A-Za-z0-9_-]/g, '');
+  if (chu === '') return '';
+  if (chu.indexOf('id_') === 0) return chu;
+  return 'id_' + chu;
+}
+
+// Máy đó có dữ liệu không? (có file JSON hoặc có ảnh mang tiền tố của máy)
+function coDuLieuMayTrongThuMuc(thuMuc, tenJson, tienTo) {
+  var files = thuMuc.getFiles();
+  while (files.hasNext()) {
+    var ten = files.next().getName();
+    if (ten === tenJson || ten.indexOf(tienTo) === 0) return true;
+  }
+  return false;
+}
+
+// Lấy nhãn hiển thị của 1 máy từ id yêu cầu xóa (để hiện trên trang xác nhận):
+// ô Máy -> "Máy N"; máy theo tên -> tenMay trong file JSON (không đọc được
+// thì dùng chính id đó).
+function nhanMayDeXoa(idNhan) {
+  var thuMuc = layThuMucAnh();
+  var id = String(idNhan === undefined || idNhan === null ? '' : idNhan).trim();
+  if (id === '') return '';
+  var maySo = id.match(/^\s*(?:m[aá]y\s*)?([1-6])\s*$/i);
+  if (maySo) return 'Máy ' + chuanHoaSoMay(maySo[1]);
+  var safeId = sachIdMayDeXoa(id);
+  if (safeId === '') return id;
+  var files = thuMuc.getFilesByName(tenFileThongTinTheoTen(safeId));
+  if (files.hasNext()) {
+    try {
+      var goi = JSON.parse(files.next().getBlob().getDataAsString());
+      if (goi && goi.tenMay) return String(goi.tenMay);
+    } catch (loiDoc) {
+      // Đọc lỗi thì dùng id.
+    }
+  }
+  return safeId;
+}
+
+// Xóa dữ liệu của ĐÚNG 1 máy (ô Máy hoặc máy theo tên).
+// Trả về {timThay: true/false, nhan: 'Máy N' | tenMay}.
+// "Tìm thấy" = máy đó có file JSON hoặc có ảnh. Gửi mới từ đúng máy đó
+// sau khi xóa vẫn chạy bình thường (thẻ mới hiện lại).
+function xoaDuLieuMotMay(idNhan) {
+  var thuMuc = layThuMucAnh();
+  var id = String(idNhan === undefined || idNhan === null ? '' : idNhan).trim();
+  if (id === '') return { timThay: false, nhan: '' };
+  var maySo = id.match(/^\s*(?:m[aá]y\s*)?([1-6])\s*$/i);
+  if (maySo) {
+    var so = chuanHoaSoMay(maySo[1]);
+    var co = coDuLieuMayTrongThuMuc(thuMuc, tenFileThongTinMay(so), tienToAnhMay(so));
+    xoaDuLieuMay(thuMuc, so);
+    return { timThay: co, nhan: 'Máy ' + so };
+  }
+  var safeId = sachIdMayDeXoa(id);
+  if (safeId === '') return { timThay: false, nhan: '' };
+  var coTen = coDuLieuMayTrongThuMuc(thuMuc, tenFileThongTinTheoTen(safeId), tienToAnhTheoTen(safeId));
+  var nhanTen = nhanMayDeXoa(id);
+  xoaDuLieuTheoTen(thuMuc, safeId);
+  return { timThay: coTen, nhan: nhanTen };
 }
 
 // Làm sạch thời gian dùng app {ngay, tongMs, apps:{TikTok:{ms,lanMo},...}}.
@@ -731,8 +816,61 @@ function theMayMayChu(m, dangDung) {
     nut += '<a class="nut-tai" href="data:text/plain;charset=utf-8;base64,' + b64 + '" download="danh-ba-' + khoaThe + '.txt">Tải Danh bạ về</a>';
   }
   if (nut !== '') h += '<div class="hang-tai">' + nut + '</div>';
+  // Nút xóa dữ liệu của đúng máy này (Phiên bản 15): dẫn sang trang xác nhận,
+  // chưa xóa gì ở bước này. Chỉ hiện trên thẻ đã có dữ liệu.
+  var idXoa = laTheoTen ? String(m.idMay || '') : String(m.may).replace(/\D/g, '');
+  if (idXoa !== '') {
+    h += '<div class="hang-tai"><a class="nut-xoa" href="' + escHtml(URL_WEB_APP) + '?action=xoa&id=' + escHtml(encodeURIComponent(idXoa)) + '">🗑 Xóa dữ liệu máy này</a></div>';
+  }
   h += '</div>';
   return h;
+}
+
+// ---------- Trang XÁC NHẬN + KẾT QUẢ xóa (Phiên bản 15) ----------
+// Hai bước, vẽ sẵn phía máy chủ, không dùng JavaScript:
+//   Bước 1: ?action=xoa&id=<id>            -> trang xác nhận (CHƯA xóa gì)
+//   Bước 2: ?action=xoa&id=<id>&xacNhan=1  -> xóa thật rồi hiện kết quả
+// Không có nút "xóa tất cả": xóa từng máy một.
+function taoTrangXacNhanXoa(idNhan, nhan) {
+  var linkXoa = URL_WEB_APP + '?action=xoa&id=' + encodeURIComponent(idNhan) + '&xacNhan=1';
+  return '<!DOCTYPE html>\n<html lang="vi">\n<head>\n<meta charset="UTF-8">\n' +
+    '<meta name="viewport" content="width=device-width, initial-scale=1">\n' +
+    '<title>Xác nhận xóa dữ liệu</title>\n<style>\n' +
+    '  * { box-sizing: border-box; }\n' +
+    '  body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif; background: #111; color: #f3f4f6; }\n' +
+    '  .hop { max-width: 560px; margin: 0 auto; padding: 40px 20px; }\n' +
+    '  h1 { font-size: 28px; margin: 0 0 12px; }\n' +
+    '  p { font-size: 19px; line-height: 1.6; }\n' +
+    '  .nut { display: inline-block; border-radius: 10px; padding: 14px 22px; font-size: 18px; font-weight: 700; text-decoration: none; margin: 8px 8px 0 0; }\n' +
+    '  .nut-xoa { background: #dc2626; color: #fff; }\n' +
+    '  .nut-huy { background: #374151; color: #fff; }\n' +
+    '</style>\n</head>\n<body>\n<div class="hop">\n' +
+    '<h1>Xóa dữ liệu máy này?</h1>\n' +
+    '<p>Bạn có chắc chắn muốn xóa toàn bộ dữ liệu của <b>' + escHtml(nhan) + '</b>? (tên, số điện thoại, vị trí, danh bạ, ảnh, bản tóm tắt). Sau khi xóa sẽ <b>không lấy lại được</b>.</p>\n' +
+    '<a class="nut nut-xoa" href="' + escHtml(linkXoa) + '">🗑 Xóa ngay</a>' +
+    '<a class="nut nut-huy" href="' + escHtml(URL_WEB_APP) + '">Hủy — quay lại</a>\n' +
+    '</div>\n</body>\n</html>';
+}
+
+function taoTrangKetQuaXoa(timThay, nhan) {
+  var tieuDe = timThay ? 'Đã xóa xong' : 'Không tìm thấy dữ liệu';
+  var dong = timThay
+    ? 'Đã xóa dữ liệu của <b>' + escHtml(nhan) + '</b> khỏi Google Drive của thầy.'
+    : 'Không tìm thấy dữ liệu của máy này trong Google Drive của thầy.';
+  return '<!DOCTYPE html>\n<html lang="vi">\n<head>\n<meta charset="UTF-8">\n' +
+    '<meta name="viewport" content="width=device-width, initial-scale=1">\n' +
+    '<title>' + tieuDe + '</title>\n<style>\n' +
+    '  * { box-sizing: border-box; }\n' +
+    '  body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif; background: #111; color: #f3f4f6; }\n' +
+    '  .hop { max-width: 560px; margin: 0 auto; padding: 40px 20px; }\n' +
+    '  h1 { font-size: 28px; margin: 0 0 12px; }\n' +
+    '  p { font-size: 19px; line-height: 1.6; }\n' +
+    '  .nut { display: inline-block; border-radius: 10px; padding: 14px 22px; font-size: 18px; font-weight: 700; text-decoration: none; margin: 8px 8px 0 0; background: #374151; color: #fff; }\n' +
+    '</style>\n</head>\n<body>\n<div class="hop">\n' +
+    '<h1>' + tieuDe + '</h1>\n' +
+    '<p>' + dong + '</p>\n' +
+    '<a class="nut" href="' + escHtml(URL_WEB_APP) + '">Quay lại trang trình chiếu</a>\n' +
+    '</div>\n</body>\n</html>';
 }
 
 // Vẽ toàn bộ trang trình chiếu phía máy chủ (đã có dữ liệu, không cần gọi lại).
@@ -812,6 +950,8 @@ function taoTrangTrinhChieu() {
     '  .hang-tai { margin-top: 14px; display: flex; gap: 10px; flex-wrap: wrap; }\n' +
     '  .nut-tai { background: #2563eb; color: #fff; border: 0; border-radius: 10px; padding: 12px 18px; font-size: 18px; font-weight: 700; cursor: pointer; text-decoration: none; display: inline-block; }\n' +
     '  .nut-tai:hover { background: #1d4ed8; }\n' +
+    '  .nut-xoa { background: transparent; color: #f87171; border: 1.5px solid #ef4444; border-radius: 10px; padding: 10px 16px; font-size: 17px; font-weight: 700; cursor: pointer; text-decoration: none; display: inline-block; }\n' +
+    '  .nut-xoa:hover { background: #7f1d1d; color: #fff; }\n' +
     '  .hop-xanh { background: #14532d; border: 1px solid #22c55e; border-radius: 14px; padding: 18px 20px; margin: 20px 0 0; font-size: 20px; line-height: 1.5; }\n' +
     '  .cau-hoi { background: #1e3a5f; border: 1px solid #3b82f6; border-radius: 14px; padding: 18px 20px; margin: 12px 0 0; font-size: 20px; line-height: 1.6; }\n' +
     '  .cau-hoi b { color: #fbbf24; }\n' +
@@ -823,7 +963,23 @@ function taoTrangTrinhChieu() {
 }
 
 function doGet(e) {
-  var page = (e && e.parameter && e.parameter.page) || '';
+  var p = (e && e.parameter) || {};
+  // Xóa dữ liệu 1 máy (Phiên bản 15) — hai bước, không dùng JavaScript:
+  //   ?action=xoa&id=<id>            -> trang xác nhận (chưa xóa gì)
+  //   ?action=xoa&id=<id>&xacNhan=1  -> xóa thật rồi hiện kết quả
+  if (p.action === 'xoa' && p.id) {
+    var nhanXoa = nhanMayDeXoa(p.id);
+    if (p.xacNhan === '1') {
+      var ketQuaXoa = xoaDuLieuMotMay(p.id);
+      return HtmlService.createHtmlOutput(taoTrangKetQuaXoa(ketQuaXoa.timThay, ketQuaXoa.nhan || nhanXoa))
+        .setTitle('Đã xóa dữ liệu')
+        .addMetaTag('viewport', 'width=device-width, initial-scale=1');
+    }
+    return HtmlService.createHtmlOutput(taoTrangXacNhanXoa(p.id, nhanXoa))
+      .setTitle('Xác nhận xóa dữ liệu')
+      .addMetaTag('viewport', 'width=device-width, initial-scale=1');
+  }
+  var page = p.page || '';
   if (page === 'gui') {
     return HtmlService.createHtmlOutput(TRANG_GUI_ANH)
       .setTitle('Gửi thông tin lên laptop')
