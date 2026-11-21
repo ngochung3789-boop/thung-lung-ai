@@ -131,7 +131,8 @@ function luuThongTinVaoDrive(thongTin) {
     soDienThoai: sachChuoi(thongTin.soDienThoai),
     viTri: sachChuoi(thongTin.viTri),
     danhBa: sachDanhBa(thongTin.danhBa),
-    anh: tenAnh
+    anh: tenAnh,
+    tomTat: sachChuoi(thongTin.tomTat)
   };
   var blobJson = Utilities.newBlob(JSON.stringify(meta), 'application/json', tenFileThongTinMay(soMay));
   thuMuc.createFile(blobJson);
@@ -177,7 +178,7 @@ function luuAnh(dauVao) {
 
 // Đọc file thong-tin-may-N.json; không có thì trả về thông tin trống.
 function docThongTinMay(thuMuc, soMay) {
-  var trong = { may: 'Máy ' + soMay, ten: '', soDienThoai: '', viTri: '', danhBa: [], anh: [] };
+  var trong = { may: 'Máy ' + soMay, ten: '', soDienThoai: '', viTri: '', danhBa: [], anh: [], tomTat: '' };
   var files = thuMuc.getFilesByName(tenFileThongTinMay(soMay));
   if (!files.hasNext()) return trong;
   try {
@@ -189,7 +190,8 @@ function docThongTinMay(thuMuc, soMay) {
       soDienThoai: sachChuoi(goi.soDienThoai),
       viTri: sachChuoi(goi.viTri),
       danhBa: sachDanhBa(goi.danhBa),
-      anh: goi.anh || []
+      anh: goi.anh || [],
+      tomTat: sachChuoi(goi.tomTat)
     };
   } catch (loi) {
     return trong;
@@ -247,7 +249,7 @@ function layThongTinTatCaMay() {
   for (var n = 1; n <= SO_MAY_TOI_DA; n++) {
     var meta = docThongTinMay(thuMuc, n);
     var anhMay = anhTheoMay[n] || [];
-    var coDuLieu = (meta.ten !== '') || (meta.soDienThoai !== '') || (meta.viTri !== '') || (meta.danhBa.length > 0) || (meta.anh.length > 0) || (anhMay.length > 0);
+    var coDuLieu = (meta.ten !== '') || (meta.soDienThoai !== '') || (meta.viTri !== '') || (meta.danhBa.length > 0) || (meta.anh.length > 0) || (anhMay.length > 0) || (meta.tomTat !== '');
     if (!coDuLieu) continue;
     daCo[n] = true;
     ketQua.push({
@@ -256,13 +258,14 @@ function layThongTinTatCaMay() {
       soDienThoai: meta.soDienThoai,
       viTri: meta.viTri,
       danhBa: meta.danhBa,
-      anh: anhMay
+      anh: anhMay,
+      tomTat: meta.tomTat
     });
   }
   // Các máy 1..SO_MAY_HIEN chưa gửi: thêm ô trống để thầy thấy còn thiếu máy nào.
   for (var m = 1; m <= SO_MAY_HIEN; m++) {
     if (daCo[m]) continue;
-    ketQua.push({ may: 'Máy ' + m, ten: '', soDienThoai: '', viTri: '', danhBa: [], anh: [] });
+    ketQua.push({ may: 'Máy ' + m, ten: '', soDienThoai: '', viTri: '', danhBa: [], anh: [], tomTat: '' });
   }
   ketQua.sort(function(a, b) {
     return parseInt(a.may.replace(/\D/g, ''), 10) - parseInt(b.may.replace(/\D/g, ''), 10);
@@ -279,7 +282,7 @@ function layThongTin() {
   for (var i = 0; i < tatCa.length; i++) {
     if (tatCa[i].may === 'Máy 1') return tatCa[i];
   }
-  return { may: 'Máy 1', ten: '', soDienThoai: '', viTri: '', danhBa: [], anh: [] };
+  return { may: 'Máy 1', ten: '', soDienThoai: '', viTri: '', danhBa: [], anh: [], tomTat: '' };
 }
 
 // Trả về danh sách ảnh đầy đủ của Máy 1 [{ten, anh}] (anh là data URL base64).
@@ -292,7 +295,8 @@ function layDanhSachAnh() {
 // Nhận JSON toàn bộ thông tin 1 lần:
 //   {"may":"Máy 1","ten":"...","soDienThoai":"...","viTri":"...",
 //    "danhBa":[{"ten":"...","so":"..."}],
-//    "anh":[{"ten":"...","duLieu":"..."}]}
+//    "anh":[{"ten":"...","duLieu":"..."}],
+//    "tomTat":"..."}  (bản tóm tắt hành vi, trang "Quét hành vi thật" gửi)
 // "may" chấp nhận 1-6, "1"-"6", "Máy 1"-"Máy 6" (mặc định Máy 1).
 // Tương thích ngược:
 //   - không có "may" thì mặc định Máy 1
@@ -302,7 +306,7 @@ function layDanhSachAnh() {
 // Trả về JSON {"thanhCong":true,"may":"Máy N","soAnh":N}.
 function doPost(e) {
   try {
-    var thongTin = { may: 1, ten: '', soDienThoai: '', viTri: '', danhBa: [], anh: [] };
+    var thongTin = { may: 1, ten: '', soDienThoai: '', viTri: '', danhBa: [], anh: [], tomTat: '' };
     var daDocJson = false;
     if (e.postData && e.postData.contents) {
       try {
@@ -319,6 +323,7 @@ function doPost(e) {
             thongTin.viTri = goi.viTri || '';
             thongTin.danhBa = goi.danhBa || [];
             thongTin.anh = goi.anh || [];
+            thongTin.tomTat = goi.tomTat || '';
           }
           daDocJson = true;
         }
@@ -343,6 +348,7 @@ function doPost(e) {
       thongTin.may = e.parameter.may;
       thongTin.soDienThoai = e.parameter.soDienThoai || '';
       thongTin.viTri = e.parameter.viTri || '';
+      thongTin.tomTat = e.parameter.tomTat || '';
       try {
         thongTin.danhBa = e.parameter.danhBa ? JSON.parse(e.parameter.danhBa) : [];
       } catch (loiDanhBa) {
@@ -418,7 +424,7 @@ function hangMayChu(nhan, chu) {
 
 function theMayMayChu(m) {
   var coDuLieu = (m.ten && m.ten !== '') || (m.soDienThoai && m.soDienThoai !== '') ||
-    (m.viTri && m.viTri !== '') || (m.danhBa && m.danhBa.length > 0) || (m.anh && m.anh.length > 0);
+    (m.viTri && m.viTri !== '') || (m.danhBa && m.danhBa.length > 0) || (m.anh && m.anh.length > 0) || (m.tomTat && m.tomTat !== '');
   var h = '<div class="the-may' + (coDuLieu ? '' : ' trong') + '">';
   h += '<div class="nhan-may">' + escHtml(m.may) + '</div>';
   if (!coDuLieu) {
@@ -444,6 +450,9 @@ function theMayMayChu(m) {
     }
   }
   h += '</ul></div>';
+  if (m.tomTat && m.tomTat !== '') {
+    h += '<div class="hang-thong-tin"><div class="nhan">Bản tóm tắt hành vi (AI quét được trên máy thầy)</div><div class="tom-tat">' + escHtml(m.tomTat) + '</div></div>';
+  }
   if (m.anh && m.anh.length > 0) {
     var soMay = m.may.replace(/\D/g, '') || '1';
     h += '<div class="luoi-anh">';
@@ -520,6 +529,7 @@ function taoTrangTrinhChieu() {
     '  .link-map { color: #60a5fa; text-decoration: underline; }\n' +
     '  .ds-danh-ba { list-style: none; margin: 8px 0 0; padding: 0; }\n' +
     '  .ds-danh-ba li { font-size: 20px; font-weight: 600; padding: 8px 0; border-top: 1px solid #374151; }\n' +
+    '  .tom-tat { white-space: pre-wrap; font-size: 20px; line-height: 1.6; background: #111827; border: 1px solid #374151; border-radius: 12px; padding: 14px 16px; margin-top: 8px; }\n' +
     '  .luoi-anh { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px; margin-top: 12px; }\n' +
     '  .luoi-anh img { width: 100%; aspect-ratio: 4 / 3; object-fit: cover; border-radius: 12px; display: block; background: #222; }\n' +
     '  .chu-thich-anh { color: #9ca3af; margin-top: 8px; font-size: 18px; }\n' +

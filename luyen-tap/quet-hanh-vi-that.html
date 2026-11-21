@@ -1,0 +1,1174 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="color-scheme" content="light dark" />
+    <link rel="icon" href="data:," />
+    <title>Quét hành vi thật</title>
+    <style>
+      :root {
+        --bg: #eef2f0;
+        --card: #ffffff;
+        --ink: #16211c;
+        --muted: #54645c;
+        --line: #d3ddd8;
+        --accent: #0b6e4f;
+        --accent-ink: #ffffff;
+        --accent-soft: #e2f2ec;
+        --warn-bg: #fdf3e0;
+        --warn-line: #d97706;
+        --warn-ink: #7c4a03;
+        --ok: #177245;
+        --err: #b3261e;
+        --chip: #e8eeeb;
+        --shadow: 0 1px 3px rgba(16, 32, 24, 0.12);
+      }
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --bg: #0e1512;
+          --card: #182420;
+          --ink: #e7f0eb;
+          --muted: #9db3a8;
+          --line: #2b3d35;
+          --accent: #2fbf8f;
+          --accent-ink: #06231a;
+          --accent-soft: #123528;
+          --warn-bg: #3a2a10;
+          --warn-line: #e09a2b;
+          --warn-ink: #ffd9a0;
+          --ok: #4cc984;
+          --err: #ff8a80;
+          --chip: #22352c;
+          --shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+        }
+      }
+      * { box-sizing: border-box; }
+      html, body { margin: 0; padding: 0; }
+      body {
+        background: var(--bg);
+        color: var(--ink);
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        font-size: 16px;
+        line-height: 1.5;
+        -webkit-text-size-adjust: 100%;
+      }
+      .col {
+        max-width: 480px;
+        margin: 0 auto;
+        padding: 16px 14px 40px;
+      }
+      h1 {
+        font-size: 28px;
+        line-height: 1.2;
+        margin: 10px 0 6px;
+        letter-spacing: -0.01em;
+      }
+      .lesson-tag {
+        display: inline-block;
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--accent);
+        background: var(--accent-soft);
+        border-radius: 999px;
+        padding: 4px 12px;
+        margin-bottom: 4px;
+      }
+      .notice {
+        background: var(--warn-bg);
+        border: 2px solid var(--warn-line);
+        border-radius: 12px;
+        padding: 14px 16px;
+        margin: 14px 0;
+        color: var(--warn-ink);
+        font-weight: 700;
+        font-size: 16px;
+        line-height: 1.45;
+      }
+      .lead { color: var(--muted); margin: 10px 0 18px; }
+      .card {
+        background: var(--card);
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        box-shadow: var(--shadow);
+        padding: 16px;
+        margin: 0 0 14px;
+      }
+      .step-head {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 10px;
+        margin-bottom: 4px;
+      }
+      .step-title { font-size: 18px; font-weight: 700; margin: 0; }
+      .step-status {
+        font-size: 13px;
+        font-weight: 700;
+        white-space: nowrap;
+        color: var(--muted);
+      }
+      .step-status.active { color: var(--warn-line); }
+      .step-status.done { color: var(--ok); }
+      .step-status.bad { color: var(--err); }
+      .step-body { color: var(--ink); }
+      .step-body p { margin: 6px 0; }
+      .dim { color: var(--muted); font-size: 14px; }
+      .result-line {
+        background: var(--chip);
+        border-radius: 8px;
+        padding: 8px 10px;
+        font-size: 15px;
+        word-break: break-word;
+        margin: 8px 0;
+      }
+      button, .btn-like {
+        font: inherit;
+        font-weight: 600;
+        border-radius: 10px;
+        border: 1px solid var(--line);
+        background: var(--card);
+        color: var(--ink);
+        padding: 10px 16px;
+        min-height: 44px;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        text-align: center;
+      }
+      button:active, .btn-like:active { transform: translateY(1px); }
+      button:disabled { opacity: 0.55; cursor: default; }
+      .btn-primary {
+        background: var(--accent);
+        border-color: var(--accent);
+        color: var(--accent-ink);
+        width: 100%;
+        font-size: 18px;
+        min-height: 54px;
+      }
+      .btn-block { width: 100%; margin-top: 10px; }
+      .btn-row { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 10px; }
+      .btn-row > button { flex: 1 1 auto; }
+      video.cam {
+        width: 100%;
+        border-radius: 10px;
+        background: #000;
+        display: block;
+        margin: 10px 0 4px;
+      }
+      img.captured {
+        width: 100%;
+        border-radius: 10px;
+        display: block;
+        margin: 10px 0 4px;
+      }
+      .thumbs {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-top: 10px;
+      }
+      .thumb {
+        position: relative;
+        width: 76px;
+        height: 76px;
+        border-radius: 10px;
+        overflow: hidden;
+        border: 3px solid var(--line);
+        padding: 0;
+        min-height: 0;
+        background: var(--chip);
+      }
+      .thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+      .thumb.selected { border-color: var(--accent); }
+      .thumb .tick {
+        position: absolute;
+        right: 4px;
+        bottom: 4px;
+        width: 22px;
+        height: 22px;
+        border-radius: 50%;
+        background: var(--accent);
+        color: var(--accent-ink);
+        font-size: 14px;
+        line-height: 22px;
+        text-align: center;
+        display: none;
+        font-weight: 800;
+      }
+      .thumb.selected .tick { display: block; }
+      .thumb .notick {
+        position: absolute;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.45);
+        color: #fff;
+        font-size: 12px;
+        font-weight: 700;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        padding: 4px;
+      }
+      .thumb:not(.selected) .notick { display: flex; }
+      input[type="text"], input[type="tel"] {
+        font: inherit;
+        width: 100%;
+        padding: 10px 12px;
+        min-height: 44px;
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        background: var(--card);
+        color: var(--ink);
+        margin-top: 8px;
+      }
+      .contact-list { list-style: none; margin: 10px 0 0; padding: 0; }
+      .contact-list li {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        background: var(--chip);
+        border-radius: 8px;
+        padding: 8px 10px;
+        margin-bottom: 6px;
+        font-size: 15px;
+        word-break: break-word;
+      }
+      .contact-list .rm {
+        flex: 0 0 auto;
+        min-height: 36px;
+        min-width: 36px;
+        padding: 4px 8px;
+        font-size: 15px;
+        border-radius: 8px;
+      }
+      .kv { margin: 4px 0; font-size: 15px; word-break: break-word; }
+      .kv b { font-weight: 700; }
+      .summary-text {
+        white-space: pre-wrap;
+        word-break: break-word;
+        font-family: inherit;
+        font-size: 15.5px;
+        line-height: 1.6;
+        margin: 0;
+      }
+      .may-picker { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px; }
+      .may-picker button {
+        flex: 1 1 17%;
+        min-height: 48px;
+        padding: 8px 4px;
+        font-size: 15px;
+      }
+      .may-picker button.selected {
+        background: var(--accent);
+        border-color: var(--accent);
+        color: var(--accent-ink);
+      }
+      .send-status { font-weight: 700; margin-top: 10px; min-height: 24px; }
+      .send-status.ok { color: var(--ok); }
+      .send-status.err { color: var(--err); }
+      .review-thumbs { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+      .review-thumbs img {
+        width: 64px; height: 64px; object-fit: cover; border-radius: 8px; border: 1px solid var(--line);
+      }
+      .review-thumbs figure { margin: 0; width: 64px; }
+      .review-thumbs figcaption { font-size: 11px; color: var(--muted); text-align: center; word-break: break-all; }
+      .review-list { margin: 6px 0 0; padding-left: 18px; font-size: 15px; }
+      h2.section-title { font-size: 20px; margin: 22px 0 10px; }
+      .hidden { display: none !important; }
+      .small-note { font-size: 13px; color: var(--muted); margin-top: 8px; }
+    </style>
+  </head>
+  <body>
+    <div class="col">
+
+      <!-- ============ MÀN HÌNH BẮT ĐẦU ============ -->
+      <section id="startScreen">
+        <span class="lesson-tag">Bài 8.A2.2 — AI theo dõi người dùng</span>
+        <h1>Quét hành vi thật</h1>
+        <div class="notice">CHỈ CHẠY TRÊN MÁY THẦY — dữ liệu thật trên máy thầy, thầy tự cho phép. Không dùng cho học sinh.</div>
+        <p class="lead">Trang này sẽ xin quyền từng mục một ngay trên máy thầy: vị trí, camera, album, danh bạ, micro và thông tin máy. Quét xong, trang viết thành một bản tóm tắt cho thấy một AI có thể biết được những gì về người dùng — chỉ từ chiếc điện thoại này.</p>
+        <button id="btnStart" class="btn-primary" type="button">Bắt đầu quét</button>
+        <p class="small-note">Mỗi quyền đều do thầy tự bấm cho phép trên máy thầy. Ảnh và dữ liệu chỉ nằm trong trang này, không gửi đi đâu cho tới khi thầy bấm nút “Gửi lên laptop”.</p>
+      </section>
+
+      <!-- ============ CÁC BƯỚC QUÉT ============ -->
+      <section id="scanScreen" class="hidden">
+        <h1>Đang quét trên máy thầy</h1>
+        <p class="lead">Từng mục một — thầy cho phép mục nào thì trang đọc mục đó.</p>
+
+        <!-- Bước 1: GPS -->
+        <div class="card hidden" id="stepGps">
+          <div class="step-head">
+            <p class="step-title">1. Vị trí GPS</p>
+            <span class="step-status" id="statusGps">Chưa bắt đầu</span>
+          </div>
+          <div class="step-body">
+            <p class="dim">Trang xin quyền vị trí một lần để lấy tọa độ hiện tại của máy thầy.</p>
+            <div class="result-line hidden" id="resultGps"></div>
+          </div>
+        </div>
+
+        <!-- Bước 2: Camera -->
+        <div class="card hidden" id="stepCam">
+          <div class="step-head">
+            <p class="step-title">2. Camera</p>
+            <span class="step-status" id="statusCam">Chưa bắt đầu</span>
+          </div>
+          <div class="step-body">
+            <p class="dim">Camera mở trực tiếp trên máy thầy. Thầy bấm “Chụp ảnh” để chụp một tấm thật, hoặc bỏ qua.</p>
+            <div id="camLive" class="hidden">
+              <video class="cam" id="camVideo" autoplay muted playsinline></video>
+              <div class="btn-row">
+                <button id="btnCapture" type="button">Chụp ảnh</button>
+                <button id="btnSkipCam" type="button">Bỏ qua ảnh</button>
+              </div>
+            </div>
+            <img class="captured hidden" id="camPhoto" alt="Ảnh vừa chụp bằng camera trên máy thầy" />
+            <div class="result-line hidden" id="resultCam"></div>
+          </div>
+        </div>
+
+        <!-- Bước 3: Album -->
+        <div class="card hidden" id="stepAlbum">
+          <div class="step-head">
+            <p class="step-title">3. Album ảnh</p>
+            <span class="step-status" id="statusAlbum">Chưa bắt đầu</span>
+          </div>
+          <div class="step-body">
+            <p class="dim">Thầy tự chọn ảnh từ album trên máy thầy. Bấm vào từng ảnh để chọn / bỏ chọn — chỉ ảnh đang chọn mới được gửi.</p>
+            <label class="btn-like btn-block" for="albumInput">Mở Album — chọn ảnh từ máy thầy</label>
+            <input type="file" id="albumInput" accept="image/*" multiple class="hidden" />
+            <div class="thumbs" id="albumThumbs"></div>
+            <p class="dim" id="albumCount"></p>
+            <button id="btnAlbumDone" class="btn-primary btn-block hidden" type="button">Tiếp tục</button>
+          </div>
+        </div>
+
+        <!-- Bước 4: Danh bạ -->
+        <div class="card hidden" id="stepContacts">
+          <div class="step-head">
+            <p class="step-title">4. Danh bạ</p>
+            <span class="step-status" id="statusContacts">Chưa bắt đầu</span>
+          </div>
+          <div class="step-body">
+            <p class="dim">Chọn vài người trong danh bạ máy thầy, hoặc gõ tay. Chỉ nên chọn 1–2 số thầy thoải mái cho cả lớp thấy.</p>
+            <div class="btn-row">
+              <button id="btnPickContacts" type="button">Chọn từ danh bạ máy</button>
+              <button id="btnSampleContacts" type="button">Dùng danh bạ mẫu</button>
+            </div>
+            <p class="dim hidden" id="contactsUnsupported">Máy/trình duyệt này không hỗ trợ chọn thẳng từ danh bạ — thầy gõ tay hoặc dùng danh bạ mẫu nhé.</p>
+            <input type="text" id="contactName" placeholder="Tên người" autocomplete="off" />
+            <input type="tel" id="contactTel" placeholder="Số điện thoại" autocomplete="off" />
+            <button id="btnAddContact" class="btn-block" type="button">Thêm</button>
+            <ul class="contact-list" id="contactList"></ul>
+            <button id="btnContactsDone" class="btn-primary btn-block hidden" type="button">Tiếp tục</button>
+          </div>
+        </div>
+
+        <!-- Bước 5: Thiết bị -->
+        <div class="card hidden" id="stepDevice">
+          <div class="step-head">
+            <p class="step-title">5. Thông tin thiết bị</p>
+            <span class="step-status" id="statusDevice">Chưa bắt đầu</span>
+          </div>
+          <div class="step-body">
+            <p class="dim">Mục này không cần xin quyền — trang web nào cũng đọc được ngay khi mở trang.</p>
+            <div id="deviceInfo"></div>
+          </div>
+        </div>
+
+        <!-- Bước 6: Micro -->
+        <div class="card hidden" id="stepMic">
+          <div class="step-head">
+            <p class="step-title">6. Micro</p>
+            <span class="step-status" id="statusMic">Chưa bắt đầu</span>
+          </div>
+          <div class="step-body">
+            <p class="dim">Trang chỉ xin quyền micro để kiểm tra thầy có cho phép hay không, rồi tắt ngay. Không ghi âm bất cứ thứ gì.</p>
+            <div class="result-line hidden" id="resultMic"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ TÓM TẮT + GỬI ============ -->
+      <section id="summarySection" class="hidden">
+        <h2 class="section-title">Bản tóm tắt — AI biết gì về bạn?</h2>
+        <div class="card">
+          <pre class="summary-text" id="summaryText"></pre>
+        </div>
+
+        <div class="card">
+          <p class="step-title">Xem lại trước khi gửi</p>
+          <p class="dim">Đây là đúng những gì sẽ gửi lên laptop: các ảnh đang chọn và danh bạ dưới đây, kèm bản tóm tắt ở trên.</p>
+          <p style="margin:10px 0 0;"><b>Ảnh sẽ gửi:</b></p>
+          <div class="review-thumbs" id="reviewPhotos"></div>
+          <p class="dim" id="reviewNoPhotos">Chưa có ảnh nào được chọn.</p>
+          <p style="margin:12px 0 0;"><b>Danh bạ sẽ gửi:</b></p>
+          <ul class="review-list" id="reviewContacts"></ul>
+          <p class="dim" id="reviewNoContacts">Chưa có liên hệ nào.</p>
+        </div>
+
+        <div class="card">
+          <p class="step-title">Gửi từ máy nào?</p>
+          <div class="may-picker" id="mayPicker">
+            <button type="button" data-may="Máy 1" class="selected">Máy 1</button>
+            <button type="button" data-may="Máy 2">Máy 2</button>
+            <button type="button" data-may="Máy 3">Máy 3</button>
+            <button type="button" data-may="Máy 4">Máy 4</button>
+            <button type="button" data-may="Máy 5">Máy 5</button>
+          </div>
+          <button id="btnSend" class="btn-primary btn-block" type="button">Gửi lên laptop</button>
+          <p class="send-status" id="sendStatus"></p>
+          <div class="btn-row">
+            <button id="btnCopy" type="button">Sao chép bản tóm tắt</button>
+            <button id="btnRescan" type="button">Quét lại</button>
+          </div>
+          <p class="send-status" id="copyStatus"></p>
+        </div>
+      </section>
+
+    </div>
+
+    <script>
+      "use strict";
+
+      var WEBAPP_URL = "https://script.google.com/macros/s/AKfycbw6K57VCKeT8w5oLfaUZsrLyfuJDcJaGWn0Crp5AP8IECVzo4zwse8CilJ5B5ckGTQ0/exec";
+
+      // ---------- Trạng thái (chỉ nằm trong bộ nhớ của trang) ----------
+      var state = null;
+      var camStream = null;
+      var selectedMay = "Máy 1";
+      var summaryBuilt = false;
+
+      function freshState() {
+        return {
+          viTri: "",            // "lat, lng" — vĩ độ trước, 6 chữ số thập phân
+          viTriStatus: "",      // ok | denied | unsupported
+          cameraPhoto: null,    // { ten, dataUrl } — đã nén JPEG
+          cameraStatus: "",     // ok | skipped | denied | unsupported
+          albumPhotos: [],      // { ten, file, url, selected }
+          contacts: [],         // { ten, so }
+          device: null,         // object thông tin thiết bị
+          microStatus: ""       // ok | denied | unsupported
+        };
+      }
+      state = freshState();
+
+      function $(id) { return document.getElementById(id); }
+
+      function setStatus(id, text, kind) {
+        var el = $(id);
+        el.textContent = text;
+        el.className = "step-status" + (kind ? " " + kind : "");
+      }
+
+      function showResult(id, text) {
+        var el = $(id);
+        el.textContent = text;
+        el.classList.remove("hidden");
+      }
+
+      // ---------- Nén ảnh: tối đa 800px, JPEG 0.7 ----------
+      function drawToJpeg(source, w, h) {
+        var max = 800;
+        var scale = Math.min(1, max / Math.max(w, h));
+        var cw = Math.max(1, Math.round(w * scale));
+        var ch = Math.max(1, Math.round(h * scale));
+        var c = document.createElement("canvas");
+        c.width = cw; c.height = ch;
+        c.getContext("2d").drawImage(source, 0, 0, cw, ch);
+        return c.toDataURL("image/jpeg", 0.7);
+      }
+
+      function fileToJpegDataUrl(file) {
+        return new Promise(function (resolve, reject) {
+          var url = URL.createObjectURL(file);
+          var img = new Image();
+          img.onload = function () {
+            try {
+              var dataUrl = drawToJpeg(img, img.naturalWidth, img.naturalHeight);
+              URL.revokeObjectURL(url);
+              resolve(dataUrl);
+            } catch (e) {
+              URL.revokeObjectURL(url);
+              reject(e);
+            }
+          };
+          img.onerror = function () {
+            URL.revokeObjectURL(url);
+            reject(new Error("Không đọc được ảnh"));
+          };
+          img.src = url;
+        });
+      }
+
+      function stripPrefix(dataUrl) {
+        var i = dataUrl.indexOf(",");
+        return i >= 0 ? dataUrl.slice(i + 1) : dataUrl;
+      }
+
+      // ---------- Bước 1: GPS ----------
+      function scanGps() {
+        return new Promise(function (resolve) {
+          setStatus("statusGps", "Đang quét…", "active");
+          if (!navigator.geolocation) {
+            state.viTriStatus = "unsupported";
+            setStatus("statusGps", "Không hỗ trợ", "bad");
+            showResult("resultGps", "Trình duyệt này không hỗ trợ định vị.");
+            resolve();
+            return;
+          }
+          navigator.geolocation.getCurrentPosition(
+            function (pos) {
+              state.viTri = pos.coords.latitude.toFixed(6) + ", " + pos.coords.longitude.toFixed(6);
+              state.viTriStatus = "ok";
+              setStatus("statusGps", "Đã xong", "done");
+              showResult("resultGps", "Vị trí trên máy thầy: " + state.viTri + " (vĩ độ, kinh độ)");
+              resolve();
+            },
+            function () {
+              state.viTriStatus = "denied";
+              setStatus("statusGps", "Không cho phép", "bad");
+              showResult("resultGps", "Thầy chưa cho phép truy cập vị trí — trang không đọc được vị trí.");
+              resolve();
+            },
+            { timeout: 12000, maximumAge: 60000 }
+          );
+        });
+      }
+
+      // ---------- Bước 2: Camera ----------
+      function stopCam() {
+        if (camStream) {
+          camStream.getTracks().forEach(function (t) { t.stop(); });
+          camStream = null;
+        }
+        var v = $("camVideo");
+        if (v) v.srcObject = null;
+      }
+
+      function scanCamera() {
+        return new Promise(function (resolve) {
+          setStatus("statusCam", "Đang quét…", "active");
+          if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+            state.cameraStatus = "unsupported";
+            setStatus("statusCam", "Không hỗ trợ", "bad");
+            showResult("resultCam", "Trình duyệt này không hỗ trợ mở camera từ trang web.");
+            resolve();
+            return;
+          }
+          navigator.mediaDevices.getUserMedia({ video: true, audio: false })
+            .then(function (stream) {
+              camStream = stream;
+              var video = $("camVideo");
+              video.srcObject = stream;
+              $("camLive").classList.remove("hidden");
+              setStatus("statusCam", "Đang chờ thầy chụp…", "active");
+
+              function finish(st) {
+                stopCam();
+                $("camLive").classList.add("hidden");
+                state.cameraStatus = st;
+                resolve();
+              }
+
+              $("btnCapture").onclick = function () {
+                try {
+                  var dataUrl = drawToJpeg(video, video.videoWidth, video.videoHeight);
+                  state.cameraPhoto = { ten: "anh-camera.jpg", dataUrl: dataUrl };
+                  var img = $("camPhoto");
+                  img.src = dataUrl;
+                  img.classList.remove("hidden");
+                  showResult("resultCam", "Đã chụp 1 ảnh bằng camera trên máy thầy.");
+                  setStatus("statusCam", "Đã xong", "done");
+                } catch (e) {
+                  showResult("resultCam", "Chụp chưa được — thầy thử lại hoặc bỏ qua.");
+                  return;
+                }
+                finish("ok");
+              };
+              $("btnSkipCam").onclick = function () {
+                showResult("resultCam", "Thầy bỏ qua — không chụp ảnh nào.");
+                setStatus("statusCam", "Đã bỏ qua", "");
+                finish("skipped");
+              };
+            })
+            .catch(function () {
+              state.cameraStatus = "denied";
+              setStatus("statusCam", "Không cho phép", "bad");
+              showResult("resultCam", "Thầy chưa cho phép dùng camera — trang không mở được camera.");
+              resolve();
+            });
+        });
+      }
+
+      // ---------- Bước 3: Album ----------
+      function renderAlbum() {
+        var wrap = $("albumThumbs");
+        wrap.innerHTML = "";
+        state.albumPhotos.forEach(function (p, idx) {
+          var b = document.createElement("button");
+          b.type = "button";
+          b.className = "thumb" + (p.selected ? " selected" : "");
+          b.setAttribute("aria-label", "Ảnh " + p.ten + (p.selected ? " — đang chọn" : " — đã bỏ chọn"));
+          var img = document.createElement("img");
+          img.src = p.url;
+          img.alt = "Ảnh thầy chọn từ album: " + p.ten;
+          var tick = document.createElement("span");
+          tick.className = "tick";
+          tick.textContent = "✓";
+          var no = document.createElement("span");
+          no.className = "notick";
+          no.textContent = "Đã bỏ chọn";
+          b.appendChild(img);
+          b.appendChild(tick);
+          b.appendChild(no);
+          b.addEventListener("click", function () {
+            state.albumPhotos[idx].selected = !state.albumPhotos[idx].selected;
+            renderAlbum();
+            if (summaryBuilt) { buildSummary(); }
+          });
+          wrap.appendChild(b);
+        });
+        var n = state.albumPhotos.filter(function (p) { return p.selected; }).length;
+        $("albumCount").textContent = state.albumPhotos.length
+          ? "Đã chọn " + n + " / " + state.albumPhotos.length + " ảnh để gửi."
+          : "";
+      }
+
+      function waitAlbum() {
+        return new Promise(function (resolve) {
+          setStatus("statusAlbum", "Đang chờ thầy chọn ảnh…", "active");
+          var btn = $("btnAlbumDone");
+          btn.classList.remove("hidden");
+          btn.onclick = function () {
+            btn.classList.add("hidden");
+            setStatus("statusAlbum", "Đã xong", "done");
+            resolve();
+          };
+        });
+      }
+
+      // ---------- Bước 4: Danh bạ ----------
+      function renderContacts() {
+        var ul = $("contactList");
+        ul.innerHTML = "";
+        state.contacts.forEach(function (c, idx) {
+          var li = document.createElement("li");
+          var span = document.createElement("span");
+          span.textContent = c.ten + " — " + c.so;
+          var rm = document.createElement("button");
+          rm.type = "button";
+          rm.className = "rm";
+          rm.textContent = "✕";
+          rm.setAttribute("aria-label", "Xóa liên hệ " + c.ten);
+          rm.addEventListener("click", function () {
+            state.contacts.splice(idx, 1);
+            renderContacts();
+            if (summaryBuilt) { buildSummary(); }
+          });
+          li.appendChild(span);
+          li.appendChild(rm);
+          ul.appendChild(li);
+        });
+      }
+
+      function addContact(ten, so) {
+        ten = (ten || "").trim();
+        so = (so || "").trim();
+        if (!ten && !so) return;
+        state.contacts.push({ ten: ten || "(không tên)", so: so || "(không số)" });
+        renderContacts();
+        if (summaryBuilt) { buildSummary(); }
+      }
+
+      function waitContacts() {
+        return new Promise(function (resolve) {
+          setStatus("statusContacts", "Đang chờ thầy chọn…", "active");
+          if (!("contacts" in navigator) || !navigator.contacts || !navigator.contacts.select) {
+            $("btnPickContacts").disabled = true;
+            $("contactsUnsupported").classList.remove("hidden");
+          }
+          var btn = $("btnContactsDone");
+          btn.classList.remove("hidden");
+          btn.onclick = function () {
+            btn.classList.add("hidden");
+            setStatus("statusContacts", "Đã xong", "done");
+            resolve();
+          };
+        });
+      }
+
+      // ---------- Bước 5: Thiết bị ----------
+      function guessBrowserOS(ua) {
+        var os = "không rõ hệ điều hành";
+        if (/Android/i.test(ua)) os = "Android";
+        else if (/iPhone|iPad|iPod/i.test(ua)) os = "iOS (iPhone/iPad)";
+        else if (/Windows/i.test(ua)) os = "Windows";
+        else if (/Mac OS/i.test(ua)) os = "macOS";
+        else if (/Linux/i.test(ua)) os = "Linux";
+
+        var br = "không rõ trình duyệt";
+        if (/SamsungBrowser/i.test(ua)) br = "Samsung Internet";
+        else if (/Edg\//i.test(ua)) br = "Microsoft Edge";
+        else if (/OPR\/|Opera/i.test(ua)) br = "Opera";
+        else if (/Chrome\//i.test(ua)) br = "Google Chrome";
+        else if (/Firefox\//i.test(ua)) br = "Firefox";
+        else if (/Safari\//i.test(ua)) br = "Safari";
+        return br + " trên " + os;
+      }
+
+      function scanDevice() {
+        setStatus("statusDevice", "Đang quét…", "active");
+        var d = {};
+        d.screen = window.innerWidth + " × " + window.innerHeight + " (tỉ lệ điểm ảnh " + (window.devicePixelRatio || 1) + ")";
+        d.browserOS = guessBrowserOS(navigator.userAgent || "");
+        d.language = navigator.language || "không rõ";
+        try {
+          d.timezone = Intl.DateTimeFormat().resolvedOptions().timeZone || "không rõ";
+        } catch (e) {
+          d.timezone = "không rõ";
+        }
+        d.online = navigator.onLine ? "đang có mạng" : "đang mất mạng";
+        d.memory = (typeof navigator.deviceMemory === "number") ? navigator.deviceMemory + " GB" : null;
+        d.cores = (typeof navigator.hardwareConcurrency === "number") ? navigator.hardwareConcurrency + " lõi" : null;
+        d.battery = null;
+
+        var done = function () {
+          state.device = d;
+          var html = "";
+          html += '<p class="kv"><b>Màn hình:</b> ' + escapeHtml(d.screen) + "</p>";
+          html += '<p class="kv"><b>Trình duyệt / hệ điều hành:</b> ' + escapeHtml(d.browserOS) + "</p>";
+          html += '<p class="kv"><b>Ngôn ngữ máy:</b> ' + escapeHtml(d.language) + "</p>";
+          html += '<p class="kv"><b>Múi giờ:</b> ' + escapeHtml(d.timezone) + "</p>";
+          html += '<p class="kv"><b>Mạng:</b> ' + escapeHtml(d.online) + "</p>";
+          html += '<p class="kv"><b>Pin:</b> ' + escapeHtml(d.battery || "trình duyệt không cho đọc") + "</p>";
+          html += '<p class="kv"><b>RAM (gần đúng):</b> ' + escapeHtml(d.memory || "trình duyệt không cho đọc") + "</p>";
+          html += '<p class="kv"><b>CPU:</b> ' + escapeHtml(d.cores || "trình duyệt không cho đọc") + "</p>";
+          $("deviceInfo").innerHTML = html;
+          setStatus("statusDevice", "Đã xong", "done");
+        };
+
+        if (navigator.getBattery) {
+          navigator.getBattery().then(function (b) {
+            d.battery = Math.round(b.level * 100) + "%" + (b.charging ? ", đang sạc" : ", không sạc");
+            done();
+          }).catch(function () { done(); });
+        } else {
+          done();
+        }
+      }
+
+      function escapeHtml(s) {
+        return String(s)
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;")
+          .replace(/"/g, "&quot;");
+      }
+
+      // ---------- Bước 6: Micro (chỉ kiểm tra quyền, không ghi âm) ----------
+      function scanMic() {
+        return new Promise(function (resolve) {
+          setStatus("statusMic", "Đang quét…", "active");
+          if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+            state.microStatus = "unsupported";
+            setStatus("statusMic", "Không hỗ trợ", "bad");
+            showResult("resultMic", "Trình duyệt này không hỗ trợ xin quyền micro từ trang web.");
+            resolve();
+            return;
+          }
+          navigator.mediaDevices.getUserMedia({ audio: true, video: false })
+            .then(function (stream) {
+              // Tắt ngay lập tức — chỉ kiểm tra quyền, tuyệt đối không ghi âm.
+              stream.getTracks().forEach(function (t) { t.stop(); });
+              state.microStatus = "ok";
+              setStatus("statusMic", "Đã xong", "done");
+              showResult("resultMic", "Thầy đã cho phép micro. Trang đã tắt micro ngay, không ghi âm gì cả.");
+              resolve();
+            })
+            .catch(function () {
+              state.microStatus = "denied";
+              setStatus("statusMic", "Không cho phép", "bad");
+              showResult("resultMic", "Thầy chưa cho phép micro (hoặc máy không có micro) — trang không nghe được gì.");
+              resolve();
+            });
+        });
+      }
+
+      // ---------- Bản tóm tắt (văn bản thuần, không HTML) ----------
+      function buildSummary() {
+        var lines = [];
+        var count = 0;
+
+        lines.push("BẢN TÓM TẮT QUÉT HÀNH VI — TRÊN MÁY THẦY");
+        lines.push("Trang này chỉ quét trên máy thầy, từng mục do thầy tự bấm cho phép. Không quét máy của bất kỳ ai khác.");
+        lines.push("");
+
+        // Vị trí
+        lines.push("— VỊ TRÍ —");
+        if (state.viTriStatus === "ok") {
+          count += 1;
+          lines.push("Vị trí hiện tại trên máy thầy: " + state.viTri + " (vĩ độ, kinh độ).");
+          lines.push("→ AI suy ra được: bạn đang ở đâu ngay lúc này; quét nhiều lần sẽ biết bạn sống ở đâu, hay đi những đâu.");
+        } else if (state.viTriStatus === "denied") {
+          lines.push("Vị trí: thầy không cho phép truy cập.");
+          lines.push("→ AI suy ra được: không biết được vị trí của bạn từ trang này.");
+        } else {
+          lines.push("Vị trí: trình duyệt không hỗ trợ định vị.");
+          lines.push("→ AI suy ra được: không biết được vị trí của bạn từ trang này.");
+        }
+        lines.push("");
+
+        // Ảnh
+        var albumSel = state.albumPhotos.filter(function (p) { return p.selected; }).length;
+        lines.push("— ẢNH —");
+        if (state.cameraStatus === "ok" && state.cameraPhoto) {
+          count += 1;
+          lines.push("Ảnh chụp bằng camera: 1 ảnh.");
+          lines.push("→ AI suy ra được: khuôn mặt, khung cảnh quanh bạn và bạn đang ở trong nhà hay ngoài trời.");
+        } else if (state.cameraStatus === "denied") {
+          lines.push("Ảnh chụp bằng camera: thầy không cho phép mở camera.");
+          lines.push("→ AI suy ra được: không thấy được hình ảnh của bạn từ trang này.");
+        } else if (state.cameraStatus === "unsupported") {
+          lines.push("Ảnh chụp bằng camera: trình duyệt không hỗ trợ.");
+          lines.push("→ AI suy ra được: không thấy được hình ảnh của bạn từ trang này.");
+        } else {
+          lines.push("Ảnh chụp bằng camera: không chụp ảnh nào.");
+          lines.push("→ AI suy ra được: không có ảnh mới nào của bạn từ trang này.");
+        }
+        if (albumSel > 0) {
+          count += albumSel;
+          lines.push("Ảnh chọn từ album trên máy thầy: " + albumSel + " ảnh.");
+          lines.push("→ AI suy ra được: bạn hay chụp gì, đi đâu, chụp cùng ai — cả những chuyện đã qua từ lâu.");
+        } else {
+          lines.push("Ảnh chọn từ album: 0 ảnh.");
+          lines.push("→ AI suy ra được: không xem được album của bạn từ trang này.");
+        }
+        lines.push("");
+
+        // Danh bạ
+        lines.push("— DANH BẠ —");
+        if (state.contacts.length > 0) {
+          count += state.contacts.length;
+          var names = state.contacts.map(function (c) { return c.ten; }).join(", ");
+          lines.push("Số liên hệ đã chọn: " + state.contacts.length + " người (" + names + ").");
+          lines.push("→ AI suy ra được: bạn quen những ai, ai là người thân, ai là đồng nghiệp — cả một vòng quan hệ.");
+        } else {
+          lines.push("Danh bạ: chưa chọn liên hệ nào.");
+          lines.push("→ AI suy ra được: không biết được vòng quan hệ của bạn từ trang này.");
+        }
+        lines.push("");
+
+        // Thiết bị
+        var d = state.device || {};
+        lines.push("— THIẾT BỊ —");
+        if (d.screen) { count += 1; lines.push("Màn hình: " + d.screen + "."); lines.push("→ AI suy ra được: bạn dùng máy to hay nhỏ, đắt hay rẻ."); }
+        if (d.browserOS) { count += 1; lines.push("Trình duyệt / hệ điều hành: " + d.browserOS + "."); lines.push("→ AI suy ra được: bạn dùng điện thoại hãng nào, đời máy khoảng nào."); }
+        if (d.language) { count += 1; lines.push("Ngôn ngữ máy: " + d.language + "."); lines.push("→ AI suy ra được: bạn nói tiếng gì, sống ở vùng nào."); }
+        if (d.timezone) { count += 1; lines.push("Múi giờ: " + d.timezone + "."); lines.push("→ AI suy ra được: bạn đang ở quốc gia, khu vực nào trên thế giới."); }
+        if (d.battery) { count += 1; lines.push("Pin: " + d.battery + "."); lines.push("→ AI suy ra được: thói quen dùng máy và sạc pin của bạn."); }
+        else { lines.push("Pin: trình duyệt không cho đọc."); lines.push("→ AI suy ra được: không biết được mức pin của bạn từ trang này."); }
+        if (d.online) { count += 1; lines.push("Mạng: " + d.online + "."); lines.push("→ AI suy ra được: bạn đang online hay offline ngay lúc này."); }
+        if (d.memory) { count += 1; lines.push("RAM (gần đúng): " + d.memory + "."); lines.push("→ AI suy ra được: máy của bạn mạnh hay yếu."); }
+        if (d.cores) { count += 1; lines.push("CPU: " + d.cores + "."); lines.push("→ AI suy ra được: máy của bạn xử lý nhanh hay chậm."); }
+        lines.push("");
+
+        // Micro
+        lines.push("— MICRO —");
+        if (state.microStatus === "ok") {
+          count += 1;
+          lines.push("Micro: thầy đã cho phép (trang chỉ kiểm tra quyền rồi tắt ngay, không ghi âm).");
+          lines.push("→ AI suy ra được: nếu một ứng dụng được cho phép micro, nó có thể nghe tiếng nói và âm thanh quanh bạn.");
+        } else if (state.microStatus === "denied") {
+          lines.push("Micro: thầy không cho phép.");
+          lines.push("→ AI suy ra được: không nghe được âm thanh quanh bạn từ trang này.");
+        } else {
+          lines.push("Micro: trình duyệt không hỗ trợ.");
+          lines.push("→ AI suy ra được: không nghe được âm thanh quanh bạn từ trang này.");
+        }
+        lines.push("");
+
+        lines.push("AI biết tổng cộng " + count + " điều về bạn.");
+
+        var text = lines.join("\n");
+        $("summaryText").textContent = text;
+        summaryBuilt = true;
+        refreshReview();
+        return text;
+      }
+
+      // ---------- Xem lại trước khi gửi ----------
+      function photosToSend() {
+        var list = [];
+        if (state.cameraPhoto) {
+          list.push({ ten: state.cameraPhoto.ten, thumb: state.cameraPhoto.dataUrl, dataUrl: state.cameraPhoto.dataUrl, file: null });
+        }
+        state.albumPhotos.forEach(function (p) {
+          if (p.selected) list.push({ ten: p.ten, thumb: p.url, dataUrl: null, file: p.file });
+        });
+        return list;
+      }
+
+      function refreshReview() {
+        var photos = photosToSend();
+        var wrap = $("reviewPhotos");
+        wrap.innerHTML = "";
+        photos.forEach(function (p) {
+          var fig = document.createElement("figure");
+          var img = document.createElement("img");
+          img.src = p.thumb;
+          img.alt = "Ảnh sẽ gửi: " + p.ten;
+          var cap = document.createElement("figcaption");
+          cap.textContent = p.ten;
+          fig.appendChild(img);
+          fig.appendChild(cap);
+          wrap.appendChild(fig);
+        });
+        $("reviewNoPhotos").classList.toggle("hidden", photos.length > 0);
+
+        var ul = $("reviewContacts");
+        ul.innerHTML = "";
+        state.contacts.forEach(function (c) {
+          var li = document.createElement("li");
+          li.textContent = c.ten + " — " + c.so;
+          ul.appendChild(li);
+        });
+        $("reviewNoContacts").classList.toggle("hidden", state.contacts.length > 0);
+      }
+
+      // ---------- Gửi lên laptop (lần gửi duy nhất của trang) ----------
+      function buildAnhPayload() {
+        var photos = photosToSend();
+        var jobs = photos.map(function (p) {
+          if (p.dataUrl) {
+            return Promise.resolve({ ten: p.ten, duLieu: stripPrefix(p.dataUrl) });
+          }
+          return fileToJpegDataUrl(p.file).then(function (dataUrl) {
+            return { ten: p.ten.replace(/\.[^.]+$/, "") + ".jpg", duLieu: stripPrefix(dataUrl) };
+          }).catch(function () { return null; });
+        });
+        return Promise.all(jobs).then(function (arr) {
+          return arr.filter(function (x) { return x !== null; });
+        });
+      }
+
+      function sendToLaptop() {
+        var btn = $("btnSend");
+        var status = $("sendStatus");
+        btn.disabled = true;
+        status.className = "send-status";
+        status.textContent = "Đang gửi bản tóm tắt lên laptop…";
+        buildAnhPayload().then(function (anh) {
+          var payload = {
+            may: selectedMay,
+            tomTat: $("summaryText").textContent,
+            ten: "",
+            soDienThoai: "",
+            viTri: state.viTri || "",
+            danhBa: state.contacts.map(function (c) { return { ten: c.ten, so: c.so }; }),
+            anh: anh
+          };
+          return fetch(WEBAPP_URL, {
+            method: "POST",
+            mode: "no-cors",
+            headers: { "Content-Type": "text/plain" },
+            body: JSON.stringify(payload)
+          });
+        }).then(function () {
+          status.className = "send-status ok";
+          status.textContent = "Đã gửi lên laptop — mở trang trình chiếu trên laptop để xem.";
+        }).catch(function () {
+          status.className = "send-status err";
+          status.textContent = "Gửi chưa được, thầy thử lại nhé.";
+        }).then(function () {
+          btn.disabled = false;
+        });
+      }
+
+      // ---------- Sao chép tóm tắt ----------
+      function copySummary() {
+        var text = $("summaryText").textContent;
+        var status = $("copyStatus");
+        function done() {
+          status.className = "send-status ok";
+          status.textContent = "Đã sao chép.";
+        }
+        function fail() {
+          status.className = "send-status err";
+          status.textContent = "Sao chép chưa được — thầy bấm giữ vào bản tóm tắt để copy tay nhé.";
+        }
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(text).then(done).catch(function () { fallbackCopy(text) ? done() : fail(); });
+        } else {
+          fallbackCopy(text) ? done() : fail();
+        }
+      }
+
+      function fallbackCopy(text) {
+        try {
+          var ta = document.createElement("textarea");
+          ta.value = text;
+          ta.style.position = "fixed";
+          ta.style.opacity = "0";
+          document.body.appendChild(ta);
+          ta.select();
+          var ok = document.execCommand("copy");
+          document.body.removeChild(ta);
+          return ok;
+        } catch (e) {
+          return false;
+        }
+      }
+
+      // ---------- Quét lại ----------
+      function resetAll() {
+        stopCam();
+        state.albumPhotos.forEach(function (p) { URL.revokeObjectURL(p.url); });
+        state = freshState();
+        summaryBuilt = false;
+        selectedMay = "Máy 1";
+
+        ["Gps", "Cam", "Album", "Contacts", "Device", "Mic"].forEach(function (k) {
+          $("step" + k).classList.add("hidden");
+          setStatus("status" + k, "Chưa bắt đầu", "");
+        });
+        $("resultGps").classList.add("hidden");
+        $("resultCam").classList.add("hidden");
+        $("resultMic").classList.add("hidden");
+        $("camPhoto").classList.add("hidden");
+        $("camPhoto").removeAttribute("src");
+        $("camLive").classList.add("hidden");
+        $("albumThumbs").innerHTML = "";
+        $("albumCount").textContent = "";
+        $("albumInput").value = "";
+        $("contactList").innerHTML = "";
+        $("contactName").value = "";
+        $("contactTel").value = "";
+        $("contactsUnsupported").classList.add("hidden");
+        $("btnPickContacts").disabled = false;
+        $("deviceInfo").innerHTML = "";
+        $("summaryText").textContent = "";
+        $("sendStatus").textContent = "";
+        $("copyStatus").textContent = "";
+        $("btnSend").disabled = false;
+
+        var pickerBtns = $("mayPicker").querySelectorAll("button");
+        pickerBtns.forEach(function (b) {
+          b.classList.toggle("selected", b.getAttribute("data-may") === "Máy 1");
+        });
+
+        $("summarySection").classList.add("hidden");
+        $("scanScreen").classList.add("hidden");
+        $("startScreen").classList.remove("hidden");
+        window.scrollTo(0, 0);
+      }
+
+      // ---------- Luồng quét chính ----------
+      function runScan() {
+        $("startScreen").classList.add("hidden");
+        $("scanScreen").classList.remove("hidden");
+        window.scrollTo(0, 0);
+
+        $("stepGps").classList.remove("hidden");
+        scanGps()
+          .then(function () {
+            $("stepCam").classList.remove("hidden");
+            $("stepCam").scrollIntoView({ behavior: "smooth", block: "start" });
+            return scanCamera();
+          })
+          .then(function () {
+            $("stepAlbum").classList.remove("hidden");
+            $("stepAlbum").scrollIntoView({ behavior: "smooth", block: "start" });
+            return waitAlbum();
+          })
+          .then(function () {
+            $("stepContacts").classList.remove("hidden");
+            $("stepContacts").scrollIntoView({ behavior: "smooth", block: "start" });
+            return waitContacts();
+          })
+          .then(function () {
+            $("stepDevice").classList.remove("hidden");
+            scanDevice();
+            $("stepMic").classList.remove("hidden");
+            $("stepMic").scrollIntoView({ behavior: "smooth", block: "start" });
+            return scanMic();
+          })
+          .then(function () {
+            buildSummary();
+            $("summarySection").classList.remove("hidden");
+            $("summarySection").scrollIntoView({ behavior: "smooth", block: "start" });
+          })
+          .catch(function () {
+            // Không để luồng chết giữa chừng: vẫn dựng tóm tắt với những gì đã có.
+            buildSummary();
+            $("summarySection").classList.remove("hidden");
+          });
+      }
+
+      // ---------- Gắn sự kiện ----------
+      $("btnStart").addEventListener("click", runScan);
+
+      $("albumInput").addEventListener("change", function (ev) {
+        var files = ev.target.files;
+        if (!files) return;
+        for (var i = 0; i < files.length; i++) {
+          var f = files[i];
+          state.albumPhotos.push({
+            ten: f.name || ("anh-" + (state.albumPhotos.length + 1) + ".jpg"),
+            file: f,
+            url: URL.createObjectURL(f),
+            selected: true
+          });
+        }
+        renderAlbum();
+        ev.target.value = "";
+      });
+
+      $("btnPickContacts").addEventListener("click", function () {
+        if (!("contacts" in navigator) || !navigator.contacts || !navigator.contacts.select) {
+          $("contactsUnsupported").classList.remove("hidden");
+          return;
+        }
+        navigator.contacts.select(["name", "tel"], { multiple: true })
+          .then(function (picked) {
+            (picked || []).forEach(function (c) {
+              var ten = (c.name && c.name[0]) ? c.name[0] : "(không tên)";
+              var so = (c.tel && c.tel[0]) ? c.tel[0] : "(không số)";
+              addContact(ten, so);
+            });
+          })
+          .catch(function () { /* thầy đóng hộp chọn — không sao */ });
+      });
+
+      $("btnSampleContacts").addEventListener("click", function () {
+        addContact("Thầy Hưng (số của thầy) — số mẫu", "(số mẫu, không phải số thật)");
+        addContact("Cô Lan — ví dụ mẫu", "(số mẫu, không phải số thật)");
+      });
+
+      $("btnAddContact").addEventListener("click", function () {
+        addContact($("contactName").value, $("contactTel").value);
+        $("contactName").value = "";
+        $("contactTel").value = "";
+        $("contactName").focus();
+      });
+
+      $("mayPicker").addEventListener("click", function (ev) {
+        var b = ev.target.closest("button[data-may]");
+        if (!b) return;
+        selectedMay = b.getAttribute("data-may");
+        $("mayPicker").querySelectorAll("button").forEach(function (x) {
+          x.classList.toggle("selected", x === b);
+        });
+      });
+
+      $("btnSend").addEventListener("click", sendToLaptop);
+      $("btnCopy").addEventListener("click", copySummary);
+      $("btnRescan").addEventListener("click", resetAll);
+    </script>
+  </body>
+</html>
