@@ -260,6 +260,45 @@
         display: flex; align-items: center; justify-content: center; gap: 9px;
       }
       .teachernote { font-size: 12.5px; color: #5c6d61; line-height: 1.5; margin-top: 8px; }
+      .teachpreview { margin-top: 12px; background: #fff; border: 2px solid #d5ded5; border-radius: 18px; padding: 12px; }
+      .teachpreview h4 { margin: 0 0 3px; font-size: 15px; font-weight: 900; color: #17301f; }
+      .teachpreview p { margin: 0 0 10px; font-size: 12.8px; color: #5c6d61; line-height: 1.5; }
+      .teachgrid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 9px; }
+      .tcell {
+        position: relative; border-radius: 14px; overflow: hidden; padding: 0; min-height: 0;
+        aspect-ratio: 1 / 1; border: 3px solid #1d9e75; background: #dde5dd; cursor: pointer;
+      }
+      .tcell img { width: 100%; height: 100%; object-fit: cover; display: block; }
+      .tcell .tick {
+        position: absolute; top: 6px; right: 6px; width: 26px; height: 26px; border-radius: 50%;
+        background: #1d9e75; color: #fff; font-size: 15px; font-weight: 900; line-height: 26px; text-align: center;
+        box-shadow: 0 2px 8px rgba(0,0,0,.35);
+      }
+      .tcell.off { border-color: #c3cec3; }
+      .tcell.off img { opacity: .32; filter: grayscale(.7); }
+      .tcell.off .tick { background: #e4eae4; color: #75847a; }
+      .tcell .tlabel {
+        position: absolute; left: 0; right: 0; bottom: 0; padding: 4px 6px;
+        background: rgba(10,20,14,.72); color: #fff; font-size: 11px; font-weight: 800; text-align: center; line-height: 1.3;
+      }
+      .teachsendcount { margin-top: 9px !important; margin-bottom: 0 !important; font-weight: 800 !important; color: #0c5c40 !important; font-size: 13px !important; }
+      .contactsreview {
+        margin-top: 10px; background: #eafaf3; border: 1.5px solid #1d9e75; color: #0c5c40;
+        border-radius: 12px; padding: 9px 11px; font-size: 13px; font-weight: 700; line-height: 1.5;
+      }
+      .sendreview {
+        background: #10151c; border: 1px solid #232c38; border-radius: 15px; padding: 11px 12px; margin-bottom: 12px;
+      }
+      .sendreview-title { margin: 0 0 8px; font-size: 14.5px; font-weight: 900; color: #fff; }
+      .sendreview-photos { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 8px; }
+      .sendreview-photos img, .sendreview-photos .srthumb {
+        width: 52px; height: 52px; border-radius: 10px; object-fit: cover; display: block;
+        border: 2px solid rgba(55,224,160,.6); overflow: hidden; flex: none; background: #232c38;
+      }
+      .sendreview-photos .srthumb svg { width: 100%; height: 100%; display: block; }
+      .sendreview-line { margin: 0 0 5px; font-size: 13.5px; line-height: 1.5; color: #cfd8cf; font-weight: 600; }
+      .sendreview-line:last-child { margin-bottom: 0; }
+      .sendreview-line b { color: #fff; }
       .realnote {
         margin-top: 12px; background: #fff8e1; border: 1.5px solid #e0a92e; color: #6b5200;
         border-radius: 14px; padding: 10px 12px; font-size: 13px; line-height: 1.5; font-weight: 600;
@@ -408,6 +447,14 @@
         box-shadow: 0 10px 22px rgba(29,158,117,.35);
       }
       .sendbox { margin-bottom: 14px; }
+      .machinebox { margin-bottom: 12px; }
+      .machinelabel { margin: 0 0 8px; font-size: 14.5px; font-weight: 800; color: #cfd8cf; text-align: center; }
+      .machinebtns { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 7px; }
+      .machinebtn {
+        border: 2px solid #334155; background: #10151c; color: #cfd8cf;
+        border-radius: 12px; padding: 11px 2px; font-size: 14px; font-weight: 700; min-height: 48px;
+      }
+      .machinebtn.sel { border-color: #1663d9; background: #1663d9; color: #fff; font-weight: 900; box-shadow: 0 6px 16px rgba(22,99,217,.45); }
       .sendbtn {
         width: 100%; border: none; border-radius: 16px; padding: 16px;
         background: #1663d9; color: #fff; font-size: 18px; font-weight: 900;
@@ -546,8 +593,14 @@
               <svg width="22" height="22" viewBox="0 0 48 48" aria-hidden="true"><rect x="7" y="11" width="34" height="27" rx="4" fill="none" stroke="#0c5c40" stroke-width="3.5"/><circle cx="24" cy="24.5" r="7" fill="none" stroke="#0c5c40" stroke-width="3.5"/><path d="M17 11l3-5h8l3 5" fill="none" stroke="#0c5c40" stroke-width="3.5" stroke-linejoin="round"/></svg>
               Chọn ảnh từ máy thầy
             </button>
-            <p class="teachernote" id="teacher-note">Thầy tự chọn ảnh của mình trên máy này. Ảnh chỉ hiện ngay trên máy thầy, không tải lên đâu, không lưu lại — thoát trang là mất. Chưa chọn ảnh thì app dùng ảnh mẫu.</p>
+            <p class="teachernote" id="teacher-note">Thầy tự chọn ảnh của mình trên máy này — chọn được nhiều ảnh một lúc. Ảnh chỉ hiện ngay trên máy thầy, không tải lên đâu, không lưu lại — thoát trang là mất. Chưa chọn ảnh thì app dùng ảnh mẫu.</p>
             <input type="file" id="file-pick" accept="image/*" multiple hidden />
+            <div class="teachpreview" id="teacher-preview" hidden>
+              <h4>Ảnh thầy đã chọn — xem lại ở đây</h4>
+              <p>Bấm vào từng ảnh để <b>chọn / bỏ chọn</b> ảnh sẽ gửi đi. Ảnh có dấu ✓ xanh là ảnh sẽ gửi; ảnh mờ đi là không gửi. Chỉ những ảnh đã chọn mới được gửi lên laptop.</p>
+              <div class="teachgrid" id="teacher-grid"></div>
+              <p class="teachsendcount" id="teacher-send-count"></p>
+            </div>
           </div>
 
           <div class="contactsbox" id="contacts-box" hidden>
@@ -565,6 +618,7 @@
             </div>
             <ul class="contactslist" id="contacts-list"></ul>
             <div class="contactsempty" id="contacts-empty">Chưa chọn ai. Thầy có thể bỏ qua bước này — màn hình cảnh báo sẽ ghi rõ là chưa chọn danh bạ.</div>
+            <div class="contactsreview" id="contacts-review" hidden></div>
           </div>
 
           <div class="albumhead">
@@ -661,7 +715,23 @@
           <p class="subq" id="warn-subq">Một người lạ ở rất xa sẽ biết em tên gì, số điện thoại của em, mặt em trông thế nào và em đang ở đâu. Em có muốn như vậy không?</p>
 
           <div class="sendbox" id="send-box" hidden>
-            <button class="sendbtn" id="btn-send-laptop" type="button">Gửi lên laptop</button>
+            <div class="sendreview" id="send-review">
+              <p class="sendreview-title">Xem lại trước khi gửi</p>
+              <div class="sendreview-photos" id="send-review-photos"></div>
+              <p class="sendreview-line" id="send-review-photos-text"></p>
+              <p class="sendreview-line" id="send-review-contacts"></p>
+            </div>
+            <div class="machinebox" id="machine-box">
+              <p class="machinelabel">Gửi từ máy nào?</p>
+              <div class="machinebtns" role="group" aria-label="Chọn máy gửi">
+                <button type="button" class="machinebtn sel" data-may="Máy 1" aria-pressed="true">Máy 1</button>
+                <button type="button" class="machinebtn" data-may="Máy 2" aria-pressed="false">Máy 2</button>
+                <button type="button" class="machinebtn" data-may="Máy 3" aria-pressed="false">Máy 3</button>
+                <button type="button" class="machinebtn" data-may="Máy 4" aria-pressed="false">Máy 4</button>
+                <button type="button" class="machinebtn" data-may="Máy 5" aria-pressed="false">Máy 5</button>
+              </div>
+            </div>
+            <button class="sendbtn" id="btn-send-laptop" type="button">Đăng ký</button>
             <p class="sendstatus" id="send-status" role="status"></p>
           </div>
 
@@ -726,10 +796,12 @@
         sampleIdx: 0,
         teacherIdx: 0,
         teacherImgs: [],           /* object URLs, chỉ sống trong lần mở trang */
+        teacherSendFlags: [],      /* boolean theo từng ảnh thầy: true = ảnh này sẽ gửi đi */
         teacherContacts: [],       /* [{name, tel}] thầy tự chọn/gõ — chỉ trong phiên này */
         capturedPhoto: null,       /* dataURL ảnh chụp từ camera thật (chế độ thầy) */
         realLocation: null,        /* {lat, lon, acc} hoặc {error: "..."} */
-        cameraStream: null
+        cameraStream: null,
+        selectedMachine: "Máy 1"   /* máy đang chọn để gửi lên laptop */
       };
       var timers = [];
 
@@ -822,6 +894,46 @@
         }
       }
 
+      /* ---------- Lưới xem trước ảnh thầy đã chọn (chỉ chế độ thầy) ---------- */
+      function renderTeacherPreview() {
+        var box = $("teacher-preview");
+        var grid = $("teacher-grid");
+        var count = $("teacher-send-count");
+        if (!box || !grid) return;
+        if (state.mode !== "teacher" || !state.teacherImgs.length) {
+          box.hidden = true;
+          grid.innerHTML = "";
+          return;
+        }
+        box.hidden = false;
+        grid.innerHTML = "";
+        state.teacherImgs.forEach(function (url, i) {
+          var on = state.teacherSendFlags[i] !== false;
+          var cell = document.createElement("button");
+          cell.type = "button";
+          cell.className = "tcell" + (on ? "" : " off");
+          cell.setAttribute("aria-pressed", on ? "true" : "false");
+          cell.setAttribute("aria-label", (on ? "Bỏ chọn" : "Chọn") + " ảnh " + (i + 1) + " để gửi");
+          var img = document.createElement("img");
+          img.src = url; img.alt = "";
+          var tick = document.createElement("span");
+          tick.className = "tick"; tick.textContent = on ? "✓" : "×";
+          var lab = document.createElement("span");
+          lab.className = "tlabel"; lab.textContent = on ? "Sẽ gửi" : "Không gửi";
+          cell.appendChild(img); cell.appendChild(tick); cell.appendChild(lab);
+          cell.addEventListener("click", function () {
+            state.teacherSendFlags[i] = !(state.teacherSendFlags[i] !== false);
+            renderTeacherPreview();
+          });
+          grid.appendChild(cell);
+        });
+        var n = state.teacherSendFlags.filter(function (f) { return f !== false; }).length;
+        if (count) count.textContent = "Đã chọn " + n + " / " + state.teacherImgs.length + " ảnh để gửi đi.";
+      }
+      function selectedTeacherImgs() {
+        return state.teacherImgs.filter(function (_, i) { return state.teacherSendFlags[i] !== false; });
+      }
+
       /* ---------- Danh bạ (chế độ thầy) ---------- */
       function contactsSupported() {
         return !!(navigator.contacts && typeof navigator.contacts.select === "function");
@@ -840,6 +952,7 @@
       function renderContacts() {
         var list = $("contacts-list");
         var empty = $("contacts-empty");
+        var review = $("contacts-review");
         if (!list) return;
         list.innerHTML = "";
         state.teacherContacts.forEach(function (c, i) {
@@ -856,6 +969,15 @@
           list.appendChild(li);
         });
         if (empty) empty.style.display = state.teacherContacts.length ? "none" : "block";
+        if (review) {
+          if (state.teacherContacts.length) {
+            review.hidden = false;
+            review.textContent = "Đã chọn " + state.teacherContacts.length + " người trong danh bạ — thầy xem lại danh sách ở trên trước khi gửi nhé. Bấm × để bỏ người nào không muốn gửi.";
+          } else {
+            review.hidden = true;
+            review.textContent = "";
+          }
+        }
       }
       function addContacts(items) {
         items.forEach(function (c) {
@@ -910,6 +1032,7 @@
         if (!isTeacher) { state.source = "sample"; stopCamera(); }
         renderContactsSupport();
         renderContacts();
+        renderTeacherPreview();
         renderAlbum();
         renderCamera();
         showScreen("screen-app");
@@ -961,9 +1084,11 @@
         if (!files.length) return;
         state.teacherImgs.forEach(function (u) { URL.revokeObjectURL(u); });
         state.teacherImgs = files.map(function (f) { return URL.createObjectURL(f); });
+        state.teacherSendFlags = state.teacherImgs.map(function () { return true; });
         state.teacherIdx = 0;
         state.source = "teacher";
-        $("teacher-note").textContent = "Đã chọn " + files.length + " ảnh của thầy. Ảnh chỉ hiện trên máy này, không tải lên đâu, không lưu lại — thoát trang là mất.";
+        $("teacher-note").textContent = "Đã chọn " + files.length + " ảnh của thầy. Xem lưới ảnh ở dưới, bấm vào từng ảnh để chọn / bỏ chọn ảnh gửi đi. Ảnh chỉ hiện trên máy này, không tải lên đâu, không lưu lại — thoát trang là mất.";
+        renderTeacherPreview();
         renderAlbum();
         renderCamera();
         ev.target.value = "";
@@ -1132,30 +1257,96 @@
         var i = s.indexOf(",");
         return i >= 0 ? s.slice(i + 1) : s;
       }
-      function readBlobAsDataURL(blob) {
+      function compressImageSrc(src) {
         return new Promise(function (resolve, reject) {
-          var fr = new FileReader();
-          fr.onload = function () { resolve(String(fr.result)); };
-          fr.onerror = function () { reject(new Error("read-fail")); };
-          fr.readAsDataURL(blob);
+          var img = new Image();
+          img.onload = function () {
+            try {
+              var w = img.naturalWidth || img.width;
+              var h = img.naturalHeight || img.height;
+              if (!w || !h) { reject(new Error("no-size")); return; }
+              var maxDim = Math.max(w, h);
+              var scale = maxDim > 800 ? 800 / maxDim : 1;
+              var cw = Math.max(1, Math.round(w * scale));
+              var ch = Math.max(1, Math.round(h * scale));
+              var canvas = document.createElement("canvas");
+              canvas.width = cw; canvas.height = ch;
+              var ctx = canvas.getContext("2d");
+              ctx.fillStyle = "#ffffff";
+              ctx.fillRect(0, 0, cw, ch);
+              ctx.drawImage(img, 0, 0, cw, ch);
+              resolve(stripDataPrefix(canvas.toDataURL("image/jpeg", 0.7)));
+            } catch (e) { reject(e); }
+          };
+          img.onerror = function () { reject(new Error("img-load-fail")); };
+          img.src = src;
         });
       }
       async function collectPhotosForSend() {
         var anh = [];
         if (state.capturedPhoto) {
-          anh.push({ ten: "anh-camera.jpg", duLieu: stripDataPrefix(state.capturedPhoto) });
-        }
-        for (var i = 0; i < state.teacherImgs.length; i++) {
           try {
-            var resp = await fetch(state.teacherImgs[i]);
-            var blob = await resp.blob();
-            var durl = await readBlobAsDataURL(blob);
-            var ext = "jpg";
-            if (blob.type && blob.type.indexOf("/") >= 0) ext = blob.type.split("/")[1].replace("jpeg", "jpg");
-            anh.push({ ten: "anh-thay-" + (i + 1) + "." + ext, duLieu: stripDataPrefix(durl) });
-          } catch (e) { /* bỏ qua ảnh không đọc được */ }
+            var d1 = await compressImageSrc(state.capturedPhoto);
+            anh.push({ ten: "anh-camera.jpg", duLieu: d1 });
+          } catch (e) {
+            anh.push({ ten: "anh-camera.jpg", duLieu: stripDataPrefix(state.capturedPhoto) });
+          }
+        }
+        var chosen = selectedTeacherImgs();
+        for (var i = 0; i < chosen.length; i++) {
+          try {
+            var d2 = await compressImageSrc(chosen[i]);
+            anh.push({ ten: "anh-thay-" + (i + 1) + ".jpg", duLieu: d2 });
+          } catch (e) { /* bỏ qua ảnh không đọc/nén được */ }
         }
         return anh;
+      }
+      function renderMachineSelection() {
+        document.querySelectorAll(".machinebtn").forEach(function (b) {
+          var on = b.getAttribute("data-may") === state.selectedMachine;
+          b.classList.toggle("sel", on);
+          b.setAttribute("aria-pressed", on ? "true" : "false");
+        });
+      }
+      document.querySelectorAll(".machinebtn").forEach(function (b) {
+        b.addEventListener("click", function () {
+          state.selectedMachine = b.getAttribute("data-may") || "Máy 1";
+          renderMachineSelection();
+        });
+      });
+      function renderSendReview() {
+        var photosEl = $("send-review-photos");
+        var photosText = $("send-review-photos-text");
+        var contactsText = $("send-review-contacts");
+        if (!photosEl || !photosText || !contactsText) return;
+        photosEl.innerHTML = "";
+        var total = 0;
+        if (state.capturedPhoto) {
+          var im0 = document.createElement("img");
+          im0.src = state.capturedPhoto; im0.alt = "Ảnh thật vừa chụp từ camera";
+          photosEl.appendChild(im0);
+          total++;
+        }
+        selectedTeacherImgs().forEach(function (url) {
+          var im = document.createElement("img");
+          im.src = url; im.alt = "Ảnh thầy đã chọn để gửi";
+          photosEl.appendChild(im);
+          total++;
+        });
+        if (!total && state.teacherImgs.length) {
+          photosText.innerHTML = "<b>Ảnh sẽ gửi:</b> không có ảnh nào được chọn trong lưới ảnh — thầy quay lại bỏ chọn nếu muốn gửi ảnh, hoặc cứ gửi phần thông tin còn lại.";
+        } else if (!total) {
+          photosText.innerHTML = "<b>Ảnh sẽ gửi:</b> chưa có ảnh thật nào (chưa chụp được camera và chưa chọn ảnh).";
+        } else {
+          var extra = state.capturedPhoto ? " (gồm ảnh chụp từ camera thật và ảnh thầy đã chọn trong lưới)" : " (chỉ những ảnh thầy đã chọn trong lưới)";
+          photosText.innerHTML = "<b>Ảnh sẽ gửi: " + total + " ảnh</b>" + extra + ". Ảnh đã bỏ chọn trong lưới sẽ không gửi.";
+        }
+        if (state.teacherContacts.length) {
+          contactsText.innerHTML = "<b>Danh bạ sẽ gửi (" + state.teacherContacts.length + " người):</b> " +
+            state.teacherContacts.map(function (c) { return (c.name || "Không tên") + (c.tel ? " — " + c.tel : ""); }).join("  •  ");
+        } else {
+          contactsText.innerHTML = "<b>Danh bạ sẽ gửi:</b> chưa chọn ai.";
+        }
       }
       function resetSendUI() {
         var box = $("send-box");
@@ -1164,20 +1355,23 @@
         if (btn) btn.disabled = false;
         var st = $("send-status");
         if (st) { st.textContent = ""; st.className = "sendstatus"; }
+        renderMachineSelection();
+        if (state.mode === "teacher") renderSendReview();
       }
       $("btn-send-laptop").addEventListener("click", async function () {
         var btn = $("btn-send-laptop");
         var st = $("send-status");
         btn.disabled = true;
-        st.textContent = "Đang gửi toàn bộ thông tin lên laptop…";
+        st.textContent = "Đang gửi...";
         st.className = "sendstatus";
         try {
           var anh = await collectPhotosForSend();
           var loc = state.realLocation;
           var viTri = (loc && typeof loc.lat === "number")
-            ? "Vĩ độ " + loc.lat.toFixed(5) + " · Kinh độ " + loc.lon.toFixed(5) + " · Sai số khoảng " + Math.round(loc.acc || 0) + " m"
+            ? loc.lon.toFixed(6) + ", " + loc.lat.toFixed(6)
             : "";
           var payload = {
+            may: state.selectedMachine || "Máy 1",
             ten: $("in-name").value.trim(),
             soDienThoai: $("in-phone").value.trim(),
             viTri: viTri,
@@ -1225,7 +1419,7 @@
             lc.classList.add("empty");
           }
           $("warn-lead").innerHTML = "Đây là những gì <b>thật</b> app vừa lấy được trên <b>máy thầy</b>, chỉ sau vài giây:";
-          $("safe-box").innerHTML = "<b>Đây là demo trên máy thầy — thầy tự cho phép.</b> Camera, vị trí, ảnh và danh bạ ở trên đều là thật trên máy thầy và chỉ hiện trên máy này, không lưu lại — đóng trang là mất. Chỉ khi thầy bấm nút <b>Gửi lên laptop</b> ở dưới thì toàn bộ thông tin này mới được gửi sang trang trình chiếu trên laptop của thầy. Học sinh chơi ở chế độ riêng, hoàn toàn giả lập.";
+          $("safe-box").innerHTML = "<b>Đây là demo trên máy thầy — thầy tự cho phép.</b> Camera, vị trí, ảnh và danh bạ ở trên đều là thật trên máy thầy và chỉ hiện trên máy này, không lưu lại — đóng trang là mất. Chỉ khi thầy bấm nút <b>Đăng ký</b> ở dưới thì toàn bộ thông tin này mới được gửi sang trang trình chiếu trên laptop của thầy. Học sinh chơi ở chế độ riêng, hoàn toàn giả lập.";
           $("warn-subq").textContent = "Thầy vừa tự tay cho phép hết trên máy của mình. Nếu một app lạ cũng xin như vậy trên máy học sinh — và các em cũng bấm Cho phép nhanh như thầy vừa bấm — thì người lạ sẽ có đúng những thứ này của các em. Cả lớp nghĩ sao?";
         } else {
           if (name) { ln.textContent = name; ln.classList.remove("empty"); }
@@ -1257,21 +1451,25 @@
         $("in-contact-phone").value = "";
         state.teacherImgs.forEach(function (u) { URL.revokeObjectURL(u); });
         state.teacherImgs = [];
+        state.teacherSendFlags = [];
         state.teacherContacts = [];
         state.capturedPhoto = null;
         state.realLocation = null;
+        state.selectedMachine = "Máy 1";
         state.source = "sample";
         state.sampleIdx = 0;
         state.teacherIdx = 0;
         resetSendUI();
-        $("teacher-note").textContent = "Thầy tự chọn ảnh của mình trên máy này. Ảnh chỉ hiện ngay trên máy thầy, không tải lên đâu, không lưu lại — thoát trang là mất. Chưa chọn ảnh thì app dùng ảnh mẫu.";
+        $("teacher-note").textContent = "Thầy tự chọn ảnh của mình trên máy này — chọn được nhiều ảnh một lúc. Ảnh chỉ hiện ngay trên máy thầy, không tải lên đâu, không lưu lại — thoát trang là mất. Chưa chọn ảnh thì app dùng ảnh mẫu.";
         renderContacts();
+        renderTeacherPreview();
         renderAlbum();
         renderCamera();
         showScreen("screen-home");
       });
 
       renderContacts();
+      renderTeacherPreview();
       renderAlbum();
       renderCamera();
     </script>
