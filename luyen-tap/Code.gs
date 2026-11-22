@@ -1,6 +1,13 @@
 // ============================================================================
 //  ĐƯỜNG CHUYỂN TOÀN BỘ THÔNG TIN: ĐIỆN THOẠI (thầy) -> LAPTOP (thầy) -> CHIẾU LÊN TV
 //  Chỉ phục vụ thầy Phạm Ngọc Hưng và dữ liệu CỦA THẦY.
+//  PHIÊN BẢN 27 (22/11/2026):
+//  - ĐẶT LẠI ĐIỀU TRA: ?api=dieutra&hanhdong=datlai và
+//    ?hd3=dieutra&hanhdong=datlai — xóa hết kết luận + nhận xét
+//    (dieutra.json + nhanxet.json), để thầy reset trước giờ dạy.
+//    Nút "Đặt lại" thêm vào trang host điều tra (?hd3=dieutra)
+//    và trang tĩnh (luyen-tap/trang-chu.html). Cần thầy deploy
+//    bản 27 thì nút Đặt lại mới chạy (URL không đổi).
 //  PHIÊN BẢN 26 (22/11/2026):
 //  - API JSON CHO TRANG TĨNH GitHub Pages (luyen-tap/trang-chu.html):
 //    doGet thêm nhánh ?api=hopden / ?api=may&khoa= / ?api=buzzer
@@ -1680,7 +1687,8 @@ function taoTrangDieuTraHD3() {
     for (var l = 0; l < doiLa.length; l++) khoiLa += khoiNhanXet(doiLa[l]);
     noiDung += '<div class="khung"><div class="the-dieu-tra"><div class="ten-doi">Nhận xét về đội chưa nộp điều tra</div>' + khoiLa + '</div></div>';
   }
-  return moDauTrangHD3('HĐ3 — ĐIỀU TRA (Bài 4 lớp 8)', trangThai, urlLamMoi, 'dieutra') + noiDung + dongTrangTrinhChieu();
+  var nutDatLai = '<div class="hang-dat-lai"><a class="nut-xoa" target="_top" href="' + escHtml(urlLamMoi + '&hanhdong=datlai') + '">⚠️ Đặt lại — xóa hết kết luận + nhận xét</a><span class="chu-thich">Xóa toàn bộ kết luận và nhận xét của tất cả các đội. Chỉ dùng sau buổi học hoặc trước khi bắt đầu lại.</span></div>';
+  return moDauTrangHD3('HĐ3 — ĐIỀU TRA (Bài 4 lớp 8)', trangThai, urlLamMoi, 'dieutra') + nutDatLai + noiDung + dongTrangTrinhChieu();
 }
 
 function doPost(e) {
@@ -2394,7 +2402,7 @@ function moDauTrangTrinhChieu(tieuDe, trangThai, urlLamMoi, linkQuayLai) {
 
 // Cuối trang trình chiếu: chân trang ghi phiên bản + đóng thẻ.
 function dongTrangTrinhChieu() {
-  return '<div class="chan-trang">Trình chiếu Avatar AI — Phiên bản 26 (22/11/2026)</div>\n</body>\n</html>';
+  return '<div class="chan-trang">Trình chiếu Avatar AI — Phiên bản 27 (22/11/2026)</div>\n</body>\n</html>';
 }
 
 // Hộp xanh + câu hỏi cho lớp (hiện dưới thẻ máy, chỉ khi máy đã có dữ liệu).
@@ -2528,10 +2536,10 @@ function traJsonApi(p) {
     else if (api === 'may') ketQua = apiMay(p);
     else if (api === 'buzzer') ketQua = apiBuzzer(p);
     else if (api === 'dieutra') ketQua = apiDieuTra(p);
-    else ketQua = { phienBan: 26, loi: 'API không hợp lệ.' };
+    else ketQua = { phienBan: 27, loi: 'API không hợp lệ.' };
     return ContentService.createTextOutput(JSON.stringify(ketQua)).setMimeType(ContentService.MimeType.JSON);
   } catch (loi) {
-    return ContentService.createTextOutput(JSON.stringify({ phienBan: 26, loi: String(loi && loi.message ? loi.message : loi) })).setMimeType(ContentService.MimeType.JSON);
+    return ContentService.createTextOutput(JSON.stringify({ phienBan: 27, loi: String(loi && loi.message ? loi.message : loi) })).setMimeType(ContentService.MimeType.JSON);
   }
 }
 
@@ -2539,7 +2547,7 @@ function traJsonApi(p) {
 // đúng 6 máy đầu (luật bản 22); &tatca=1 thì trả tất cả (cho "Xem tất cả").
 function apiHopDen(p) {
   var d = layDanhSachMenuNhanh();
-  if (d && d.loi) return { phienBan: 26, tab: 'hopden', loi: d.loi, may: [], tongMay: 0 };
+  if (d && d.loi) return { phienBan: 27, tab: 'hopden', loi: d.loi, may: [], tongMay: 0 };
   var danhSach = sapXepMenuTheoThoiGian((d && d.may) || []);
   var coDuLieu = [];
   for (var i = 0; i < danhSach.length; i++) {
@@ -2559,26 +2567,26 @@ function apiHopDen(p) {
       dangDung: (j === moiNhat)
     });
   }
-  return { phienBan: 26, tab: 'hopden', may: may, tongMay: coDuLieu.length };
+  return { phienBan: 27, tab: 'hopden', may: may, tongMay: coDuLieu.length };
 }
 
 // ?api=may&khoa=<khóa> — đầy đủ dữ liệu của ĐÚNG 1 máy (ảnh + giọng nói
 // base64 chỉ của máy đó), cùng hình dạng thẻ chi tiết bản 25.
 function apiMay(p) {
   var khoa = String(p.khoa || '');
-  if (khoa === '') return { phienBan: 26, tab: 'may', loi: 'Thiếu khóa máy.' };
+  if (khoa === '') return { phienBan: 27, tab: 'may', loi: 'Thiếu khóa máy.' };
   var d = layDanhSachMenuNhanh();
-  if (d && d.loi) return { phienBan: 26, tab: 'may', loi: d.loi };
+  if (d && d.loi) return { phienBan: 27, tab: 'may', loi: d.loi };
   var danhSach = (d && d.may) || [];
   var mNhe = null, idx = -1;
   for (var i = 0; i < danhSach.length; i++) {
     if (khoaXemMay(danhSach[i]) === khoa) { mNhe = danhSach[i]; idx = i; break; }
   }
-  if (!mNhe) return { phienBan: 26, tab: 'may', loi: 'Không tìm thấy máy.' };
+  if (!mNhe) return { phienBan: 27, tab: 'may', loi: 'Không tìm thấy máy.' };
   var m = layThongTinMotMay(khoa, mNhe);
-  if (!m) return { phienBan: 26, tab: 'may', loi: 'Không tìm thấy máy.' };
+  if (!m) return { phienBan: 27, tab: 'may', loi: 'Không tìm thấy máy.' };
   var moiNhat = chiSoMayMoiNhat(danhSach);
-  return { phienBan: 26, tab: 'may', may: {
+  return { phienBan: 27, tab: 'may', may: {
     khoa: khoa,
     ten: tenHienThiMay(m),
     dangDung: (idx === moiNhat),
@@ -2636,7 +2644,7 @@ function apiBuzzer(p) {
     if (tatCa[k]) cauDaBam[tatCa[k].round] = true;
   }
   return {
-    phienBan: 26, tab: 'buzzer',
+    phienBan: 27, tab: 'buzzer',
     vongHienTai: tt.currentRound,
     vongDangXem: cau,
     dangMo: tt.armed,
@@ -2648,7 +2656,12 @@ function apiBuzzer(p) {
 }
 
 // ?api=dieutra — tất cả bản điều tra + nhận xét gom theo đội.
+// ?api=dieutra&hanhdong=datlai — XÓA HẾT kết luận + nhận xét.
 function apiDieuTra(p) {
+  if (p.hanhdong === 'datlai') {
+    ghiJsonHD3(TEN_FILE_DIEU_TRA_HD3, []);
+    ghiJsonHD3(TEN_FILE_NHAN_XET_HD3, []);
+  }
   var danhSach = docJsonHD3(TEN_FILE_DIEU_TRA_HD3, []);
   if (!(danhSach instanceof Array)) danhSach = [];
   var nhanXet = docJsonHD3(TEN_FILE_NHAN_XET_HD3, []);
@@ -2680,7 +2693,7 @@ function apiDieuTra(p) {
     for (var q = 0; q < doi.length; q++) { if (doi[q].doi === ten) { co = true; break; } }
     if (!co) doiLa.push({ doi: ten, nhanXet: nxTheoDoi[ten] });
   }
-  return { phienBan: 26, tab: 'dieutra', doi: doi, doiLa: doiLa, tongDoi: doi.length };
+  return { phienBan: 27, tab: 'dieutra', doi: doi, doiLa: doiLa, tongDoi: doi.length };
 }
 
 function doGet(e) {
@@ -2700,6 +2713,7 @@ function doGet(e) {
   //   ?hd3=buzzer&hanhdong=khoa  -> khóa chuông (lượt bấm sau bị bỏ qua)
   //   ?hd3=buzzer&hanhdong=datlai -> XÓA HẾT lượt bấm CẢ 4 câu + khóa chuông
   //   ?hd3=dieutra               -> trang host điều tra + nhận xét
+  //   ?hd3=dieutra&hanhdong=datlai -> XÓA HẾT kết luận + nhận xét
   if (p.hd3 === 'buzzer') {
     if (p.hanhdong === 'mo') {
       var vongMo = chuanHoaVongHD3(p.vong);
@@ -2719,6 +2733,10 @@ function doGet(e) {
       .addMetaTag('viewport', 'width=device-width, initial-scale=1');
   }
   if (p.hd3 === 'dieutra') {
+    if (p.hanhdong === 'datlai') {
+      ghiJsonHD3(TEN_FILE_DIEU_TRA_HD3, []);
+      ghiJsonHD3(TEN_FILE_NHAN_XET_HD3, []);
+    }
     return HtmlService.createHtmlOutput(taoTrangDieuTraHD3())
       .setTitle('HĐ3 — Điều tra')
       .addMetaTag('viewport', 'width=device-width, initial-scale=1');

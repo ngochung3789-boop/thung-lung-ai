@@ -123,7 +123,7 @@
 </div>
 <div class="khung" id="noi-dung"></div>
 <div class="chan-trang">
-  Trang tĩnh GitHub Pages — số liệu từ Apps Script (Phiên bản 26).<br>
+  Trang tĩnh GitHub Pages — số liệu từ Apps Script (Phiên bản 27).<br>
   Khung trang hiện ngay; số liệu lần đầu có thể chờ vài giây.<br>
   <a href="https://script.google.com/macros/s/AKfycbw6K57VCKeT8w5oLfaUZsrLyfuJDcJaGWn0Crp5AP8IECVzo4zwse8CilJ5B5ckGTQ0/exec" target="_blank" rel="noopener">Mở bản Apps Script (dự phòng)</a>
 </div>
@@ -443,42 +443,46 @@
   }
 
   function veDieuTra(d) {
+    var h = '';
     if (!d.doi || d.doi.length === 0) {
-      return '<div class="trong">Chưa có đội nào nộp bản điều tra.</div>';
-    }
-    var h = '<div class="tieu-de-phu">Kết quả các đội — ' + d.doi.length + ' đội đã nộp</div><div class="luoi-may">';
-    for (var j = 0; j < d.doi.length; j++) {
-      var m = d.doi[j];
-      h += '<div class="the-dieu-tra"><div class="ten-doi">' + esc(m.doi) + '</div>' +
-        (m.nenNhap ? '<span class="phat-bieu-ket-luan co">✓ NÊN NHẬP</span>' : '<span class="phat-bieu-ket-luan khong">✋ KHÔNG NÊN NHẬP</span>');
-      h += '<div class="hang-thong-tin"><div class="nhan">Dấu hiệu</div><div style="margin-top:10px;">';
-      if (m.dauHieu && m.dauHieu.length > 0) {
-        for (var s = 0; s < m.dauHieu.length; s++) h += '<span class="chip-dau-hieu">Dấu hiệu ' + m.dauHieu[s] + '</span>';
-      } else h += '<span style="color:#9ca3af;font-size:19px;">Chưa chọn dấu hiệu nào.</span>';
-      h += '</div></div>';
-      h += '<div class="hang-thong-tin"><div class="nhan">Hành động sẽ làm</div><div class="hop-hanh-dong">' + esc(m.cachLam || '(không ghi)') + '</div></div>';
-      if (m.thoiGian) h += '<div class="gio-gui-nho">Nộp lúc ' + esc(m.thoiGian) + '</div>';
-      if (m.nhanXet && m.nhanXet.length > 0) {
-        h += '<div style="margin-top:14px;"><div class="nhan">Nhận xét của các đội khác</div>';
-        for (var q = 0; q < m.nhanXet.length; q++) {
-          h += '<div class="nhan-xet-hd3"><b>' + esc(m.nhanXet[q].tuDoi) + ':</b> ' + esc(m.nhanXet[q].noiDung) +
-            '<div class="gio-gui-nho">' + esc(m.nhanXet[q].thoiGian || '') + '</div></div>';
+      h = '<div class="trong">Chưa có đội nào nộp bản điều tra.</div>';
+    } else {
+      h = '<div class="tieu-de-phu">Kết quả các đội — ' + d.doi.length + ' đội đã nộp</div><div class="luoi-may">';
+      for (var j = 0; j < d.doi.length; j++) {
+        var m = d.doi[j];
+        h += '<div class="the-dieu-tra"><div class="ten-doi">' + esc(m.doi) + '</div>' +
+          (m.nenNhap ? '<span class="phat-bieu-ket-luan co">✓ NÊN NHẬP</span>' : '<span class="phat-bieu-ket-luan khong">✋ KHÔNG NÊN NHẬP</span>');
+        h += '<div class="hang-thong-tin"><div class="nhan">Dấu hiệu</div><div style="margin-top:10px;">';
+        if (m.dauHieu && m.dauHieu.length > 0) {
+          for (var s = 0; s < m.dauHieu.length; s++) h += '<span class="chip-dau-hieu">Dấu hiệu ' + m.dauHieu[s] + '</span>';
+        } else h += '<span style="color:#9ca3af;font-size:19px;">Chưa chọn dấu hiệu nào.</span>';
+        h += '</div></div>';
+        h += '<div class="hang-thong-tin"><div class="nhan">Hành động sẽ làm</div><div class="hop-hanh-dong">' + esc(m.cachLam || '(không ghi)') + '</div></div>';
+        if (m.thoiGian) h += '<div class="gio-gui-nho">Nộp lúc ' + esc(m.thoiGian) + '</div>';
+        if (m.nhanXet && m.nhanXet.length > 0) {
+          h += '<div style="margin-top:14px;"><div class="nhan">Nhận xét của các đội khác</div>';
+          for (var q = 0; q < m.nhanXet.length; q++) {
+            h += '<div class="nhan-xet-hd3"><b>' + esc(m.nhanXet[q].tuDoi) + ':</b> ' + esc(m.nhanXet[q].noiDung) +
+              '<div class="gio-gui-nho">' + esc(m.nhanXet[q].thoiGian || '') + '</div></div>';
+          }
+          h += '</div>';
         }
         h += '</div>';
       }
       h += '</div>';
-    }
-    h += '</div>';
-    if (d.doiLa && d.doiLa.length > 0) {
-      h += '<div class="khung" style="padding-left:0;padding-right:0;"><div class="the-dieu-tra"><div class="ten-doi">Nhận xét về đội chưa nộp điều tra</div>';
-      for (var l = 0; l < d.doiLa.length; l++) {
-        var la = d.doiLa[l];
-        for (var q2 = 0; q2 < la.nhanXet.length; q2++) {
-          h += '<div class="nhan-xet-hd3"><b>' + esc(la.nhanXet[q2].tuDoi) + ':</b> ' + esc(la.nhanXet[q2].noiDung) + '</div>';
+      if (d.doiLa && d.doiLa.length > 0) {
+        h += '<div class="khung" style="padding-left:0;padding-right:0;"><div class="the-dieu-tra"><div class="ten-doi">Nhận xét về đội chưa nộp điều tra</div>';
+        for (var l = 0; l < d.doiLa.length; l++) {
+          var la = d.doiLa[l];
+          for (var q2 = 0; q2 < la.nhanXet.length; q2++) {
+            h += '<div class="nhan-xet-hd3"><b>' + esc(la.nhanXet[q2].tuDoi) + ':</b> ' + esc(la.nhanXet[q2].noiDung) + '</div>';
+          }
         }
+        h += '</div></div>';
       }
-      h += '</div></div>';
     }
+    h += '<div class="hang-dat-lai"><button class="nut-xoa" id="nut-dat-lai-dieu-tra" type="button">⚠️ Đặt lại — xóa hết kết luận + nhận xét</button><span class="chu-thich">Xóa toàn bộ kết luận và nhận xét của tất cả các đội. Chỉ dùng sau buổi học hoặc trước khi bắt đầu lại.</span></div>';
+    h += '<div class="trang-thai-nho" id="trang-thai-dieu-tra">Bấm “Làm mới” để xem bản mới nộp.</div>';
     return h;
   }
   function taiDieuTra() {
@@ -488,10 +492,26 @@
     fetchJson(apiUrl('api=dieutra')).then(function(d) {
       dangTai = false;
       $('noi-dung').innerHTML = veDieuTra(d);
+      ganSuKienDieuTra();
     }).catch(function(loi) {
       dangTai = false;
       hienLoi(loi.message || String(loi), 'taiLai()');
     });
+  }
+  function hanhDongDieuTra() {
+    if (!confirm('Xóa toàn bộ kết luận và nhận xét của tất cả các đội? Chỉ dùng sau buổi học hoặc trước khi bắt đầu lại.')) return;
+    var el = $('trang-thai-dieu-tra');
+    if (el) el.textContent = 'Đang đặt lại...';
+    fetchJson(apiUrl('api=dieutra&hanhdong=datlai')).then(function(d) {
+      $('noi-dung').innerHTML = veDieuTra(d);
+      ganSuKienDieuTra();
+    }).catch(function(loi) {
+      if (el) el.textContent = 'Chưa đặt lại được: ' + (loi.message || String(loi));
+    });
+  }
+  function ganSuKienDieuTra() {
+    var nut = $('nut-dat-lai-dieu-tra');
+    if (nut) nut.addEventListener('click', hanhDongDieuTra);
   }
 
   function taiLai() {

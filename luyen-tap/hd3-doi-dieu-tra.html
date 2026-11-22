@@ -53,6 +53,13 @@
   .hint { font-size: 16px; color: #6b7280; margin: 6px 0 0; }
   .hint.warn { color: #b45309; font-weight: 600; }
   .hint.err { color: #b91c1c; font-weight: 700; }
+  .err-box {
+    background: #fef2f2; border: 3px solid #dc2626; border-radius: 14px;
+    padding: 16px 18px; margin: 0 0 14px; font-size: 20px; font-weight: 800; line-height: 1.55;
+    color: #991b1b; text-align: left;
+  }
+  .err-box[hidden] { display: none; }
+  .field-missing { outline: 3px solid #dc2626 !important; outline-offset: 3px; }
   .toggle-row { display: flex; gap: 12px; }
   .toggle-btn {
     flex: 1; min-height: 76px; font-size: 21px; font-weight: 800;
@@ -142,7 +149,7 @@
       <div class="card">
         <span class="step-chip">BƯỚC 3 — CHỌN KẾT LUẬN</span><br>
         <span class="field-label">(a) Có nên nhập số điện thoại không?</span>
-        <div class="toggle-row">
+        <div class="toggle-row" id="toggle-row">
           <button type="button" class="toggle-btn" id="btn-khong" aria-pressed="false">✋<br>Không nên nhập</button>
           <button type="button" class="toggle-btn" id="btn-co" aria-pressed="false">👉<br>Nên nhập</button>
         </div>
@@ -166,6 +173,7 @@
       </div>
 
       <div style="text-align:center;margin-top:6px;"><span class="step-chip vang">BƯỚC 4 — GỬI CHO THẦY</span></div>
+      <div class="err-box" id="err-box-gui" hidden></div>
       <button type="submit" class="send-btn" id="btn-gui">📤 GỬI KẾT LUẬN</button>
     </fieldset>
   </form>
@@ -184,6 +192,7 @@
     <label class="field-label" for="comment" style="margin-top:14px;">Nhận xét của đội em</label>
     <textarea id="comment" placeholder="Ví dụ: Đội bạn kết luận đúng, nhưng chưa nói rõ cách làm đúng…"></textarea>
     <p class="hint err" id="err-nhanxet-text" hidden>⚠️ Viết vài chữ nhận xét rồi mới gửi!</p>
+    <div class="err-box" id="err-box-nhanxet" hidden></div>
     <button type="button" class="send-btn" id="btn-gui-nhanxet">💬 GỬI NHẬN XÉT</button>
     <p class="sent-note" id="note-nhanxet">✓ Đã gửi nhận xét.</p>
   </div>
@@ -234,6 +243,7 @@ try {
 } catch (e) { /* bộ nhớ trình duyệt không dùng được thì để trống */ }
 teamInput.addEventListener("input", function () {
   try { localStorage.setItem("hd3-team", teamInput.value.trim()); } catch (e) {}
+  capNhatLoiGui();
 });
 
 /* ---- (a) Hai nút chọn: Không nên nhập / Nên nhập ---- */
@@ -248,6 +258,7 @@ function setChoice(value) {
   btnKhong.setAttribute("aria-pressed", value === "khong" ? "true" : "false");
   btnCo.setAttribute("aria-pressed", value === "co" ? "true" : "false");
   document.getElementById("err-chon").hidden = true;
+  capNhatLoiGui();
 }
 btnKhong.addEventListener("click", function () { setChoice("khong"); });
 btnCo.addEventListener("click", function () { setChoice("co"); });
@@ -264,6 +275,32 @@ document.getElementById("action").addEventListener("input", function () {
   document.getElementById("hint-action").hidden = true;
 });
 
+/* ---- Hộp lỗi TO + tô đỏ ô còn thiếu (để bấm Gửi mà "không thấy gì" thì vẫn thấy rõ) ---- */
+var errBoxGui = document.getElementById("err-box-gui");
+var toggleRow = document.getElementById("toggle-row");
+function capNhatLoiGui() {
+  var thieu = [];
+  if (!teamInput.value.trim()) thieu.push("team");
+  if (!shouldEnter) thieu.push("chon");
+  document.getElementById("err-team").hidden = thieu.indexOf("team") === -1;
+  document.getElementById("err-chon").hidden = thieu.indexOf("chon") === -1;
+  if (thieu.length === 0) {
+    errBoxGui.hidden = true;
+    errBoxGui.innerHTML = "";
+    teamInput.classList.remove("field-missing");
+    toggleRow.classList.remove("field-missing");
+    return true;
+  }
+  var dong = [];
+  if (thieu.indexOf("chon") !== -1) dong.push("⚠️ Chưa chọn “Không nên nhập” hay “Nên nhập” — bấm 1 trong 2 nút ở trên rồi bấm Gửi lại.");
+  if (thieu.indexOf("team") !== -1) dong.push("⚠️ Chưa nhập tên đội — gõ tên đội vào ô trên rồi bấm Gửi lại.");
+  errBoxGui.innerHTML = dong.join("<br>");
+  errBoxGui.hidden = false;
+  teamInput.classList.toggle("field-missing", thieu.indexOf("team") !== -1);
+  toggleRow.classList.toggle("field-missing", thieu.indexOf("chon") !== -1);
+  return false;
+}
+
 /* ---- Gửi kết luận ---- */
 var form = document.getElementById("form-dieutra");
 var fieldset = document.getElementById("fieldset");
@@ -273,14 +310,10 @@ var btnGui = document.getElementById("btn-gui");
 form.addEventListener("submit", function (ev) {
   ev.preventDefault();
   var team = teamInput.value.trim();
-  var errTeam = document.getElementById("err-team");
-  var errChon = document.getElementById("err-chon");
-  var ok = true;
-  if (!team) { errTeam.hidden = false; teamInput.focus(); ok = false; }
-  else { errTeam.hidden = true; }
-  if (!shouldEnter) { errChon.hidden = false; ok = false; }
-  else { errChon.hidden = true; }
-  if (!ok) { return; }
+  if (!capNhatLoiGui()) {
+    errBoxGui.scrollIntoView({ behavior: "smooth", block: "center" });
+    return;
+  }
 
   var signs = [];
   signBoxes.forEach(function (box) { if (box.checked) { signs.push(Number(box.value)); } });
@@ -313,20 +346,45 @@ document.getElementById("btn-sua").addEventListener("click", function () {
   window.scrollTo({ top: 0, behavior: "smooth" });
 });
 
+/* ---- Nhận xét đội khác: hộp lỗi TO + tô đỏ ô còn thiếu ---- */
+var errBoxNx = document.getElementById("err-box-nhanxet");
+var toTeamInput = document.getElementById("to-team");
+var commentInput = document.getElementById("comment");
+function capNhatLoiNhanXet() {
+  var thieu = [];
+  if (!toTeamInput.value.trim()) thieu.push("doi");
+  if (!commentInput.value.trim()) thieu.push("nd");
+  document.getElementById("err-nhanxet-team").hidden = thieu.indexOf("doi") === -1;
+  document.getElementById("err-nhanxet-text").hidden = thieu.indexOf("nd") === -1;
+  if (thieu.length === 0) {
+    errBoxNx.hidden = true;
+    errBoxNx.innerHTML = "";
+    toTeamInput.classList.remove("field-missing");
+    commentInput.classList.remove("field-missing");
+    return true;
+  }
+  var dong = [];
+  if (thieu.indexOf("doi") !== -1) dong.push("⚠️ Chưa nhập tên đội được nhận xét — gõ tên đội vào ô trên rồi bấm Gửi lại.");
+  if (thieu.indexOf("nd") !== -1) dong.push("⚠️ Chưa nhập nội dung nhận xét — viết vài chữ rồi bấm Gửi lại.");
+  errBoxNx.innerHTML = dong.join("<br>");
+  errBoxNx.hidden = false;
+  toTeamInput.classList.toggle("field-missing", thieu.indexOf("doi") !== -1);
+  commentInput.classList.toggle("field-missing", thieu.indexOf("nd") !== -1);
+  return false;
+}
+toTeamInput.addEventListener("input", capNhatLoiNhanXet);
+commentInput.addEventListener("input", capNhatLoiNhanXet);
+
 /* ---- Nhận xét đội khác (gửi được nhiều lần) ---- */
 document.getElementById("btn-gui-nhanxet").addEventListener("click", function () {
   var fromTeam = teamInput.value.trim();
-  var toTeam = document.getElementById("to-team").value.trim();
-  var text = document.getElementById("comment").value.trim();
-  var errTeam = document.getElementById("err-nhanxet-team");
-  var errText = document.getElementById("err-nhanxet-text");
+  var toTeam = toTeamInput.value.trim();
+  var text = commentInput.value.trim();
   var note = document.getElementById("note-nhanxet");
-  var ok = true;
-  if (!toTeam) { errTeam.hidden = false; ok = false; }
-  else { errTeam.hidden = true; }
-  if (!text) { errText.hidden = false; ok = false; }
-  else { errText.hidden = true; }
-  if (!ok) { return; }
+  if (!capNhatLoiNhanXet()) {
+    errBoxNx.scrollIntoView({ behavior: "smooth", block: "center" });
+    return;
+  }
   var btn = document.getElementById("btn-gui-nhanxet");
   btn.disabled = true;
   btn.textContent = "⏳ Đang gửi…";
