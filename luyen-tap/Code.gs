@@ -1,6 +1,16 @@
 // ============================================================================
 //  ĐƯỜNG CHUYỂN TOÀN BỘ THÔNG TIN: ĐIỆN THOẠI (thầy) -> LAPTOP (thầy) -> CHIẾU LÊN TV
 //  Chỉ phục vụ thầy Phạm Ngọc Hưng và dữ liệu CỦA THẦY.
+//  PHIÊN BẢN 25 (22/11/2026):
+//  - TRANG CHỦ 3 TAB THỐNG NHẤT: "📦 Hộp đen" | "🔔 Bấm chuông" |
+//    "🔍 Đội điều tra" — 1 thanh tab ở đầu mọi trang host (menu, chi
+//    tiết, xem tất cả, chuông, điều tra). Mỗi tab là 1 link nạp lại
+//    trang với tham số của tab đó (máy chủ vẽ sẵn đúng tab, KHÔNG nạp
+//    cả 3 tab cùng lúc — đỡ nặng, đỡ lag). Bí danh ?tab=hopden /
+//    ?tab=buzzer / ?tab=dieutra (tương đương ?hd3= cũ, vẫn chạy).
+//    Chỉ đổi điều hướng + khung ngoài; nội dung và chức năng của cả
+//    3 mục giữ nguyên (menu 6 máy, chuông mở/khóa/đặt lại, điều tra
+//    + nhận xét, nút "Làm mới trang" tay, target="_top").
 //  PHIÊN BẢN 24 (22/11/2026):
 //  - HĐ3 LUYỆN TẬP — BÀI 4 LỚP 8 ("Nguy cơ rò rỉ dữ liệu cá nhân"):
 //    backend cho 3 việc của học sinh trong giờ luyện tập, lưu RIÊNG trong
@@ -1493,7 +1503,7 @@ function dinhDangGiayTuKhiMoHD3(mocIso, gioIso) {
 }
 
 // Mở đầu trang host HĐ3: cùng giao diện tối "HỘP ĐEN" + CSS riêng cho HĐ3.
-function moDauTrangHD3(tieuDe, trangThai, urlLamMoi) {
+function moDauTrangHD3(tieuDe, trangThai, urlLamMoi, tabDangChon) {
   var cssThem = '\n  /* HĐ3 host: hiện đại, chữ to, dễ nhìn trên TV. */\n' +
     '  .dau .nut-tai { font-size: 22px; padding: 16px 26px; }\n' +
     '  .dau .nut-quay-lai { font-size: 20px; padding: 16px 22px; }\n' +
@@ -1537,7 +1547,7 @@ function moDauTrangHD3(tieuDe, trangThai, urlLamMoi) {
   var linkQuayLai = '<a class="nut-quay-lai" target="_top" href="' + escHtml(URL_WEB_APP) + '">← Quay lại menu</a>';
   return '<!DOCTYPE html>\n<html lang="vi">\n<head>\n<meta charset="UTF-8">\n' +
     '<meta name="viewport" content="width=device-width, initial-scale=1">\n' +
-    '<title>' + escHtml(tieuDe) + '</title>\n<style>\n' + CSS_TRINH_CHIEU + cssThem + '</style>\n</head>\n<body>\n' +
+    '<title>' + escHtml(tieuDe) + '</title>\n<style>\n' + CSS_TRINH_CHIEU + cssThem + '</style>\n</head>\n<body>\n' + thanhTab(tabDangChon || 'hopden') +
     '<div class="dau"><h1>' + escHtml(tieuDe) + '</h1><div class="trang-thai">' + escHtml(trangThai) + '</div>' +
     '<div style="margin-top:10px;">' + linkQuayLai + '<a class="nut-tai" target="_top" href="' + escHtml(urlLamMoi) + '">Làm mới trang</a></div></div>\n';
 }
@@ -1592,7 +1602,7 @@ function taoTrangBuzzerHD3() {
     }
     noiDung = '<div class="tieu-de-phu">Bảng xếp hạng — Câu ' + tt.currentRound + '</div>' + hang;
   }
-  return moDauTrangHD3('HĐ3 — CHUÔNG BẤM NHANH (Bài 4 lớp 8)', trangThai, urlLamMoi) +
+  return moDauTrangHD3('HĐ3 — CHUÔNG BẤM NHANH (Bài 4 lớp 8)', trangThai, urlLamMoi, 'buzzer') +
     '<div class="khung"><div style="margin: 8px 0 4px;">' + huyHieu + '</div>' + tienTrinh + nut + noiDung + '</div>' + dongTrangTrinhChieu();
 }
 
@@ -1662,7 +1672,7 @@ function taoTrangDieuTraHD3() {
     for (var l = 0; l < doiLa.length; l++) khoiLa += khoiNhanXet(doiLa[l]);
     noiDung += '<div class="khung"><div class="the-dieu-tra"><div class="ten-doi">Nhận xét về đội chưa nộp điều tra</div>' + khoiLa + '</div></div>';
   }
-  return moDauTrangHD3('HĐ3 — ĐIỀU TRA (Bài 4 lớp 8)', trangThai, urlLamMoi) + noiDung + dongTrangTrinhChieu();
+  return moDauTrangHD3('HĐ3 — ĐIỀU TRA (Bài 4 lớp 8)', trangThai, urlLamMoi, 'dieutra') + noiDung + dongTrangTrinhChieu();
 }
 
 function doPost(e) {
@@ -2341,7 +2351,27 @@ var CSS_TRINH_CHIEU = `
   .nut-quay-lai { display: inline-block; background: #374151; color: #fff; border-radius: 10px; padding: 12px 18px; font-size: 18px; font-weight: 700; text-decoration: none; margin: 10px 10px 0 0; }
   .nut-quay-lai:hover { background: #4b5563; }
   .chan-trang { padding: 24px; text-align: center; font-size: 14px; color: #6b7280; border-top: 1px solid #26272c; }
+  .thanh-tab { display: flex; gap: 10px; padding: 16px 24px 0; background: #0b0b0d; position: sticky; top: 0; z-index: 50; }
+  .nut-tab { flex: 1; text-align: center; padding: 18px 10px; font-size: 24px; font-weight: 800; color: #9ca3af; background: #17181c; border: 2px solid #2e2f36; border-bottom: none; border-radius: 16px 16px 0 0; text-decoration: none; line-height: 1.25; }
+  .nut-tab:hover { color: #e5e7eb; border-color: #f59e0b; }
+  .nut-tab.dang-chon { background: #f59e0b; border-color: #f59e0b; color: #111; }
 `;
+
+// PHIÊN BẢN 25 — THANH TAB 3 TAB (trang chủ thống nhất):
+//   "📦 Hộp đen" | "🔔 Bấm chuông" | "🔍 Đội điều tra".
+// Mỗi tab là 1 link (target="_top") nạp lại trang với tham số của tab đó;
+// máy chủ vẽ sẵn đúng tab (KHÔNG nạp cả 3 tab cùng lúc — đỡ nặng, đỡ lag).
+// tabDangChon: 'hopden' | 'buzzer' | 'dieutra'.
+function thanhTab(tabDangChon) {
+  function nutTab(nhan, url, dangChon) {
+    return '<a class="nut-tab' + (dangChon ? ' dang-chon' : '') + '" target="_top" href="' + escHtml(url) + '">' + nhan + '</a>';
+  }
+  return '<div class="thanh-tab">' +
+    nutTab('📦 Hộp đen', URL_WEB_APP, tabDangChon === 'hopden') +
+    nutTab('🔔 Bấm chuông', URL_WEB_APP + '?tab=buzzer', tabDangChon === 'buzzer') +
+    nutTab('🔍 Đội điều tra', URL_WEB_APP + '?tab=dieutra', tabDangChon === 'dieutra') +
+    '</div>';
+}
 
 // Mở đầu trang trình chiếu: doctype + head + CSS + tiêu đề + dòng trạng thái
 // + link "← Quay lại menu" (nếu có) + nút "Làm mới trang".
@@ -2349,14 +2379,14 @@ var CSS_TRINH_CHIEU = `
 function moDauTrangTrinhChieu(tieuDe, trangThai, urlLamMoi, linkQuayLai) {
   return '<!DOCTYPE html>\n<html lang="vi">\n<head>\n<meta charset="UTF-8">\n' +
     '<meta name="viewport" content="width=device-width, initial-scale=1">\n' +
-    '<title>' + escHtml(tieuDe) + '</title>\n<style>\n' + CSS_TRINH_CHIEU + '</style>\n</head>\n<body>\n' +
+    '<title>' + escHtml(tieuDe) + '</title>\n<style>\n' + CSS_TRINH_CHIEU + '</style>\n</head>\n<body>\n' + thanhTab('hopden') +
     '<div class="dau"><h1>' + escHtml(tieuDe) + '</h1><div class="trang-thai">' + escHtml(trangThai) + '</div>' +
     '<div style="margin-top:10px;">' + linkQuayLai + '<a class="nut-tai" target="_top" href="' + escHtml(urlLamMoi) + '">Làm mới trang</a></div></div>\n';
 }
 
 // Cuối trang trình chiếu: chân trang ghi phiên bản + đóng thẻ.
 function dongTrangTrinhChieu() {
-  return '<div class="chan-trang">Trình chiếu Avatar AI — Phiên bản 24 (22/11/2026)</div>\n</body>\n</html>';
+  return '<div class="chan-trang">Trình chiếu Avatar AI — Phiên bản 25 (22/11/2026)</div>\n</body>\n</html>';
 }
 
 // Hộp xanh + câu hỏi cho lớp (hiện dưới thẻ máy, chỉ khi máy đã có dữ liệu).
@@ -2473,9 +2503,12 @@ function taoTrangTrinhChieu() {
 
 function doGet(e) {
   var p = (e && e.parameter) || {};
-  // PHIÊN BẢN 24 — HĐ3 Luyện tập: trang host — kiểm tra tham số hd3 TRƯỚC
-  // các nhánh cũ bên dưới. Trang host vẽ sẵn phía máy chủ, không dùng
+  // PHIÊN BẢN 25 — 3 TAB: bí danh ?tab=hopden / ?tab=buzzer / ?tab=dieutra
+  // (tương đương ?hd3= cũ, vẫn chạy). Tham số hd3 kiểm tra TRƯỚC các
+  // nhánh cũ bên dưới. Trang host vẽ sẵn phía máy chủ, không dùng
   // google.script.run, không meta refresh — thầy bấm "Làm mới trang".
+  if (!p.hd3 && p.tab === 'buzzer') p.hd3 = 'buzzer';
+  if (!p.hd3 && p.tab === 'dieutra') p.hd3 = 'dieutra';
   //   ?hd3=buzzer                 -> trang host chuông bấm nhanh
   //   ?hd3=buzzer&hanhdong=mo&vong=N -> mở Câu N (chuông mở, ghi armedAt)
   //   ?hd3=buzzer&hanhdong=khoa  -> khóa chuông (lượt bấm sau bị bỏ qua)
