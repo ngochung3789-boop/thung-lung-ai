@@ -1,0 +1,759 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>HỘP ĐEN — Trang chủ (Firebase)</title>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+<style>
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif; background: #0b0b0d; color: #f3f4f6; }
+  .dau { padding: 22px 24px 16px; background: linear-gradient(180deg, #161618, #0b0b0d); border-bottom: 3px solid #f59e0b; }
+  h1 { font-size: 34px; margin: 0 0 6px; color: #fbbf24; letter-spacing: 1px; }
+  .dau h1::before { content: ''; display: inline-block; width: 14px; height: 14px; background: #f59e0b; border-radius: 3px; margin-right: 12px; vertical-align: 2px; }
+  .trang-thai { font-size: 16px; color: #a1a1aa; }
+  .khung { padding: 12px 24px 24px; }
+  .luoi-may { display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 16px; align-items: start; }
+  .the-may { background: #17181c; border: 1px solid #2e2f36; border-radius: 16px; padding: 18px 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.4); }
+  .nhan-may { font-size: 28px; font-weight: 800; color: #fbbf24; margin-bottom: 10px; }
+  .huy-hieu-dang-dung { display: inline-block; background: #16a34a; color: #fff; border-radius: 999px; padding: 6px 14px; font-size: 16px; font-weight: 800; letter-spacing: 1px; margin-bottom: 8px; }
+  .gio-gui { font-size: 15px; color: #9ca3af; margin-bottom: 6px; }
+  .bang-app { width: 100%; border-collapse: collapse; margin-top: 8px; }
+  .bang-app td { font-size: 19px; padding: 8px 6px; border-top: 1px solid #374151; }
+  .bang-app tr.tong td { font-weight: 800; border-top: 2px solid #6b7280; }
+  .ghi-chu-gia-lap { color: #9ca3af; font-size: 15px; margin-top: 4px; }
+  .hang-thong-tin { margin: 12px 0; }
+  .nhan { font-size: 14px; color: #9ca3af; text-transform: uppercase; letter-spacing: 1px; }
+  .gia-tri { font-size: 26px; font-weight: 700; margin-top: 4px; line-height: 1.3; }
+  .gia-tri.nho { font-size: 20px; }
+  .link-map { color: #60a5fa; text-decoration: underline; }
+  .ds-danh-ba { list-style: none; margin: 8px 0 0; padding: 0; }
+  .ds-danh-ba li { font-size: 20px; font-weight: 600; padding: 8px 0; border-top: 1px solid #374151; }
+  .tom-tat { white-space: pre-wrap; font-size: 20px; line-height: 1.6; background: #111827; border: 1px solid #374151; border-radius: 12px; padding: 14px 16px; margin-top: 8px; }
+  .hang-thong-tin audio { width: 100%; margin-top: 8px; }
+  .chu-thich-am-thanh { color: #9ca3af; margin-top: 6px; font-size: 18px; }
+  .luoi-anh { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px; margin-top: 12px; }
+  .luoi-anh img { width: 100%; aspect-ratio: 4 / 3; object-fit: cover; border-radius: 12px; display: block; background: #222; cursor: pointer; }
+  .chu-thich-anh { color: #9ca3af; margin-top: 8px; font-size: 18px; }
+  .hang-tai { margin-top: 14px; display: flex; gap: 10px; flex-wrap: wrap; }
+  .nut-tai { background: #2563eb; color: #fff; border: 0; border-radius: 10px; padding: 12px 18px; font-size: 18px; font-weight: 700; cursor: pointer; text-decoration: none; display: inline-block; }
+  .nut-tai:hover { background: #1d4ed8; }
+  .nut-xoa { background: transparent; color: #f87171; border: 1.5px solid #ef4444; border-radius: 10px; padding: 10px 16px; font-size: 17px; font-weight: 700; cursor: pointer; text-decoration: none; display: inline-block; }
+  .nut-xoa:hover { background: #7f1d1d; color: #fff; }
+  .hop-xanh { background: #14532d; border: 1px solid #22c55e; border-radius: 14px; padding: 18px 20px; margin: 20px 0 0; font-size: 20px; line-height: 1.5; }
+  .cau-hoi { background: #1e3a5f; border: 1px solid #3b82f6; border-radius: 14px; padding: 18px 20px; margin: 12px 0 0; font-size: 20px; line-height: 1.6; }
+  .cau-hoi b { color: #fbbf24; }
+  .trong { padding: 80px 20px; text-align: center; font-size: 24px; color: #9ca3af; line-height: 1.6; }
+  .menu-may { max-width: 760px; margin: 0 auto; }
+  .hang-menu { position: relative; display: block; background: #17181c; border: 1px solid #2e2f36; border-radius: 16px; padding: 22px 24px; margin: 0 0 14px; text-decoration: none; color: #f3f4f6; box-shadow: 0 2px 10px rgba(0,0,0,0.4); cursor: pointer; }
+  .hang-menu:hover { border-color: #f59e0b; }
+  .ten-menu { font-size: 28px; font-weight: 800; color: #fbbf24; padding-right: 175px; }
+  .moc-thoi-gian { position: absolute; top: 14px; right: 16px; font-size: 13px; font-weight: 600; letter-spacing: 0.5px; color: #9ca3af; white-space: nowrap; }
+  .gio-menu { font-size: 22px; font-weight: 700; color: #e5e7eb; margin-top: 8px; }
+  .xem-tat-ca { display: block; background: #2563eb; color: #fff; border-radius: 14px; padding: 18px 22px; margin: 8px 0 0; font-size: 22px; font-weight: 800; text-align: center; text-decoration: none; cursor: pointer; border: 0; width: 100%; }
+  .xem-tat-ca:hover { background: #1d4ed8; }
+  .nut-quay-lai { display: inline-block; background: #374151; color: #fff; border-radius: 10px; padding: 12px 18px; font-size: 18px; font-weight: 700; text-decoration: none; margin: 10px 10px 0 0; cursor: pointer; border: 0; }
+  .nut-quay-lai:hover { background: #4b5563; }
+  .chan-trang { padding: 24px; text-align: center; font-size: 14px; color: #6b7280; border-top: 1px solid #26272c; line-height: 1.7; }
+  .chan-trang a { color: #60a5fa; }
+  .thanh-tab { display: flex; gap: 10px; padding: 16px 24px 0; background: #0b0b0d; position: sticky; top: 0; z-index: 50; }
+  .nut-tab { flex: 1; text-align: center; padding: 18px 10px; font-size: 24px; font-weight: 800; color: #9ca3af; background: #17181c; border: 2px solid #2e2f36; border-bottom: none; border-radius: 16px 16px 0 0; text-decoration: none; line-height: 1.25; cursor: pointer; }
+  .nut-tab:hover { color: #e5e7eb; border-color: #f59e0b; }
+  .nut-tab.dang-chon { background: #f59e0b; border-color: #f59e0b; color: #111; }
+  .nhan-dieu-khien { font-size: 15px; font-weight: 800; letter-spacing: 2px; color: #9ca3af; text-transform: uppercase; margin: 18px 0 10px; }
+  .hang-nut-hd3 { display: flex; gap: 12px; flex-wrap: wrap; margin: 0 0 8px; }
+  .nut-mo { background: linear-gradient(180deg, #22c55e, #16a34a); color: #fff; border: 0; border-radius: 14px; padding: 18px 26px; font-size: 22px; font-weight: 800; cursor: pointer; text-decoration: none; display: inline-block; box-shadow: 0 4px 14px rgba(22,163,74,.35); }
+  .nut-mo:hover { background: linear-gradient(180deg, #16a34a, #15803d); }
+  .nut-mo.dang-xem { outline: 3px solid #fbbf24; }
+  .nut-khoa { background: linear-gradient(180deg, #f59e0b, #d97706); color: #fff; border: 0; border-radius: 14px; padding: 18px 26px; font-size: 22px; font-weight: 800; cursor: pointer; text-decoration: none; display: inline-block; box-shadow: 0 4px 14px rgba(217,119,6,.35); }
+  .nut-khoa:hover { background: linear-gradient(180deg, #d97706, #b45309); }
+  .hang-dat-lai { margin: 14px 0 4px; padding-top: 14px; border-top: 1px dashed #374151; }
+  .hang-dat-lai .chu-thich { font-size: 15px; color: #9ca3af; margin-left: 10px; }
+  .huy-hieu-trang-thai { display: inline-block; border-radius: 999px; padding: 12px 24px; font-size: 24px; font-weight: 900; letter-spacing: 1px; }
+  .huy-hieu-trang-thai.mo { background: linear-gradient(180deg, #22c55e, #16a34a); color: #fff; box-shadow: 0 4px 16px rgba(22,163,74,.4); }
+  .huy-hieu-trang-thai.khoa { background: #374151; color: #d1d5db; }
+  .tien-trinh-cau { display: flex; gap: 10px; margin: 16px 0 4px; }
+  .tien-trinh-cau span { flex: 1; text-align: center; font-size: 18px; font-weight: 800; padding: 12px 4px; border-radius: 12px; background: #17181c; border: 2px solid #2e2f36; color: #9ca3af; cursor: pointer; }
+  .tien-trinh-cau span.hien-tai { background: #fbbf24; border-color: #fbbf24; color: #111; }
+  .tien-trinh-cau span.xong { background: #14532d; border-color: #16a34a; color: #bbf7d0; }
+  .tieu-de-phu { font-size: 18px; font-weight: 800; letter-spacing: 2px; color: #9ca3af; text-transform: uppercase; margin: 20px 0 12px; }
+  .hang-xep-hang { display: flex; align-items: center; gap: 18px; background: #17181c; border: 1px solid #2e2f36; border-radius: 18px; padding: 20px 24px; margin-bottom: 14px; box-shadow: 0 2px 10px rgba(0,0,0,0.4); }
+  .hang-xep-hang.nhat { background: linear-gradient(180deg, #422006, #17181c); border: 2px solid #f59e0b; box-shadow: 0 4px 20px rgba(245,158,11,.25); }
+  .so-hang { flex: none; width: 64px; height: 64px; border-radius: 50%; background: #374151; color: #fff; font-size: 30px; font-weight: 900; display: flex; align-items: center; justify-content: center; }
+  .hang-xep-hang.nhat .so-hang { background: linear-gradient(180deg, #fbbf24, #f59e0b); color: #111; }
+  .ten-doi-xep-hang { flex: 1; font-size: 30px; font-weight: 800; color: #f3f4f6; word-break: break-word; }
+  .hang-xep-hang.nhat .ten-doi-xep-hang { color: #fbbf24; }
+  .nhan-nhanh-nhat { display: inline-block; background: #f59e0b; color: #111; font-size: 15px; font-weight: 900; letter-spacing: 1px; border-radius: 999px; padding: 4px 12px; margin-left: 10px; vertical-align: 4px; }
+  .thoi-gian-xep-hang { flex: none; text-align: right; }
+  .thoi-gian-xep-hang .giay { font-size: 40px; font-weight: 900; color: #fbbf24; line-height: 1; font-variant-numeric: tabular-nums; }
+  .thoi-gian-xep-hang .gio { font-size: 15px; color: #9ca3af; margin-top: 4px; }
+  .the-dieu-tra { background: #17181c; border: 1px solid #2e2f36; border-radius: 18px; padding: 22px 24px; box-shadow: 0 2px 10px rgba(0,0,0,0.4); }
+  .the-dieu-tra .ten-doi { font-size: 30px; font-weight: 800; color: #fbbf24; margin-bottom: 12px; word-break: break-word; }
+  .phat-bieu-ket-luan { display: inline-block; border-radius: 999px; padding: 10px 20px; font-size: 20px; font-weight: 900; letter-spacing: 1px; }
+  .phat-bieu-ket-luan.khong { background: #dc2626; color: #fff; }
+  .phat-bieu-ket-luan.co { background: #16a34a; color: #fff; }
+  .chip-dau-hieu { display: inline-block; background: #1e3a8a; color: #bfdbfe; border: 1px solid #3b82f6; border-radius: 999px; padding: 6px 14px; font-size: 17px; font-weight: 700; margin: 0 8px 8px 0; }
+  .hop-hanh-dong { background: #111827; border: 1px solid #374151; border-radius: 12px; padding: 14px 16px; margin-top: 12px; font-size: 20px; line-height: 1.6; white-space: pre-wrap; }
+  .nhan-xet-hd3 { background: #111827; border: 1px solid #374151; border-radius: 12px; padding: 12px 16px; margin-top: 10px; font-size: 19px; line-height: 1.55; }
+  .nhan-xet-hd3 b { color: #fbbf24; }
+  .gio-gui-nho { font-size: 15px; color: #9ca3af; margin-top: 4px; }
+  .hop-dang-tai { padding: 60px 20px; text-align: center; font-size: 24px; color: #fbbf24; line-height: 1.6; }
+  .hop-loi { background: #7f1d1d; border: 1px solid #ef4444; border-radius: 14px; padding: 22px 24px; margin: 20px 0; font-size: 20px; line-height: 1.6; }
+  .hop-loi .nut-thu-lai { display: inline-block; margin-top: 14px; background: #fff; color: #7f1d1d; border: 0; border-radius: 10px; padding: 12px 22px; font-size: 18px; font-weight: 800; cursor: pointer; }
+  .trang-thai-nho { font-size: 16px; color: #9ca3af; margin: 10px 0; min-height: 22px; }
+  .xem-anh-lon { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.93); z-index: 999; padding: 24px; text-align: center; overflow: auto; }
+  .xem-anh-lon.mo { display: block; }
+  .xem-anh-lon img { max-width: 94vw; max-height: 76vh; border-radius: 12px; margin: 12px auto; display: block; }
+  .dong-xem { display: inline-block; background: #ef4444; color: #fff; border-radius: 10px; padding: 12px 20px; font-size: 18px; font-weight: 700; text-decoration: none; cursor: pointer; border: 0; }
+  .ten-anh { color: #e5e7eb; font-size: 18px; margin: 10px 0 14px; }
+</style>
+</head>
+<body>
+<div class="thanh-tab" role="tablist">
+  <button class="nut-tab dang-chon" id="tab-hopden" data-tab="hopden" type="button">📦 Hộp đen</button>
+  <button class="nut-tab" id="tab-buzzer" data-tab="buzzer" type="button">🔔 Bấm chuông</button>
+  <button class="nut-tab" id="tab-dieutra" data-tab="dieutra" type="button">🔍 Đội điều tra</button>
+</div>
+<div class="dau">
+  <h1 id="tieu-de">HỘP ĐEN THU THẬP DỮ LIỆU NGƯỜI DÙNG</h1>
+  <div class="trang-thai" id="trang-thai">Trang tĩnh GitHub Pages — khung trang hiện ngay, số liệu lấy từ Apps Script.</div>
+  <div style="margin-top:10px;">
+    <button class="nut-tai" id="nut-lam-moi" type="button">🔄 Làm mới</button>
+    <a class="nut-quay-lai" id="nut-quay-lai" href="#" style="display:none;">← Quay lại menu</a>
+  </div>
+</div>
+<div class="khung" id="noi-dung"></div>
+<div class="chan-trang">
+  Trang tĩnh GitHub Pages — Hộp đen từ Apps Script, HĐ3 từ Firebase Realtime Database (kết quả hiện ngay, không cần bấm Làm mới).<br>
+  Bản Firebase bắt đầu sạch (không có bản TEST-Lucky).<br>
+  <a href="https://ngochung3789-boop.github.io/thung-lung-ai/luyen-tap/trang-chu.html" target="_blank" rel="noopener">Mở bản Apps Script (dự phòng)</a>
+</div>
+<div class="xem-anh-lon" id="xem-anh-lon">
+  <button class="dong-xem" id="dong-xem-anh" type="button">✕ Đóng</button>
+  <img id="anh-lon" src="" alt="">
+  <div class="ten-anh" id="ten-anh-lon"></div>
+  <a class="nut-tai" id="tai-anh-lon" href="" download="">Tải ảnh này về</a>
+</div>
+<script>
+/* ============ CẤU HÌNH FIREBASE ============
+   THẦY DÁN CẤU HÌNH FIREBASE THẬT VÀO ĐÂY (xem huong-dan-firebase.md).
+   Chưa dán thì 2 tab HĐ3 hiện thông báo "Chưa có cấu hình Firebase",
+   còn tab Hộp đen vẫn chạy bình thường bằng Apps Script. */
+var FIREBASE_CONFIG = {
+  apiKey: "PASTE_YOUR_API_KEY",
+  authDomain: "PASTE_YOUR_PROJECT_ID.firebaseapp.com",
+  databaseURL: "https://PASTE_YOUR_PROJECT_ID-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "PASTE_YOUR_PROJECT_ID",
+  storageBucket: "PASTE_YOUR_PROJECT_ID.appspot.com",
+  messagingSenderId: "PASTE_YOUR_SENDER_ID",
+  appId: "PASTE_YOUR_APP_ID"
+};
+</script>
+<script>
+(function() {
+  'use strict';
+  var WEBAPP_URL = 'https://script.google.com/macros/s/AKfycbw6K57VCKeT8w5oLfaUZsrLyfuJDcJaGWn0Crp5AP8IECVzo4zwse8CilJ5B5ckGTQ0/exec';
+  /* ---- Firebase (chỉ cho HĐ3; Hộp đen vẫn dùng Apps Script) ---- */
+  var db = null;
+  var fbBuzzer = { trangthai: { vong: 1, mo: false, moLuc: 0 }, rounds: {} };
+  var daNgheBuzzer = false;
+  var fbDieuTra = {};
+  var fbNhanXet = [];
+  var daNgheDieuTra = false;
+  function cauHinhChuaCo() {
+    return !window.FIREBASE_CONFIG || !FIREBASE_CONFIG.apiKey ||
+      String(FIREBASE_CONFIG.apiKey).indexOf("PASTE_") === 0;
+  }
+  function khoiTaoFirebase() {
+    if (cauHinhChuaCo()) return false;
+    if (typeof firebase === "undefined" || !firebase.database) return false;
+    try {
+      firebase.initializeApp(FIREBASE_CONFIG);
+      db = firebase.database();
+      return true;
+    } catch (e) { return false; }
+  }
+  khoiTaoFirebase();
+  function dinhDangThoiGian(ms) {
+    ms = Number(ms) || 0;
+    if (!ms) return "";
+    try {
+      var gio = new Intl.DateTimeFormat("vi-VN", { timeZone: "Asia/Ho_Chi_Minh", hour: "2-digit", minute: "2-digit", hour12: false }).format(new Date(ms));
+      var ngay = new Intl.DateTimeFormat("vi-VN", { timeZone: "Asia/Ho_Chi_Minh", day: "2-digit", month: "2-digit", year: "numeric" }).format(new Date(ms));
+      return gio + " ngày " + ngay;
+    } catch (e) {
+      var d = new Date(ms);
+      function hai(n) { return (n < 10 ? "0" : "") + n; }
+      return hai(d.getHours()) + ":" + hai(d.getMinutes()) + " ngày " + hai(d.getDate()) + "/" + hai(d.getMonth() + 1) + "/" + d.getFullYear();
+    }
+  }
+  function dinhDangGio(ms) {
+    ms = Number(ms) || 0;
+    if (!ms) return "";
+    try {
+      return new Intl.DateTimeFormat("vi-VN", { timeZone: "Asia/Ho_Chi_Minh", hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: false }).format(new Date(ms));
+    } catch (e) {
+      var d = new Date(ms);
+      function hai(n) { return (n < 10 ? "0" : "") + n; }
+      return hai(d.getHours()) + ":" + hai(d.getMinutes()) + ":" + hai(d.getSeconds());
+    }
+  }
+  function hienHopChuaCauHinh() {
+    $('trang-thai').textContent = 'HĐ3 cần cấu hình Firebase.';
+    $('noi-dung').innerHTML = '<div class="hop-loi"><b>Chưa có cấu hình Firebase.</b><br>Thầy xem hướng dẫn tạo project miễn phí (huong-dan-firebase.md) rồi gửi cấu hình cho Lucky để gắn vào.<br>Tab Hộp đen vẫn chạy bình thường bằng Apps Script.</div>';
+  }
+  var TIEU_DE = {
+    hopden: 'HỘP ĐEN THU THẬP DỮ LIỆU NGƯỜI DÙNG',
+    buzzer: 'HĐ3 — CHUÔNG BẤM NHANH (Bài 4 lớp 8)',
+    dieutra: 'HĐ3 — ĐIỀU TRA (Bài 4 lớp 8)'
+  };
+  var state = { tab: 'hopden', cau: 0, tatca: false, khoa: '' };
+  var cacheHopDen = null;
+  var dangTai = false;
+
+  function $(id) { return document.getElementById(id); }
+  function esc(s) {
+    return String((s === undefined || s === null) ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+  }
+  function apiUrl(thamSo) {
+    return WEBAPP_URL + (WEBAPP_URL.indexOf('?') === -1 ? '?' : '&') + thamSo;
+  }
+  function fetchJson(url, ms) {
+    var ctrl = new AbortController();
+    var henGio = setTimeout(function() { ctrl.abort(); }, ms || 30000);
+    return fetch(url, { signal: ctrl.signal }).then(function(r) {
+      if (!r.ok) throw new Error('Máy chủ trả về mã ' + r.status + '.');
+      return r.text();
+    }).then(function(t) {
+      var d;
+      try { d = JSON.parse(t); } catch (e) { throw new Error('Máy chủ chưa trả JSON — có thể bản Apps Script chưa phải v26.'); }
+      if (d && d.loi) throw new Error(d.loi);
+      return d;
+    }).finally(function() { clearTimeout(henGio); });
+  }
+  function dinhDangPhut(phut) {
+    phut = Math.floor(Number(phut) || 0);
+    if (phut < 0) phut = 0;
+    if (phut < 60) return phut + ' phút';
+    var gio = Math.floor(phut / 60);
+    var phutLe = phut % 60;
+    if (phutLe === 0) return gio + ' giờ';
+    return gio + ' giờ ' + phutLe + ' phút';
+  }
+  function dinhDangMs(ms) {
+    ms = Math.floor(Number(ms) || 0);
+    if (ms < 0) ms = 0;
+    var phut = Math.floor(ms / 60000);
+    if (phut < 60) return phut + ' phút';
+    var gio = Math.floor(phut / 60);
+    return gio + ' giờ ' + (phut % 60) + ' phút';
+  }
+  function hienDangTai(chu) {
+    $('noi-dung').innerHTML = '<div class="hop-dang-tai">⏳ ' + esc(chu || 'Đang tải số liệu...') + '</div>';
+  }
+  function hienLoi(loi, thuLai) {
+    $('noi-dung').innerHTML = '<div class="hop-loi"><b>Chưa tải được số liệu.</b><br>' + esc(loi) +
+      '<br>Máy chủ Apps Script có thể đang “ngủ” — chờ vài giây rồi bấm “Thử lại”.' +
+      '<br><button class="nut-thu-lai" type="button" onclick="' + thuLai + '">Thử lại</button></div>';
+  }
+  function datTieuDe(tab) {
+    $('tieu-de').textContent = TIEU_DE[tab] || TIEU_DE.hopden;
+  }
+  function datTabDangChon(tab) {
+    var nut = document.querySelectorAll('.nut-tab');
+    for (var i = 0; i < nut.length; i++) {
+      if (nut[i].getAttribute('data-tab') === tab) nut[i].classList.add('dang-chon');
+      else nut[i].classList.remove('dang-chon');
+    }
+  }
+
+  function veMenu(d) {
+    var h = '<div class="menu-may">';
+    if (!d.may || d.may.length === 0) {
+      h += '<div class="trong">Chưa có máy nào gửi.</div>';
+    } else {
+      for (var i = 0; i < d.may.length; i++) {
+        var m = d.may[i];
+        h += '<a class="hang-menu" data-khoa="' + esc(m.khoa) + '">' +
+          '<div class="ten-menu">' + esc(m.ten) + '</div>';
+        if (m.dangDung) h += '<div style="margin-top:8px;"><span class="huy-hieu-dang-dung">ĐANG DÙNG</span></div>';
+        if (m.thoiGianGui) h += '<div class="moc-thoi-gian">' + esc(m.thoiGianGui) + '</div>';
+        var chiTiet = [];
+        if (m.soAnh > 0) chiTiet.push(m.soAnh + ' ảnh');
+        if (m.coAmThanh) chiTiet.push('🎙️ có giọng nói');
+        h += '<div class="gio-menu">' + esc(chiTiet.length ? chiTiet.join(' • ') : 'Đã gửi thông tin') + '</div></a>';
+      }
+    }
+    if (!state.tatca && d.tongMay > d.may.length) {
+      h += '<button class="xem-tat-ca" id="nut-xem-tat-ca" type="button">Xem tất cả (' + d.tongMay + ' máy)</button>';
+    } else if (state.tatca) {
+      h += '<button class="xem-tat-ca" id="nut-xem-6-may" type="button">Chỉ hiện 6 máy gần nhất</button>';
+    }
+    h += '</div>';
+    return h;
+  }
+  function veChiTietMay(m) {
+    var h = '<div class="luoi-may"><div class="the-may">';
+    h += '<div class="nhan-may">' + esc(m.ten) + '</div>';
+    if (m.dangDung) h += '<div><span class="huy-hieu-dang-dung">ĐANG DÙNG</span></div>';
+    if (m.thoiGianGui) h += '<div class="gio-gui">Gửi lúc ' + esc(m.thoiGianGui) + '</div>';
+    h += '<div class="hang-thong-tin"><div class="nhan">Họ và tên</div><div class="gia-tri">' + esc(m.tenNguoi || 'Chưa nhập') + '</div></div>';
+    h += '<div class="hang-thong-tin"><div class="nhan">Số điện thoại</div><div class="gia-tri">' + esc(m.soDienThoai || 'Chưa nhập') + '</div></div>';
+    h += '<div class="hang-thong-tin"><div class="nhan">Vị trí lúc này (bấm để mở Google Maps)</div><div class="gia-tri nho">';
+    h += m.viTri ? '<a class="link-map" target="_blank" rel="noopener" href="' + esc(m.linkMaps) + '">' + esc(m.viTri) + '</a>' : 'Chưa nhập';
+    h += '</div></div>';
+    h += '<div class="hang-thong-tin"><div class="nhan">Danh bạ app đã lấy</div><ul class="ds-danh-ba">';
+    if (!m.danhBa || m.danhBa.length === 0) h += '<li style="color:#9ca3af">Chưa chọn người nào</li>';
+    else for (var i = 0; i < m.danhBa.length; i++) h += '<li>' + esc(m.danhBa[i].ten + (m.danhBa[i].so ? ' — ' + m.danhBa[i].so : '')) + '</li>';
+    h += '</ul></div>';
+    if (m.thoiGianDungApp) {
+      var tg = m.thoiGianDungApp;
+      var tenApp = ['TikTok', 'Facebook', 'Zalo', 'YouTube'];
+      h += '<div class="hang-thong-tin"><div class="nhan">Thời gian dùng app' + (tg.ngay ? ' — ngày ' + esc(tg.ngay) : '') + '</div><table class="bang-app">';
+      for (var a = 0; a < tenApp.length; a++) {
+        var app = (tg.apps && tg.apps[tenApp[a]]) || { ms: 0, lanMo: 0 };
+        h += '<tr><td>' + tenApp[a] + '</td><td>' + dinhDangMs(app.ms) + '</td><td>mở ' + (app.lanMo || 0) + ' lần</td></tr>';
+      }
+      h += '<tr class="tong"><td>Tổng cộng</td><td>' + dinhDangMs(tg.tongMs) + '</td><td></td></tr></table></div>';
+    }
+    if (m.giaLap) {
+      var g = m.giaLap;
+      h += '<div class="hang-thong-tin"><div class="nhan">Thời gian dùng app — GIẢ LẬP (mỗi tuần)</div>' +
+        '<div class="ghi-chu-gia-lap">(Dữ liệu mô phỏng để minh họa — không phải dữ liệu thật)</div><table class="bang-app">' +
+        '<tr><td>TikTok</td><td>' + dinhDangPhut(g.tiktok) + '/tuần</td></tr>' +
+        '<tr><td>YouTube</td><td>' + dinhDangPhut(g.youtube) + '/tuần</td></tr>' +
+        '<tr><td>Facebook</td><td>' + dinhDangPhut(g.facebook) + '/tuần</td></tr>' +
+        '<tr><td>Zalo</td><td>' + dinhDangPhut(g.zalo) + '/tuần</td></tr>' +
+        '<tr class="tong"><td>Tổng cộng</td><td>' + dinhDangPhut(g.tong) + '/tuần</td></tr></table></div>';
+      var appNhieu = 'TikTok', gioNhieu = g.tiktok;
+      if (g.youtube > gioNhieu) { appNhieu = 'YouTube'; gioNhieu = g.youtube; }
+      if (g.facebook > gioNhieu) { appNhieu = 'Facebook'; gioNhieu = g.facebook; }
+      if (g.zalo > gioNhieu) { appNhieu = 'Zalo'; gioNhieu = g.zalo; }
+      h += '<div class="hang-thong-tin"><div class="nhan">Kết luận của AI — GIẢ LẬP</div><div class="tom-tat">Máy này dùng ' + appNhieu + ' nhiều nhất (' + dinhDangPhut(gioNhieu) + ' mỗi tuần, trong tổng số ' + dinhDangPhut(g.tong) + ' dùng app mỗi tuần). ' +
+        esc(g.hoSo ? g.hoSo.ketLuan : '') +
+        '<br><br>Đây chính là cách AI dùng dữ liệu hành vi để định hướng lựa chọn — YCCĐ 8.A2.1.</div></div>';
+    }
+    if (m.tomTat) h += '<div class="hang-thong-tin"><div class="nhan">Bản tóm tắt hành vi (AI quét được trên máy thầy)</div><div class="tom-tat">' + esc(m.tomTat) + '</div></div>';
+    if (m.amThanh) {
+      h += '<div class="hang-thong-tin"><div class="nhan">Giọng nói đã thu</div><audio controls preload="none" src="' + esc(m.amThanh.duLieu) + '"></audio>' +
+        '<div class="chu-thich-am-thanh">Bấm ▶ để nghe lại giọng nói thầy vừa thu trên điện thoại.</div></div>';
+    }
+    if (m.anh && m.anh.length > 0) {
+      h += '<div class="luoi-anh">';
+      for (var j = 0; j < m.anh.length; j++) {
+        h += '<img src="' + esc(m.anh[j].duLieu) + '" alt="' + esc(m.anh[j].ten || '') + '" data-anh="' + j + '">';
+      }
+      h += '</div><div class="chu-thich-anh">Ảnh app vừa lấy (' + m.anh.length + ' ảnh). Bấm vào từng ảnh để xem lớn; nút “Tải ảnh N về” để tải về máy.</div>';
+    }
+    var nut = '';
+    if (m.anh && m.anh.length > 0) {
+      for (var k = 0; k < m.anh.length; k++) {
+        nut += '<a class="nut-tai" href="' + esc(m.anh[k].duLieu) + '" download="' + esc(m.anh[k].ten || ('anh-' + (k + 1) + '.jpg')) + '">Tải ảnh ' + (k + 1) + ' về</a>';
+      }
+    }
+    if (m.danhBa && m.danhBa.length > 0) {
+      var txt = '';
+      for (var d2 = 0; d2 < m.danhBa.length; d2++) txt += m.danhBa[d2].ten + (m.danhBa[d2].so ? ' — ' + m.danhBa[d2].so : '') + '\n';
+      nut += '<a class="nut-tai" href="data:text/plain;charset=utf-8;base64,' + btoa(unescape(encodeURIComponent(txt))) + '" download="danh-ba-' + esc(m.khoa) + '.txt">Tải Danh bạ về</a>';
+    }
+    if (m.amThanh) nut += '<a class="nut-tai" href="' + esc(m.amThanh.duLieu) + '" download="' + esc(m.amThanh.ten || 'giong-noi') + '">Tải giọng nói về</a>';
+    if (nut !== '') h += '<div class="hang-tai">' + nut + '</div>';
+    h += '<div class="hang-tai"><a class="nut-xoa" target="_blank" rel="noopener" href="' + esc(WEBAPP_URL + '?action=xoa&id=' + encodeURIComponent(m.khoa)) + '">🗑 Xóa dữ liệu máy này</a></div>';
+    h += '<div class="hop-xanh">App vừa biết được những gì? Nhìn lại thẻ máy này: tên, số điện thoại, vị trí, danh bạ, ảnh, giọng nói — chỉ từ vài lần bấm “Cho phép”.</div>' +
+      '<div class="cau-hoi"><b>Nếu đây là app thật thì sao?</b> Một app lạ cũng có thể biết chừng ấy — trước khi bấm “Cho phép”, hãy dừng lại một chút và tự hỏi: app này có thật sự cần không?</div>';
+    h += '</div></div>';
+    return h;
+  }
+  function taiHopDen() {
+    dangTai = true;
+    hienDangTai('Đang tải danh sách máy...');
+    $('trang-thai').textContent = state.tatca ? 'Tất cả các máy đã gửi.' : '6 máy gửi gần nhất — bấm vào một máy để xem chi tiết.';
+    fetchJson(apiUrl('api=hopden' + (state.tatca ? '&tatca=1' : ''))).then(function(d) {
+      dangTai = false;
+      cacheHopDen = d;
+      $('noi-dung').innerHTML = veMenu(d);
+      ganSuKienMenu();
+    }).catch(function(loi) {
+      dangTai = false;
+      hienLoi(loi.message || String(loi), 'taiLai()');
+    });
+  }
+  function taiChiTietMay(khoa) {
+    dangTai = true;
+    hienDangTai('Đang tải thông tin máy...');
+    $('trang-thai').textContent = 'Bấm “Làm mới” để xem máy mới gửi.';
+    fetchJson(apiUrl('api=may&khoa=' + encodeURIComponent(khoa))).then(function(d) {
+      dangTai = false;
+      $('noi-dung').innerHTML = veChiTietMay(d.may);
+      ganSuKienChiTiet(d.may);
+    }).catch(function(loi) {
+      dangTai = false;
+      hienLoi(loi.message || String(loi), 'taiLai()');
+    });
+  }
+  function ganSuKienMenu() {
+    var hang = document.querySelectorAll('.hang-menu');
+    for (var i = 0; i < hang.length; i++) {
+      hang[i].addEventListener('click', function() {
+        state.khoa = this.getAttribute('data-khoa');
+        $('nut-quay-lai').style.display = 'inline-block';
+        taiChiTietMay(state.khoa);
+      });
+    }
+    var nutTatCa = $('nut-xem-tat-ca');
+    if (nutTatCa) nutTatCa.addEventListener('click', function() { state.tatca = true; taiHopDen(); });
+    var nut6 = $('nut-xem-6-may');
+    if (nut6) nut6.addEventListener('click', function() { state.tatca = false; taiHopDen(); });
+  }
+  function ganSuKienChiTiet(m) {
+    var anh = document.querySelectorAll('.luoi-anh img');
+    for (var i = 0; i < anh.length; i++) {
+      anh[i].addEventListener('click', function() {
+        var idx = parseInt(this.getAttribute('data-anh'), 10);
+        var a = m.anh[idx];
+        $('anh-lon').src = a.duLieu;
+        $('anh-lon').alt = a.ten || '';
+        $('ten-anh-lon').textContent = a.ten || '';
+        $('tai-anh-lon').href = a.duLieu;
+        $('tai-anh-lon').setAttribute('download', a.ten || 'anh.jpg');
+        $('xem-anh-lon').classList.add('mo');
+      });
+    }
+  }
+
+  function veBuzzer(d) {
+    var h = '<div class="khung" style="padding-left:0;padding-right:0;">';
+    h += '<div style="margin: 8px 0 4px;">' + (d.dangMo
+      ? '<span class="huy-hieu-trang-thai mo">🔔 ĐANG MỞ — CÂU ' + d.vongHienTai + '</span>'
+      : '<span class="huy-hieu-trang-thai khoa">🔒 ĐÃ KHÓA</span>') + '</div>';
+    h += '<div class="tien-trinh-cau">';
+    for (var c = 1; c <= 4; c++) {
+      var lop = c === d.vongDangXem ? ' class="hien-tai"' : (d.cauDaBam && d.cauDaBam[c] ? ' class="xong"' : '');
+      h += '<span data-cau="' + c + '"' + lop + '>Câu ' + c + '</span>';
+    }
+    h += '</div>';
+    h += '<div class="nhan-dieu-khien">Điều khiển chuông</div><div class="hang-nut-hd3">';
+    for (var c2 = 1; c2 <= 4; c2++) {
+      h += '<button class="nut-mo' + (d.vongDangXem === c2 ? ' dang-xem' : '') + '" data-mo="' + c2 + '" type="button">🔔 Mở Câu ' + c2 + '</button>';
+    }
+    h += '<button class="nut-khoa" id="nut-khoa-chuong" type="button">🔒 Khóa chuông</button></div>';
+    h += '<div class="hang-dat-lai"><button class="nut-xoa" id="nut-dat-lai" type="button">⚠️ Đặt lại — xóa hết lượt bấm</button><span class="chu-thich">Xóa toàn bộ lượt bấm của cả 4 câu. Chỉ dùng sau buổi học hoặc trước khi bắt đầu lại.</span></div>';
+    h += '<div class="trang-thai-nho" id="trang-thai-chuong">' + (d.dangMo
+      ? 'Câu ' + d.vongHienTai + ' — ĐANG MỞ CHUÔNG, đội bấm được.' + (d.thoiGianMo ? ' Mở lúc ' + esc(d.thoiGianMo) + '.' : '') + ' Kết quả hiện ngay khi đội bấm.'
+      : 'Chuông đang KHÓA. Bấm “Mở Câu N” để bắt đầu một câu.') + '</div>';
+    if (!d.bangXepHang || d.bangXepHang.length === 0) {
+      h += '<div class="trong">Chưa có đội nào bấm chuông cho Câu ' + d.vongDangXem + '.</div>';
+    } else {
+      h += '<div class="tieu-de-phu">Bảng xếp hạng — Câu ' + d.vongDangXem + '</div>';
+      for (var j = 0; j < d.bangXepHang.length; j++) {
+        var muc = d.bangXepHang[j];
+        h += '<div class="hang-xep-hang' + (j === 0 ? ' nhat' : '') + '">' +
+          '<div class="so-hang">' + (j + 1) + '</div>' +
+          '<div class="ten-doi-xep-hang">' + esc(muc.doi) + (j === 0 ? '<span class="nhan-nhanh-nhat">🏆 NHANH NHẤT</span>' : '') + '</div>' +
+          '<div class="thoi-gian-xep-hang"><div class="giay">' + esc(muc.giayTuLucMo) + '</div>' +
+          '<div class="gio">bấm lúc ' + esc(muc.thoiGian) + '</div></div></div>';
+      }
+    }
+    h += '</div>';
+    return h;
+  }
+  function capNhatBuzzerTuSnapshot(val) {
+    val = val || {};
+    var tt = val.trangthai || {};
+    var vongCu = fbBuzzer.trangthai.vong;
+    fbBuzzer.trangthai = { vong: Number(tt.vong) || 1, mo: !!tt.mo, moLuc: Number(tt.moLuc) || 0 };
+    fbBuzzer.rounds = {};
+    for (var c = 1; c <= 4; c++) {
+      fbBuzzer.rounds[c] = val[String(c)] || null;
+    }
+    /* Mở câu mới thì màn hình tự chuyển sang câu đó */
+    if (fbBuzzer.trangthai.vong !== vongCu) state.cau = fbBuzzer.trangthai.vong;
+  }
+  function duLieuBuzzerChoVe() {
+    var tt = fbBuzzer.trangthai;
+    if (!state.cau) state.cau = tt.vong || 1;
+    var cau = state.cau;
+    var cauDaBam = {};
+    var bang = [];
+    var vongData = fbBuzzer.rounds[cau];
+    if (vongData) {
+      var muc = [];
+      for (var ten in vongData) {
+        if (!Object.prototype.hasOwnProperty.call(vongData, ten)) continue;
+        var r = vongData[ten] || {};
+        muc.push({ doi: ten, t: Number(r.t) || 0, hien: r.hien || '' });
+      }
+      muc.sort(function (a, b) { return a.t - b.t; });
+      for (var i = 0; i < muc.length; i++) {
+        var giay = '—';
+        if (tt.moLuc > 0 && muc[i].t >= tt.moLuc) giay = (((muc[i].t - tt.moLuc) / 1000).toFixed(1)) + 's';
+        bang.push({ doi: muc[i].doi, giayTuLucMo: giay, thoiGian: muc[i].hien || dinhDangGio(muc[i].t) });
+      }
+    }
+    for (var c2 = 1; c2 <= 4; c2++) {
+      if (fbBuzzer.rounds[c2]) cauDaBam[c2] = true;
+    }
+    return {
+      dangMo: tt.mo,
+      vongHienTai: tt.vong,
+      vongDangXem: cau,
+      cauDaBam: cauDaBam,
+      bangXepHang: bang,
+      thoiGianMo: tt.moLuc ? dinhDangThoiGian(tt.moLuc) : ''
+    };
+  }
+  function renderBuzzerFb() {
+    $('trang-thai').textContent = 'Chuông bấm nhanh — kết quả hiện ngay khi đội bấm.';
+    $('noi-dung').innerHTML = veBuzzer(duLieuBuzzerChoVe());
+    ganSuKienBuzzerFb();
+  }
+  function ngheBuzzerFb() {
+    daNgheBuzzer = true;
+    db.ref('hd3-bai4/buzzer').on('value', function (snap) {
+      capNhatBuzzerTuSnapshot(snap.val());
+      if (state.tab === 'buzzer') renderBuzzerFb();
+    });
+  }
+  function taiBuzzerFb() {
+    if (!db) { hienHopChuaCauHinh(); return; }
+    if (!daNgheBuzzer) {
+      hienDangTai('Đang tải bảng xếp hạng...');
+      $('trang-thai').textContent = 'Chuông bấm nhanh — kết quả hiện ngay khi đội bấm.';
+      ngheBuzzerFb();
+      return;
+    }
+    /* “Làm mới” chỉ là dự phòng: đọc lại 1 lần rồi vẽ lại */
+    db.ref('hd3-bai4/buzzer').get().then(function (snap) {
+      capNhatBuzzerTuSnapshot(snap.val());
+      renderBuzzerFb();
+    }).catch(function (loi) {
+      hienLoi('Không đọc được Firebase: ' + (loi && loi.message ? loi.message : loi), 'taiLai()');
+    });
+  }
+  function hanhDongChuongFb(hanhdong, vong, chuTrangThai) {
+    if (hanhdong === 'datlai') {
+      if (!confirm('Xóa toàn bộ lượt bấm của cả 4 câu? Chỉ dùng sau buổi học hoặc trước khi bắt đầu lại.')) return;
+    }
+    var el = $('trang-thai-chuong');
+    if (el) el.textContent = chuTrangThai || 'Đang xử lý...';
+    var p;
+    if (hanhdong === 'mo') {
+      p = db.ref('hd3-bai4/buzzer/trangthai').set({ vong: vong, mo: true, moLuc: firebase.database.ServerValue.TIMESTAMP });
+    } else if (hanhdong === 'khoa') {
+      p = db.ref('hd3-bai4/buzzer/trangthai').update({ mo: false });
+    } else {
+      p = db.ref('hd3-bai4/buzzer').set({ trangthai: { vong: 1, mo: false, moLuc: 0 } });
+    }
+    p.catch(function (loi) {
+      if (el) el.textContent = 'Chưa đổi được trạng thái: ' + (loi && loi.message ? loi.message : loi);
+    });
+    /* Kết quả hiện qua listener (onValue) — không cần vẽ lại tay */
+  }
+  function ganSuKienBuzzerFb() {
+    var nutMo = document.querySelectorAll('[data-mo]');
+    for (var i = 0; i < nutMo.length; i++) {
+      nutMo[i].addEventListener('click', function() {
+        hanhDongChuongFb('mo', parseInt(this.getAttribute('data-mo'), 10), 'Đang mở Câu ' + this.getAttribute('data-mo') + '...');
+      });
+    }
+    var nutKhoa = $('nut-khoa-chuong');
+    if (nutKhoa) nutKhoa.addEventListener('click', function() { hanhDongChuongFb('khoa', 0, 'Đang khóa chuông...'); });
+    var nutDatLai = $('nut-dat-lai');
+    if (nutDatLai) nutDatLai.addEventListener('click', function() { hanhDongChuongFb('datlai', 0, 'Đang đặt lại...'); });
+    var tienTrinh = document.querySelectorAll('.tien-trinh-cau span');
+    for (var j = 0; j < tienTrinh.length; j++) {
+      tienTrinh[j].addEventListener('click', function() {
+        state.cau = parseInt(this.getAttribute('data-cau'), 10);
+        renderBuzzerFb();
+      });
+    }
+  }
+  function veDieuTra(d) {
+    var h = '';
+    if (!d.doi || d.doi.length === 0) {
+      h = '<div class="trong">Chưa có đội nào nộp bản điều tra.</div>';
+    } else {
+      h = '<div class="tieu-de-phu">Kết quả các đội — ' + d.doi.length + ' đội đã nộp</div><div class="luoi-may">';
+      for (var j = 0; j < d.doi.length; j++) {
+        var m = d.doi[j];
+        h += '<div class="the-dieu-tra"><div class="ten-doi">' + esc(m.doi) + '</div>' +
+          (m.nenNhap ? '<span class="phat-bieu-ket-luan co">✓ NÊN NHẬP</span>' : '<span class="phat-bieu-ket-luan khong">✋ KHÔNG NÊN NHẬP</span>');
+        h += '<div class="hang-thong-tin"><div class="nhan">Dấu hiệu</div><div style="margin-top:10px;">';
+        if (m.dauHieu && m.dauHieu.length > 0) {
+          for (var s = 0; s < m.dauHieu.length; s++) h += '<span class="chip-dau-hieu">Dấu hiệu ' + m.dauHieu[s] + '</span>';
+        } else h += '<span style="color:#9ca3af;font-size:19px;">Chưa chọn dấu hiệu nào.</span>';
+        h += '</div></div>';
+        h += '<div class="hang-thong-tin"><div class="nhan">Hành động sẽ làm</div><div class="hop-hanh-dong">' + esc(m.cachLam || '(không ghi)') + '</div></div>';
+        if (m.thoiGian) h += '<div class="gio-gui-nho">Nộp lúc ' + esc(m.thoiGian) + '</div>';
+        if (m.nhanXet && m.nhanXet.length > 0) {
+          h += '<div style="margin-top:14px;"><div class="nhan">Nhận xét của các đội khác</div>';
+          for (var q = 0; q < m.nhanXet.length; q++) {
+            h += '<div class="nhan-xet-hd3"><b>' + esc(m.nhanXet[q].tuDoi) + ':</b> ' + esc(m.nhanXet[q].noiDung) +
+              '<div class="gio-gui-nho">' + esc(m.nhanXet[q].thoiGian || '') + '</div></div>';
+          }
+          h += '</div>';
+        }
+        h += '</div>';
+      }
+      h += '</div>';
+      if (d.doiLa && d.doiLa.length > 0) {
+        h += '<div class="khung" style="padding-left:0;padding-right:0;"><div class="the-dieu-tra"><div class="ten-doi">Nhận xét về đội chưa nộp điều tra</div>';
+        for (var l = 0; l < d.doiLa.length; l++) {
+          var la = d.doiLa[l];
+          for (var q2 = 0; q2 < la.nhanXet.length; q2++) {
+            h += '<div class="nhan-xet-hd3"><b>' + esc(la.nhanXet[q2].tuDoi) + ':</b> ' + esc(la.nhanXet[q2].noiDung) + '</div>';
+          }
+        }
+        h += '</div></div>';
+      }
+    }
+    h += '<div class="hang-dat-lai"><button class="nut-xoa" id="nut-dat-lai-dieu-tra" type="button">⚠️ Đặt lại — xóa hết kết luận + nhận xét</button><span class="chu-thich">Xóa toàn bộ kết luận và nhận xét của tất cả các đội. Chỉ dùng sau buổi học hoặc trước khi bắt đầu lại.</span></div>';
+    h += '<div class="trang-thai-nho" id="trang-thai-dieu-tra">Kết quả hiện ngay khi đội nộp.</div>';
+    return h;
+  }
+  function duLieuDieuTraChoVe() {
+    var ds = [];
+    for (var ten in fbDieuTra) {
+      if (!Object.prototype.hasOwnProperty.call(fbDieuTra, ten)) continue;
+      var r = fbDieuTra[ten] || {};
+      var nx = [];
+      for (var i = 0; i < fbNhanXet.length; i++) {
+        if (fbNhanXet[i].toTeam === ten) {
+          nx.push({ tuDoi: fbNhanXet[i].fromTeam || '', noiDung: fbNhanXet[i].text || '', thoiGian: dinhDangThoiGian(fbNhanXet[i].t) });
+        }
+      }
+      ds.push({
+        doi: ten,
+        nenNhap: !!r.shouldEnter,
+        dauHieu: (r.signs || []).map(function (x) { return String(x); }),
+        cachLam: r.action || '',
+        thoiGian: dinhDangThoiGian(r.t),
+        nhanXet: nx,
+        _t: Number(r.t) || 0
+      });
+    }
+    ds.sort(function (a, b) { return a._t - b._t; });
+    for (var j = 0; j < ds.length; j++) delete ds[j]._t;
+    var daNop = {};
+    for (var k = 0; k < ds.length; k++) daNop[ds[k].doi] = true;
+    var laMap = {};
+    for (var m = 0; m < fbNhanXet.length; m++) {
+      var c = fbNhanXet[m];
+      if (!c.toTeam || daNop[c.toTeam]) continue;
+      if (!laMap[c.toTeam]) laMap[c.toTeam] = [];
+      laMap[c.toTeam].push({ tuDoi: c.fromTeam || '', noiDung: c.text || '', thoiGian: dinhDangThoiGian(c.t) });
+    }
+    var doiLa = [];
+    for (var tenLa in laMap) {
+      if (Object.prototype.hasOwnProperty.call(laMap, tenLa)) doiLa.push({ nhanXet: laMap[tenLa] });
+    }
+    return { doi: ds, doiLa: doiLa };
+  }
+  function renderDieuTraFb() {
+    $('trang-thai').textContent = 'Kết quả các đội — hiện ngay khi đội nộp.';
+    $('noi-dung').innerHTML = veDieuTra(duLieuDieuTraChoVe());
+    ganSuKienDieuTraFb();
+  }
+  function ngheDieuTraFb() {
+    if (daNgheDieuTra) return;
+    daNgheDieuTra = true;
+    db.ref('hd3-bai4/dieutra').on('value', function (snap) {
+      fbDieuTra = snap.val() || {};
+      if (state.tab === 'dieutra') renderDieuTraFb();
+    });
+    db.ref('hd3-bai4/nhanxet').on('value', function (snap) {
+      var v = snap.val() || {};
+      fbNhanXet = [];
+      for (var k in v) {
+        if (Object.prototype.hasOwnProperty.call(v, k)) fbNhanXet.push(v[k]);
+      }
+      fbNhanXet.sort(function (a, b) { return (Number(a.t) || 0) - (Number(b.t) || 0); });
+      if (state.tab === 'dieutra') renderDieuTraFb();
+    });
+  }
+  function taiDieuTraFb() {
+    if (!db) { hienHopChuaCauHinh(); return; }
+    if (!daNgheDieuTra) {
+      hienDangTai('Đang tải kết quả điều tra...');
+      $('trang-thai').textContent = 'Kết quả các đội — hiện ngay khi đội nộp.';
+      ngheDieuTraFb();
+      return;
+    }
+    /* “Làm mới” chỉ là dự phòng: đọc lại 1 lần rồi vẽ lại */
+    Promise.all([db.ref('hd3-bai4/dieutra').get(), db.ref('hd3-bai4/nhanxet').get()]).then(function (res) {
+      fbDieuTra = res[0].val() || {};
+      var v = res[1].val() || {};
+      fbNhanXet = [];
+      for (var k in v) {
+        if (Object.prototype.hasOwnProperty.call(v, k)) fbNhanXet.push(v[k]);
+      }
+      fbNhanXet.sort(function (a, b) { return (Number(a.t) || 0) - (Number(b.t) || 0); });
+      renderDieuTraFb();
+    }).catch(function (loi) {
+      hienLoi('Không đọc được Firebase: ' + (loi && loi.message ? loi.message : loi), 'taiLai()');
+    });
+  }
+  function hanhDongDieuTraFb() {
+    if (!confirm('Xóa toàn bộ kết luận và nhận xét của tất cả các đội? Chỉ dùng sau buổi học hoặc trước khi bắt đầu lại.')) return;
+    var el = $('trang-thai-dieu-tra');
+    if (el) el.textContent = 'Đang đặt lại...';
+    Promise.all([
+      db.ref('hd3-bai4/dieutra').remove(),
+      db.ref('hd3-bai4/nhanxet').remove()
+    ]).catch(function (loi) {
+      if (el) el.textContent = 'Chưa đặt lại được: ' + (loi && loi.message ? loi.message : loi);
+    });
+    /* Kết quả hiện qua listener (onValue) — không cần vẽ lại tay */
+  }
+  function ganSuKienDieuTraFb() {
+    var nut = $('nut-dat-lai-dieu-tra');
+    if (nut) nut.addEventListener('click', hanhDongDieuTraFb);
+  }
+  function taiLai() {
+    if (state.tab === 'hopden') {
+      if (state.khoa) taiChiTietMay(state.khoa); else taiHopDen();
+    } else if (state.tab === 'buzzer') taiBuzzerFb();
+    else taiDieuTraFb();
+  }
+  window.taiLai = taiLai;
+  function doiTab(tab, dayHash) {
+    if (tab !== 'hopden' && tab !== 'buzzer' && tab !== 'dieutra') tab = 'hopden';
+    state.tab = tab;
+    state.khoa = '';
+    $('nut-quay-lai').style.display = 'none';
+    datTabDangChon(tab);
+    datTieuDe(tab);
+    if (dayHash !== false) {
+      try { history.replaceState(null, '', '#' + tab); } catch (e) {}
+    }
+    taiLai();
+  }
+  function tabTuHash() {
+    var h = (location.hash || '').replace('#', '');
+    if (h === 'buzzer' || h === 'dieutra' || h === 'hopden') return h;
+    return 'hopden';
+  }
+  document.querySelectorAll('.nut-tab').forEach(function(nut) {
+    nut.addEventListener('click', function() { doiTab(this.getAttribute('data-tab')); });
+  });
+  $('nut-lam-moi').addEventListener('click', taiLai);
+  $('nut-quay-lai').addEventListener('click', function(e) {
+    e.preventDefault();
+    state.khoa = '';
+    this.style.display = 'none';
+    taiHopDen();
+  });
+  $('dong-xem-anh').addEventListener('click', function() {
+    $('xem-anh-lon').classList.remove('mo');
+    $('anh-lon').src = '';
+  });
+  $('xem-anh-lon').addEventListener('click', function(e) {
+    if (e.target === this) { this.classList.remove('mo'); $('anh-lon').src = ''; }
+  });
+  window.addEventListener('hashchange', function() { doiTab(tabTuHash(), false); });
+  doiTab(tabTuHash(), false);
+})();
+</script>
+</body>
+</html>

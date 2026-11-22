@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Trắc nghiệm nhanh — Bài 4 Lớp 8 (Firebase)</title>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; }
+  body {
+    font-family: -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+    background: #0b3d91;
+    color: #fff;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 16px;
+    text-align: center;
+  }
+  h1 { font-size: 26px; line-height: 1.3; margin: 8px 0 4px; }
+  .sub { font-size: 17px; color: #cfe3ff; margin-bottom: 16px; }
+  .card {
+    width: 100%; max-width: 520px;
+    background: #fff; color: #111;
+    border-radius: 18px; padding: 20px 16px;
+    box-shadow: 0 6px 24px rgba(0,0,0,.35);
+  }
+  .card p { font-size: 18px; line-height: 1.5; margin-bottom: 12px; }
+  label { display: block; font-size: 19px; font-weight: 700; margin-bottom: 8px; }
+  input[type="text"] {
+    width: 100%; font-size: 22px; padding: 14px 12px;
+    border: 3px solid #0b3d91; border-radius: 12px;
+    text-align: center; color: #111;
+  }
+  button { font-family: inherit; cursor: pointer; border: none; }
+  .btn-primary {
+    width: 100%; margin-top: 14px; padding: 16px;
+    font-size: 22px; font-weight: 800; color: #fff;
+    background: #0b3d91; border-radius: 12px;
+  }
+  .btn-primary:active { background: #072a66; }
+  .steps { display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; max-width: 520px; margin: 2px 0 14px; }
+  .step { font-size: 16px; font-weight: 800; color: #9db8dd; background: rgba(255,255,255,.08); border: 2px solid #4d7fc4; border-radius: 999px; padding: 8px 14px; white-space: nowrap; }
+  .step.on { color: #111; background: #ffd23f; border-color: #ffd23f; }
+  .step-arrow { color: #cfe3ff; font-size: 18px; font-weight: 800; }
+  .step-tag { display: inline-block; font-size: 15px; font-weight: 800; letter-spacing: 1px; color: #0b3d91; background: #dbeafe; border-radius: 999px; padding: 5px 12px; margin-bottom: 10px; }
+  .step-tag.vang { background: #ffd23f; color: #111; }
+  /* Màn hình chính */
+  #main { display: none; width: 100%; max-width: 520px; flex-direction: column; align-items: center; flex: 1; }
+  .team-bar {
+    width: 100%; background: #fff; color: #111; border-radius: 14px;
+    padding: 12px 14px; margin-bottom: 14px;
+    display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  }
+  .team-bar .team-name { font-size: 22px; font-weight: 800; text-align: left; word-break: break-word; }
+  .team-bar a { font-size: 15px; color: #0b3d91; white-space: nowrap; }
+  .rounds { display: flex; gap: 8px; width: 100%; margin-bottom: 18px; }
+  .rounds button {
+    flex: 1; padding: 14px 4px; font-size: 19px; font-weight: 800;
+    background: #123f7a; color: #cfe3ff; border: 3px solid #4d7fc4; border-radius: 12px;
+  }
+  .rounds button.active { background: #ffd23f; color: #111; border-color: #ffd23f; }
+  #buzzer {
+    width: 100%; max-width: 420px; aspect-ratio: 1 / 1; max-height: 46vh;
+    border-radius: 50%;
+    background: radial-gradient(circle at 35% 30%, #ff5a5a, #d60000 70%);
+    color: #fff; font-size: 34px; font-weight: 900; line-height: 1.25;
+    border: 8px solid #fff;
+    box-shadow: 0 10px 0 #7a0000, 0 16px 32px rgba(0,0,0,.45);
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    touch-action: manipulation; user-select: none; -webkit-user-select: none;
+  }
+  #buzzer:active { transform: translateY(6px); box-shadow: 0 4px 0 #7a0000, 0 8px 18px rgba(0,0,0,.45); }
+  #buzzer:disabled {
+    background: radial-gradient(circle at 35% 30%, #9aa5b1, #5b6773 70%);
+    border-color: #dfe6ee; box-shadow: 0 10px 0 #3c454f, 0 16px 32px rgba(0,0,0,.35);
+    color: #eef2f6;
+  }
+  #buzzer .bell { font-size: 64px; line-height: 1; }
+  #status { margin-top: 18px; font-size: 26px; font-weight: 800; min-height: 36px; }
+  #status.ok { color: #7dff9b; }
+  #status.err { color: #ffb4b4; }
+  .hint { margin-top: 10px; font-size: 18px; color: #cfe3ff; line-height: 1.5; }
+  .trang-thai-chuong { margin: 0 0 14px; font-size: 19px; font-weight: 700; color: #ffd23f; min-height: 26px; }
+  .trang-thai-chuong.khoa { color: #9db8dd; }
+  #done { display: none; margin-top: 18px; background: #ffd23f; color: #111;
+    border-radius: 14px; padding: 16px; font-size: 22px; font-weight: 800; line-height: 1.4; width: 100%; }
+  .foot { margin-top: auto; padding-top: 18px; font-size: 14px; color: #9db8dd; }
+  .canh-bao-cau-hinh {
+    display: none; width: 100%; max-width: 520px;
+    background: #fef3c7; color: #92400e; border: 2px solid #f59e0b;
+    border-radius: 14px; padding: 16px; margin-bottom: 14px;
+    font-size: 18px; font-weight: 700; line-height: 1.5; text-align: left;
+  }
+  .canh-bao-cau-hinh.show { display: block; }
+</style>
+</head>
+<body>
+
+<div class="canh-bao-cau-hinh" id="canh-bao-cau-hinh">⚠️ Chưa có cấu hình Firebase — thầy xem hướng dẫn tạo project miễn phí (huong-dan-firebase.md) rồi gửi cấu hình cho Lucky để gắn vào.</div>
+
+<h1>🔔 Trắc nghiệm nhanh</h1>
+<p class="sub">Bài 4 — Lớp 8 &nbsp;•&nbsp; Luyện tập: 4 câu, mỗi câu 30 giây</p>
+<div class="steps"><span class="step on" id="step1">1 · Nhập tên đội</span><span class="step-arrow">→</span><span class="step" id="step2">2 · Bấm chuông</span></div>
+
+<!-- BƯỚC 1: NHẬP TÊN ĐỘI -->
+<div class="card" id="setup">
+  <span class="step-tag">BƯỚC 1</span>
+  <p>Nhập tên đội của nhóm em, rồi bấm <b>“Vào chơi”</b>.<br>
+  Câu hỏi hiện trên màn hình của thầy — điện thoại chỉ để bấm chuông.</p>
+  <label for="teamInput">Tên đội</label>
+  <input type="text" id="teamInput" maxlength="40" placeholder="Ví dụ: Tổ 1" autocomplete="off">
+  <button class="btn-primary" id="joinBtn" type="button">Vào chơi</button>
+</div>
+
+<!-- MÀN HÌNH CHÍNH -->
+<div id="main">
+  <div class="team-bar">
+    <span class="team-name">Đội: <span id="teamLabel"></span></span>
+    <a href="#" id="renameLink">Đổi tên đội</a>
+  </div>
+
+  <div class="trang-thai-chuong khoa" id="trang-thai-chuong">Đang kết nối Firebase…</div>
+
+  <div class="rounds" role="group" aria-label="Chọn câu">
+    <button type="button" data-round="1" class="active">Câu 1</button>
+    <button type="button" data-round="2">Câu 2</button>
+    <button type="button" data-round="3">Câu 3</button>
+    <button type="button" data-round="4">Câu 4</button>
+  </div>
+
+  <div><span class="step-tag vang">BƯỚC 2 — BẤM CHUÔNG</span></div>
+  <button id="buzzer" type="button">
+    <span class="bell">🔔</span>
+    <span>BẤM<br>TRẢ LỜI</span>
+  </button>
+
+  <div id="status"></div>
+  <div id="done">✅ Đã xong 4 câu — chờ thầy tổng kết.</div>
+  <p class="hint">Thầy đọc “bấm!” thì bấm ngay.<br>Mỗi câu chỉ bấm được 1 lần.</p>
+</div>
+
+<p class="foot">Chỉ gửi tên đội + lượt bấm. Không thu thập thông tin cá nhân.</p>
+
+<script>
+/* ============ CẤU HÌNH FIREBASE ============
+   THẦY DÁN CẤU HÌNH FIREBASE THẬT VÀO ĐÂY (xem huong-dan-firebase.md).
+   Chưa dán thì app hiện thông báo "Chưa có cấu hình Firebase". */
+var FIREBASE_CONFIG = {
+  apiKey: "PASTE_YOUR_API_KEY",
+  authDomain: "PASTE_YOUR_PROJECT_ID.firebaseapp.com",
+  databaseURL: "https://PASTE_YOUR_PROJECT_ID-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "PASTE_YOUR_PROJECT_ID",
+  storageBucket: "PASTE_YOUR_PROJECT_ID.appspot.com",
+  messagingSenderId: "PASTE_YOUR_SENDER_ID",
+  appId: "PASTE_YOUR_APP_ID"
+};
+</script>
+<script>
+"use strict";
+var TEAM_KEY = "hd3-team";
+var db = null;
+
+var setupEl = document.getElementById("setup");
+var mainEl = document.getElementById("main");
+var teamInput = document.getElementById("teamInput");
+var joinBtn = document.getElementById("joinBtn");
+var teamLabel = document.getElementById("teamLabel");
+var renameLink = document.getElementById("renameLink");
+var buzzer = document.getElementById("buzzer");
+var statusEl = document.getElementById("status");
+var doneEl = document.getElementById("done");
+var trangThaiEl = document.getElementById("trang-thai-chuong");
+var canhBaoEl = document.getElementById("canh-bao-cau-hinh");
+var roundBtns = Array.prototype.slice.call(document.querySelectorAll(".rounds button"));
+
+var team = "";
+var round = 1;
+var pressed = { 1: false, 2: false, 3: false, 4: false };
+var trangThai = { vong: 1, mo: false, moLuc: 0 };
+var daNgheTrangThai = false;
+
+/* ---- Firebase: cấu hình chưa có thì hiện thông báo, không bấm được ---- */
+function cauHinhChuaCo() {
+  return !window.FIREBASE_CONFIG || !FIREBASE_CONFIG.apiKey ||
+    String(FIREBASE_CONFIG.apiKey).indexOf("PASTE_") === 0;
+}
+function khoiTaoFirebase() {
+  if (cauHinhChuaCo()) {
+    canhBaoEl.textContent = "⚠️ Chưa có cấu hình Firebase — thầy xem hướng dẫn tạo project miễn phí (huong-dan-firebase.md) rồi gửi cấu hình cho Lucky để gắn vào.";
+    canhBaoEl.classList.add("show");
+    trangThaiEl.textContent = "Chưa có cấu hình Firebase.";
+    trangThaiEl.classList.add("khoa");
+    return false;
+  }
+  if (typeof firebase === "undefined" || !firebase.database) {
+    canhBaoEl.textContent = "⚠️ Không tải được thư viện Firebase — kiểm tra mạng rồi tải lại trang.";
+    canhBaoEl.classList.add("show");
+    trangThaiEl.textContent = "Không kết nối được Firebase.";
+    trangThaiEl.classList.add("khoa");
+    return false;
+  }
+  try {
+    firebase.initializeApp(FIREBASE_CONFIG);
+    db = firebase.database();
+    return true;
+  } catch (e) {
+    canhBaoEl.textContent = "⚠️ Cấu hình Firebase chưa đúng — thầy kiểm tra lại file hướng dẫn (huong-dan-firebase.md).";
+    canhBaoEl.classList.add("show");
+    return false;
+  }
+}
+/* Firebase không cho phép . $ # [ ] / trong khóa — thay bằng "_" */
+function khoaDoi(ten) {
+  return String(ten).replace(/[\.\$\#\[\]\/]/g, "_");
+}
+
+function showMain() {
+  teamLabel.textContent = team;
+  setupEl.style.display = "none";
+  mainEl.style.display = "flex";
+  document.getElementById("step1").classList.remove("on");
+  document.getElementById("step2").classList.add("on");
+  refreshBuzzer();
+}
+
+function refreshBuzzer() {
+  buzzer.disabled = !!pressed[round] || !db;
+  if (pressed[round]) {
+    statusEl.textContent = "Đã bấm!";
+    statusEl.className = "ok";
+  } else if (db) {
+    statusEl.textContent = "";
+    statusEl.className = "";
+  }
+  var allDone = pressed[1] && pressed[2] && pressed[3] && pressed[4];
+  doneEl.style.display = allDone ? "block" : "none";
+}
+
+function chonCau(vong, tuDong) {
+  round = vong;
+  roundBtns.forEach(function (b) {
+    b.classList.toggle("active", parseInt(b.getAttribute("data-round"), 10) === vong);
+  });
+  refreshBuzzer();
+}
+
+/* Nghe trạng thái chuông từ Firebase: câu nào đang mở thì mặc định chọn câu đó */
+function capNhatTrangThaiChu() {
+  if (!db) return;
+  if (trangThai.mo) {
+    trangThaiEl.textContent = "🔔 Câu " + trangThai.vong + " đang mở — thầy hô “bấm!” thì bấm ngay.";
+    trangThaiEl.classList.remove("khoa");
+    if (!pressed[trangThai.vong]) chonCau(trangThai.vong, true);
+  } else {
+    trangThaiEl.textContent = "🔒 Chuông đang khóa — chờ thầy mở câu tiếp theo.";
+    trangThaiEl.classList.add("khoa");
+  }
+}
+function ngheTrangThai() {
+  if (!db || daNgheTrangThai) return;
+  daNgheTrangThai = true;
+  db.ref("hd3-bai4/buzzer/trangthai").on("value", function (snap) {
+    var v = snap.val();
+    if (v) {
+      trangThai = { vong: Number(v.vong) || 1, mo: !!v.mo, moLuc: Number(v.moLuc) || 0 };
+    } else {
+      trangThai = { vong: 1, mo: false, moLuc: 0 };
+    }
+    capNhatTrangThaiChu();
+  });
+}
+
+function join() {
+  var name = teamInput.value.trim();
+  if (!name) {
+    teamInput.focus();
+    return;
+  }
+  team = name;
+  try { localStorage.setItem(TEAM_KEY, team); } catch (e) {}
+  showMain();
+}
+
+joinBtn.addEventListener("click", join);
+teamInput.addEventListener("keydown", function (e) {
+  if (e.key === "Enter") join();
+});
+
+renameLink.addEventListener("click", function (e) {
+  e.preventDefault();
+  teamInput.value = team;
+  mainEl.style.display = "none";
+  setupEl.style.display = "block";
+  document.getElementById("step2").classList.remove("on");
+  document.getElementById("step1").classList.add("on");
+  teamInput.focus();
+});
+
+roundBtns.forEach(function (btn) {
+  btn.addEventListener("click", function () {
+    chonCau(parseInt(btn.getAttribute("data-round"), 10), false);
+  });
+});
+
+buzzer.addEventListener("click", function () {
+  if (!team || pressed[round]) return;
+  if (!db) {
+    statusEl.textContent = "Chưa có cấu hình Firebase — nhờ thầy kiểm tra.";
+    statusEl.className = "err";
+    return;
+  }
+  var vong = round;
+  var gio = new Date();
+  var hien = ("0" + gio.getHours()).slice(-2) + ":" + ("0" + gio.getMinutes()).slice(-2) + ":" + ("0" + gio.getSeconds()).slice(-2);
+  buzzer.disabled = true;
+  statusEl.textContent = "⏳ Đang gửi…";
+  statusEl.className = "";
+  /* Transaction: chỉ lượt bấm ĐẦU TIÊN của đội cho câu này được tính */
+  db.ref("hd3-bai4/buzzer/" + vong + "/" + khoaDoi(team)).transaction(function (hienTai) {
+    if (hienTai) return; // đội đã bấm rồi -> hủy, giữ lượt đầu
+    return { t: firebase.database.ServerValue.TIMESTAMP, hien: hien };
+  }).then(function (ketQua) {
+    pressed[vong] = true;
+    refreshBuzzer();
+    if (ketQua.committed) {
+      statusEl.textContent = "✓ ĐÃ GỬI — chờ thầy chiếu kết quả.";
+      statusEl.className = "ok";
+    } else {
+      statusEl.textContent = "Đội đã bấm Câu " + vong + " rồi.";
+      statusEl.className = "";
+    }
+  }).catch(function () {
+    buzzer.disabled = false;
+    statusEl.textContent = "Gửi chưa được — kiểm tra mạng rồi bấm lại.";
+    statusEl.className = "err";
+  });
+});
+
+/* Khởi tạo Firebase + nghe trạng thái chuông ngay khi mở app */
+if (khoiTaoFirebase()) ngheTrangThai();
+refreshBuzzer();
+
+// Tên đội đã lưu thì vào thẳng màn hình chính
+try {
+  var saved = localStorage.getItem(TEAM_KEY);
+  if (saved && saved.trim()) {
+    team = saved.trim();
+    showMain();
+  }
+} catch (e) {}
+</script>
+</body>
+</html>
