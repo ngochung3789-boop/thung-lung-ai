@@ -5642,6 +5642,33 @@ function taoNhanVatTen(tenDayDu, chiSo){
   g.userData.moTa = 'Bạn ' + tenGoi + ' đang sẵn sàng thực hành.';
   return g;
 }
+/* v16: danh dau LOP TRUONG (ban dau tien trong danh sach lop) — bang do o tay + bien 'LOP TRUONG' tren dau. */
+function textureLopTruong(){
+  const cv = document.createElement('canvas'); cv.width = 512; cv.height = 128;
+  const g = cv.getContext('2d');
+  g.fillStyle = 'rgba(180,20,20,0.95)'; g.fillRect(0, 0, 512, 128);
+  g.strokeStyle = '#FFD76A'; g.lineWidth = 6; g.strokeRect(4, 4, 504, 120);
+  g.fillStyle = '#FFFFFF'; g.font = 'bold 60px Arial'; g.textAlign = 'center'; g.textBaseline = 'middle';
+  g.fillText('LỚP TRƯỞNG', 256, 66);
+  const tex = new THREE.CanvasTexture(cv); tex.anisotropy = 4; return tex;
+}
+function ganDanhDauLopTruong(m){
+  if(!m) return;
+  try{
+    /* Bang do o tay trai (cao ~1.38m). */
+    const bang = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.13, 0.13, 0.1, 16),
+      new THREE.MeshStandardMaterial({color: 0xD42A1E, roughness: 0.6})
+    );
+    bang.position.set(0.25, 1.38, 0);
+    m.add(bang);
+    /* Bien 'LOP TRUONG' tren dau (sprite luon huong ve camera). */
+    const sp = new THREE.Sprite(new THREE.SpriteMaterial({map: textureLopTruong(), transparent: true, depthWrite: false}));
+    sp.scale.set(1.15, 0.29, 1); sp.position.y = 2.52;
+    m.add(sp);
+    m.userData.lopTruong = true;
+  }catch(e){}
+}
 function xayDungDoan(){
   if(!doanNhom) return;
   doanThanhVien.forEach(m=>{ doanNhom.remove(m); });
@@ -5649,6 +5676,7 @@ function xayDungDoan(){
   const tenHien = danhSachLop.length ? danhSachLop.slice(0, 12) : Array.from({length: 8}, (_, i)=>'Bạn mẫu ' + (i+1));
   tenHien.forEach((ten, i)=>{
     const m = taoNhanVatTen(ten, i);
+    if(i === 0 && typeof ganDanhDauLopTruong === 'function') ganDanhDauLopTruong(m); /* v16: ban dau tien trong danh sach = lop truong */
     m.visible = false; m.position.set(0, 0, 8);
     doanNhom.add(m); doanThanhVien.push(m);
   });
@@ -17193,7 +17221,7 @@ function datDoanXuongSanKhau(){
     doanNhom.visible = true;
     doanNhom.userData.canh = 'city'; /* không phải 'phong' -> các bạn không ngồi xuống */
     /* Xe buýt dừng ở điểm đỗ ngay phía nam sân khấu, đầu hướng về sân khấu. */
-    const tramX = -8.5, tramZ = 11;
+    const tramX = -8.5, tramZ = 20; /* v16: xe do xa hon ve phia nam de hang doc 12 ban x 0.75m vua (lop truong o z=7, ban cuoi o z~15.25) */
     try{
       if(typeof xeBuytThanhPho === 'undefined' || !xeBuytThanhPho){
         if(typeof taoXeBuyt === 'function'){ xeBuytThanhPho = taoXeBuyt(); sceneCity.add(xeBuytThanhPho); }
@@ -17209,18 +17237,18 @@ function datDoanXuongSanKhau(){
     try{
       if(doanRobot){
         doanRobot.visible = true;
-        doanRobot.position.set(tramX + 1.6, 0.9, tramZ - 1);
+        doanRobot.position.set(tramX + 1.6, 0.9, 10); /* v16: robot dan doan dung gan san khau (khong theo xe) */
         doanRobot.rotation.y = Math.PI;
       }
     }catch(e){}
-    /* Các bạn bước xuống xe, đi bộ tới đứng thành vòng cung quanh sân khấu (phía nam). */
-    const tamX = -8.5, tamZ = 5, bk = 4.5;
+    /* v16: 1 HANG DOC — lop truong (i=0) di dau, cac ban xep sau thanh 1 hang doc, cung huong ve san khau. */
+    const tamX = -8.5, tamZ = 5;
+    const khoangDoc = 0.75; /* khoang cach giua cac ban trong hang doc */
+    const zDauHang = 7.0; /* lop truong dung cach san khau 2m, huong ve san khau */
     doanThanhVien.forEach((m, i)=>{
-      const n = doanThanhVien.length;
-      const goc = (-70 + (140 * (n <= 1 ? 0.5 : i/(n-1)))) * Math.PI/180;
-      const x = tamX + bk * Math.sin(goc);
-      const z = tamZ + bk * Math.cos(goc);
-      const xoay = Math.atan2(tamX - x, tamZ - z);
+      const x = tamX;
+      const z = zDauHang + i * khoangDoc;
+      const xoay = Math.PI; /* huong ve san khau (huong bac) */
       m.visible = false;
       m.position.set(tramX + (i % 2 === 0 ? -0.8 : 0.8), 0, tramZ);
       m.userData.daChao = false; m.userData.daNgoi = false;
@@ -17241,14 +17269,12 @@ function datDoanQuaCong(){
     const cong = (typeof KHU_CONG !== 'undefined' && KHU_CONG[khuDaChon]) || {x:0, z:-14};
     const gx = cong.x, gz = cong.z;
     doanThanhVien.forEach((m, i)=>{
-      const n = doanThanhVien.length;
-      const lechA = (i - (n - 1)/2) * 0.6;   /* toi truoc cong */
-      const lechB = (i - (n - 1)/2) * 0.35;  /* lot qua khe cong (rong ±1.9m, khe cong rong 4.4m) */
-      const lechC = (i - (n - 1)/2) * 0.9;   /* xep lai trong san */
+      /* v16: 1 HANG DOC qua cong — lop truong di dau, moi ban sau lui lai (ve phia nam) 0.8m so voi ban truoc, cung di qua khe cong (rong 4.4m) roi xep hang doc trong san. */
+      const lui = i * 0.8;
       const diem = [
-        new THREE.Vector3(gx + lechA, 0, gz + 5),
-        new THREE.Vector3(gx + lechB, 0, gz - 2),
-        new THREE.Vector3(gx + lechC, 0, gz - 9)
+        new THREE.Vector3(gx, 0, gz + 5 + lui),
+        new THREE.Vector3(gx, 0, gz - 2 + lui),
+        new THREE.Vector3(gx, 0, gz - 9 + lui)
       ];
       if(typeof datDiChuyenNhieuDoan === 'function') datDiChuyenNhieuDoan(m, diem, i*0.15, Math.PI, false);
     });
@@ -17266,7 +17292,7 @@ function datDoanQuaCong(){
    mem (hop/tru/cau), KHONG hop vuong tho, KHONG voxel.
    Ghi chu: toa nha la cot moc nhin (khong mo duoc cua vao van phong that vi
    van phong co mat khau kiem tra phia may chu, khong co link cong khai). */
-/* ================= TOA NHA HOI DONG AI — 7 TANG (v11, 22/11) · v12: DO CAY/NUI CHE TOA · v13: MAP GAP 3 · v14: MAT TIEN TOA QUAY DONG + CAY NHO · v15: LUONG LEN XE MOI (CHON LOP TRUOC + XEM KHEN 2S + QUA CONG PHAN HIEU) =================
+/* ================= TOA NHA HOI DONG AI — 7 TANG (v11, 22/11) · v12: DO CAY/NUI CHE TOA · v13: MAP GAP 3 · v14: MAT TIEN TOA QUAY DONG + CAY NHO · v15: LUONG LEN XE MOI (CHON LOP TRUOC + XEM KHEN 2S + QUA CONG PHAN HIEU) · v16: LOP TRUONG DAN DOAN (1 HANG DOC + BANG DO + BIEN LOP TRUONG) =================
    Vi tri: suon ben canh duong di vao (tay duong chinh), (-16, -17), mat tien
    huong nam ve quang truong. Tang 1-4: 12 phong/tang; doi DO HOA tang 1 mo rong
    (do hoa + ve map + xay ha tang game). TANG 5 = DOI LUU TRU (doi chua co phong
