@@ -97,6 +97,28 @@
   .hop-hanh-dong { background: #111827; border: 1px solid #374151; border-radius: 12px; padding: 14px 16px; margin-top: 12px; font-size: 20px; line-height: 1.6; white-space: pre-wrap; }
   .nhan-xet-hd3 { background: #111827; border: 1px solid #374151; border-radius: 12px; padding: 12px 16px; margin-top: 10px; font-size: 19px; line-height: 1.55; }
   .nhan-xet-hd3 b { color: #fbbf24; }
+  /* --- Tab Đội điều tra: 6 ô dọc, 6 màu riêng, vừa 1 màn hình TV (22/11) --- */
+  .luoi-dieu-tra { display: grid; grid-template-columns: repeat(6, 1fr); gap: 14px; align-items: start; }
+  @media (max-width: 1200px) { .luoi-dieu-tra { grid-template-columns: repeat(3, 1fr); } }
+  @media (max-width: 700px) { .luoi-dieu-tra { grid-template-columns: repeat(2, 1fr); } }
+  .luoi-dieu-tra .the-dieu-tra { border-radius: 14px; padding: 16px 18px; }
+  /* 6 màu nhóm: nền ngà pha màu nhạt, viền 2px, chữ họ nhà tím đậm */
+  .luoi-dieu-tra .dt-0 { background: #fffbe6; border: 2px solid #d9a400; color: #4a1d6b; }
+  .luoi-dieu-tra .dt-1 { background: #fdeef4; border: 2px solid #d6336c; color: #1e3a8a; }
+  .luoi-dieu-tra .dt-2 { background: #eef7e8; border: 2px solid #4caf50; color: #6b2d5b; }
+  .luoi-dieu-tra .dt-3 { background: #e8f1fd; border: 2px solid #3b82f6; color: #5b21b6; }
+  .luoi-dieu-tra .dt-4 { background: #f3eefc; border: 2px solid #8b5cf6; color: #9d174d; }
+  .luoi-dieu-tra .dt-5 { background: #fdf0e6; border: 2px solid #f97316; color: #312e81; }
+  /* Chữ trong ô kế thừa màu nhóm — đọc rõ trên nền sáng */
+  .luoi-dieu-tra .the-dieu-tra .ten-doi { color: inherit; font-size: 26px; margin-bottom: 10px; }
+  .luoi-dieu-tra .the-dieu-tra .nhan { color: inherit; opacity: 0.75; }
+  .luoi-dieu-tra .the-dieu-tra .gio-gui-nho { color: inherit; opacity: 0.7; }
+  .luoi-dieu-tra .the-dieu-tra .phat-bieu-ket-luan { font-size: 18px; padding: 8px 16px; }
+  .luoi-dieu-tra .the-dieu-tra .chip-dau-hieu { background: rgba(255,255,255,0.8); color: inherit; border: 1.5px solid currentColor; font-size: 16px; }
+  .luoi-dieu-tra .the-dieu-tra .hop-hanh-dong { background: rgba(255,255,255,0.75); border: 1.5px solid currentColor; color: inherit; font-size: 18px; line-height: 1.5; padding: 12px 14px; max-height: 180px; overflow-y: auto; }
+  .luoi-dieu-tra .the-dieu-tra .nhan-xet-hd3 { background: rgba(255,255,255,0.75); border: 1.5px solid currentColor; color: inherit; font-size: 17px; max-height: 120px; overflow-y: auto; }
+  .luoi-dieu-tra .the-dieu-tra .nhan-xet-hd3 b { color: inherit; }
+  .luoi-dieu-tra .the-dieu-tra .hang-thong-tin { margin: 10px 0; }
   .gio-gui-nho { font-size: 15px; color: #9ca3af; margin-top: 4px; }
   .hop-dang-tai { padding: 60px 20px; text-align: center; font-size: 24px; color: #fbbf24; line-height: 1.6; }
   .hop-loi { background: #7f1d1d; border: 1px solid #ef4444; border-radius: 14px; padding: 22px 24px; margin: 20px 0; font-size: 20px; line-height: 1.6; }
@@ -574,15 +596,15 @@ var FIREBASE_CONFIG = {
     if (!d.doi || d.doi.length === 0) {
       h = '<div class="trong">Chưa có đội nào nộp bản điều tra.</div>';
     } else {
-      h = '<div class="tieu-de-phu">Kết quả các đội — ' + d.doi.length + ' đội đã nộp</div><div class="luoi-may">';
+      h = '<div class="tieu-de-phu">Kết quả các đội — ' + d.doi.length + ' đội đã nộp</div><div class="luoi-dieu-tra">';
       for (var j = 0; j < d.doi.length; j++) {
         var m = d.doi[j];
-        h += '<div class="the-dieu-tra"><div class="ten-doi">' + esc(m.doi) + '</div>' +
+        h += '<div class="the-dieu-tra dt-' + (j % 6) + '"><div class="ten-doi">' + esc(m.doi) + '</div>' +
           (m.nenNhap ? '<span class="phat-bieu-ket-luan co">✓ NÊN NHẬP</span>' : '<span class="phat-bieu-ket-luan khong">✋ KHÔNG NÊN NHẬP</span>');
         h += '<div class="hang-thong-tin"><div class="nhan">Dấu hiệu</div><div style="margin-top:10px;">';
         if (m.dauHieu && m.dauHieu.length > 0) {
           for (var s = 0; s < m.dauHieu.length; s++) h += '<span class="chip-dau-hieu">Dấu hiệu ' + m.dauHieu[s] + '</span>';
-        } else h += '<span style="color:#9ca3af;font-size:19px;">Chưa chọn dấu hiệu nào.</span>';
+        } else h += '<span style="font-size:19px;opacity:.75;">Chưa chọn dấu hiệu nào.</span>';
         h += '</div></div>';
         h += '<div class="hang-thong-tin"><div class="nhan">Hành động sẽ làm</div><div class="hop-hanh-dong">' + esc(m.cachLam || '(không ghi)') + '</div></div>';
         if (m.thoiGian) h += '<div class="gio-gui-nho">Nộp lúc ' + esc(m.thoiGian) + '</div>';
