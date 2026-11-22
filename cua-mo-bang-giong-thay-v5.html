@@ -4431,6 +4431,7 @@ function dungThanhPho(){
   themQuangCanhThem();
   dungCongThungLung(); /* fix6: cong vao thung lung phia nam */
   try{ dungSanBongChuyen(); }catch(e){ /* san bong chuyen la phu, loi thi bo qua */ }
+  try{ dungSanKhauMuaKhen(); }catch(e){ /* san khau mua khen la phu, loi thi bo qua */ }
 
   [[-12,-12],[12,-12],[-12,12],[12,12],[-36,-9],[36,9],[-36,15],[36,-15],[-9,36],[9,-36],[-39,0],[39,0],[-21,36],[21,36]].forEach(p=>sceneCity.add(taoCay(p[0], p[1], 0.9 + Math.random()*0.4))); /* fix5: cay xa hon x1.5 */
   for(let i=0;i<16;i++){
@@ -4974,6 +4975,7 @@ window.__buocDi = {
 function capNhatThanhPho(dt, t){
   capNhatSanChoi(dt, t);
   try{ capNhatBongChuyen(t); }catch(e){}
+  try{ capNhatMuaKhen(t); }catch(e){}
   if(t - tiengChoiCuoi > 9){ tiengChoiCuoi = t; amTiengChoi(); }
   khungDem++;
   if(khungDem % 60 === 0){
@@ -16775,6 +16777,206 @@ function bcTaoCauThu(doi, chiSo, x, z, huongY, mauAo){
   if(doi === 'A') bcDoiA.push(ct); else bcDoiB.push(ct);
   return ct;
 }
+/* ================= SÂN KHẤU MÚA KHÈN — DÂN TỘC MÔNG (22/11, thầy chốt + bổ sung thẩm mỹ) =================
+   Sân khấu nhỏ ở góc tây-nam quảng trường, cạnh khán đài (biển KHÁN ĐÀI ghi
+   'Sân khấu ngoài trời'). Vị trí (-8.5, 5): KHÔNG che cổng trường (z=-33), KHÔNG che
+   4 tòa tháp (z=±18), bảng Đoàn lớp và nút điều hướng là HTML overlay nên không che được.
+   4 bạn Mông (2 NỮ + 2 NAM) tập múa khèn, MỖI EM MỘT DÁNG MÚA KHÁC NHAU — không copy rồi đổi màu:
+   - NỮ: váy thổ cẩm xòe, áo thêu, khăn đội đầu (mũ tròn), vòng bạc cổ/tai, dáng nhỏ nhắn.
+   - NAM: áo chàm, gile thêu hở ngực, khăn quấn đầu (băng + nút thắt), thắt lưng vải, dáng to ngang.
+   Tư thế TỰ NHIÊN, mềm mại: gối hơi chùng sẵn, tay đưa khèn uyển chuyển, người nghiêng
+   theo nhịp — không đứng thẳng đơ, không tay chân thẳng đuột.
+   Dùng GLB 'hoc-sinh' như mọi HS khác (chuẩn Skoolagent, low-poly mịn, tỉ lệ người). */
+let skNhomMuaKhen = null, skMuaKhen = [];
+function textureMuaKhen(){
+  const c = document.createElement('canvas'); c.width = 1024; c.height = 256;
+  const g = c.getContext('2d');
+  g.fillStyle = '#2E2A5A'; g.fillRect(0,0,1024,256); /* nền chàm đậm */
+  /* Họa tiết thổ cẩm: hàng thoi (hình thoi) nhiều màu */
+  const mau = ['#E0392C','#F2B01E','#2FA84F','#E87FB8','#FDF6E3','#22B8D4'];
+  for(let hang=0; hang<2; hang++){
+    const y = hang ? 196 : 60;
+    for(let i=0;i<16;i++){
+      const x = 32 + i*60 + (hang ? 30 : 0);
+      g.fillStyle = mau[(i + hang*3) % mau.length];
+      g.beginPath();
+      g.moveTo(x, y-22); g.lineTo(x+26, y); g.lineTo(x, y+22); g.lineTo(x-26, y);
+      g.closePath(); g.fill();
+      g.fillStyle = '#2E2A5A';
+      g.beginPath();
+      g.moveTo(x, y-10); g.lineTo(x+12, y); g.lineTo(x, y+10); g.lineTo(x-12, y);
+      g.closePath(); g.fill();
+    }
+  }
+  g.textAlign = 'center'; g.textBaseline = 'middle';
+  g.fillStyle = '#FFD76A'; g.font = '800 84px "Be Vietnam Pro", Arial, sans-serif';
+  g.fillText('MÚA KHÈN', 512, 128);
+  return new THREE.CanvasTexture(c);
+}
+function taoKhen(){
+  /* Khèn Mông: 6 ống tre dài ngắn khác nhau, buộc chung 1 bó, cầm thẳng đứng. */
+  const khen = new THREE.Group();
+  const dai = [0.66, 0.58, 0.72, 0.62, 0.54, 0.68];
+  const tre = new THREE.MeshStandardMaterial({color:0xE8C878, roughness:0.55});
+  const treDam = new THREE.MeshStandardMaterial({color:0xC8A558, roughness:0.55});
+  dai.forEach((h, i)=>{
+    const ong = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, h, 8), i % 2 ? treDam : tre);
+    ong.position.set(-0.1 + i*0.04, 0, 0);
+    ong.castShadow = true;
+    khen.add(ong);
+  });
+  const buoc = new THREE.Mesh(new THREE.BoxGeometry(0.27, 0.05, 0.055), new THREE.MeshStandardMaterial({color:0x8E1F2B, roughness:0.6}));
+  buoc.position.set(0, -0.1, 0); khen.add(buoc);
+  const buoc2 = buoc.clone(); buoc2.position.y = 0.14; khen.add(buoc2);
+  khen.traverse(o=>{ o.userData.hsNho = true; });
+  return khen;
+}
+function taoNuMong(cfg){
+  /* Bạn NỮ Mông: váy xòe thổ cẩm + khăn mũ tròn + bạc cổ/tai, dáng nhỏ nhắn. */
+  const g = taoHocSinh(cfg.ao, null, null);
+  const u = g.userData;
+  g.scale.set(0.95, 0.96, 0.95);
+  /* Váy xòe dài tới giữa ống chân (không phồng như chuông) + viền váy */
+  const vay = new THREE.Mesh(new THREE.CylinderGeometry(0.22, 0.44, 0.8, 20, 1, true), new THREE.MeshStandardMaterial({color:cfg.vay, roughness:0.75, side:THREE.DoubleSide}));
+  vay.position.y = 0.65; vay.castShadow = true; g.add(vay);
+  const vienVay = new THREE.Mesh(new THREE.TorusGeometry(0.44, 0.025, 8, 24), new THREE.MeshStandardMaterial({color:cfg.dai, roughness:0.6}));
+  vienVay.rotation.x = Math.PI/2; vienVay.position.y = 0.26; g.add(vienVay);
+  /* Dải thắt lưng thổ cẩm */
+  const daiLung = new THREE.Mesh(new THREE.CylinderGeometry(0.25, 0.26, 0.13, 16), new THREE.MeshStandardMaterial({color:cfg.dai, roughness:0.7}));
+  daiLung.position.y = 1.04; daiLung.castShadow = true; g.add(daiLung);
+  /* Khăn đội đầu NỮ: vòng quấn + mũ tròn phủ kín đỉnh đầu */
+  const khanMat = new THREE.MeshStandardMaterial({color:cfg.khan, roughness:0.8});
+  const vongKhan = new THREE.Mesh(new THREE.TorusGeometry(0.145, 0.035, 10, 20), khanMat);
+  vongKhan.rotation.x = Math.PI/2; vongKhan.position.y = 0.06; u.dau.add(vongKhan);
+  const muKhan = new THREE.Mesh(new THREE.SphereGeometry(0.15, 16, 12), khanMat);
+  muKhan.scale.set(1, 0.62, 1); muKhan.position.y = 0.15; muKhan.castShadow = true; u.dau.add(muKhan);
+  /* Trang sức bạc: vòng cổ + mặt dây + bông tai */
+  const bac = new THREE.MeshStandardMaterial({color:0xD8D8E0, roughness:0.25, metalness:0.9});
+  const vongCo = new THREE.Mesh(new THREE.TorusGeometry(0.115, 0.018, 8, 20), bac);
+  vongCo.rotation.x = Math.PI/2; vongCo.position.y = 1.44; g.add(vongCo);
+  const dayChuyen = new THREE.Mesh(new THREE.ConeGeometry(0.035, 0.09, 8), bac);
+  dayChuyen.rotation.x = Math.PI; dayChuyen.position.set(0, 1.37, 0.11); g.add(dayChuyen);
+  [-1, 1].forEach(s=>{
+    const bong = new THREE.Mesh(new THREE.SphereGeometry(0.028, 8, 8), bac);
+    bong.position.set(0.15*s, -0.02, 0); u.dau.add(bong);
+  });
+  return lapKhungMua(g, u, cfg);
+}
+function taoNamMong(cfg){
+  /* Bạn NAM Mông: áo chàm + gile thêu hở ngực + khăn quấn đầu (băng + nút thắt) + thắt lưng vải, dáng to ngang. */
+  const g = taoHocSinh(cfg.ao, null, null);
+  const u = g.userData;
+  g.scale.set(1.04, 1.0, 1.02);
+  /* Gile thêu: vỏ trụ hở ngực (để lộ áo chàm phía trước), viền vàng */
+  const gile = new THREE.Mesh(new THREE.CylinderGeometry(0.22, 0.25, 0.55, 16, 1, true, 0.7, Math.PI*2 - 1.4), new THREE.MeshStandardMaterial({color:cfg.gile, roughness:0.7, side:THREE.DoubleSide}));
+  gile.position.y = 1.2; gile.castShadow = true; g.add(gile);
+  const vienGile = new THREE.Mesh(new THREE.TorusGeometry(0.245, 0.02, 8, 20), new THREE.MeshStandardMaterial({color:0xF2B01E, roughness:0.6}));
+  vienGile.rotation.x = Math.PI/2; vienGile.position.y = 0.93; g.add(vienGile);
+  /* Thắt lưng vải to bản */
+  const thatLung = new THREE.Mesh(new THREE.CylinderGeometry(0.24, 0.25, 0.16, 16), new THREE.MeshStandardMaterial({color:cfg.dai, roughness:0.75}));
+  thatLung.position.y = 0.98; thatLung.castShadow = true; g.add(thatLung);
+  /* Khăn quấn đầu NAM: băng dày + nút thắt sau gáy (để lộ tóc đen trên đỉnh — khác hẳn mũ tròn của nữ) */
+  const khanMat = new THREE.MeshStandardMaterial({color:cfg.khan, roughness:0.85});
+  const bangKhan = new THREE.Mesh(new THREE.TorusGeometry(0.15, 0.048, 10, 20), khanMat);
+  bangKhan.rotation.x = Math.PI/2; bangKhan.position.y = 0.05; u.dau.add(bangKhan);
+  const nutThat = new THREE.Mesh(new THREE.SphereGeometry(0.06, 10, 8), khanMat);
+  nutThat.position.set(0.1, 0.1, -0.12); nutThat.castShadow = true; u.dau.add(nutThat);
+  return lapKhungMua(g, u, cfg);
+}
+function lapKhungMua(g, u, cfg){
+  /* Khèn cầm trước ngực, đầu trên chạm miệng + tư thế múa riêng của từng em. */
+  const khen = taoKhen();
+  khen.position.set(cfg.khenX || 0, cfg.khenY, cfg.khenZ);
+  khen.rotation.x = cfg.khenNghieng || -0.12;
+  khen.rotation.z = cfg.khenLech || 0;
+  g.add(khen);
+  /* Tư thế gốc: gối chùng sẵn, tay đưa khèn (không thẳng đuột), người hơi nghiêng */
+  u.tayT.rotation.x = cfg.tayT; u.tayP.rotation.x = cfg.tayP;
+  u.tayT.rotation.z = cfg.tayZ; u.tayP.rotation.z = -cfg.tayZ;
+  u.chanT.rotation.x = -(cfg.goi + cfg.chanTruoc);
+  u.chanP.rotation.x = -cfg.goi;
+  u.dau.rotation.z = cfg.dauZ || 0;
+  g.rotation.x = cfg.nghiengX || 0;
+  g.traverse(o=>{ if(o.isMesh) o.castShadow = true; });
+  return {g:g, khen:khen, u:u, cfg:cfg};
+}
+function dungSanKhauMuaKhen(){
+  if(skNhomMuaKhen || typeof sceneCity === 'undefined' || !sceneCity) return;
+  const nhom = new THREE.Group();
+  nhom.name = 'sanKhauMuaKhen';
+  nhom.position.set(-8.5, 0, 5); /* góc tây-nam quảng trường, cạnh khán đài */
+  const go = new THREE.MeshStandardMaterial({color:0x9A6B3F, roughness:0.7});
+  const goDam = new THREE.MeshStandardMaterial({color:0x7A5230, roughness:0.75});
+  /* Sàn sân khấu gỗ + chân đế */
+  const de = new THREE.Mesh(new THREE.BoxGeometry(5.0, 0.12, 3.3), goDam);
+  de.position.y = 0.06; de.receiveShadow = true; nhom.add(de);
+  const san = new THREE.Mesh(new THREE.BoxGeometry(4.8, 0.35, 3.1), go);
+  san.position.y = 0.175 + 0.12; san.castShadow = true; san.receiveShadow = true; nhom.add(san);
+  /* Bậc lên sân khấu (mặt trước, hướng nam) */
+  const bac = new THREE.Mesh(new THREE.BoxGeometry(1.2, 0.18, 0.5), goDam);
+  bac.position.set(0, 0.09, 1.8); bac.castShadow = true; bac.receiveShadow = true; nhom.add(bac);
+  /* 2 cột sau + phông 'MÚA KHÈN' */
+  const cotMat = new THREE.MeshStandardMaterial({color:0x6B4423, roughness:0.7});
+  [-2.2, 2.2].forEach(x=>{
+    const cot = new THREE.Mesh(new THREE.CylinderGeometry(0.07, 0.09, 2.8, 10), cotMat);
+    cot.position.set(x, 1.4 + 0.12, -1.4); cot.castShadow = true; nhom.add(cot);
+    const chop = new THREE.Mesh(new THREE.SphereGeometry(0.11, 10, 8), new THREE.MeshStandardMaterial({color:0xC9A227, roughness:0.4, metalness:0.5}));
+    chop.position.set(x, 2.85 + 0.12, -1.4); nhom.add(chop);
+  });
+  const phong = new THREE.Mesh(new THREE.PlaneGeometry(4.4, 1.05), new THREE.MeshBasicMaterial({map:textureMuaKhen(), side:THREE.DoubleSide}));
+  phong.position.set(0, 2.25 + 0.12, -1.4); nhom.add(phong);
+  /* 2 cờ phướn nhiều màu ở 2 góc trước sân khấu */
+  [[-2.25, 0xE0392C], [2.25, 0x2FA84F]].forEach(cfg=>{
+    const cot = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.05, 1.6, 8), cotMat);
+    cot.position.set(cfg[0], 0.8 + 0.47, 1.4); cot.castShadow = true; nhom.add(cot);
+    const co = new THREE.Mesh(new THREE.ConeGeometry(0.22, 0.7, 4), new THREE.MeshStandardMaterial({color:cfg[1], roughness:0.6, side:THREE.DoubleSide}));
+    co.rotation.z = Math.PI; co.position.set(cfg[0], 1.75 + 0.47, 1.4); co.castShadow = true; nhom.add(co);
+  });
+  /* 4 bạn Mông — mỗi em 1 dáng múa riêng (tay/chân/nghiêng/nhịp khác nhau) */
+  const ds = [
+    /* Nữ 1: khèn trước ngực, nhún nhẹ, nghiêng phải */
+    {loai:'nu', ao:0xC0392B, vay:0x1F2A44, khan:0xE0392C, dai:0xF2B01E, x:-1.65, z:-0.25, goi:0.45, chanTruoc:0.1, tayT:-0.95, tayP:-1.05, tayZ:0.3, nghiengX:0.06, dauZ:0.08, khenY:1.32, khenZ:0.3, phase:0, toc:2.2, nhun:0.12, xoay:0.3},
+    /* Nam 1: áo chàm + gile đỏ, khèn đưa cao gần miệng, 1 chân bước, nghiêng trái */
+    {loai:'nam', ao:0x2E4057, gile:0xC0392B, khan:0x1F2A44, dai:0xE0392C, x:-0.55, z:0.15, goi:0.35, chanTruoc:0.35, tayT:-1.25, tayP:-1.15, tayZ:0.22, nghiengX:0.03, dauZ:-0.06, khenY:1.42, khenZ:0.28, khenNghieng:-0.2, phase:1.15, toc:2.0, nhun:0.14, xoay:0.22},
+    /* Nữ 2: khèn nghiêng sang trái, chân trước chân sau, xoay nhiều */
+    {loai:'nu', ao:0xA9326B, vay:0x2FA84F, khan:0xE87FB8, dai:0x22B8D4, x:0.55, z:-0.25, goi:0.5, chanTruoc:0.3, tayT:-0.85, tayP:-1.15, tayZ:0.35, nghiengX:0.08, dauZ:0.1, khenY:1.3, khenZ:0.3, khenLech:0.18, phase:2.3, toc:2.4, nhun:0.1, xoay:0.45},
+    /* Nam 2: áo chàm + gile vàng, khèn thấp, chùng gối sâu, người cúi về trước */
+    {loai:'nam', ao:0x1F2A44, gile:0xF2B01E, khan:0x111111, dai:0xF2B01E, x:1.65, z:0.15, goi:0.6, chanTruoc:0.15, tayT:-0.8, tayP:-0.9, tayZ:0.28, nghiengX:0.12, dauZ:-0.04, khenY:1.24, khenZ:0.3, phase:3.45, toc:1.8, nhun:0.16, xoay:0.28}
+  ];
+  skMuaKhen = [];
+  ds.forEach(cfg=>{
+    const d = cfg.loai === 'nu' ? taoNuMong(cfg) : taoNamMong(cfg);
+    d.g.position.set(cfg.x, 0.47, cfg.z);
+    d.g.rotation.y = 0; /* mặt hướng nam (về phía camera + khán đài) */
+    nhom.add(d.g);
+    skMuaKhen.push({g:d.g, khen:d.khen, u:d.u, cfg:cfg, baseY:0.47});
+  });
+  sceneCity.add(nhom);
+  skNhomMuaKhen = nhom;
+}
+function capNhatMuaKhen(t){
+  if(!skMuaKhen.length) return;
+  skMuaKhen.forEach(d=>{
+    const c = d.cfg, p = c.phase;
+    const nhip = Math.sin(t*c.toc + p);
+    const nhun = Math.abs(nhip); /* nhún lên xuống */
+    d.g.position.y = d.baseY + nhun*c.nhun;
+    d.g.rotation.y = Math.sin(t*0.9 + p)*c.xoay; /* xoay nhẹ qua lại */
+    d.g.rotation.x = (c.nghiengX || 0) + Math.sin(t*1.3 + p)*0.03; /* người nghiêng theo nhịp */
+    d.g.rotation.z = Math.sin(t*1.1 + p)*0.06;
+    /* Tay đưa khèn uyển chuyển (2 tay lệch pha nhau) */
+    d.u.tayT.rotation.x = c.tayT + nhip*0.14;
+    d.u.tayP.rotation.x = c.tayP + Math.sin(t*c.toc + p + 0.5)*0.14;
+    /* Gối chùng theo nhịp nhún (xuống thì chùng thêm, lên thì duỗi bớt — không bao giờ thẳng đơ) */
+    d.u.chanT.rotation.x = -(c.goi + c.chanTruoc + nhun*0.25);
+    d.u.chanP.rotation.x = -(c.goi + Math.abs(Math.sin(t*c.toc + p + 0.3))*0.25);
+    /* Đầu nghiêng nhẹ theo nhịp */
+    d.u.dau.rotation.z = (c.dauZ || 0) + Math.sin(t*1.5 + p)*0.05;
+    /* Khèn nhích lên xuống theo tay */
+    d.khen.position.y = c.khenY + nhip*0.03;
+  });
+}
+
 function dungSanBongChuyen(){
   if(bcNhom || typeof sceneCity === 'undefined' || !sceneCity) return;
   bcNhom = new THREE.Group();
