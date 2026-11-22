@@ -17216,12 +17216,13 @@ function datDoanXuongSanKhau(){
    mem (hop/tru/cau), KHONG hop vuong tho, KHONG voxel.
    Ghi chu: toa nha la cot moc nhin (khong mo duoc cua vao van phong that vi
    van phong co mat khau kiem tra phia may chu, khong co link cong khai). */
-/* ================= TOA NHA HOI DONG AI — 6 TANG (v9, 22/11) =================
+/* ================= TOA NHA HOI DONG AI — 7 TANG (v11, 22/11) =================
    Vi tri: suon ben canh duong di vao (tay duong chinh), (-16, -17), mat tien
    huong nam ve quang truong. Tang 1-4: 12 phong/tang; doi DO HOA tang 1 mo rong
-   (do hoa + ve map + xay ha tang game). TANG 5 = HOI TRUONG (agent nghien cuu/hop
-   ve 48 bai day AI). TANG 6 = GAME & VIDEO 3D (bo phan moi: game khoi dong,
-   video 3D, nen tang moi). Moi phong co BIEN TEN RIENG (chu to).
+   (do hoa + ve map + xay ha tang game). TANG 5 = DOI LUU TRU (doi chua co phong
+   rieng, nhan tang 5 cu cua hoi truong). TANG 6 = GAME & VIDEO 3D (game khoi dong,
+   video 3D, nen tang moi). TANG 7 = HOI TRUONG (tren cung: agent nghien cuu/hop
+   ve 48 bai day AI). Moi phong co BIEN TEN RIENG (chu to).
    VIEC THAT: bang "VIEC THAT" hien du lieu that tu bao cao 06:00 (cap nhat den
    22/11/2026); hinh 3D trong phong chi la minh hoa vi tri lam viec.
    Cu phap: dung textureBien + taoRobot san co. Khong doi ten bien ngoai. */
@@ -17232,8 +17233,9 @@ const HD_TANG = [
   {ten:'TẦNG 2 · ĐỘI TÌM KIẾM', mau:0x22D3EE, phong:['Tìm theo YCCĐ','Tìm theo SGK 301','Tìm giáo án mẫu','Tìm video dạy','Tìm hình ảnh','Tìm trò chơi','Kiểm link thật','Lọc nguồn Việt','Tóm tắt nguồn','Chấm nguồn 301','Tìm tài liệu mới','Báo cáo tìm kiếm']},
   {ten:'TẦNG 3 · ĐỘI PHÂN TÍCH', mau:0x34D399, phong:['Phân tích bài mới','Tổng hợp kết quả','Phân tích HĐ1','Phân tích HĐ2','Phân tích HĐ3','Phân tích HĐ4','Đối chiếu SGK 301','So sánh 2 nguồn','Ghi nhật ký lệnh','Chấm theo YCCĐ','Phát hiện lệch','Kết luận phân tích']},
   {ten:'TẦNG 4 · ĐỘI SOẠN', mau:0xA78BFA, phong:['Soạn YCCĐ','Soạn mục tiêu','Soạn HĐ1','Soạn HĐ2','Soạn HĐ3','Soạn HĐ4','Soạn Phụ lục 4','Xuất file .docx','Soạn theo NĐ 30','Soạn dặn dò','Soạn câu nhớ','Rà soát chính tả']},
-  {ten:'TẦNG 5 · HỘI TRƯỜNG', mau:0xF59E0B, hoiTruong:true, phong:[]},
-  {ten:'TẦNG 6 · GAME & VIDEO 3D', mau:0xEC4899, phong:['Game khởi động 3D','Video 3D mở đầu','Dựng cảnh 3D','Nhân vật 3D','Kịch bản game','Thu giọng đọc','Hiệu ứng âm thanh','Nền tảng mới','Công nghệ mới','Thử nghiệm AI','Map & sân trường','Duyệt game/video']}
+  {ten:'TẦNG 5 · ĐỘI LƯU TRỮ', mau:0xB45309, phong:['Lưu trữ bài giảng','Lưu trữ slide','Lưu trữ video 3D','Lưu trữ giọng đọc','Lưu trữ KHBG','Sao lưu dữ liệu','Phân loại tài liệu','Quản lý phiên bản','Tìm tài liệu cũ','Kho tài liệu 301','Lưu trữ đề kiểm tra','Duyệt kho lưu trữ']},
+  {ten:'TẦNG 6 · GAME & VIDEO 3D', mau:0xEC4899, phong:['Game khởi động 3D','Video 3D mở đầu','Dựng cảnh 3D','Nhân vật 3D','Kịch bản game','Thu giọng đọc','Hiệu ứng âm thanh','Nền tảng mới','Công nghệ mới','Thử nghiệm AI','Map & sân trường','Duyệt game/video']},
+  {ten:'TẦNG 7 · HỘI TRƯỜNG', mau:0xF59E0B, hoiTruong:true, phong:[]}
 ];
 /* Du lieu VIEC THAT — tu bao cao 06:00 that (AI Tim bai giang), cap nhat den 22/11/2026. */
 const HD_VIEC_THAT = {
@@ -17296,7 +17298,7 @@ function dungHoiDongAI(){
   /* San nen da */
   themHop(RONG + 2, 0.18, SAU + 2, new THREE.MeshStandardMaterial({color:0x8A94A6, roughness:0.9}), 0, 0.09, 0);
   let yDay = 0;
-  const caoTang = [CAO_T1, CAO, CAO, CAO, CAO, CAO];
+  const caoTang = [CAO_T1, CAO, CAO, CAO, CAO, CAO, CAO];
   HD_TANG.forEach((tang, ti)=>{
     const h = caoTang[ti], y0 = yDay, yc = y0 + h / 2;
     /* San tang + tuong sau + 2 tuong ben + kinh truoc */
