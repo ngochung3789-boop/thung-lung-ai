@@ -5058,8 +5058,8 @@ function capNhatThanhPho(dt, t){
     const rx = Math.cos(gocCamera), rz = -Math.sin(gocCamera);
     const dx = (fx*mz + rx*mx) / (len || 1) * tocHien * dt;
     const dz = (fz*mz + rz*mx) / (len || 1) * tocHien * dt;
-    let nx = clamp(player.position.x + dx, -33, 33);
-    let nz = clamp(player.position.z + dz, -33, 33); /* fix5: gioi han di chuyen theo map rong */
+    let nx = clamp(player.position.x + dx, -100, 100); /* v17: mo rong de toi duoc toa thap x=-70 */
+    let nz = clamp(player.position.z + dz, -100, 100); /* v17: mo rong de toi duoc toa thap x=-70 (fix5 cu chi ±33) */
     const vc = vaChamToaNha(nx, nz);
     player.position.x = vc.x; player.position.z = vc.z;
     if(dx || dz) player.rotation.y = Math.atan2(dx, dz);
@@ -13611,7 +13611,7 @@ function layViTriNhanVat(){
 }
 function datViTriNhanVat(x, z){
   if(!player) return;
-  player.position.x = clamp(x, -22, 22); player.position.z = clamp(z, -22, 22);
+  player.position.x = clamp(x, -100, 100); player.position.z = clamp(z, -100, 100); /* v17: truoc chi ±22 nen diToiKhoi bi kep ve (-22,-22), khong toi duoc toa */
 }
 
 function kiemTraNhanVat(e){
@@ -17292,7 +17292,7 @@ function datDoanQuaCong(){
    mem (hop/tru/cau), KHONG hop vuong tho, KHONG voxel.
    Ghi chu: toa nha la cot moc nhin (khong mo duoc cua vao van phong that vi
    van phong co mat khau kiem tra phia may chu, khong co link cong khai). */
-/* ================= TOA NHA HOI DONG AI — 7 TANG (v11, 22/11) · v12: DO CAY/NUI CHE TOA · v13: MAP GAP 3 · v14: MAT TIEN TOA QUAY DONG + CAY NHO · v15: LUONG LEN XE MOI (CHON LOP TRUOC + XEM KHEN 2S + QUA CONG PHAN HIEU) · v16: LOP TRUONG DAN DOAN (1 HANG DOC + BANG DO + BIEN LOP TRUONG) =================
+/* ================= TOA NHA HOI DONG AI — 7 TANG (v11, 22/11) · v12: DO CAY/NUI CHE TOA · v13: MAP GAP 3 · v14: MAT TIEN TOA QUAY DONG + CAY NHO · v15: LUONG LEN XE MOI (CHON LOP TRUOC + XEM KHEN 2S + QUA CONG PHAN HIEU) · v16: LOP TRUONG DAN DOAN (1 HANG DOC + BANG DO + BIEN LOP TRUONG) · v17: MO RONG GIOI HAN DI CHUYEN ±100 (SUA LOI KHONG SANG DUOC TOA) =================
    Vi tri: suon ben canh duong di vao (tay duong chinh), (-16, -17), mat tien
    huong nam ve quang truong. Tang 1-4: 12 phong/tang; doi DO HOA tang 1 mo rong
    (do hoa + ve map + xay ha tang game). TANG 5 = DOI LUU TRU (doi chua co phong
