@@ -4432,6 +4432,7 @@ function dungThanhPho(){
   dungCongThungLung(); /* fix6: cong vao thung lung phia nam */
   try{ dungSanBongChuyen(); }catch(e){ /* san bong chuyen la phu, loi thi bo qua */ }
   try{ dungSanKhauMuaKhen(); }catch(e){ /* san khau mua khen la phu, loi thi bo qua */ }
+  try{ dungRobotDiLai(); }catch(e){ /* robot di lai la phu, loi thi bo qua */ }
 
   [[-12,-12],[12,-12],[-12,12],[12,12],[-36,-9],[36,9],[-36,15],[36,-15],[-9,36],[9,-36],[-39,0],[39,0],[-21,36],[21,36]].forEach(p=>sceneCity.add(taoCay(p[0], p[1], 0.9 + Math.random()*0.4))); /* fix5: cay xa hon x1.5 */
   for(let i=0;i<16;i++){
@@ -4976,6 +4977,7 @@ function capNhatThanhPho(dt, t){
   capNhatSanChoi(dt, t);
   try{ capNhatBongChuyen(t); }catch(e){}
   try{ capNhatMuaKhen(t); }catch(e){}
+    try{ capNhatRobot(t, dt); }catch(e){}
   if(t - tiengChoiCuoi > 9){ tiengChoiCuoi = t; amTiengChoi(); }
   khungDem++;
   if(khungDem % 60 === 0){
@@ -16990,6 +16992,64 @@ function capNhatMuaKhen(t){
     d.u.chanP.rotation.x = -(c.goi + Math.abs(Math.sin(t*c.toc + p + 0.3))*0.25);
     d.u.dau.rotation.z = (c.dauZ || 0) + Math.sin(t*1.5 + p)*0.05;
     d.khen.position.y = c.khenY + nhip*0.03;
+  });
+}
+
+
+/* ================= ROBOT ĐI LẠI QUANH SÂN TRƯỜNG (22/11, thầy bổ sung) =================
+   3 robot dùng mẫu taoRobot có sẵn (trắng/bạc + mắt đèn xanh dương phát sáng, dáng mượt
+   bằng cầu/trụ/torus — KHÔNG hộp vuông thô, KHÔNG voxel, chuẩn Skoolagent).
+   Robot BAY LƯỢN (hover) dọc lối đi: đổi vị trí liên tục, nhún nhẹ + nghiêng theo hướng
+   đi + quay mặt theo hướng đi — nhìn là thấy ĐANG ĐI LẠI, không đứng yên một chỗ.
+   Lộ trình tránh: đài phun nước, sân bóng chuyền, sân khấu múa khèn, cổng, cửa vào phòng.
+   - Robot 1: vòng quanh đài phun nước (giữa sân).
+   - Robot 2: đi lại trên lối đi chính ra cổng trường (gần cổng).
+   - Robot 3: vòng phía đông-nam (sau sân bóng chuyền). */
+let skNhomRobotDiLai = null, skRobotDiLai = [];
+function dungRobotDiLai(){
+  if(skNhomRobotDiLai || typeof sceneCity === 'undefined' || !sceneCity || typeof taoRobot !== 'function') return;
+  const ds = [
+    {scale:0.9, toc:1.2, kieu:'vong', diem:[[-5,-7],[1,-7],[1,7],[-5,7]]},
+    {scale:1.0, toc:1.5, kieu:'qua-lai', diem:[[4.5,-6],[4.5,-28]]},
+    {scale:0.8, toc:1.0, kieu:'vong', diem:[[4,9],[12,9],[12,12],[4,12]]}
+  ];
+  skRobotDiLai = [];
+  ds.forEach(cfg=>{
+    const r = taoRobot(cfg.scale);
+    r.position.set(cfg.diem[0][0], 0, cfg.diem[0][1]);
+    r.traverse(o=>{ o.userData.hsNho = true; });
+    sceneCity.add(r);
+    skRobotDiLai.push({g:r, cfg:cfg, chiSo:1, chieu:1, phase:Math.random()*6});
+  });
+  skNhomRobotDiLai = true;
+}
+function capNhatRobot(t, dt){
+  if(!skRobotDiLai.length) return;
+  skRobotDiLai.forEach(d=>{
+    const g = d.g, cfg = d.cfg;
+    const muc = cfg.diem[d.chiSo];
+    const dx = muc[0] - g.position.x, dz = muc[1] - g.position.z;
+    const kc = Math.sqrt(dx*dx + dz*dz);
+    if(kc < 0.3){
+      if(cfg.kieu === 'qua-lai'){
+        d.chieu = (d.chiSo === cfg.diem.length - 1) ? -1 : (d.chiSo === 0 ? 1 : d.chieu);
+        d.chiSo += d.chieu;
+      } else {
+        d.chiSo = (d.chiSo + 1) % cfg.diem.length;
+      }
+      return;
+    }
+    const nx = dx / kc, nz = dz / kc;
+    g.position.x += nx * cfg.toc * dt;
+    g.position.z += nz * cfg.toc * dt;
+    /* Quay mặt theo hướng đi + nghiêng nhẹ về trước + nhún bay */
+    const gocMuc = Math.atan2(nx, nz);
+    let lech = gocMuc - g.rotation.y;
+    while(lech > Math.PI) lech -= Math.PI*2;
+    while(lech < -Math.PI) lech += Math.PI*2;
+    g.rotation.y += lech * Math.min(1, dt*6);
+    g.rotation.x = 0.06;
+    g.position.y = 0.08 + Math.abs(Math.sin(t*2 + d.phase))*0.06;
   });
 }
 
