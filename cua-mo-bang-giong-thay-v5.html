@@ -14125,17 +14125,6 @@ function khoiDongAmThanh(){
 function amBatDauNhac(){
   if(!amCtx || amNhacHen) return;
   try{
-    /* Đệm: 3 sóng sine trầm, ấm, qua lọc thấp có LFO thở chậm. */
-    const loc = amCtx.createBiquadFilter(); loc.type = 'lowpass'; loc.frequency.value = 750; loc.Q.value = 0.6;
-    loc.connect(amNhac);
-    const lfo = amCtx.createOscillator(); lfo.frequency.value = 0.07;
-    const lfoGain = amCtx.createGain(); lfoGain.gain.value = 220;
-    lfo.connect(lfoGain); lfoGain.connect(loc.frequency); lfo.start();
-    [[110, 0.5], [164.81, 0.32], [220, 0.22]].forEach(([f, v])=>{
-      const o = amCtx.createOscillator(); o.type = 'sine'; o.frequency.value = f;
-      const g = amCtx.createGain(); g.gain.value = v;
-      o.connect(g); g.connect(loc); o.start();
-    });
     amNotTiepTheo = amCtx.currentTime + 0.5;
     amNhacHen = setInterval(amLichNhac, 400);
   }catch(e){ /* nhạc lỗi thì game vẫn chạy không tiếng */ }
@@ -15285,11 +15274,11 @@ const SK_LINK_TROCHOI = {
   't11-f3': {ten: 'Trò chơi — Bot nói lạc ở đâu?', url: 'https://ngochung3789-boop.github.io/thung-lung-ai/videos/8d21-tro-choi-chatbot-lac.html'}
 };
 /* Link xem ket qua trinh dien (21/11, phong Bai 4 lop 8 t4-f3): trang trinh chieu
-   Hop den — mo thang the chi tiet may test id_cph2781, thay dung de check ket qua
+   Hop den (tab mac dinh) — trang chu Firebase, thay bam vao may de xem chi tiet, dung de check ket qua
    sau khi trinh dien app Bien hinh. Map RIENG vi SK_LINK_MINH_HOA /
    SK_LINK_VIDEO3D moi key chi giu 1 link. */
 const SK_LINK_KET_QUA = {
-  't4-f3': {ten: 'Xem kết quả trình diễn (Hộp đen)', url: 'https://script.google.com/macros/s/AKfycbw6K57VCKeT8w5oLfaUZsrLyfuJDcJaGWn0Crp5AP8IECVzo4zwse8CilJ5B5ckGTQ0/exec?xem=id_cph2781'}
+  't4-f3': {ten: 'Xem kết quả trình diễn (Hộp đen)', url: 'https://ngochung3789-boop.github.io/thung-lung-ai/luyen-tap/trang-chu-firebase.html'}
 };
 /* Link HĐ3 Luyện tập (22/11, phòng Bài 4 lớp 8 t4-f3): 2 app luyện tập trên điện
    thoại — bấm chuông trắc nghiệm + đội điều tra. Map RIÊNG, giá trị là MẢNG
