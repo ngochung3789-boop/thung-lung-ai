@@ -649,6 +649,11 @@ body.dang-choi header .nut{font-size:13px; padding:5px 9px; min-height:30px}
     </div>
   <button class="nut nut-rong nut-nho" id="btn-bo-qua-noi" style="display:none; position:absolute; top:64px; right:14px; z-index:25">Bỏ qua mở đầu ⏭</button>
   <div id="chu-bay">✈️ Đang bay vào Thung Lũng 4 Tòa Tháp AI PTDTBT THCS Cao Minh…</div>
+  <div id="bang-len-xe" style="display:none; position:absolute; left:50%; top:50%; transform:translate(-50%,-50%); z-index:30; width:min(560px,92%); max-height:80vh; background:rgba(11,18,32,.97); border:3px solid #C9A227; border-radius:20px; padding:18px 22px; color:#FDF6E3; box-shadow:0 12px 40px rgba(0,0,0,.65)">
+    <h3 id="lx-tieu-de" style="margin:0 0 6px; font-size:24px; color:#FFD76A; text-align:center">🚌 LỚP ĐANG LÊN XE</h3>
+    <div id="lx-dem" style="text-align:center; font-size:30px; font-weight:900; color:#22D3EE; margin-bottom:10px">0/0 đã lên xe</div>
+    <div id="lx-danh-sach" style="max-height:46vh; overflow-y:auto; display:grid; grid-template-columns:1fr 1fr; gap:4px 14px; font-size:17px"></div>
+  </div>
   <div id="bien-bay"></div>
   <div id="loi-mo-dau"></div>
   <div id="ho-san-sang" role="dialog" aria-label="Hô sẵn sàng">
@@ -1961,6 +1966,7 @@ function dungManMoDau(){
      Canh 3D mo dau chi con cong vang + robot + sao. Xe bay vao cong van dung GLB Blender (layXeBay). */
 }
 function capNhatMoDau(t, dt){
+  try{ capNhatBangLenXe(t); }catch(e){}
   /* v5 buoc 1 — LEN MAY BAY (0-5s): rem DONG, may bay dau truoc rem, robot dung canh may bay,
      1 ban HS di tu truoc san khau toi cua may bay roi "len may bay" (an di). */
   { const xd = xeDau[phuongTien]; if(xd){ const bob = phuongTien === 'khinh-khi-cau' ? 0.25 : 0.06; xd.position.y = (xd.userData.yGoc || 0) + Math.sin(t*2.2)*bob; } }
@@ -2289,6 +2295,7 @@ function batDauHanhTrinh(){
   if(hsIntro){ hsIntro.visible = false; hsIntro.position.set(2.8, 0, 5.2); }
   /* v5 buoc 1: len may bay (5s) — rem DONG trong suot buoc nay. */
   introState = 'chay'; introT = 0; introBatDauMs = performance.now();
+  try{ hienBangLenXe(); }catch(e){}
   hanhTrinhTich = 0; hanhTrinhPhaBatDau = 0; choLoiMoDau1 = true; /* 12/11: giong chi noi sau khung hinh dau */
   khoiDongAmThanh(); amWhoosh(); /* UU-UU HDMI 17/11: KHONG khoi dong lai tieng dong co khi xe chay (thay yeu cau 16/11 + bao u tren TV) — chi giu tieng 'no may' ngan luc ho 'San sang'. */
   $('mo-dau').style.display = 'none';
@@ -2300,6 +2307,8 @@ function batDauHanhTrinh(){
 }
 function boQuaMoDau(){
   introState = 'xong';
+  try{ anBangLenXe(); }catch(e){}
+  lxDenSanKhau = true; /* LEN-XE 22/11: bo qua mo dau -> van xuong xe o san khau */
   hoDungMic(); const hp = $('ho-san-sang'); if(hp) hp.style.display = 'none'; dungTiengDongCo(); /* BUILD 17: tat mic/panel/tieng khi ket thuc hoac bo qua. */
   ketThucBay();
   khoiDongAmThanh();
@@ -2314,6 +2323,8 @@ function boQuaMoDau(){
 }
 function ketThucMoDau(){
   introState = 'xong';
+  try{ anBangLenXe(); }catch(e){}
+  lxDenSanKhau = true; /* LEN-XE 22/11: het hanh trinh -> xuong xe o san khau */
   hoDungMic(); const hp = $('ho-san-sang'); if(hp) hp.style.display = 'none'; dungTiengDongCo(); /* BUILD 17: tat mic/panel/tieng khi ket thuc hoac bo qua. */
   ketThucBay();
   khoiPhucDemTruocMoDau();
@@ -2652,6 +2663,7 @@ function vongLap(){
       }
       if(introT >= 5){
         /* v5 buoc 2 — bay 15 giay + ha canh 3 giay = 18 giay. */
+        try{ anBangLenXe(); }catch(e){}
         introState = 'bay'; hanhTrinhPhaBatDau = hanhTrinhTich;
         loiMoDauHien = 2; batVatBay(); capNhatBay(0);
         if(!tietKiem) veCanh(sceneCity, camCity); /* ve xong khung bay dau tien roi moi noi loi 2 */
@@ -4978,6 +4990,7 @@ function capNhatThanhPho(dt, t){
   try{ capNhatBongChuyen(t); }catch(e){}
   try{ capNhatMuaKhen(t); }catch(e){}
     try{ capNhatRobot(t, dt); }catch(e){}
+    try{ capNhatDoan(dt); }catch(e){} /* LEN-XE 22/11: doan di bo xuong san khau */
   if(t - tiengChoiCuoi > 9){ tiengChoiCuoi = t; amTiengChoi(); }
   khungDem++;
   if(khungDem % 60 === 0){
@@ -13421,6 +13434,8 @@ function chuyenSangThanhPho(){
   document.body.classList.add('dang-choi');
   moDanChuyenCanh();
   window.dispatchEvent(new Event('resize'));
+  /* LEN-XE 22/11: vua di het hanh trinh vao san -> doan xuong xe o san khau mua khen. */
+  if(typeof lxDenSanKhau !== 'undefined' && lxDenSanKhau){ lxDenSanKhau = false; try{ datDoanXuongSanKhau(); }catch(e){} }
 }
 /* FIX3b — BANG "DANH SACH KHOI DONG THEO LOP": list rieng mo thang bang chon 2 tro
    theo tung khoi (thay doi 23:03 11/11: khong can di xe / di bo qua map 3D). Bang hien o
@@ -17051,6 +17066,108 @@ function capNhatRobot(t, dt){
     g.rotation.x = 0.06;
     g.position.y = 0.08 + Math.abs(Math.sin(t*2 + d.phase))*0.06;
   });
+}
+
+/* ================= BẢNG LÊN XE + XUỐNG XE Ở SÂN KHẤU MÚA KHÈN (22/11, thầy chốt) =================
+   1) LÊN XE (màn mở đầu, pha 'chay' 0-5s): hiện bảng danh sách lớp đang lên xe — đủ tên
+      cả lớp hiện tại trong bảng Đoàn lớp (danhSachLop; chưa up thì dùng 8 'Bạn mẫu' như
+      đoàn đại diện), số đếm to rõ 'X/Y đã lên xe', tên nào lên rồi thì ✓ xanh.
+   2) XUỐNG XE (vào tới sân trường): xe buýt dừng ở sân khấu múa khèn, đoàn (12 bạn đại
+      diện) bước xuống, đi bộ tới đứng thành vòng cung quanh sân khấu, mặt hướng về sân khấu.
+      Chỉ chạy khi vừa đi hết hành trình vào thành phố (cờ lxDenSanKhau), không chạy khi
+      quay lại từ phòng học. Dùng datDiChuyenNhieuDoan + capNhatDoan (đã gắn vào thành phố). */
+let lxDanhSachLenXe = [], lxDaLen = 0, lxDenSanKhau = false;
+function layDanhSachLenXe(){
+  if(typeof danhSachLop !== 'undefined' && danhSachLop.length) return danhSachLop.slice();
+  return Array.from({length: 8}, (_, i)=>'Bạn mẫu ' + (i+1));
+}
+function hienBangLenXe(){
+  const bang = document.getElementById('bang-len-xe'); if(!bang) return;
+  lxDanhSachLenXe = layDanhSachLenXe();
+  lxDaLen = 0;
+  const tenLopHien = (typeof tenLop !== 'undefined' && tenLop) ? tenLop : '7B';
+  const xeTen = (typeof PHUONG_TIEN !== 'undefined' && PHUONG_TIEN[phuongTien]) ? PHUONG_TIEN[phuongTien].ten : 'xe';
+  const td = document.getElementById('lx-tieu-de');
+  if(td) td.textContent = '🚌 LỚP ' + tenLopHien + ' ĐANG LÊN ' + String(xeTen).toUpperCase();
+  const ds = document.getElementById('lx-danh-sach');
+  if(ds){
+    ds.innerHTML = '';
+    lxDanhSachLenXe.forEach((ten, i)=>{
+      const d = document.createElement('div');
+      d.id = 'lx-ten-' + i;
+      d.textContent = '○ ' + ten;
+      d.style.cssText = 'padding:3px 8px; border-radius:8px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; color:#9AA7BD; background:rgba(255,255,255,.04)';
+      ds.appendChild(d);
+    });
+  }
+  const dem = document.getElementById('lx-dem');
+  if(dem) dem.textContent = '0/' + lxDanhSachLenXe.length + ' đã lên xe';
+  bang.style.display = 'block';
+}
+function capNhatBangLenXe(t){
+  const bang = document.getElementById('bang-len-xe');
+  if(!bang || bang.style.display === 'none') return;
+  const tong = lxDanhSachLenXe.length; if(!tong) return;
+  const daLen = Math.min(tong, Math.floor(t/5 * tong));
+  if(daLen === lxDaLen) return;
+  for(let i = lxDaLen; i < daLen; i++){
+    const el = document.getElementById('lx-ten-' + i);
+    if(el){ el.textContent = '✓ ' + lxDanhSachLenXe[i]; el.style.color = '#7BE3A8'; el.style.background = 'rgba(47,168,79,.18)'; }
+  }
+  lxDaLen = daLen;
+  const dem = document.getElementById('lx-dem');
+  if(dem) dem.textContent = daLen + '/' + tong + ' đã lên xe';
+}
+function anBangLenXe(){
+  const bang = document.getElementById('bang-len-xe'); if(bang) bang.style.display = 'none';
+}
+function datDoanXuongSanKhau(){
+  try{
+    if(typeof doanThanhVien === 'undefined' || !doanThanhVien.length){
+      if(typeof xayDungDoan === 'function') xayDungDoan();
+    }
+    if(!doanThanhVien.length || !sceneCity || !doanNhom) return;
+    if(doanNhom.parent !== sceneCity) sceneCity.add(doanNhom);
+    doanNhom.visible = true;
+    doanNhom.userData.canh = 'city'; /* không phải 'phong' -> các bạn không ngồi xuống */
+    /* Xe buýt dừng ở điểm đỗ ngay phía nam sân khấu, đầu hướng về sân khấu. */
+    const tramX = -8.5, tramZ = 11;
+    try{
+      if(typeof xeBuytThanhPho === 'undefined' || !xeBuytThanhPho){
+        if(typeof taoXeBuyt === 'function'){ xeBuytThanhPho = taoXeBuyt(); sceneCity.add(xeBuytThanhPho); }
+      }
+      if(xeBuytThanhPho){
+        xeBuytThanhPho.visible = true;
+        xeBuytThanhPho.position.set(tramX, 0, tramZ);
+        xeBuytThanhPho.rotation.y = Math.PI;
+        setTimeout(()=>{ if(typeof xeBuytThanhPho !== 'undefined' && xeBuytThanhPho) xeBuytThanhPho.visible = false; }, 8000);
+      }
+    }catch(e){}
+    /* Robot dẫn đoàn đứng cạnh xe, mặt hướng về sân khấu. */
+    try{
+      if(doanRobot){
+        doanRobot.visible = true;
+        doanRobot.position.set(tramX + 1.6, 0.9, tramZ - 1);
+        doanRobot.rotation.y = Math.PI;
+      }
+    }catch(e){}
+    /* Các bạn bước xuống xe, đi bộ tới đứng thành vòng cung quanh sân khấu (phía nam). */
+    const tamX = -8.5, tamZ = 5, bk = 4.5;
+    doanThanhVien.forEach((m, i)=>{
+      const n = doanThanhVien.length;
+      const goc = (-70 + (140 * (n <= 1 ? 0.5 : i/(n-1)))) * Math.PI/180;
+      const x = tamX + bk * Math.sin(goc);
+      const z = tamZ + bk * Math.cos(goc);
+      const xoay = Math.atan2(tamX - x, tamZ - z);
+      m.visible = false;
+      m.position.set(tramX + (i % 2 === 0 ? -0.8 : 0.8), 0, tramZ);
+      m.userData.daChao = false; m.userData.daNgoi = false;
+      m.userData.dungLenT0 = 0; m.userData.errand = false;
+      if(m.userData.bongBong) m.userData.bongBong.visible = false;
+      m.userData.diChuyen = null;
+      if(typeof datDiChuyenNhieuDoan === 'function') datDiChuyenNhieuDoan(m, [new THREE.Vector3(x, 0, z)], i*0.3, xoay, false);
+    });
+  }catch(e){}
 }
 
 function dungSanBongChuyen(){
