@@ -340,6 +340,9 @@ body.dang-choi header h1{font-size:15px} /* LOP-RONG 15/11 */
 .nut-minh-hoa:active, .nut-video-3d:active{transform:scale(.98)}
 .nut-minh-hoa.nut-video-3d{background:linear-gradient(180deg,#7FB3FF,#3D7EDB); color:#fff; border-color:#1F4E9C}
 .nut-minh-hoa.nut-ket-qua{background:linear-gradient(180deg,#607D8B,#455A64); color:#fff; border-color:#263238}
+.nut-minh-hoa.nut-hd3-chuong{background:linear-gradient(180deg,#66BB6A,#2E7D32); color:#fff; border-color:#1B5E20}
+.nut-minh-hoa.nut-hd3-dieu-tra{background:linear-gradient(180deg,#FFA726,#EF6C00); color:#fff; border-color:#E65100}
+.nhan-hd3{display:block; text-align:center; font-size:16px; font-weight:900; color:#8A6D1B; letter-spacing:.5px; margin:4px 0 10px; flex:none}
 #noi-dung-phong .ndp-dau{position:sticky; top:0; display:flex; justify-content:space-between; align-items:center; gap:8px; background:#FDF6E3; padding:2px 0 8px; margin:0 0 4px; font-weight:800; color:#8A6D1B; font-size:17px; z-index:2}
 #noi-dung-phong .ndp-dau button{font-family:inherit; font-size:15px; font-weight:800; padding:6px 12px; border-radius:999px; border:2px solid #C9A227; background:#fff; color:#1A2340; cursor:pointer; white-space:nowrap}
 #noi-dung-phong.da-thu-gon{width:auto; max-height:none; overflow:visible; padding:10px 12px}
@@ -12529,6 +12532,20 @@ function datNoiDungPhong(b){
     if(cacNutKQ.length) cacNutKQ[cacNutKQ.length - 1].insertAdjacentHTML('afterend', htmlKQ);
     else { const nutMH3 = p.querySelector('.nut-minh-hoa'); if(nutMH3) nutMH3.insertAdjacentHTML('afterend', htmlKQ); else p.insertAdjacentHTML('afterbegin', htmlKQ); }
   }
+  /* Nút HĐ3 Luyện tập (22/11, phòng Bài 4 lớp 8 t4-f3): đặt DƯỚI nút Xem kết quả
+     (nút .nut-ket-qua cuối cùng), mở tab mới tới 2 app luyện tập trên điện thoại.
+     Có nhãn nhỏ "HĐ3 — Luyện tập" để phân biệt với phần khởi động. Chỉ hiện khi
+     phòng có trong SK_LINK_HD3. KHÔNG động vào 3 nút cũ, KHÔNG đổi thứ tự. */
+  const lkHD3 = (typeof SK_LINK_HD3 !== 'undefined') ? SK_LINK_HD3[idCu] : null;
+  if(lkHD3 && lkHD3.length){
+    let htmlHD3 = '<div class="nhan-hd3">— HĐ3 · Luyện tập (làm trên điện thoại) —</div>';
+    lkHD3.forEach(function(m){
+      htmlHD3 += '<a class="nut-minh-hoa ' + m.cls + '" href="' + m.url + '" target="_blank" rel="noopener">' + m.icon + ' ' + m.ten + ' ↗</a>';
+    });
+    const nutKQ2 = p.querySelectorAll('.nut-ket-qua');
+    if(nutKQ2.length) nutKQ2[nutKQ2.length - 1].insertAdjacentHTML('afterend', htmlHD3);
+    else { const nutMH4 = p.querySelectorAll('.nut-minh-hoa'); if(nutMH4.length) nutMH4[nutMH4.length - 1].insertAdjacentHTML('afterend', htmlHD3); else p.insertAdjacentHTML('afterbegin', htmlHD3); }
+  }
   /* Build 13: nút chung 'Bắt đầu trò này' ra khỏi vùng cuộn — làm con trực tiếp
      của panel (dưới link minh họa, trên vùng cuộn) để luôn thấy, không bị cuộn đi.
      Build 11 căn thẻ đầu đẩy nút lên dưới link (bi-che-boi:nut-minh-hoa); build 12
@@ -15273,6 +15290,17 @@ const SK_LINK_TROCHOI = {
    SK_LINK_VIDEO3D moi key chi giu 1 link. */
 const SK_LINK_KET_QUA = {
   't4-f3': {ten: 'Xem kết quả trình diễn (Hộp đen)', url: 'https://script.google.com/macros/s/AKfycbw6K57VCKeT8w5oLfaUZsrLyfuJDcJaGWn0Crp5AP8IECVzo4zwse8CilJ5B5ckGTQ0/exec?xem=id_cph2781'}
+};
+/* Link HĐ3 Luyện tập (22/11, phòng Bài 4 lớp 8 t4-f3): 2 app luyện tập trên điện
+   thoại — bấm chuông trắc nghiệm + đội điều tra. Map RIÊNG, giá trị là MẢNG
+   (mỗi phòng có 2 link) vì SK_LINK_MINH_HOA / SK_LINK_VIDEO3D mỗi key chỉ giữ
+   1 link. Nút hiện DƯỚI 3 nút cũ (minh họa → video 3D → kết quả), có nhãn
+   "HĐ3 — Luyện tập" để phân biệt với phần khởi động. */
+const SK_LINK_HD3 = {
+  't4-f3': [
+    {ten: 'Bấm chuông — Trắc nghiệm nhanh (HĐ3)', url: 'https://ngochung3789-boop.github.io/thung-lung-ai/luyen-tap/hd3-trac-nghiem.html', cls: 'nut-hd3-chuong', icon: '🔔'},
+    {ten: 'Đội điều tra — Gửi kết luận (HĐ3)', url: 'https://ngochung3789-boop.github.io/thung-lung-ai/luyen-tap/hd3-doi-dieu-tra.html', cls: 'nut-hd3-dieu-tra', icon: '🔍'}
+  ]
 };
 let skNhom = null, skHS = null, skRobot = null, skVongDo = null, skDenDo = null;
 let skDenHS = null, skDenRobot = null;
