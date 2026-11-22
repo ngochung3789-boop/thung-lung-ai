@@ -601,7 +601,7 @@ var silver = new THREE.MeshPhysicalMaterial({ color:0xd7dde2, roughness:0.28, me
     blueGlow = new THREE.MeshStandardMaterial({ color:0x1a9fff, roughness:0.2, metalness:0.1, emissive:0x0a6cff, emissiveIntensity:1.6 }),
     darkLens = mat(0x222222, 0.25);
 var moki = new THREE.Group();
-moki.position.set(3.0, 0, -1.4);
+moki.position.set(5.3, 0, -1.4);
 scene.add(moki);
 
 /* hai bánh xe to hai bên (trục dọc thân, có rãnh + trục bạc + chấm xanh) */
@@ -794,7 +794,7 @@ scene.add(leadTrash);
 
 /* ---------- MÀN HÌNH LỚN (máy) ---------- */
 var scrCanvas = document.createElement('canvas');
-scrCanvas.width = 1024; scrCanvas.height = 620;
+scrCanvas.width = 1536; scrCanvas.height = 930;
 var scrCtx = scrCanvas.getContext('2d');
 var scrTex = new THREE.CanvasTexture(scrCanvas);
 scrTex.encoding = THREE.sRGBEncoding;
@@ -802,14 +802,14 @@ scrTex.encoding = THREE.sRGBEncoding;
 var screenGroup = new THREE.Group();
 screenGroup.position.set(0, 0, -2.6);
 scene.add(screenGroup);
-var frame = new THREE.Mesh(new THREE.BoxGeometry(4.5, 2.83, 0.12), mat(0x37474f, 0.4));
-frame.position.y = 1.95; frame.castShadow = true; screenGroup.add(frame);
-var face = new THREE.Mesh(new THREE.PlaneGeometry(4.2, 2.53),
+var frame = new THREE.Mesh(new THREE.BoxGeometry(8.78, 5.52, 0.12), mat(0x37474f, 0.4));
+frame.position.y = 3.0; frame.castShadow = true; screenGroup.add(frame);
+var face = new THREE.Mesh(new THREE.PlaneGeometry(8.19, 4.94),
   new THREE.MeshBasicMaterial({ map: scrTex }));
-face.position.set(0, 1.95, 0.07); screenGroup.add(face);
+face.position.set(0, 3.0, 0.07); screenGroup.add(face);
 var lampMat = new THREE.MeshBasicMaterial({ color:0x69f0ae });
 var lamp = new THREE.Mesh(new THREE.SphereGeometry(0.055, 14, 10), lampMat);
-lamp.position.set(2.08, 3.22, 0.08); screenGroup.add(lamp);
+lamp.position.set(4.2, 5.6, 0.08); screenGroup.add(lamp);
 var pole = new THREE.Mesh(new THREE.CylinderGeometry(0.09, 0.11, 0.55, 14), mat(0x455a64, 0.5));
 pole.position.y = 0.28; pole.castShadow = true; screenGroup.add(pole);
 var base = new THREE.Mesh(new THREE.CylinderGeometry(0.55, 0.62, 0.1, 24), mat(0x37474f, 0.5));
@@ -925,6 +925,7 @@ function totalCorrect(){
 /* ----- vẽ toàn bộ màn hình theo trạng thái ----- */
 function drawScreen(){
   var ctx = scrCtx, W = 1024, H = 620;
+  ctx.setTransform(1.5, 0, 0, 1.5, 0, 0); // phong to noi dung man hinh 1.5x cho HS doc duoc tren TV
   ctx.clearRect(0, 0, W, H);
   ctx.fillStyle = '#ffffff'; ctx.fillRect(0, 0, W, H);
   ctx.fillStyle = '#1565c0'; ctx.fillRect(0, 0, W, 84);
@@ -1321,6 +1322,7 @@ function resetGame(){
   updateDOM();
 }
 function play(){
+  if (!document.fullscreenElement){ var _fs = document.documentElement.requestFullscreen(); if (_fs && _fs.catch) _fs.catch(function(){}); } // bam Phat la tu toan man hinh tren TV
   if (!state.started){
     state.started = true;
     setPhase('lead'); /* bấm Phát -> dẫn dắt 1 phút trước, rồi mới vào intro/vòng 1 */
