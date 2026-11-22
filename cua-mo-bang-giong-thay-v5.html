@@ -4461,9 +4461,10 @@ function dungThanhPho(){
   try{ dungKhuMoi(); }catch(e){ /* khu moi la phu, loi thi bo qua */ }
   try{ dungRobotDiLai(); }catch(e){ /* robot di lai la phu, loi thi bo qua */ }
 
-  [[-12,-12],[12,-12],[-12,12],[12,12],[-36,-9],[36,9],[-36,15],[36,-15],[-9,36],[9,-36],[-39,0],[39,0],[-21,36],[21,36]].forEach(p=>sceneCity.add(taoCay(p[0], p[1], 0.9 + Math.random()*0.4))); /* fix5: cay xa hon x1.5 */
+  [[12,-12],[12,12],[-36,-9],[36,9],[-36,15],[36,-15],[-9,36],[9,-36],[-39,0],[39,0],[-21,36],[21,36]] /* v12 22/11: BO 2 cay (-12,-12) va (-12,12) — chung dung truoc mat day toa, che khoi 6 va khoi 9 khi nhin tu quang truong */.forEach(p=>sceneCity.add(taoCay(p[0], p[1], 0.9 + Math.random()*0.4))); /* fix5: cay xa hon x1.5 */
   for(let i=0;i<16;i++){
     if(i>=11 && i<=13) continue; /* fix6: chua khe ho phia nam (goc 247.5/270/292.5 do) cho loi vao thung lung */
+    if(i>=7 && i<=9) continue; /* v12 22/11: BO 3 nui phia tay (goc 157.5/180/202.5 do) — chung o x~-30, ngay khe giua 4 toa thap, che mat toa khi nhin tu quang truong */
     const a = i/16*Math.PI*2;
     const gocKhoi = (i%4 === 2); /* 4KHOI: nui o 4 goc (i=2,6,10,14) */
     const r = gocKhoi ? 52 + Math.random()*2 : 31 + Math.random()*3;
@@ -17216,7 +17217,7 @@ function datDoanXuongSanKhau(){
    mem (hop/tru/cau), KHONG hop vuong tho, KHONG voxel.
    Ghi chu: toa nha la cot moc nhin (khong mo duoc cua vao van phong that vi
    van phong co mat khau kiem tra phia may chu, khong co link cong khai). */
-/* ================= TOA NHA HOI DONG AI — 7 TANG (v11, 22/11) =================
+/* ================= TOA NHA HOI DONG AI — 7 TANG (v11, 22/11) · v12: DO CAY/NUI CHE TOA =================
    Vi tri: suon ben canh duong di vao (tay duong chinh), (-16, -17), mat tien
    huong nam ve quang truong. Tang 1-4: 12 phong/tang; doi DO HOA tang 1 mo rong
    (do hoa + ve map + xay ha tang game). TANG 5 = DOI LUU TRU (doi chua co phong
