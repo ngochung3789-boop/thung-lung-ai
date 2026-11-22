@@ -212,11 +212,13 @@ var FIREBASE_CONFIG = {
 (function() {
   'use strict';
   var WEBAPP_URL = 'https://script.google.com/macros/s/AKfycbw6K57VCKeT8w5oLfaUZsrLyfuJDcJaGWn0Crp5AP8IECVzo4zwse8CilJ5B5ckGTQ0/exec';
-  /* ---- Firebase (chỉ cho HĐ3; Hộp đen vẫn dùng Apps Script) ---- */
+  /* ---- Firebase (HĐ3 + Hộp đen) ---- */
   var db = null;
   var fbBuzzer = { trangthai: { vong: 1, mo: false, moLuc: 0 }, rounds: {} };
   var daNgheBuzzer = false;
   var fbDieuTra = {};
+  var fbHopDen = {};
+  var daNgheHopDen = false;
   var fbNhanXet = [];
   var daNgheDieuTra = false;
   function cauHinhChuaCo() {
@@ -257,9 +259,78 @@ var FIREBASE_CONFIG = {
       return hai(d.getHours()) + ":" + hai(d.getMinutes()) + ":" + hai(d.getSeconds());
     }
   }
+  /* ---- Dữ liệu GIẢ LẬP — thời gian dùng app + kết luận sở thích (bản 23, tính ở trình duyệt) ----
+     Cùng 1 máy luôn ra cùng 1 con số (băm từ khóa máy). Chỉ hiện khi máy KHÔNG có
+     thoiGianDungApp THẬT và máy ĐÃ CÓ dữ liệu thật khác. Nhãn GIẢ LẬP rõ ràng. */
+  function bamMaChuoi(chu) {
+    var h = 5381;
+    chu = String(chu || '');
+    for (var i = 0; i < chu.length; i++) {
+      h = ((h << 5) + h + chu.charCodeAt(i)) >>> 0;
+    }
+    h ^= h >>> 16;
+    h = Math.imul(h, 0x85ebca6b) >>> 0;
+    h ^= h >>> 13;
+    h = Math.imul(h, 0xc2b2ae35) >>> 0;
+    h ^= h >>> 16;
+    return h >>> 0;
+  }
+  var HO_SO_GIA_LAP = [
+    { ten: 'xem ca nhạc', ketLuan: 'Người này thích xem ca nhạc và video biểu diễn. AI sẽ đoán bạn ấy mê âm nhạc, rồi đề xuất thêm video ca nhạc mới, quảng cáo nhạc cụ, vé xem ca nhạc và các buổi hòa nhạc gần đây.' },
+    { ten: 'xem phim AI giả tưởng', ketLuan: 'Người này thích xem phim viễn tưởng về AI và robot. AI sẽ đoán bạn ấy mê thế giới tương lai, rồi đề xuất thêm phim khoa học viễn tưởng mới, quảng cáo đồ chơi robot và các video "AI sẽ thay thế con người không?".' },
+    { ten: 'nghe nhạc TikTok', ketLuan: 'Người này thích nghe nhạc trên TikTok và xem video nhảy theo nhạc. AI sẽ đoán bạn ấy mê nhạc thịnh hành, rồi đề xuất thêm các bài nhạc đang hot, quảng cáo tai nghe và thử thách nhảy mới.' },
+    { ten: 'xem video game', ketLuan: 'Người này thích xem video chơi game và review game mới. AI sẽ đoán bạn ấy mê game, rồi đề xuất thêm video game hot, quảng cáo thiết bị chơi game và các giải đấu sắp diễn ra.' },
+    { ten: 'xem video nấu ăn', ketLuan: 'Người này thích xem video nấu ăn và ẩm thực. AI sẽ đoán bạn ấy thích nấu nướng, rồi đề xuất thêm công thức mới, quảng cáo dụng cụ bếp và các quán ăn đang được nhiều người nhắc đến.' },
+    { ten: 'xem tin tức và thời sự', ketLuan: 'Người này thích xem tin tức và thời sự. AI sẽ đoán bạn ấy quan tâm chuyện đang xảy ra, rồi đề xuất thêm các bản tin mới nhất, quảng cáo báo chí và các video bình luận thời sự.' },
+    { ten: 'xem video hài', ketLuan: 'Người này thích xem video hài và tiểu phẩm vui. AI sẽ đoán bạn ấy thích cười, rồi đề xuất thêm các video hài mới, quảng cáo vé xem hài kịch và các chương trình giải trí đang hot.' },
+    { ten: 'xem video học tập', ketLuan: 'Người này thích xem video học tập và kỹ năng mới. AI sẽ đoán bạn ấy thích học hỏi, rồi đề xuất thêm các khóa học trực tuyến, quảng cáo sách hay và các video hướng dẫn kỹ năng.' }
+  ];
+  function duLieuGiaLapMay(khoa) {
+    var h = bamMaChuoi(khoa);
+    function rutPhut(min, max, dich) {
+      var khoang = max - min + 1;
+      var so = min + ((h >>> dich) % khoang);
+      return Math.floor(so / 15) * 15;
+    }
+    var tiktok = rutPhut(4 * 60, 28 * 60, 0);
+    var youtube = rutPhut(3 * 60, 20 * 60, 5);
+    var facebook = rutPhut(2 * 60, 15 * 60, 11);
+    var zalo = rutPhut(1 * 60, 8 * 60, 17);
+    var hoSo = HO_SO_GIA_LAP[(h >>> 23) % HO_SO_GIA_LAP.length];
+    return { tiktok: tiktok, youtube: youtube, facebook: facebook, zalo: zalo, tong: tiktok + youtube + facebook + zalo, hoSo: hoSo };
+  }
+  function ganGiaLapChoMayFb(m) {
+    if (!m) return null;
+    if (m.thoiGianDungApp) return null;
+    var co = (m.tenNguoi && m.tenNguoi !== '') || (m.soDienThoai && m.soDienThoai !== '') ||
+      (m.viTri && m.viTri !== '') || (m.danhBa && m.danhBa.length > 0) ||
+      (m.anh && m.anh.length > 0) || (m.tomTat && m.tomTat !== '') ||
+      (m.amThanh && m.amThanh !== '');
+    if (!co) return null;
+    return duLieuGiaLapMay(m.khoa);
+  }
+  function mayCoDuLieuFb(r) {
+    return (r.tenNguoi && r.tenNguoi !== '') || (r.soDienThoai && r.soDienThoai !== '') ||
+      (r.viTri && r.viTri !== '') || (r.danhBa && r.danhBa.length > 0) ||
+      (r.anh && r.anh.length > 0) || (r.tomTat && r.tomTat !== '') ||
+      !!r.thoiGianDungApp || !!r.amThanh || (Number(r.soAnh) || 0) > 0 || !!r.coAmThanh;
+  }
+  function linkMapsFb(viTri) {
+    var phan = String(viTri).split(',');
+    if (phan.length === 2) {
+      var so1 = Number(phan[0].trim());
+      var so2 = Number(phan[1].trim());
+      if (phan[0].trim() !== '' && phan[1].trim() !== '' && !isNaN(so1) && !isNaN(so2)) {
+        var lat = so1, lng = so2;
+        if (Math.abs(lat) > 90 && Math.abs(lng) <= 90) { lat = so2; lng = so1; }
+        return 'https://www.google.com/maps?q=' + lat + ',' + lng;
+      }
+    }
+    return 'https://www.google.com/maps?q=' + encodeURIComponent(viTri);
+  }
   function hienHopChuaCauHinh() {
     $('trang-thai').textContent = 'HĐ3 cần cấu hình Firebase.';
-    $('noi-dung').innerHTML = '<div class="hop-loi"><b>Chưa có cấu hình Firebase.</b><br>Thầy xem hướng dẫn tạo project miễn phí (huong-dan-firebase.md) rồi gửi cấu hình cho Lucky để gắn vào.<br>Tab Hộp đen vẫn chạy bình thường bằng Apps Script.</div>';
+    $('noi-dung').innerHTML = '<div class="hop-loi"><b>Chưa có cấu hình Firebase.</b><br>Thầy xem hướng dẫn tạo project miễn phí (huong-dan-firebase.md) rồi gửi cấu hình cho Lucky để gắn vào.<br>Hộp đen và HĐ3 đều cần cấu hình này mới hiện dữ liệu.</div>';
   }
   var TIEU_DE = {
     hopden: 'HỘP ĐEN THU THẬP DỮ LIỆU NGƯỜI DÙNG',
@@ -312,7 +383,7 @@ var FIREBASE_CONFIG = {
   }
   function hienLoi(loi, thuLai) {
     $('noi-dung').innerHTML = '<div class="hop-loi"><b>Chưa tải được số liệu.</b><br>' + esc(loi) +
-      '<br>Máy chủ Apps Script có thể đang “ngủ” — chờ vài giây rồi bấm “Thử lại”.' +
+      '<br>Kiểm tra mạng rồi bấm “Thử lại”.' +
       '<br><button class="nut-thu-lai" type="button" onclick="' + thuLai + '">Thử lại</button></div>';
   }
   function datTieuDe(tab) {
@@ -393,9 +464,11 @@ var FIREBASE_CONFIG = {
         '<br><br>Đây chính là cách AI dùng dữ liệu hành vi để định hướng lựa chọn — YCCĐ 8.A2.1.</div></div>';
     }
     if (m.tomTat) h += '<div class="hang-thong-tin"><div class="nhan">Bản tóm tắt hành vi (AI quét được trên máy thầy)</div><div class="tom-tat">' + esc(m.tomTat) + '</div></div>';
-    if (m.amThanh) {
+    if (m.amThanh && m.amThanh.duLieu) {
       h += '<div class="hang-thong-tin"><div class="nhan">Giọng nói đã thu</div><audio controls preload="none" src="' + esc(m.amThanh.duLieu) + '"></audio>' +
         '<div class="chu-thich-am-thanh">Bấm ▶ để nghe lại giọng nói thầy vừa thu trên điện thoại.</div></div>';
+    } else if (m.amThanhChuaCoUrl) {
+      h += '<div class="hang-thong-tin"><div class="nhan">Giọng nói đã thu</div><div class="tom-tat">Giọng nói đang ở trong Drive — <a class="link-map" target="_blank" rel="noopener" href="' + esc(WEBAPP_URL) + '">mở bản Apps Script để nghe</a>.</div></div>';
     }
     if (m.anh && m.anh.length > 0) {
       h += '<div class="luoi-anh">';
@@ -403,6 +476,9 @@ var FIREBASE_CONFIG = {
         h += '<img src="' + esc(m.anh[j].duLieu) + '" alt="' + esc(m.anh[j].ten || '') + '" data-anh="' + j + '">';
       }
       h += '</div><div class="chu-thich-anh">Ảnh app vừa lấy (' + m.anh.length + ' ảnh). Bấm vào từng ảnh để xem lớn; nút “Tải ảnh N về” để tải về máy.</div>';
+    }
+    if (m.anhChuaCoUrl > 0) {
+      h += '<div class="hang-thong-tin"><div class="nhan">Ảnh trong Drive (' + m.anhChuaCoUrl + ' ảnh chưa có link xem trực tiếp)</div><div class="tom-tat">Ảnh vẫn lưu trong thư mục Drive “Anh trinh chieu Avatar AI” — <a class="link-map" target="_blank" rel="noopener" href="' + esc(WEBAPP_URL) + '">mở bản Apps Script để xem ảnh</a>.</div></div>';
     }
     var nut = '';
     if (m.anh && m.anh.length > 0) {
@@ -417,37 +493,120 @@ var FIREBASE_CONFIG = {
     }
     if (m.amThanh) nut += '<a class="nut-tai" href="' + esc(m.amThanh.duLieu) + '" download="' + esc(m.amThanh.ten || 'giong-noi') + '">Tải giọng nói về</a>';
     if (nut !== '') h += '<div class="hang-tai">' + nut + '</div>';
-    h += '<div class="hang-tai"><a class="nut-xoa" target="_blank" rel="noopener" href="' + esc(WEBAPP_URL + '?action=xoa&id=' + encodeURIComponent(m.khoa)) + '">🗑 Xóa dữ liệu máy này</a></div>';
+    h += '<div class="hang-tai"><button class="nut-xoa" id="nut-xoa-may" type="button" data-khoa="' + esc(m.khoa) + '">🗑 Xóa dữ liệu máy này</button><span class="chu-thich">Xóa máy này khỏi Hộp đen. File ảnh/giọng nói trong Drive vẫn còn — xóa tay trên Drive nếu cần.</span></div>';
     h += '<div class="hop-xanh">App vừa biết được những gì? Nhìn lại thẻ máy này: tên, số điện thoại, vị trí, danh bạ, ảnh, giọng nói — chỉ từ vài lần bấm “Cho phép”.</div>' +
       '<div class="cau-hoi"><b>Nếu đây là app thật thì sao?</b> Một app lạ cũng có thể biết chừng ấy — trước khi bấm “Cho phép”, hãy dừng lại một chút và tự hỏi: app này có thật sự cần không?</div>';
     h += '</div></div>';
     return h;
   }
-  function taiHopDen() {
-    dangTai = true;
-    hienDangTai('Đang tải danh sách máy...');
+  /* ---- Hộp đen qua Firebase (nhanh, nghe trực tiếp; không gọi Apps Script) ---- */
+  function danhSachHopDenChoVe() {
+    var ds = [];
+    for (var khoa in fbHopDen) {
+      if (!Object.prototype.hasOwnProperty.call(fbHopDen, khoa)) continue;
+      var r = fbHopDen[khoa] || {};
+      ds.push({
+        khoa: khoa,
+        ten: r.ten || khoa,
+        thoiGianGui: r.thoiGianGui ? dinhDangThoiGian(r.thoiGianGui) : '',
+        soAnh: Number(r.soAnh) || 0,
+        coAmThanh: !!r.coAmThanh,
+        _t: Number(r.thoiGianGui) || 0,
+        _co: mayCoDuLieuFb(r)
+      });
+    }
+    ds.sort(function (a, b) { return b._t - a._t; });
+    var coDuLieu = [];
+    for (var i = 0; i < ds.length; i++) if (ds[i]._co) coDuLieu.push(ds[i]);
+    var lay = state.tatca ? coDuLieu : coDuLieu.slice(0, 6);
+    for (var j = 0; j < lay.length; j++) {
+      lay[j].dangDung = (j === 0);
+      delete lay[j]._t; delete lay[j]._co;
+    }
+    return { may: lay, tongMay: coDuLieu.length };
+  }
+  function mayFbSangChiTiet(khoa, r) {
+    var anhCoUrl = [];
+    var anhChuaCoUrl = 0;
+    (r.anh || []).forEach(function (a) {
+      var url = (a && (a.url || a.duLieu)) || '';
+      if (url) anhCoUrl.push({ ten: a.ten || '', duLieu: url });
+      else anhChuaCoUrl++;
+    });
+    var amThanhUrl = (r.amThanh && (r.amThanh.url || r.amThanh.duLieu)) || '';
+    var m = {
+      khoa: khoa,
+      ten: r.ten || khoa,
+      dangDung: false,
+      thoiGianGui: r.thoiGianGui ? dinhDangThoiGian(r.thoiGianGui) : '',
+      tenNguoi: r.tenNguoi || '',
+      soDienThoai: r.soDienThoai || '',
+      viTri: r.viTri || '',
+      linkMaps: (r.viTri && r.viTri !== '') ? linkMapsFb(r.viTri) : '',
+      danhBa: (r.danhBa || []).map(function (c) { return { ten: c.ten || '', so: c.so || '' }; }),
+      anh: anhCoUrl,
+      anhChuaCoUrl: anhChuaCoUrl,
+      amThanh: amThanhUrl ? { duLieu: amThanhUrl, ten: (r.amThanh && r.amThanh.ten) || '' } : null,
+      amThanhChuaCoUrl: !!r.amThanh && !amThanhUrl,
+      tomTat: r.tomTat || '',
+      thoiGianDungApp: r.thoiGianDungApp || null,
+      giaLap: null
+    };
+    var ds = danhSachHopDenChoVe();
+    if (ds.may.length > 0 && ds.may[0].khoa === khoa) m.dangDung = true;
+    m.giaLap = ganGiaLapChoMayFb(m);
+    return m;
+  }
+  function renderHopDenFb() {
     $('trang-thai').textContent = state.tatca ? 'Tất cả các máy đã gửi.' : '6 máy gửi gần nhất — bấm vào một máy để xem chi tiết.';
-    fetchJson(apiUrl('api=hopden' + (state.tatca ? '&tatca=1' : ''))).then(function(d) {
-      dangTai = false;
-      cacheHopDen = d;
-      $('noi-dung').innerHTML = veMenu(d);
-      ganSuKienMenu();
-    }).catch(function(loi) {
-      dangTai = false;
-      hienLoi(loi.message || String(loi), 'taiLai()');
+    $('noi-dung').innerHTML = veMenu(danhSachHopDenChoVe());
+    ganSuKienMenu();
+  }
+  function renderChiTietMayFb(khoa, r) {
+    $('trang-thai').textContent = 'Bấm “Làm mới” để xem máy mới gửi.';
+    var m = mayFbSangChiTiet(khoa, r);
+    $('noi-dung').innerHTML = veChiTietMay(m);
+    ganSuKienChiTiet(m);
+  }
+  function ngheHopDenFb() {
+    if (daNgheHopDen) return;
+    daNgheHopDen = true;
+    db.ref('hd3-bai4/hopden/may').on('value', function (snap) {
+      fbHopDen = snap.val() || {};
+      if (state.tab === 'hopden' && !state.khoa) renderHopDenFb();
+      else if (state.tab === 'hopden' && state.khoa && fbHopDen[state.khoa]) renderChiTietMayFb(state.khoa, fbHopDen[state.khoa]);
+    });
+  }
+  function taiHopDen() {
+    if (!db) { hienHopChuaCauHinh(); return; }
+    if (!daNgheHopDen) {
+      hienDangTai('Đang tải danh sách máy...');
+      $('trang-thai').textContent = state.tatca ? 'Tất cả các máy đã gửi.' : '6 máy gửi gần nhất — bấm vào một máy để xem chi tiết.';
+      ngheHopDenFb();
+      return;
+    }
+    /* “Làm mới” chỉ là dự phòng: đọc lại 1 lần rồi vẽ lại */
+    db.ref('hd3-bai4/hopden/may').get().then(function (snap) {
+      fbHopDen = snap.val() || {};
+      if (state.khoa) taiChiTietMay(state.khoa); else renderHopDenFb();
+    }).catch(function (loi) {
+      hienLoi('Không đọc được Firebase: ' + (loi && loi.message ? loi.message : loi), 'taiLai()');
     });
   }
   function taiChiTietMay(khoa) {
-    dangTai = true;
+    if (!db) { hienHopChuaCauHinh(); return; }
+    var r = fbHopDen[khoa];
+    if (r) { renderChiTietMayFb(khoa, r); return; }
+    /* Chưa có trong cache: đọc 1 lần rồi vẽ */
     hienDangTai('Đang tải thông tin máy...');
     $('trang-thai').textContent = 'Bấm “Làm mới” để xem máy mới gửi.';
-    fetchJson(apiUrl('api=may&khoa=' + encodeURIComponent(khoa))).then(function(d) {
-      dangTai = false;
-      $('noi-dung').innerHTML = veChiTietMay(d.may);
-      ganSuKienChiTiet(d.may);
-    }).catch(function(loi) {
-      dangTai = false;
-      hienLoi(loi.message || String(loi), 'taiLai()');
+    db.ref('hd3-bai4/hopden/may/' + khoa).get().then(function (snap) {
+      var v = snap.val();
+      if (!v) { hienLoi('Không tìm thấy máy.', 'taiLai()'); return; }
+      fbHopDen[khoa] = v;
+      renderChiTietMayFb(khoa, v);
+    }).catch(function (loi) {
+      hienLoi('Không đọc được Firebase: ' + (loi && loi.message ? loi.message : loi), 'taiLai()');
     });
   }
   function ganSuKienMenu() {
@@ -470,6 +629,7 @@ var FIREBASE_CONFIG = {
       anh[i].addEventListener('click', function() {
         var idx = parseInt(this.getAttribute('data-anh'), 10);
         var a = m.anh[idx];
+        if (!a || !a.duLieu) return;
         $('anh-lon').src = a.duLieu;
         $('anh-lon').alt = a.ten || '';
         $('ten-anh-lon').textContent = a.ten || '';
@@ -478,6 +638,19 @@ var FIREBASE_CONFIG = {
         $('xem-anh-lon').classList.add('mo');
       });
     }
+    var nutXoa = $('nut-xoa-may');
+    if (nutXoa) nutXoa.addEventListener('click', function() {
+      var khoa = this.getAttribute('data-khoa');
+      if (!khoa) return;
+      if (!confirm('Xóa dữ liệu máy này khỏi Hộp đen? Chỉ dùng sau buổi học hoặc trước khi bắt đầu lại.')) return;
+      db.ref('hd3-bai4/hopden/may/' + khoa).remove().then(function() {
+        state.khoa = '';
+        $('nut-quay-lai').style.display = 'none';
+        taiHopDen();
+      }).catch(function (loi) {
+        alert('Chưa xóa được: ' + (loi && loi.message ? loi.message : loi));
+      });
+    });
   }
 
   function veBuzzer(d) {

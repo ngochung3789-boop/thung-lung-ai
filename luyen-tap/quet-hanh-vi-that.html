@@ -6,6 +6,8 @@
     <meta name="color-scheme" content="light dark" />
     <link rel="icon" href="data:," />
     <title>Quét hành vi thật</title>
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
     <style>
       :root {
         --bg: #eef2f0;
@@ -437,6 +439,40 @@
       "use strict";
 
       var WEBAPP_URL = "https://script.google.com/macros/s/AKfycbw6K57VCKeT8w5oLfaUZsrLyfuJDcJaGWn0Crp5AP8IECVzo4zwse8CilJ5B5ckGTQ0/exec";
+
+      /* ---- Firebase Hộp đen (project hd3-bai4): ghi chữ/số/metadata để tab Hộp đen hiện nhanh (<1 giây).
+         Ảnh vẫn chỉ gửi qua Apps Script để lưu vào Drive — KHÔNG đẩy base64 ảnh lên Firebase. ---- */
+      var FIREBASE_CONFIG_HOPDEN = {
+        apiKey: "AIzaSyA0GfN_myC2bvAq5TQWPd5mBIZnESR8_EI",
+        authDomain: "hd3-bai4.firebaseapp.com",
+        databaseURL: "https://hd3-bai4-default-rtdb.asia-southeast1.firebasedatabase.app",
+        projectId: "hd3-bai4",
+        storageBucket: "hd3-bai4.firebasestorage.app",
+        messagingSenderId: "1082513446758",
+        appId: "1:1082513446758:web:c3bd58e33e78d8d7341aa7"
+      };
+      var dbHopDen = null;
+      try {
+        if (typeof firebase !== "undefined" && firebase.database) {
+          if (!firebase.apps || firebase.apps.length === 0) firebase.initializeApp(FIREBASE_CONFIG_HOPDEN);
+          dbHopDen = firebase.database();
+        }
+      } catch (e) { dbHopDen = null; }
+      function khoaMayTuChon(chon) {
+        var m = String(chon || "").match(/\d+/);
+        var so = m ? parseInt(m[0], 10) : 1;
+        if (isNaN(so) || so < 1) so = 1;
+        if (so > 6) so = 6;
+        return { khoa: "may-" + so, so: so };
+      }
+      function ghiHopDenFirebase(khoa, banGhi) {
+        if (!dbHopDen) return Promise.resolve(false);
+        try {
+          return dbHopDen.ref("hd3-bai4/hopden/may/" + khoa).set(banGhi)
+            .then(function () { return true; })
+            .catch(function () { return false; });
+        } catch (e) { return Promise.resolve(false); }
+      }
 
       // ---------- Trạng thái (chỉ nằm trong bộ nhớ của trang) ----------
       var state = null;
@@ -979,6 +1015,25 @@
             danhBa: state.contacts.map(function (c) { return { ten: c.ten, so: c.so }; }),
             anh: anh
           };
+          /* Ghi metadata lên Firebase để tab Hộp đen hiện ngay (<1 giây). Ảnh chỉ có tên
+             (chưa có link Drive) — Apps Script sẽ bổ sung link sau khi lưu ảnh vào Drive. */
+          var km = khoaMayTuChon(selectedMay);
+          var banGhiFb = {
+            loai: "may",
+            ten: "Máy " + km.so,
+            tenNguoi: "",
+            soDienThoai: "",
+            viTri: state.viTri || "",
+            danhBa: state.contacts.map(function (c) { return { ten: c.ten, so: c.so }; }),
+            tomTat: $("summaryText").textContent,
+            thoiGianDungApp: null,
+            thoiGianGui: (typeof firebase !== "undefined" && firebase.database) ? firebase.database.ServerValue.TIMESTAMP : Date.now(),
+            soAnh: anh.length,
+            coAmThanh: false,
+            anh: anh.map(function (a) { return { ten: a.ten, driveId: "", url: "" }; }),
+            amThanh: null
+          };
+          ghiHopDenFirebase(km.khoa, banGhiFb);
           return fetch(WEBAPP_URL, {
             method: "POST",
             mode: "no-cors",
