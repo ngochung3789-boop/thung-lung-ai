@@ -1531,16 +1531,19 @@ function capNhatBay(t){
   const kt = (xeBayHien && xeBayHien.userData.ktXe) ? xeBayHien.userData.ktXe : {cao:3, rong:2.5, dai:6, cx:0, cz:0};
   let dx, dy, dz, lx2, ly2, lz2;
   if(canhQuay === 0){
-    /* TRONG XE: ngoi sau lung ban ghe truoc, nhin cheo ra cua so ben huong ve
-       giua map — thay ro mat cua so + canh ngoai troi qua cua so.
-       (Kinh nghiem v16: nhin thang ve truoc chi thay vach trong xe vi than
-       xe dac, kinh truoc nho; nhin cheo ra cua so ben moi thay canh.) */
+    /* TRONG XE (sua 22/11 theo chon cua thay: day camera sat cua so):
+       camera dung ngay sat o cua so ben huong ve giua map (x = sat vach,
+       y = giua o cua so, z = giua 2 o cua so de tranh dau cac ban ghe mat),
+       nhin chech ra ngoai + hoi ve truoc — canh ngoai troi choan khung hinh,
+       khung cua so chi con o ria tren/duoi lam nen.
+       (Kinh nghiem v19 cu: camera dung giua khoang (x=0.55) nhin cheo nen
+       khung hinh toan vach vang trong xe + tam cua so toi che tam nhin.) */
     if(xeBayHien){
       xeBayHien.updateMatrixWorld(true);
       const mo = (phuongTien === 'thuyen' || phuongTien === 'khinh-khi-cau');
       const ben0 = ((typeof KHU_CONG !== 'undefined' && KHU_CONG[khuDaChon]) ? KHU_CONG[khuDaChon].x : 0) >= 0 ? -1 : 1;
-      const pCam = xeBayHien.localToWorld(new THREE.Vector3(mo ? 0 : ben0*0.55, mo ? 1.4 : kt.cao*0.55, mo ? -0.9 : -kt.dai*0.31));
-      const pNhin = xeBayHien.localToWorld(new THREE.Vector3(mo ? 0 : ben0*2.2, mo ? 1.2 : kt.cao*0.38, mo ? kt.dai : kt.dai*0.48));
+      const pCam = xeBayHien.localToWorld(new THREE.Vector3(mo ? 0 : kt.cx + ben0*(kt.rong/2 - 0.3), mo ? 1.4 : kt.cao*0.47, mo ? -0.9 : kt.cz + 0.65));
+      const pNhin = xeBayHien.localToWorld(new THREE.Vector3(mo ? 0 : kt.cx + ben0*(kt.rong/2 + 8), mo ? 1.2 : kt.cao*0.40, mo ? kt.dai : kt.cz + kt.dai*0.18));
       dx = pCam.x; dy = pCam.y; dz = pCam.z; lx2 = pNhin.x; ly2 = pNhin.y; lz2 = pNhin.z;
     } else { dx = cx; dy = cy; dz = cz; lx2 = nx; ly2 = ny; lz2 = nz; }
   } else if(canhQuay === 1){
@@ -17409,6 +17412,11 @@ function dungHanhKhachTrenXe(){
     const rong = Math.max(1.5, bb.max.x - bb.min.x), dai = Math.max(2.5, bb.max.z - bb.min.z), cao = Math.max(1.8, bb.max.y - bb.min.y);
     const cx = (bb.max.x + bb.min.x)/2, cz = (bb.max.z + bb.min.z)/2;
     xe.userData.ktXe = {cao:cao, rong:rong, dai:dai, cx:cx, cz:cz};
+    /* sua 22/11 (goc TRONG XE): vo xe chi ve mat ngoai (FrontSide) — tu trong
+       xe nhin ra, vo bien mat nen thay canh ngoai troi qua cua so; tu ngoai
+       van thay xe binh thuong. (GLB Blender de DoubleSide nen truoc day tu
+       trong chi thay vach vang dac, du camera da sat cua so.) */
+    xe.traverse(o=>{ if(o.isMesh){ const ms = Array.isArray(o.material) ? o.material : [o.material]; ms.forEach(m=>{ if(m) m.side = THREE.FrontSide; }); } });
     const nhom = new THREE.Group(); nhom.name = 'hanhKhachXe';
     const xeMo = (phuongTien === 'thuyen' || phuongTien === 'khinh-khi-cau');
     const gheMat = new THREE.MeshStandardMaterial({color:0x2E5A4A, roughness:0.8});
@@ -17452,8 +17460,9 @@ function dungHanhKhachTrenXe(){
       };
       const ben = ((typeof KHU_CONG !== 'undefined' && KHU_CONG[khuDaChon]) ? KHU_CONG[khuDaChon].x : 0) >= 0 ? -1 : 1;
       [-1.3, 0, 1.3].forEach((dz, i)=>{
-        const khung = new THREE.Mesh(new THREE.PlaneGeometry(1.1, 1.1), new THREE.MeshStandardMaterial({color:0x0B1220, roughness:0.4, side:THREE.DoubleSide}));
-        khung.rotation.y = Math.PI/2; khung.position.set(cx + ben*(rong/2 + 0.03), cao*0.58, cz + dz); nhom.add(khung);
+        const khung = new THREE.Mesh(new THREE.PlaneGeometry(1.1, 1.1), new THREE.MeshStandardMaterial({color:0x0B1220, roughness:0.4, side:THREE.FrontSide}));
+        khung.rotation.y = ben * Math.PI/2; /* sua 22/11: mat truoc huong ra ngoai -> tu trong xe nhin ra tam bien mat, khong che canh; tu ngoai van thay tam den + mat cac ban */
+        khung.position.set(cx + ben*(rong/2 + 0.03), cao*0.58, cz + dz); nhom.add(khung);
         const hs = lamDauCuaSo(i*2);
         hs.position.set(cx + ben*(rong/2 + 0.12), cao*0.58 - 0.12, cz + dz);
         hs.rotation.y = ben * Math.PI/2;
