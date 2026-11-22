@@ -550,7 +550,7 @@ body.dang-choi header .nut{font-size:13px; padding:5px 9px; min-height:30px}
 #am-thanh:hover input[type=range], #am-thanh:focus-within input[type=range]{width:120px; opacity:1; pointer-events:auto}
 </style>
 </head>
-<body class="dang-mo-dau">
+<body class="dang-mo-dau mo-lop">
 <div id="man-cho">
   <div class="robot-cho">🤖</div>
   <h2>Thung Lũng 4 Tòa Tháp AI PTDTBT THCS Cao Minh</h2>
@@ -2561,7 +2561,7 @@ function chuyenSangCua(hienBang){
   moDanChuyenCanh();
 }
 function xemLaiMoDau(){
-  document.body.classList.add('dang-mo-dau');
+  document.body.classList.add('dang-mo-dau'); document.body.classList.add('mo-lop'); /* v19: xem lai mo dau van thay bang lop de chon lai */
   document.body.classList.remove('dang-choi');
   window.dispatchEvent(new Event('resize'));
   activeScene = 'intro';
@@ -3141,6 +3141,7 @@ let mayNgay = null, mayDem = null, damMay = null, mayBay = null;
 let troiVatLieu = null, troiUniforms = null;
 let npcDuong = 0, xeDuong = 0, xeMayDuong = 0, khungDem = 0, toaNhaGanNhat = null, phongHienTai = null, banDoDiem = []; /* fix5: xeMayDuong */
 let danhSachLop = [], tenLop = '7B', tongLop = 0, lopDaNap = '7B';
+let danhSachLaMau = false; /* v19: true khi DS dang hien la 8 ten mau (lop chua co DS that) */
 let doanNhom = null, doanThanhVien = [], doanRobot = null, banDuocMoi = null;
 let nhomNgoiPhong = null, nhomSapMo = null, leTanPhong = null, leTanCua = null;
 let gocPhong = 0.35, caoPhong = 5.6, banPhongXa = 10.5; /* LOP-RONG 15/11: camera lui xa + cao hon cho lop thoang */
@@ -13255,13 +13256,14 @@ function trichTenTuCSV(text){
 function datTrangThaiLop(text){
   const o = $('trang-thai-lop'); if(o) o.textContent = text;
 }
-function apDungDanhSach(ten, lop){
+function apDungDanhSach(ten, lop, khongLuu){
   danhSachLop = ten; tongLop = ten.length; tenLop = lop; lopDaNap = lop;
+  if(!khongLuu) danhSachLaMau = false; /* v19: DS that — tat co ten mau */
   /* NHIEU LOP 17/11: ghi ten vao ban do nhieu lop (chi khi co ten) — up lop nao
      chi thay lop do, cac lop khac con nguyen. Khong bao gio xoa khi ten rong
      (tai Sheet loi ma xoa thi mat het). */
   try{
-    if(ten && ten.length){
+    if(ten && ten.length && !khongLuu){ /* v19: ten mau KHONG luu vao localStorage */
       var _bn = JSON.parse(localStorage.getItem('khu-pho-ai-lop-nhieu') || '{}');
       _bn[lop] = ten.slice();
       localStorage.setItem('khu-pho-ai-lop-nhieu', JSON.stringify(_bn));
@@ -13273,6 +13275,17 @@ function apDungDanhSach(ten, lop){
   else datTrangThaiLop('Chưa có danh sách lớp này — thầy dán tên vào ô bên dưới.');
   xayDungDoan();
   luuCaiDatLop();
+}
+/* v19: Lop chua co danh sach that — dung 8 ten mau lam DS hien tai de thay thay ngay
+   tren bang + van di duoc hanh trinh (nhu cu). KHONG luu ten mau vao localStorage,
+   de lan sau van nhac up DS that. */
+function apDungDanhSachMau(lop){
+  var mau = [];
+  for(var i = 1; i <= 8; i++) mau.push('Bạn mẫu ' + i);
+  danhSachLaMau = true; /* dat TRUOC apDungDanhSach (no chi tat co khi !khongLuu) */
+  apDungDanhSach(mau, lop, true); /* khongLuu=true: khong ghi ten mau vao localStorage */
+  datTrangThaiLop('⚠️ Lớp ' + lop + ' chưa có danh sách thật — đang dùng 8 tên mẫu. Thầy tải file danh sách lớp thật (hoặc dán tên) rồi bấm "Dùng danh sách này" nhé.');
+  var sl = $('lop-so-luong'); if(sl) sl.textContent = '8 bạn (tên mẫu)';
 }
 async function napDanhSachLop(lop, linkTuyChon){
   tenLop = lop;
@@ -13296,15 +13309,14 @@ async function napDanhSachLop(lop, linkTuyChon){
     const res = await fetch(url);
     if(!res.ok) throw new Error('HTTP ' + res.status);
     const text = await res.text();
-    apDungDanhSach(trichTenTuCSV(text), lop);
+    const tenCSV = trichTenTuCSV(text);
+    if(tenCSV && tenCSV.length) apDungDanhSach(tenCSV, lop);
+    else apDungDanhSachMau(lop); /* v19: Sheet tra ve rong — dung 8 ten mau */
   }catch(e){
     datTrangThaiLop('Không tải được danh sách lớp ' + lop + ' (mất mạng hoặc Sheet chưa công khai). Thầy dán tên vào ô bên dưới.');
-    if(danhSachLop.length){
-      tenLop = lopDaNap;
-      const sl = $('chon-lop'); if(sl) sl.value = lopDaNap;
-    } else {
-      apDungDanhSach([], lop);
-    }
+    /* v19: khong tai duoc DS lop moi chon — dung 8 ten mau cho lop do (khong quay ve
+       lop cu nua, de thay thay ngay DS cua lop vua chon + duoc nhac up DS that). */
+    apDungDanhSachMau(lop);
   }
 }
 function napTuTay(){
@@ -14468,7 +14480,15 @@ function ganNut(){
   const bqHo = $('btn-ho-bo-qua'); if(bqHo) bqHo.addEventListener('click', boQuaMoDau);
   const nutKdlMd = $('btn-khoi-dong-lop-mo-dau');
   if(nutKdlMd) nutKdlMd.addEventListener('click', hienBangKhoiDongLop);
-  document.querySelectorAll('[data-phuong-tien]').forEach(b=>b.addEventListener('click', ()=>chonPhuongTien(b.dataset.phuongTien)));
+  document.querySelectorAll('[data-phuong-tien]').forEach(b=>b.addEventListener('click', ()=>{
+    /* v19: CHON LOP TRUOC, ROI MOI CHON PHUONG TIEN — chua co danh sach thi mo bang Doan lop + nhac. */
+    if(typeof danhSachLop === 'undefined' || !danhSachLop || !danhSachLop.length){
+      const p = $('panel-lop'); if(p) p.open = true;
+      if(typeof datTrangThaiLop === 'function') datTrangThaiLop('⚠️ Thầy chọn lớp trước đã nhé (chọn lớp ở bảng Đoàn lớp — danh sách sẽ hiện ngay), rồi mới chọn phương tiện.');
+      return;
+    }
+    chonPhuongTien(b.dataset.phuongTien);
+  }));
   document.querySelectorAll('[data-khu]').forEach(b=>b.addEventListener('click', ()=>chonKhu(b.dataset.khu)));
   $('btn-bo-qua').addEventListener('click', boQuaMoDau);
   $('btn-bo-qua-noi').addEventListener('click', boQuaMoDau);
@@ -17292,7 +17312,7 @@ function datDoanQuaCong(){
    mem (hop/tru/cau), KHONG hop vuong tho, KHONG voxel.
    Ghi chu: toa nha la cot moc nhin (khong mo duoc cua vao van phong that vi
    van phong co mat khau kiem tra phia may chu, khong co link cong khai). */
-/* ================= TOA NHA HOI DONG AI — 7 TANG (v11, 22/11) · v12: DO CAY/NUI CHE TOA · v13: MAP GAP 3 · v14: MAT TIEN TOA QUAY DONG + CAY NHO · v15: LUONG LEN XE MOI (CHON LOP TRUOC + XEM KHEN 2S + QUA CONG PHAN HIEU) · v16: LOP TRUONG DAN DOAN (1 HANG DOC + BANG DO + BIEN LOP TRUONG) · v17: MO RONG GIOI HAN DI CHUYEN ±100 (SUA LOI KHONG SANG DUOC TOA) · v18: KEO 4 TOA LAI GAN SAN x=-70->-43 =================
+/* ================= TOA NHA HOI DONG AI — 7 TANG (v11, 22/11) · v12: DO CAY/NUI CHE TOA · v13: MAP GAP 3 · v14: MAT TIEN TOA QUAY DONG + CAY NHO · v15: LUONG LEN XE MOI (CHON LOP TRUOC + XEM KHEN 2S + QUA CONG PHAN HIEU) · v16: LOP TRUONG DAN DOAN (1 HANG DOC + BANG DO + BIEN LOP TRUONG) · v17: MO RONG GIOI HAN DI CHUYEN ±100 (SUA LOI KHONG SANG DUOC TOA) · v18: KEO 4 TOA LAI GAN SAN x=-70->-43 · v19: CHON LOP TRUOC, DS HIEN NGAY + 8 TEN MAU + BANG LOP HIEN NGAY TU MO DAU =================
    Vi tri: suon ben canh duong di vao (tay duong chinh), (-16, -17), mat tien
    huong nam ve quang truong. Tang 1-4: 12 phong/tang; doi DO HOA tang 1 mo rong
    (do hoa + ve map + xay ha tang game). TANG 5 = DOI LUU TRU (doi chua co phong
@@ -21240,7 +21260,7 @@ body.dang-choi #nav-tron{display:flex} /* NAV-TRON 15/11: chỉ hiện khi đang
 .ds-ten-lop .ds-ten-hang{display:flex;gap:8px;padding:5px 10px;font-size:16px;color:#FDF6E3;border-bottom:1px solid rgba(58,74,107,.5)}
 .ds-ten-lop .ds-ten-hang:last-child{border-bottom:none}
 .ds-ten-lop .ds-ten-stt{width:28px;text-align:right;color:#9AA8C2;flex:none}
-.ds-ten-lop .ds-ten-trong{padding:10px;font-size:16px;color:#9AA8C2}
+.ds-ten-lop .ds-ten-trong{padding:10px;font-size:16px;color:#9AA8C2} .ds-ten-lop .ds-ten-mau{padding:8px 10px;font-size:15px;color:#FFD76A;background:rgba(255,215,106,.12);border-bottom:1px solid rgba(255,215,106,.35)}
 /* DSL-UPLOAD 15/11: khi mo panel lop thi dich sang phai 76px de khoi de len day nut tron ben trai */
 body.mo-lop #panel-lop{left:76px}
 </style>
@@ -21322,6 +21342,13 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
     var o = document.getElementById('ds-ten-lop');
     if(!o) return;
     o.innerHTML = '';
+    /* v19: DS dang hien la 8 ten mau — them bang vang nhac up DS that. */
+    if(typeof danhSachLaMau !== 'undefined' && danhSachLaMau && danhSachLop && danhSachLop.length){
+      var bnMau = document.createElement('div');
+      bnMau.className = 'ds-ten-mau';
+      bnMau.textContent = '⚠️ Đây là 8 tên mẫu — thầy tải file danh sách lớp thật (hoặc dán tên) rồi bấm "Dùng danh sách này" để dùng tên thật nhé.';
+      o.appendChild(bnMau);
+    }
     if(typeof danhSachLop === 'undefined' || !danhSachLop.length){
       var tr = document.createElement('div');
       tr.className = 'ds-ten-trong';
@@ -21353,8 +21380,8 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
   }
   /* quan apDungDanhSach de lan nao nap ten (Sheet/dan tay/tai file) cung ve lai danh sach o goc */
   var dslApDungGoc = apDungDanhSach;
-  apDungDanhSach = function(ten, lop){
-    dslApDungGoc(ten, lop);
+  apDungDanhSach = function(ten, lop, khongLuu){
+    dslApDungGoc(ten, lop, khongLuu);
     dslHienDanhSachTen();
   };
   window.DSL = window.DSL || {};
