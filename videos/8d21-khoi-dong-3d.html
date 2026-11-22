@@ -14,10 +14,10 @@
   /* Bong bóng thoại gắn robot */
   #bubble {
     position:fixed; left:50%; top:20%; transform:translate(-50%,-100%);
-    max-width:min(560px, 72vw);
+    max-width:min(760px, 84vw);
     background:#ffffff; color:#1c2b39;
     border:4px solid #ff8c1a; border-radius:22px;
-    padding:14px 22px; font-size:clamp(18px, 2.4vw, 30px); font-weight:700;
+    padding:18px 28px; font-size:clamp(24px, 3.2vw, 40px); font-weight:700;
     line-height:1.25; text-align:center; z-index:20;
     box-shadow:0 6px 18px rgba(0,0,0,.25); pointer-events:none;
   }
@@ -33,10 +33,10 @@
   /* Bong bóng thoại của bot: nền cam, chữ trắng */
   #bubbleBot {
     position:fixed; left:50%; top:20%; transform:translate(-50%,-100%);
-    max-width:min(680px, 78vw);
+    max-width:min(900px, 88vw);
     background:#E8930C; color:#fff;
     border:4px solid #fff; border-radius:22px;
-    padding:12px 20px; font-size:clamp(17px, 2.2vw, 26px); font-weight:700;
+    padding:16px 26px; font-size:clamp(22px, 3vw, 36px); font-weight:700;
     line-height:1.25; text-align:center; z-index:20;
     box-shadow:0 6px 18px rgba(0,0,0,.25); pointer-events:none;
   }
@@ -54,7 +54,7 @@
     position:fixed; left:50%; bottom:22px; transform:translateX(-50%);
     max-width:92vw; text-align:center;
     background:rgba(255,255,255,.94); color:#12324a;
-    font-size:clamp(22px, 3.2vw, 40px); font-weight:800; line-height:1.25;
+    font-size:clamp(28px, 4vw, 48px); font-weight:800; line-height:1.25;
     padding:10px 30px; border-radius:999px; z-index:20;
     box-shadow:0 4px 16px rgba(0,0,0,.25); pointer-events:none; white-space:nowrap;
   }
@@ -64,25 +64,25 @@
      top:64px để không bị 4 nút điều khiển ở góc trên-trái che chữ. */
   #qcenter, #conclude {
     position:fixed; left:50%; top:64px; transform:translateX(-50%);
-    width:min(860px, 92vw); max-height:18vh; overflow:hidden;
+    width:min(1150px, 94vw); max-height:24vh; overflow:hidden;
     text-align:center; z-index:25; pointer-events:none;
     background:rgba(255,255,255,.96); border:4px solid #1F3B63; border-radius:22px;
-    color:#1F3B63; font-size:clamp(19px, 2.8vw, 30px); font-weight:900; line-height:1.25;
+    color:#1F3B63; font-size:clamp(24px, 3.6vw, 40px); font-weight:900; line-height:1.25;
     padding:10px 24px; box-shadow:0 8px 30px rgba(0,0,0,.3);
   }
 
   /* Màn cuối: NHỎ GỌN ở PHÍA TRÊN màn hình, không che nhân vật phía dưới */
   #final {
     position:fixed; left:50%; top:64px; transform:translateX(-50%);
-    width:min(980px, 92vw); max-height:18vh; overflow:hidden;
+    width:min(1250px, 94vw); max-height:24vh; overflow:hidden;
     text-align:center; z-index:25; pointer-events:none;
   }
   #final .title {
     background:rgba(31,59,99,.96); border:4px solid #E8930C; border-radius:22px; color:#fff;
     padding:10px 22px; box-shadow:0 8px 30px rgba(0,0,0,.35);
   }
-  #final .title h1 { font-size:clamp(18px, 2.4vw, 26px); line-height:1.25; font-weight:900; }
-  #final .title p { font-size:clamp(15px, 2vw, 22px); line-height:1.3; margin-top:8px; color:#ffe082; font-weight:700; }
+  #final .title h1 { font-size:clamp(24px, 3.2vw, 36px); line-height:1.25; font-weight:900; }
+  #final .title p { font-size:clamp(19px, 2.6vw, 30px); line-height:1.3; margin-top:8px; color:#ffe082; font-weight:700; }
 
   /* Nút điều khiển */
   #controls {
@@ -407,16 +407,16 @@ function roundedRectShape(w, h, r){
   s.lineTo(-w/2, -h/2+r); s.quadraticCurveTo(-w/2, -h/2, -w/2+r, -h/2);
   return s;
 }
-var scrBorder = new THREE.Mesh(new THREE.ShapeGeometry(roundedRectShape(2.7, 1.9, 0.28), 8), mat(0xE8930C, 0.5));
-scrBorder.position.set(3.9, 2.05, -2.65); scene.add(scrBorder);
-var scrFace = new THREE.Mesh(new THREE.ShapeGeometry(roundedRectShape(2.5, 1.7, 0.22), 8), mat(0x1F3B63, 0.55));
-scrFace.position.set(3.9, 2.05, -2.58); scene.add(scrFace);
+var scrBorder = new THREE.Mesh(new THREE.ShapeGeometry(roundedRectShape(4.05, 2.85, 0.42), 8), mat(0xE8930C, 0.5));
+scrBorder.position.set(4.6, 2.15, -2.65); scene.add(scrBorder);
+var scrFace = new THREE.Mesh(new THREE.ShapeGeometry(roundedRectShape(3.75, 2.55, 0.33), 8), mat(0x1F3B63, 0.55));
+scrFace.position.set(4.6, 2.15, -2.58); scene.add(scrFace);
 // 3 chấm "đang gõ" trên màn hình, nhấp nháy khi bot trả lời
 var dotMat = mat(0xffffff, 0.4);
 var chatDots = [];
-[-0.32, 0, 0.32].forEach(function(dx, i){
-  var d = ball(0.11, dotMat);
-  d.position.set(3.9 + dx, 2.05, -2.5);
+[-0.48, 0, 0.48].forEach(function(dx, i){
+  var d = ball(0.16, dotMat);
+  d.position.set(4.6 + dx, 2.15, -2.5);
   d.userData.ph = i * 1.1;
   scene.add(d); chatDots.push(d);
 });
@@ -747,6 +747,7 @@ function showControls(){
   if (playing) hideTimer = setTimeout(function(){ controlsEl.classList.add('faded'); }, 2500);
 }
 function play(){
+  if (!document.fullscreenElement){ var _fs = document.documentElement.requestFullscreen(); if (_fs && _fs.catch) _fs.catch(function(){}); } // bam Phat la tu toan man hinh tren TV
   if (t >= DUR){ t = 0; resetVoice(); }
   playing = true;
   resumeVoice();
