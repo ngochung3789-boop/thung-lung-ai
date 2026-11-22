@@ -119,6 +119,42 @@
   .luoi-dieu-tra .the-dieu-tra .nhan-xet-hd3 { background: rgba(255,255,255,0.75); border: 1.5px solid currentColor; color: inherit; font-size: 17px; max-height: 120px; overflow-y: auto; }
   .luoi-dieu-tra .the-dieu-tra .nhan-xet-hd3 b { color: inherit; }
   .luoi-dieu-tra .the-dieu-tra .hang-thong-tin { margin: 10px 0; }
+  /* --- Tab Bấm chuông: nền sáng, chữ rõ, cùng phong cách tab Đội điều tra (22/11) --- */
+  .khung-buzzer .banner-chuong { border-radius: 16px; padding: 20px 24px; margin: 8px 0 16px; border: 2px solid; }
+  .khung-buzzer .banner-chuong.mo { background: #eef7e8; border-color: #16a34a; }
+  .khung-buzzer .banner-chuong.khoa { background: #f1f5f9; border-color: #64748b; }
+  .khung-buzzer .banner-chuong-dong1 { font-size: 36px; font-weight: 900; letter-spacing: 1px; line-height: 1.2; }
+  .khung-buzzer .banner-chuong.mo .banner-chuong-dong1 { color: #14532d; }
+  .khung-buzzer .banner-chuong.khoa .banner-chuong-dong1 { color: #334155; }
+  .khung-buzzer .banner-chuong-dong2 { font-size: 24px; font-weight: 700; margin-top: 6px; line-height: 1.3; }
+  .khung-buzzer .banner-chuong.mo .banner-chuong-dong2 { color: #166534; }
+  .khung-buzzer .banner-chuong.khoa .banner-chuong-dong2 { color: #475569; }
+  /* Hàng chọn câu đang xem: to, rõ câu nào đang hiển thị */
+  .khung-buzzer .tien-trinh-cau { margin: 0 0 16px; }
+  .khung-buzzer .tien-trinh-cau span { font-size: 22px; padding: 16px 4px; background: #fffdf5; border: 2px solid #b8b0e0; color: #4a1d6b; }
+  .khung-buzzer .tien-trinh-cau span.hien-tai { background: #fbbf24; border-color: #d9a400; color: #111; }
+  .khung-buzzer .tien-trinh-cau span.xong { background: #eef7e8; border-color: #16a34a; color: #14532d; }
+  /* Nhóm điều khiển: hộp có viền, nhãn ĐIỀU KHIỂN */
+  .khung-buzzer .nhom-dieu-khien { background: #fffdf5; border: 2px solid #b8b0e0; border-radius: 16px; padding: 16px 18px 18px; margin: 0 0 8px; }
+  .khung-buzzer .nhom-dieu-khien .nhan-dieu-khien { color: #4a1d6b; font-size: 18px; margin: 0 0 12px; }
+  .khung-buzzer .hang-nut-hd3 { margin: 0; }
+  /* Dòng phản hồi: to, đọc rõ trên nền tối */
+  .khung-buzzer .trang-thai-nho { font-size: 20px; color: #e5e7eb; }
+  /* Tiêu đề bảng xếp hạng: to, vàng */
+  .khung-buzzer .tieu-de-phu { color: #fbbf24; font-size: 22px; }
+  /* Hàng xếp hạng: nền sáng trắng ngà, viền 2px, chữ tím đậm to */
+  .khung-buzzer .hang-xep-hang { background: #fffdf5; border: 2px solid #b8b0e0; border-radius: 16px; padding: 20px 24px; box-shadow: 0 2px 8px rgba(0,0,0,0.25); }
+  .khung-buzzer .hang-xep-hang.nhat { background: #fffbe6; border: 3px solid #d9a400; box-shadow: 0 4px 20px rgba(217,164,0,.3); }
+  .khung-buzzer .so-hang { width: 72px; height: 72px; font-size: 36px; background: #4a1d6b; color: #fff; }
+  .khung-buzzer .hang-xep-hang.nhat .so-hang { background: linear-gradient(180deg, #fbbf24, #f59e0b); color: #111; }
+  .khung-buzzer .ten-doi-xep-hang { color: #4a1d6b; font-size: 34px; }
+  .khung-buzzer .hang-xep-hang.nhat .ten-doi-xep-hang { color: #4a1d6b; }
+  .khung-buzzer .nhan-nhanh-nhat { background: #d9a400; color: #111; font-size: 18px; padding: 6px 14px; }
+  .khung-buzzer .thoi-gian-xep-hang .giay { color: #4a1d6b; font-size: 48px; }
+  .khung-buzzer .hang-xep-hang.nhat .thoi-gian-xep-hang .giay { color: #92400e; font-size: 60px; }
+  .khung-buzzer .thoi-gian-xep-hang .gio { color: #5b21b6; font-size: 20px; }
+  /* Trạng thái trống: hộp sáng, chữ tím đậm to, dễ thấy */
+  .khung-buzzer .trong { background: #fffdf5; border: 2px solid #b8b0e0; border-radius: 16px; color: #4a1d6b; font-size: 28px; font-weight: 700; padding: 40px 20px; }
   .gio-gui-nho { font-size: 15px; color: #9ca3af; margin-top: 4px; }
   .hop-dang-tai { padding: 60px 20px; text-align: center; font-size: 24px; color: #fbbf24; line-height: 1.6; }
   .hop-loi { background: #7f1d1d; border: 1px solid #ef4444; border-radius: 14px; padding: 22px 24px; margin: 20px 0; font-size: 20px; line-height: 1.6; }
@@ -445,25 +481,25 @@ var FIREBASE_CONFIG = {
   }
 
   function veBuzzer(d) {
-    var h = '<div class="khung" style="padding-left:0;padding-right:0;">';
-    h += '<div style="margin: 8px 0 4px;">' + (d.dangMo
-      ? '<span class="huy-hieu-trang-thai mo">🔔 ĐANG MỞ — CÂU ' + d.vongHienTai + '</span>'
-      : '<span class="huy-hieu-trang-thai khoa">🔒 ĐÃ KHÓA</span>') + '</div>';
+    var h = '<div class="khung khung-buzzer" style="padding-left:0;padding-right:0;">';
+    h += '<div class="banner-chuong ' + (d.dangMo ? 'mo' : 'khoa') + '">' +
+      '<div class="banner-chuong-dong1">' + (d.dangMo ? '🔔 ĐANG MỞ — CÂU ' + d.vongHienTai : '🔒 ĐÃ KHÓA') + '</div>' +
+      '<div class="banner-chuong-dong2">' + (d.dangMo
+        ? (d.thoiGianMo ? 'Mở lúc ' + esc(d.thoiGianMo) : 'Đang chờ đội bấm.')
+        : 'Bấm “Mở Câu N” để bắt đầu một câu.') + '</div></div>';
     h += '<div class="tien-trinh-cau">';
     for (var c = 1; c <= 4; c++) {
       var lop = c === d.vongDangXem ? ' class="hien-tai"' : (d.cauDaBam && d.cauDaBam[c] ? ' class="xong"' : '');
       h += '<span data-cau="' + c + '"' + lop + '>Câu ' + c + '</span>';
     }
     h += '</div>';
-    h += '<div class="nhan-dieu-khien">Điều khiển chuông</div><div class="hang-nut-hd3">';
+    h += '<div class="nhom-dieu-khien"><div class="nhan-dieu-khien">Điều khiển</div><div class="hang-nut-hd3">';
     for (var c2 = 1; c2 <= 4; c2++) {
       h += '<button class="nut-mo' + (d.vongDangXem === c2 ? ' dang-xem' : '') + '" data-mo="' + c2 + '" type="button">🔔 Mở Câu ' + c2 + '</button>';
     }
-    h += '<button class="nut-khoa" id="nut-khoa-chuong" type="button">🔒 Khóa chuông</button></div>';
+    h += '<button class="nut-khoa" id="nut-khoa-chuong" type="button">🔒 Khóa chuông</button></div></div>';
     h += '<div class="hang-dat-lai"><button class="nut-xoa" id="nut-dat-lai" type="button">⚠️ Đặt lại — xóa hết lượt bấm</button><span class="chu-thich">Xóa toàn bộ lượt bấm của cả 4 câu. Chỉ dùng sau buổi học hoặc trước khi bắt đầu lại.</span></div>';
-    h += '<div class="trang-thai-nho" id="trang-thai-chuong">' + (d.dangMo
-      ? 'Câu ' + d.vongHienTai + ' — ĐANG MỞ CHUÔNG, đội bấm được.' + (d.thoiGianMo ? ' Mở lúc ' + esc(d.thoiGianMo) + '.' : '') + ' Kết quả hiện ngay khi đội bấm.'
-      : 'Chuông đang KHÓA. Bấm “Mở Câu N” để bắt đầu một câu.') + '</div>';
+    h += '<div class="trang-thai-nho" id="trang-thai-chuong">Kết quả hiện ngay khi đội bấm.</div>';
     if (!d.bangXepHang || d.bangXepHang.length === 0) {
       h += '<div class="trong">Chưa có đội nào bấm chuông cho Câu ' + d.vongDangXem + '.</div>';
     } else {
@@ -509,7 +545,7 @@ var FIREBASE_CONFIG = {
       muc.sort(function (a, b) { return a.t - b.t; });
       for (var i = 0; i < muc.length; i++) {
         var giay = '—';
-        if (tt.moLuc > 0 && muc[i].t >= tt.moLuc) giay = (((muc[i].t - tt.moLuc) / 1000).toFixed(1)) + 's';
+        if (tt.moLuc > 0 && muc[i].t >= tt.moLuc) giay = (((muc[i].t - tt.moLuc) / 1000).toFixed(1)) + ' giây';
         bang.push({ doi: muc[i].doi, giayTuLucMo: giay, thoiGian: muc[i].hien || dinhDangGio(muc[i].t) });
       }
     }
