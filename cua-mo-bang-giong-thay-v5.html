@@ -2815,11 +2815,16 @@ const KHOI_PHONG_MA = {
   8: ['8.A1.1','8.A1.2','8.A2.1','8.A2.2','8.A3.1','8.A3.2','8.A3.3','8.B2.1','8.B3.1','8.C1.1','8.D2.1','8.D1.1'],
   9: ['9.A1.1','9.A2.1','9.A2.2','9.A3.1','9.A3.2','9.A3.3','9.A3.4','9.B2.1','9.B2.2','9.B2.3','9.B3.1','9.D1.1']
 };
-const KHOI_NHA = [
-  {khoi:6, x:-25, z:28, rot:Math.PI, cong:'chinh'},
-  {khoi:7, x:-25, z:-28, rot:0, cong:'chinh'},
-  {khoi:8, x:25, z:-28, rot:0, cong:'phanHieu2'},
-  {khoi:9, x:25, z:28, rot:Math.PI, cong:'phanHieu2'}
+const /* CHUYEN-TOA 22/11 (v10): 4 toa thap chuyen sang ben trai (phia tay), xep thanh hang doc
+   gan nhau (x=-30, cach nhau 16m), doi dien toa nha HOI DONG AI o (-16,-17).
+   Bien KHỐI (dungBienKhoi) + cong vao (matTruocKhoi) tu dong chay theo vi tri moi.
+   rot giu quy tac cu: rot=0 cho toa phia bac (z<0), rot=PI cho toa phia nam (z>0)
+   de cua toa quay ve quang truong; cong (cong vao) giu nguyen. */
+KHOI_NHA = [
+  {khoi:6, x:-30, z:-24, rot:0, cong:'chinh'},
+  {khoi:7, x:-30, z:-8, rot:0, cong:'chinh'},
+  {khoi:8, x:-30, z:8, rot:Math.PI, cong:'phanHieu2'},
+  {khoi:9, x:-30, z:24, rot:Math.PI, cong:'phanHieu2'}
 ];
 const KHOI_TY_LE = 0.35, KHOI_R = 7.2, KHOI_CUA_R = 1.9;
 let khoiGanNhat = null;
