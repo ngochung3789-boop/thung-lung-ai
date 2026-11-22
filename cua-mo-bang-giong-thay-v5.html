@@ -2826,11 +2826,11 @@ const /* CHUYEN-TOA 22/11 (v10): 4 toa thap chuyen sang ben trai (phia tay), xep
    Bien KHỐI (dungBienKhoi) + cong vao (matTruocKhoi) tu dong chay theo vi tri moi.
    v14 22/11: rot=PI/2 cho CA 4 toa — mat tien (cua chinh) quay ve phia DONG, huong thang
    ve quang truong/san truoc (truoc day rot=0/PI chi quay cua ve doc hang z, nhin nhu quay ngang). */
-KHOI_NHA = [ /* v13 22/11: MAP GAP 3 — 4 toa ra tay (x=-30->-70), cach nhau 44m (16->44), tranh duong vong x=-54/z=+-54 */
-  {khoi:6, x:-70, z:-66, rot:Math.PI/2, cong:'chinh'}, /* v14: mat tien quay dong */
-  {khoi:7, x:-70, z:-22, rot:Math.PI/2, cong:'chinh'}, /* v14: mat tien quay dong */
-  {khoi:8, x:-70, z:22, rot:Math.PI/2, cong:'phanHieu2'}, /* v14: mat tien quay dong */
-  {khoi:9, x:-70, z:66, rot:Math.PI/2, cong:'phanHieu2'} /* v14: mat tien quay dong */
+KHOI_NHA = [ /* v13 22/11: MAP GAP 3 — 4 toa ra tay (x=-30->-70), cach nhau 44m (16->44), tranh duong vong x=-54/z=+-54 · v18 22/11: KEO TOA LAI GAN SAN x=-70->-43 (van hang doc, cach 44m, mat dong; -43 la vi tri dau tien dong cua duong ma toa thoat duong vong) */
+  {khoi:6, x:-43, z:-66, rot:Math.PI/2, cong:'chinh'}, /* v14: mat tien quay dong */
+  {khoi:7, x:-43, z:-22, rot:Math.PI/2, cong:'chinh'}, /* v14: mat tien quay dong */
+  {khoi:8, x:-43, z:22, rot:Math.PI/2, cong:'phanHieu2'}, /* v14: mat tien quay dong */
+  {khoi:9, x:-43, z:66, rot:Math.PI/2, cong:'phanHieu2'} /* v14: mat tien quay dong */
 ];
 const KHOI_TY_LE = 0.35, KHOI_R = 7.2, KHOI_CUA_R = 1.9;
 let khoiGanNhat = null;
@@ -5058,8 +5058,8 @@ function capNhatThanhPho(dt, t){
     const rx = Math.cos(gocCamera), rz = -Math.sin(gocCamera);
     const dx = (fx*mz + rx*mx) / (len || 1) * tocHien * dt;
     const dz = (fz*mz + rz*mx) / (len || 1) * tocHien * dt;
-    let nx = clamp(player.position.x + dx, -100, 100); /* v17: mo rong de toi duoc toa thap x=-70 */
-    let nz = clamp(player.position.z + dz, -100, 100); /* v17: mo rong de toi duoc toa thap x=-70 (fix5 cu chi ±33) */
+    let nx = clamp(player.position.x + dx, -100, 100); /* v17: mo rong de toi duoc toa thap (v18: toa o x=-43) */
+    let nz = clamp(player.position.z + dz, -100, 100); /* v17: mo rong de toi duoc toa thap (v18: toa o x=-43; fix5 cu chi ±33) */
     const vc = vaChamToaNha(nx, nz);
     player.position.x = vc.x; player.position.z = vc.z;
     if(dx || dz) player.rotation.y = Math.atan2(dx, dz);
@@ -17292,7 +17292,7 @@ function datDoanQuaCong(){
    mem (hop/tru/cau), KHONG hop vuong tho, KHONG voxel.
    Ghi chu: toa nha la cot moc nhin (khong mo duoc cua vao van phong that vi
    van phong co mat khau kiem tra phia may chu, khong co link cong khai). */
-/* ================= TOA NHA HOI DONG AI — 7 TANG (v11, 22/11) · v12: DO CAY/NUI CHE TOA · v13: MAP GAP 3 · v14: MAT TIEN TOA QUAY DONG + CAY NHO · v15: LUONG LEN XE MOI (CHON LOP TRUOC + XEM KHEN 2S + QUA CONG PHAN HIEU) · v16: LOP TRUONG DAN DOAN (1 HANG DOC + BANG DO + BIEN LOP TRUONG) · v17: MO RONG GIOI HAN DI CHUYEN ±100 (SUA LOI KHONG SANG DUOC TOA) =================
+/* ================= TOA NHA HOI DONG AI — 7 TANG (v11, 22/11) · v12: DO CAY/NUI CHE TOA · v13: MAP GAP 3 · v14: MAT TIEN TOA QUAY DONG + CAY NHO · v15: LUONG LEN XE MOI (CHON LOP TRUOC + XEM KHEN 2S + QUA CONG PHAN HIEU) · v16: LOP TRUONG DAN DOAN (1 HANG DOC + BANG DO + BIEN LOP TRUONG) · v17: MO RONG GIOI HAN DI CHUYEN ±100 (SUA LOI KHONG SANG DUOC TOA) · v18: KEO 4 TOA LAI GAN SAN x=-70->-43 =================
    Vi tri: suon ben canh duong di vao (tay duong chinh), (-16, -17), mat tien
    huong nam ve quang truong. Tang 1-4: 12 phong/tang; doi DO HOA tang 1 mo rong
    (do hoa + ve map + xay ha tang game). TANG 5 = DOI LUU TRU (doi chua co phong
