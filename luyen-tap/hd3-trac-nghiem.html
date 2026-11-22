@@ -40,6 +40,12 @@
     background: #0b3d91; border-radius: 12px;
   }
   .btn-primary:active { background: #072a66; }
+  .steps { display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; max-width: 520px; margin: 2px 0 14px; }
+  .step { font-size: 16px; font-weight: 800; color: #9db8dd; background: rgba(255,255,255,.08); border: 2px solid #4d7fc4; border-radius: 999px; padding: 8px 14px; white-space: nowrap; }
+  .step.on { color: #111; background: #ffd23f; border-color: #ffd23f; }
+  .step-arrow { color: #cfe3ff; font-size: 18px; font-weight: 800; }
+  .step-tag { display: inline-block; font-size: 15px; font-weight: 800; letter-spacing: 1px; color: #0b3d91; background: #dbeafe; border-radius: 999px; padding: 5px 12px; margin-bottom: 10px; }
+  .step-tag.vang { background: #ffd23f; color: #111; }
   /* Màn hình chính */
   #main { display: none; width: 100%; max-width: 520px; flex-direction: column; align-items: center; flex: 1; }
   .team-bar {
@@ -72,9 +78,9 @@
     color: #eef2f6;
   }
   #buzzer .bell { font-size: 64px; line-height: 1; }
-  #status { margin-top: 18px; font-size: 22px; font-weight: 800; min-height: 32px; }
+  #status { margin-top: 18px; font-size: 26px; font-weight: 800; min-height: 36px; }
   #status.ok { color: #7dff9b; }
-  .hint { margin-top: 10px; font-size: 16px; color: #cfe3ff; line-height: 1.5; }
+  .hint { margin-top: 10px; font-size: 18px; color: #cfe3ff; line-height: 1.5; }
   #done { display: none; margin-top: 18px; background: #ffd23f; color: #111;
     border-radius: 14px; padding: 16px; font-size: 22px; font-weight: 800; line-height: 1.4; width: 100%; }
   .foot { margin-top: auto; padding-top: 18px; font-size: 14px; color: #9db8dd; }
@@ -84,9 +90,11 @@
 
 <h1>🔔 Trắc nghiệm nhanh</h1>
 <p class="sub">Bài 4 — Lớp 8 &nbsp;•&nbsp; Luyện tập: 4 câu, mỗi câu 30 giây</p>
+<div class="steps"><span class="step on" id="step1">1 · Nhập tên đội</span><span class="step-arrow">→</span><span class="step" id="step2">2 · Bấm chuông</span></div>
 
 <!-- BƯỚC 1: NHẬP TÊN ĐỘI -->
 <div class="card" id="setup">
+  <span class="step-tag">BƯỚC 1</span>
   <p>Nhập tên đội của nhóm em, rồi bấm <b>“Vào chơi”</b>.<br>
   Câu hỏi hiện trên màn hình của thầy — điện thoại chỉ để bấm chuông.</p>
   <label for="teamInput">Tên đội</label>
@@ -108,6 +116,7 @@
     <button type="button" data-round="4">Câu 4</button>
   </div>
 
+  <div><span class="step-tag vang">BƯỚC 2 — BẤM CHUÔNG</span></div>
   <button id="buzzer" type="button">
     <span class="bell">🔔</span>
     <span>BẤM<br>TRẢ LỜI</span>
@@ -144,6 +153,8 @@ function showMain() {
   teamLabel.textContent = team;
   setupEl.style.display = "none";
   mainEl.style.display = "flex";
+  document.getElementById("step1").classList.remove("on");
+  document.getElementById("step2").classList.add("on");
   refreshBuzzer();
 }
 
@@ -181,6 +192,8 @@ renameLink.addEventListener("click", function (e) {
   teamInput.value = team;
   mainEl.style.display = "none";
   setupEl.style.display = "block";
+  document.getElementById("step2").classList.remove("on");
+  document.getElementById("step1").classList.add("on");
   teamInput.focus();
 });
 

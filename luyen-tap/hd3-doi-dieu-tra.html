@@ -69,9 +69,10 @@
   .sign.checked { border-color: #1d4ed8; background: #eff6ff; }
   .sign b { color: #1e40af; }
   .send-btn {
-    width: 100%; min-height: 68px; font-size: 23px; font-weight: 800;
+    width: 100%; min-height: 78px; font-size: 25px; font-weight: 800;
     font-family: inherit; border: none; border-radius: 14px; cursor: pointer;
     background: #1d4ed8; color: #ffffff; margin-top: 6px;
+    box-shadow: 0 4px 14px rgba(29,78,216,.35);
   }
   .send-btn:disabled { background: #9ca3af; cursor: default; }
   .ok-box {
@@ -91,6 +92,10 @@
   .sent-note.show { display: block; }
   fieldset { border: none; margin: 0; padding: 0; }
   fieldset:disabled { opacity: .55; }
+  .steps { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 16px; }
+  .step { font-size: 16px; font-weight: 800; color: #1e40af; background: #dbeafe; border-radius: 999px; padding: 8px 14px; white-space: nowrap; }
+  .step-chip { display: inline-block; font-size: 15px; font-weight: 800; letter-spacing: 1px; color: #ffffff; background: #1e40af; border-radius: 999px; padding: 5px 12px; margin-bottom: 10px; }
+  .step-chip.vang { background: #b45309; }
   .foot { text-align: center; color: #6b7280; font-size: 15px; margin-top: 8px; }
 </style>
 </head>
@@ -104,13 +109,16 @@
 <div class="wrap">
   <h1>🔍 ĐỘI ĐIỀU TRA</h1>
   <p class="sub">Lớp 8 — Bài 3: Nguy cơ rò rỉ dữ liệu cá nhân · HĐ3 Luyện tập</p>
+  <div class="steps"><span class="step">1 · Đọc vụ việc</span><span class="step">2 · Bàn bạc</span><span class="step">3 · Chọn kết luận</span><span class="step">4 · Gửi</span></div>
 
   <div class="case">
+    <span class="step-chip vang">BƯỚC 1</span><br>
     <strong>VỤ VIỆC CẦN ĐIỀU TRA:</strong><br>
     Một app học tập miễn phí đòi nhập số điện thoại của bố mẹ để “mở khóa thêm bài tập”.
   </div>
 
   <div class="card">
+    <span class="step-chip">BƯỚC 2</span><br>
     <span class="ref-tag">📋 THAM KHẢO — 5 CÂU HỎI TỰ KIỂM TRA</span>
     <p style="margin:6px 0 0;font-size:17px;color:#4b5563;">Dùng 5 câu hỏi này để bàn bạc rồi mới kết luận:</p>
     <ol class="ref">
@@ -132,6 +140,7 @@
       </div>
 
       <div class="card">
+        <span class="step-chip">BƯỚC 3 — CHỌN KẾT LUẬN</span><br>
         <span class="field-label">(a) Có nên nhập số điện thoại không?</span>
         <div class="toggle-row">
           <button type="button" class="toggle-btn" id="btn-khong" aria-pressed="false">✋<br>Không nên nhập</button>
@@ -156,6 +165,7 @@
         <p class="hint warn" id="hint-action" hidden>💡 Đội nên viết cách làm đúng — chỉ 1–2 câu thôi cũng được!</p>
       </div>
 
+      <div style="text-align:center;margin-top:6px;"><span class="step-chip vang">BƯỚC 4 — GỬI CHO THẦY</span></div>
       <button type="submit" class="send-btn" id="btn-gui">📤 GỬI KẾT LUẬN</button>
     </fieldset>
   </form>
