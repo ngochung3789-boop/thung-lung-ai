@@ -2266,6 +2266,12 @@ function phatTiengDongCo(id){
 
 function batDauMoDau(){
   if(introDaChay) return;
+  /* v15: BAT BUOC chon lop + danh sach (bang Doan lop) truoc khi len xe. */
+  if(typeof danhSachLop === 'undefined' || !danhSachLop || !danhSachLop.length){
+    const p = $('panel-lop'); if(p) p.open = true;
+    if(typeof datTrangThaiLop === 'function') datTrangThaiLop('⚠️ Thầy chọn lớp + danh sách trước (tải file / dán tên rồi bấm "Dùng danh sách này"), rồi bấm Bắt đầu lại.');
+    return;
+  }
   introDaChay = true;
   /* BUILD 17 (12/11, thay chot 18:04): hô "Sẵn sàng" TRƯỚC khi hành trình bắt đầu. Da ho xong thi di thang. */
   if(!hoDaXong){ hienHoSanSang(); return; }
@@ -3992,6 +3998,17 @@ function taoCongKhu(id, ten, phu, mau){
   vong.rotation.x = -Math.PI/2; vong.position.y = 0.06; vong.visible = false;
   vong.userData.khongGop = true; g.add(vong);
   g.userData.congKhu = id; g.userData.vong = vong;
+  /* v15: cong dep hon — co do tren dinh + vien vang chan tru + bui hoa 2 ben. */
+  const cotCo = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.06, 1.6, 8), vangMat);
+  cotCo.position.set(0, 5.6, 0); g.add(cotCo);
+  const coDo = new THREE.Mesh(new THREE.PlaneGeometry(0.9, 0.6), new THREE.MeshStandardMaterial({color:0xD42A1E, side:THREE.DoubleSide, roughness:0.7}));
+  coDo.position.set(0.48, 6.1, 0); g.add(coDo);
+  [-2.2, 2.2].forEach(x=>{
+    const deVang = new THREE.Mesh(new THREE.BoxGeometry(0.7, 0.25, 0.7), vangMat);
+    deVang.position.set(x, 0.12, 0); g.add(deVang);
+    const buiHoa = new THREE.Mesh(new THREE.SphereGeometry(0.45, 10, 8), new THREE.MeshStandardMaterial({color:0x3E7A34, roughness:0.9}));
+    buiHoa.position.set(x*1.6, 0.35, 0.6); buiHoa.scale.y = 0.8; g.add(buiHoa);
+  });
   return g;
 }
 const HS_NHO = {geo:{}, mat:{}};
@@ -5669,6 +5686,7 @@ function datDiChuyenNhieuDoan(m, diem, tre, xoayCuoi, ngoiKhiToi){
 }
 function datDoanVaoPhong(canh){
   if(!doanNhom) return;
+  lxGiaiDoan = null; /* v15: vao phong thi huy luong den dang chay (neu co) */
   /* Vào phòng mới: trả bạn được mời về trạng thái thường (bong bóng mặc định, ẩn dòng mời). */
   if(banDuocMoi){
     const bbMoi = banDuocMoi.userData.bongBong;
@@ -5710,6 +5728,13 @@ function datDoanVaoPhong(canh){
 function capNhatDoan(dt){
   if(!doanNhom || !doanNhom.visible) return;
   const t = clock.elapsedTime;
+  /* v15: luong den — xem khen 2s roi qua cong phan hieu da chon. */
+  if(lxGiaiDoan === 'xuong' && doanThanhVien && doanThanhVien.length){
+    if(doanThanhVien.every(m => !m.userData.diChuyen)){ lxGiaiDoan = 'xem'; lxXemT0 = performance.now(); }
+  } else if(lxGiaiDoan === 'xem' && performance.now() - lxXemT0 >= 2000){
+    lxGiaiDoan = 'qua-cong';
+    if(typeof datDoanQuaCong === 'function') datDoanQuaCong();
+  }
   const capNhatMot = (obj, laRobot)=>{
     const dc = obj.userData.diChuyen;
     const u0 = obj.userData;
@@ -17113,7 +17138,7 @@ function capNhatRobot(t, dt){
       diện) bước xuống, đi bộ tới đứng thành vòng cung quanh sân khấu, mặt hướng về sân khấu.
       Chỉ chạy khi vừa đi hết hành trình vào thành phố (cờ lxDenSanKhau), không chạy khi
       quay lại từ phòng học. Dùng datDiChuyenNhieuDoan + capNhatDoan (đã gắn vào thành phố). */
-let lxDanhSachLenXe = [], lxDaLen = 0, lxDenSanKhau = false;
+let lxDanhSachLenXe = [], lxDaLen = 0, lxDenSanKhau = false, lxGiaiDoan = null, lxXemT0 = 0; /* v15: giai doan den (xuong/xem/qua-cong/xong) */
 function layDanhSachLenXe(){
   if(typeof danhSachLop !== 'undefined' && danhSachLop.length) return danhSachLop.slice();
   return Array.from({length: 8}, (_, i)=>'Bạn mẫu ' + (i+1));
@@ -17204,6 +17229,30 @@ function datDoanXuongSanKhau(){
       m.userData.diChuyen = null;
       if(typeof datDiChuyenNhieuDoan === 'function') datDiChuyenNhieuDoan(m, [new THREE.Vector3(x, 0, z)], i*0.3, xoay, false);
     });
+    lxGiaiDoan = 'xuong'; /* v15: bat dau giai doan den (xuong xe -> xem khen 2s -> qua cong phan hieu) */
+  }catch(e){}
+}
+
+
+/* v15: doan qua cong truong cua phan hieu da chon (khuDaChon) sau khi xem khen 2s. */
+function datDoanQuaCong(){
+  try{
+    if(!doanThanhVien || !doanThanhVien.length || !sceneCity || !doanNhom) return;
+    const cong = (typeof KHU_CONG !== 'undefined' && KHU_CONG[khuDaChon]) || {x:0, z:-14};
+    const gx = cong.x, gz = cong.z;
+    doanThanhVien.forEach((m, i)=>{
+      const n = doanThanhVien.length;
+      const lechA = (i - (n - 1)/2) * 0.6;   /* toi truoc cong */
+      const lechB = (i - (n - 1)/2) * 0.35;  /* lot qua khe cong (rong ±1.9m, khe cong rong 4.4m) */
+      const lechC = (i - (n - 1)/2) * 0.9;   /* xep lai trong san */
+      const diem = [
+        new THREE.Vector3(gx + lechA, 0, gz + 5),
+        new THREE.Vector3(gx + lechB, 0, gz - 2),
+        new THREE.Vector3(gx + lechC, 0, gz - 9)
+      ];
+      if(typeof datDiChuyenNhieuDoan === 'function') datDiChuyenNhieuDoan(m, diem, i*0.15, Math.PI, false);
+    });
+    lxGiaiDoan = 'xong';
   }catch(e){}
 }
 
@@ -17217,7 +17266,7 @@ function datDoanXuongSanKhau(){
    mem (hop/tru/cau), KHONG hop vuong tho, KHONG voxel.
    Ghi chu: toa nha la cot moc nhin (khong mo duoc cua vao van phong that vi
    van phong co mat khau kiem tra phia may chu, khong co link cong khai). */
-/* ================= TOA NHA HOI DONG AI — 7 TANG (v11, 22/11) · v12: DO CAY/NUI CHE TOA · v13: MAP GAP 3 · v14: MAT TIEN TOA QUAY DONG + CAY NHO =================
+/* ================= TOA NHA HOI DONG AI — 7 TANG (v11, 22/11) · v12: DO CAY/NUI CHE TOA · v13: MAP GAP 3 · v14: MAT TIEN TOA QUAY DONG + CAY NHO · v15: LUONG LEN XE MOI (CHON LOP TRUOC + XEM KHEN 2S + QUA CONG PHAN HIEU) =================
    Vi tri: suon ben canh duong di vao (tay duong chinh), (-16, -17), mat tien
    huong nam ve quang truong. Tang 1-4: 12 phong/tang; doi DO HOA tang 1 mo rong
    (do hoa + ve map + xay ha tang game). TANG 5 = DOI LUU TRU (doi chua co phong
