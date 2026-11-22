@@ -1494,19 +1494,45 @@ function dinhDangGiayTuKhiMoHD3(mocIso, gioIso) {
 
 // Mở đầu trang host HĐ3: cùng giao diện tối "HỘP ĐEN" + CSS riêng cho HĐ3.
 function moDauTrangHD3(tieuDe, trangThai, urlLamMoi) {
-  var cssThem = '\n  .hang-nut-hd3 { display: flex; gap: 10px; flex-wrap: wrap; margin: 16px 0; }\n' +
-    '  .nut-mo { background: #16a34a; color: #fff; border: 0; border-radius: 10px; padding: 14px 20px; font-size: 19px; font-weight: 800; cursor: pointer; text-decoration: none; display: inline-block; }\n' +
-    '  .nut-mo:hover { background: #15803d; }\n' +
-    '  .nut-khoa { background: #d97706; color: #fff; border: 0; border-radius: 10px; padding: 14px 20px; font-size: 19px; font-weight: 800; cursor: pointer; text-decoration: none; display: inline-block; }\n' +
-    '  .nut-khoa:hover { background: #b45309; }\n' +
-    '  .bang-hd3 { width: 100%; border-collapse: collapse; margin-top: 12px; }\n' +
-    '  .bang-hd3 th { text-align: left; font-size: 15px; color: #9ca3af; text-transform: uppercase; letter-spacing: 1px; padding: 10px 8px; border-bottom: 2px solid #374151; }\n' +
-    '  .bang-hd3 td { font-size: 22px; padding: 12px 8px; border-bottom: 1px solid #2e2f36; }\n' +
-    '  .bang-hd3 tr.hang-nhat td { font-weight: 800; color: #fbbf24; }\n' +
-    '  .huy-hieu-hd3-xanh { display: inline-block; background: #16a34a; color: #fff; border-radius: 999px; padding: 6px 14px; font-size: 16px; font-weight: 800; letter-spacing: 1px; }\n' +
-    '  .huy-hieu-hd3-do { display: inline-block; background: #dc2626; color: #fff; border-radius: 999px; padding: 6px 14px; font-size: 16px; font-weight: 800; letter-spacing: 1px; }\n' +
-    '  .huy-hieu-hd3-xam { display: inline-block; background: #4b5563; color: #fff; border-radius: 999px; padding: 6px 14px; font-size: 16px; font-weight: 800; letter-spacing: 1px; }\n' +
-    '  .nhan-xet-hd3 { background: #111827; border: 1px solid #374151; border-radius: 10px; padding: 10px 14px; margin-top: 8px; font-size: 18px; line-height: 1.5; }\n' +
+  var cssThem = '\n  /* HĐ3 host: hiện đại, chữ to, dễ nhìn trên TV. */\n' +
+    '  .dau .nut-tai { font-size: 22px; padding: 16px 26px; }\n' +
+    '  .dau .nut-quay-lai { font-size: 20px; padding: 16px 22px; }\n' +
+    '  .nhan-dieu-khien { font-size: 15px; font-weight: 800; letter-spacing: 2px; color: #9ca3af; text-transform: uppercase; margin: 18px 0 10px; }\n' +
+    '  .hang-nut-hd3 { display: flex; gap: 12px; flex-wrap: wrap; margin: 0 0 8px; }\n' +
+    '  .nut-mo { background: linear-gradient(180deg, #22c55e, #16a34a); color: #fff; border: 0; border-radius: 14px; padding: 18px 26px; font-size: 22px; font-weight: 800; cursor: pointer; text-decoration: none; display: inline-block; box-shadow: 0 4px 14px rgba(22,163,74,.35); }\n' +
+    '  .nut-mo:hover { background: linear-gradient(180deg, #16a34a, #15803d); }\n' +
+    '  .nut-khoa { background: linear-gradient(180deg, #f59e0b, #d97706); color: #fff; border: 0; border-radius: 14px; padding: 18px 26px; font-size: 22px; font-weight: 800; cursor: pointer; text-decoration: none; display: inline-block; box-shadow: 0 4px 14px rgba(217,119,6,.35); }\n' +
+    '  .nut-khoa:hover { background: linear-gradient(180deg, #d97706, #b45309); }\n' +
+    '  .nut-xoa { background: transparent; color: #fca5a5; border: 2px solid #dc2626; border-radius: 14px; padding: 16px 22px; font-size: 19px; font-weight: 800; cursor: pointer; text-decoration: none; display: inline-block; }\n' +
+    '  .nut-xoa:hover { background: #7f1d1d; color: #fff; }\n' +
+    '  .hang-dat-lai { margin: 14px 0 4px; padding-top: 14px; border-top: 1px dashed #374151; }\n' +
+    '  .hang-dat-lai .chu-thich { font-size: 15px; color: #9ca3af; margin-left: 10px; }\n' +
+    '  .huy-hieu-trang-thai { display: inline-block; border-radius: 999px; padding: 12px 24px; font-size: 24px; font-weight: 900; letter-spacing: 1px; }\n' +
+    '  .huy-hieu-trang-thai.mo { background: linear-gradient(180deg, #22c55e, #16a34a); color: #fff; box-shadow: 0 4px 16px rgba(22,163,74,.4); }\n' +
+    '  .huy-hieu-trang-thai.khoa { background: #374151; color: #d1d5db; }\n' +
+    '  .tien-trinh-cau { display: flex; gap: 10px; margin: 16px 0 4px; }\n' +
+    '  .tien-trinh-cau span { flex: 1; text-align: center; font-size: 18px; font-weight: 800; padding: 12px 4px; border-radius: 12px; background: #17181c; border: 2px solid #2e2f36; color: #9ca3af; }\n' +
+    '  .tien-trinh-cau span.hien-tai { background: #fbbf24; border-color: #fbbf24; color: #111; }\n' +
+    '  .tien-trinh-cau span.xong { background: #14532d; border-color: #16a34a; color: #bbf7d0; }\n' +
+    '  .tieu-de-phu { font-size: 18px; font-weight: 800; letter-spacing: 2px; color: #9ca3af; text-transform: uppercase; margin: 20px 0 12px; }\n' +
+    '  .hang-xep-hang { display: flex; align-items: center; gap: 18px; background: #17181c; border: 1px solid #2e2f36; border-radius: 18px; padding: 20px 24px; margin-bottom: 14px; box-shadow: 0 2px 10px rgba(0,0,0,0.4); }\n' +
+    '  .hang-xep-hang.nhat { background: linear-gradient(180deg, #422006, #17181c); border: 2px solid #f59e0b; box-shadow: 0 4px 20px rgba(245,158,11,.25); }\n' +
+    '  .so-hang { flex: none; width: 64px; height: 64px; border-radius: 50%; background: #374151; color: #fff; font-size: 30px; font-weight: 900; display: flex; align-items: center; justify-content: center; }\n' +
+    '  .hang-xep-hang.nhat .so-hang { background: linear-gradient(180deg, #fbbf24, #f59e0b); color: #111; }\n' +
+    '  .ten-doi-xep-hang { flex: 1; font-size: 30px; font-weight: 800; color: #f3f4f6; word-break: break-word; }\n' +
+    '  .hang-xep-hang.nhat .ten-doi-xep-hang { color: #fbbf24; }\n' +
+    '  .nhan-nhanh-nhat { display: inline-block; background: #f59e0b; color: #111; font-size: 15px; font-weight: 900; letter-spacing: 1px; border-radius: 999px; padding: 4px 12px; margin-left: 10px; vertical-align: 4px; }\n' +
+    '  .thoi-gian-xep-hang { flex: none; text-align: right; }\n' +
+    '  .thoi-gian-xep-hang .giay { font-size: 40px; font-weight: 900; color: #fbbf24; line-height: 1; font-variant-numeric: tabular-nums; }\n' +
+    '  .thoi-gian-xep-hang .gio { font-size: 15px; color: #9ca3af; margin-top: 4px; }\n' +
+    '  .the-dieu-tra { background: #17181c; border: 1px solid #2e2f36; border-radius: 18px; padding: 22px 24px; box-shadow: 0 2px 10px rgba(0,0,0,0.4); }\n' +
+    '  .the-dieu-tra .ten-doi { font-size: 30px; font-weight: 800; color: #fbbf24; margin-bottom: 12px; word-break: break-word; }\n' +
+    '  .phat-bieu-ket-luan { display: inline-block; border-radius: 999px; padding: 10px 20px; font-size: 20px; font-weight: 900; letter-spacing: 1px; }\n' +
+    '  .phat-bieu-ket-luan.khong { background: #dc2626; color: #fff; }\n' +
+    '  .phat-bieu-ket-luan.co { background: #16a34a; color: #fff; }\n' +
+    '  .chip-dau-hieu { display: inline-block; background: #1e3a8a; color: #bfdbfe; border: 1px solid #3b82f6; border-radius: 999px; padding: 6px 14px; font-size: 17px; font-weight: 700; margin: 0 8px 8px 0; }\n' +
+    '  .hop-hanh-dong { background: #111827; border: 1px solid #374151; border-radius: 12px; padding: 14px 16px; margin-top: 12px; font-size: 20px; line-height: 1.6; white-space: pre-wrap; }\n' +
+    '  .nhan-xet-hd3 { background: #111827; border: 1px solid #374151; border-radius: 12px; padding: 12px 16px; margin-top: 10px; font-size: 19px; line-height: 1.55; }\n' +
     '  .nhan-xet-hd3 b { color: #fbbf24; }\n';
   var linkQuayLai = '<a class="nut-quay-lai" target="_top" href="' + escHtml(URL_WEB_APP) + '">← Quay lại menu</a>';
   return '<!DOCTYPE html>\n<html lang="vi">\n<head>\n<meta charset="UTF-8">\n' +
@@ -1525,15 +1551,26 @@ function taoTrangBuzzerHD3() {
   var trangThai = tt.armed
     ? 'Câu ' + tt.currentRound + ' — ĐANG MỞ CHUÔNG, đội bấm được. Bấm "Làm mới trang" để xem lượt bấm mới.'
     : 'Chuông đang KHÓA. Bấm "Mở Câu N" để bắt đầu một câu.';
-  var nut = '<div class="hang-nut-hd3">';
-  for (var c = 1; c <= 4; c++) {
-    nut += '<a class="nut-mo" target="_top" href="' + escHtml(urlLamMoi + '&hanhdong=mo&vong=' + c) + '">Mở Câu ' + c + '</a>';
+  // Thanh tiến trình 4 câu: câu đã có lượt bấm thì đánh dấu đã xong.
+  var cauDaBam = {};
+  for (var i0 = 0; i0 < tatCa.length; i0++) {
+    if (tatCa[i0]) cauDaBam[tatCa[i0].round] = true;
   }
-  nut += '<a class="nut-khoa" target="_top" href="' + escHtml(urlLamMoi + '&hanhdong=khoa') + '">Khóa chuông</a>';
-  nut += '<a class="nut-xoa" target="_top" href="' + escHtml(urlLamMoi + '&hanhdong=datlai') + '">Đặt lại (xóa hết lượt bấm)</a></div>';
+  var tienTrinh = '<div class="tien-trinh-cau">';
+  for (var c0 = 1; c0 <= 4; c0++) {
+    var lopCau = c0 === tt.currentRound ? ' class="hien-tai"' : (cauDaBam[c0] ? ' class="xong"' : '');
+    tienTrinh += '<span' + lopCau + '>Câu ' + c0 + '</span>';
+  }
+  tienTrinh += '</div>';
+  var nut = '<div class="nhan-dieu-khien">Điều khiển chuông</div><div class="hang-nut-hd3">';
+  for (var c = 1; c <= 4; c++) {
+    nut += '<a class="nut-mo" target="_top" href="' + escHtml(urlLamMoi + '&hanhdong=mo&vong=' + c) + '">🔔 Mở Câu ' + c + '</a>';
+  }
+  nut += '<a class="nut-khoa" target="_top" href="' + escHtml(urlLamMoi + '&hanhdong=khoa') + '">🔒 Khóa chuông</a></div>';
+  nut += '<div class="hang-dat-lai"><a class="nut-xoa" target="_top" href="' + escHtml(urlLamMoi + '&hanhdong=datlai') + '">⚠️ Đặt lại — xóa hết lượt bấm</a><span class="chu-thich">Xóa toàn bộ lượt bấm của cả 4 câu. Chỉ dùng sau buổi học hoặc trước khi bắt đầu lại.</span></div>';
   var huyHieu = tt.armed
-    ? '<span class="huy-hieu-hd3-xanh">ĐANG MỞ — CÂU ' + tt.currentRound + '</span>'
-    : '<span class="huy-hieu-hd3-xam">ĐÃ KHÓA</span>';
+    ? '<span class="huy-hieu-trang-thai mo">🔔 ĐANG MỞ — CÂU ' + tt.currentRound + '</span>'
+    : '<span class="huy-hieu-trang-thai khoa">🔒 ĐÃ KHÓA</span>';
   // Chỉ lượt bấm của câu hiện tại, xếp theo giờ bấm của máy chủ.
   var luot = [];
   for (var i = 0; i < tatCa.length; i++) {
@@ -1547,15 +1584,16 @@ function taoTrangBuzzerHD3() {
     var hang = '';
     for (var j = 0; j < luot.length; j++) {
       var muc = luot[j];
-      hang += '<tr' + (j === 0 ? ' class="hang-nhat"' : '') + '><td>' + (j + 1) + '</td>' +
-        '<td>' + escHtml(muc.team) + '</td>' +
-        '<td>' + escHtml(dinhDangGiayTuKhiMoHD3(tt.armedAt, muc.serverTime)) + '</td>' +
-        '<td>' + escHtml(dinhDangGioHD3(muc.serverTime)) + '</td></tr>';
+      hang += '<div class="hang-xep-hang' + (j === 0 ? ' nhat' : '') + '">' +
+        '<div class="so-hang">' + (j + 1) + '</div>' +
+        '<div class="ten-doi-xep-hang">' + escHtml(muc.team) + (j === 0 ? '<span class="nhan-nhanh-nhat">🏆 NHANH NHẤT</span>' : '') + '</div>' +
+        '<div class="thoi-gian-xep-hang"><div class="giay">' + escHtml(dinhDangGiayTuKhiMoHD3(tt.armedAt, muc.serverTime)) + '</div>' +
+        '<div class="gio">bấm lúc ' + escHtml(dinhDangGioHD3(muc.serverTime)) + '</div></div></div>';
     }
-    noiDung = '<table class="bang-hd3"><tr><th>Hạng</th><th>Đội</th><th>Thời gian</th><th>Giờ bấm</th></tr>' + hang + '</table>';
+    noiDung = '<div class="tieu-de-phu">Bảng xếp hạng — Câu ' + tt.currentRound + '</div>' + hang;
   }
   return moDauTrangHD3('HĐ3 — CHUÔNG BẤM NHANH (Bài 4 lớp 8)', trangThai, urlLamMoi) +
-    '<div class="khung"><div style="margin: 8px 0 4px;">' + huyHieu + '</div>' + nut + noiDung + '</div>' + dongTrangTrinhChieu();
+    '<div class="khung"><div style="margin: 8px 0 4px;">' + huyHieu + '</div>' + tienTrinh + nut + noiDung + '</div>' + dongTrangTrinhChieu();
 }
 
 // Trang host ĐIỀU TRA (?hd3=dieutra): tất cả bản điều tra + nhận xét gom theo đội.
@@ -1597,16 +1635,24 @@ function taoTrangDieuTraHD3() {
     for (var j = 0; j < danhSach.length; j++) {
       var m = danhSach[j];
       var ketLuan = m.shouldEnter === 'co'
-        ? '<span class="huy-hieu-hd3-xanh">NÊN NHẬP</span>'
-        : '<span class="huy-hieu-hd3-do">KHÔNG NÊN NHẬP</span>';
-      var dauHieu = (m.signs && m.signs.length > 0) ? ('Dấu hiệu đã chọn: ' + m.signs.join(', ')) : 'Chưa chọn dấu hiệu nào.';
-      the += '<div class="the-may"><div class="nhan-may">' + escHtml(m.team) + '</div>' + ketLuan +
-        '<div class="hang-thong-tin"><div class="nhan">Dấu hiệu</div><div class="gia-tri nho">' + escHtml(dauHieu) + '</div></div>' +
-        '<div class="hang-thong-tin"><div class="nhan">Hành động sẽ làm</div><div class="tom-tat">' + escHtml(m.action || '(không ghi)') + '</div></div>' +
+        ? '<span class="phat-bieu-ket-luan co">✓ NÊN NHẬP</span>'
+        : '<span class="phat-bieu-ket-luan khong">✋ KHÔNG NÊN NHẬP</span>';
+      var dauHieu;
+      if (m.signs && m.signs.length > 0) {
+        dauHieu = '';
+        for (var s = 0; s < m.signs.length; s++) {
+          dauHieu += '<span class="chip-dau-hieu">Dấu hiệu ' + m.signs[s] + '</span>';
+        }
+      } else {
+        dauHieu = '<span style="color:#9ca3af;font-size:19px;">Chưa chọn dấu hiệu nào.</span>';
+      }
+      the += '<div class="the-dieu-tra"><div class="ten-doi">' + escHtml(m.team) + '</div>' + ketLuan +
+        '<div class="hang-thong-tin"><div class="nhan">Dấu hiệu</div><div style="margin-top:10px;">' + dauHieu + '</div></div>' +
+        '<div class="hang-thong-tin"><div class="nhan">Hành động sẽ làm</div><div class="hop-hanh-dong">' + escHtml(m.action || '(không ghi)') + '</div></div>' +
         '<div class="gio-gui">Nộp lúc ' + escHtml(dinhDangGioHD3(m.time)) + '</div>' +
         khoiNhanXet(m.team) + '</div>';
     }
-    noiDung = '<div class="khung"><div class="luoi-may">' + the + '</div></div>';
+    noiDung = '<div class="khung"><div class="tieu-de-phu">Kết quả các đội — ' + danhSach.length + ' đội đã nộp</div><div class="luoi-may">' + the + '</div></div>';
   }
   // Nhận xét gửi về đội chưa nộp điều tra (nếu có) — hiện riêng ở cuối.
   var doiLa = [];
@@ -1614,7 +1660,7 @@ function taoTrangDieuTraHD3() {
   if (doiLa.length > 0) {
     var khoiLa = '';
     for (var l = 0; l < doiLa.length; l++) khoiLa += khoiNhanXet(doiLa[l]);
-    noiDung += '<div class="khung"><div class="the-may"><div class="nhan-may">Nhận xét về đội chưa nộp điều tra</div>' + khoiLa + '</div></div>';
+    noiDung += '<div class="khung"><div class="the-dieu-tra"><div class="ten-doi">Nhận xét về đội chưa nộp điều tra</div>' + khoiLa + '</div></div>';
   }
   return moDauTrangHD3('HĐ3 — ĐIỀU TRA (Bài 4 lớp 8)', trangThai, urlLamMoi) + noiDung + dongTrangTrinhChieu();
 }
