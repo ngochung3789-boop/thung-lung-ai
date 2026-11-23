@@ -2302,6 +2302,13 @@ function batDauMoDau(){
     if(typeof datTrangThaiLop === 'function') datTrangThaiLop('⚠️ Thầy chọn lớp + danh sách trước (tải file / dán tên rồi bấm "Dùng danh sách này"), rồi bấm Bắt đầu lại.');
     return;
   }
+  /* TU-DONG 23/11: che do Tu dong bat buoc chon bai truoc khi bay. */
+  window.tuDongDangChay = (window.tuDongCheDo === 'tu-dong');
+  if(window.tuDongDangChay && !window.tuDongPhong){
+    if(typeof datTrangThaiLop === 'function') datTrangThaiLop('⚠️ Chế độ Tự động: thầy chọn bài học ở bảng “📚 Chọn bài học” trước, rồi bấm Bắt đầu.');
+    if(typeof window.tuDongHienChonBai === 'function') window.tuDongHienChonBai();
+    return;
+  }
   introDaChay = true;
   /* BUILD 17 (12/11, thay chot 18:04): hô "Sẵn sàng" TRƯỚC khi hành trình bắt đầu. Da ho xong thi di thang. */
   if(!hoDaXong){ hienHoSanSang(); return; }
@@ -2601,7 +2608,7 @@ function xemLaiMoDau(){
   window.dispatchEvent(new Event('resize'));
   activeScene = 'intro';
   introDaChay = false; introState = 'cho'; introT = 0;
-  if(typeof gocQuayHien !== 'undefined') gocQuayHien = -1; { const gq = $('goc-quay'); if(gq) gq.style.display = 'none'; } lxBoQuaMoDau = false; lxGiaiDoan = null; /* v16: reset luong den + goc quay */
+  if(typeof gocQuayHien !== 'undefined') gocQuayHien = -1; { const gq = $('goc-quay'); if(gq) gq.style.display = 'none'; } lxBoQuaMoDau = false; lxGiaiDoan = null; window.tuDongDangChay = false; window.tuDongDaToiToa = false; /* v16: reset luong den + goc quay */
   hanhTrinhTich = 0; hanhTrinhPhaBatDau = 0; choLoiMoDau1 = false;
   /* BUILD 17: khong con rem — khong can dat lai vi tri rem. */
   /* BUILD 17c: tra lai dem cho man mo dau (khi xem lai). */
@@ -4906,6 +4913,459 @@ function dungThanhPho(){
     sceneCity.add(tuongNhom);
   })();
 
+/* TU-DONG (23/11) — CHẾ ĐỘ TỰ ĐỘNG + THANG MÁY (bản làm việc, chưa live).
+   Thầy giao 23/11 ~16:05: màn mở đầu 2 nút Thủ công / Tự động; Tự động =
+   chọn lớp → chọn bài (tên + mã YCCĐ từ PL1) → chọn phương tiện → bay →
+   xuống xe → xem khèn 2s → qua sân bóng → tới tòa → ĐI THANG MÁY lên đúng
+   tầng → vào lớp. Thang máy kính bên ngoài mặt tiền tòa tháp (đông), đoàn
+   bước vào, cửa đóng, thang lên, cửa mở, đoàn ra hành lang vào lớp.
+   Phòng đích: phongTuKhoiPhong(khoi, tang) — KHÔNG đoán id; vd Bài 4 lớp 8
+   (bài gộp 3+4, 8.A2.1+8.A2.2) = tầng 4 tòa 8 = phòng 't4-f3'.
+   Lớp 8 còn 11 bài sau khi gộp (tầng 3 = 8.A2.1 vẫn mở được ở Thủ công).
+   Chạy trong dungThanhPho() như các khối DOI-DO-HOA (sceneCity đã có). */
+(function(){
+  if(window.__tuDongDaDung) return;
+  window.__tuDongDaDung = true;
+  /* ---- 0. Trạng thái chung (đặt trên window để code cũ gọi được) ---- */
+  window.tuDongCheDo = 'thu-cong';       /* 'thu-cong' | 'tu-dong' */
+  window.tuDongDangChay = false;         /* true từ lúc bấm Bắt đầu ở chế độ Tự động */
+  window.tuDongDaToiToa = false;         /* true khi đã rẽ vào luồng tới tòa */
+  window.tuDongKhoi = 0;
+  window.tuDongTang = 0;
+  window.tuDongPhong = null;
+  window.tuDongTenBai = '';
+  window.tuDongMaBai = '';
+  window.__thangMay = {};
+  /* ---- 1. Danh sách bài theo PL1 (Phuluc_1_chuan.docx) — KHÔNG bịa ---- */
+  /* Mỗi mục: nhan (số bài hiển thị), ten, ma (YCCĐ chính), tang (tầng đích). */
+  const TU_DONG_BAI = {
+    6: [
+      {nhan:'Bài 1', ten:'Tính chủ động của con người trong kỷ nguyên AI', ma:'6.A1.1', tang:1},
+      {nhan:'Bài 2', ten:'AI hoạt động theo lập trình của con người', ma:'6.A1.2', tang:2},
+      {nhan:'Bài 3', ten:'Kiểm tra và xác thực thông tin do AI cung cấp', ma:'6.A1.3', tang:3},
+      {nhan:'Bài 4', ten:'Con người ra quyết định với sự hỗ trợ của AI', ma:'6.A3.1', tang:4},
+      {nhan:'Bài 5', ten:'Học hỏi và phát triển năng lực cá nhân cùng AI', ma:'6.A3.2', tang:5},
+      {nhan:'Bài 6', ten:'Mặt tốt và mặt xấu - Tác động hai mặt của AI', ma:'6.C1.2', tang:6},
+      {nhan:'Bài 7', ten:'Phân biệt ứng dụng có tích hợp AI trong cuộc sống', ma:'6.C2.1', tang:7},
+      {nhan:'Bài 8', ten:'Một số công cụ và ứng dụng AI thông dụng', ma:'6.C2.2', tang:8},
+      {nhan:'Bài 9', ten:'Các công nghệ AI quen thuộc quanh em', ma:'6.C3.1', tang:9},
+      {nhan:'Bài 10', ten:'Hai thành phần cốt lõi của AI: Dữ liệu và Thuật toán', ma:'6.C1.1', tang:10},
+      {nhan:'Bài 11', ten:'Lựa chọn tình huống sử dụng AI phù hợp', ma:'6.D1.1', tang:11},
+      {nhan:'Bài 12', ten:'Giới hạn của AI so với trí tuệ con người', ma:'6.D2.1', tang:12}
+    ],
+    7: [
+      {nhan:'Bài 1', ten:'Quyền ra quyết định cuối cùng của con người trước AI', ma:'7.A1.1', tang:1},
+      {nhan:'Bài 2', ten:'Hậu quả của việc phó thác quyết định và không xác thực kết quả', ma:'7.A1.2', tang:2},
+      {nhan:'Bài 3', ten:'Nhận diện tác hại của việc phó thác hoàn toàn cho AI', ma:'7.A2.1', tang:3},
+      {nhan:'Bài 4', ten:'Ngăn chặn các công cụ AI có hại', ma:'7.A2.2', tang:4},
+      {nhan:'Bài 5', ten:'Quyền tự chủ của con người trước sự can thiệp của AI', ma:'7.A3.1', tang:5},
+      {nhan:'Bài 6', ten:'Bảo vệ quyền tự chủ khi đưa ra các quyết định quan trọng', ma:'7.A3.2', tang:6},
+      {nhan:'Bài 7', ten:'Tiêu chí đánh giá tính an toàn của một ứng dụng AI', ma:'7.B2.1', tang:7},
+      {nhan:'Bài 8', ten:'Hành động thực tế góp phần xây dựng môi trường AI lành mạnh', ma:'7.B2.2', tang:8},
+      {nhan:'Bài 9', ten:'Cam kết trách nhiệm cá nhân và khai báo trung thực khi dùng AI', ma:'7.B3.1', tang:9},
+      {nhan:'Bài 10', ten:'Vấn đề đạo đức nảy sinh từ dữ liệu huấn luyện AI', ma:'7.C4.1', tang:10},
+      {nhan:'Bài 11', ten:'Mô tả các bước chính trong tiến trình học của AI', ma:'7.C5.1', tang:11},
+      {nhan:'Bài 12', ten:'Đề xuất ý tưởng dự án AI giải quyết vấn đề thực tiễn', ma:'7.D1.1', tang:12}
+    ],
+    8: [
+      {nhan:'Bài 1', ten:'Những lĩnh vực AI không thể thay thế con người', ma:'8.A1.1', tang:1},
+      {nhan:'Bài 2', ten:'Rủi ro lạm dụng công cụ AI tạo sinh đối với năng lực tư duy', ma:'8.A1.2', tang:2},
+      {nhan:'Bài 3+4 (gộp)', ten:'Nguy cơ rò rỉ dữ liệu cá nhân', ma:'8.A2.1 + 8.A2.2', tang:4},
+      {nhan:'Bài 5', ten:'Phân biệt vai trò của người dùng và người tạo lập hệ thống AI', ma:'8.A3.1', tang:5},
+      {nhan:'Bài 6', ten:'Trách nhiệm pháp lý đối với các hậu quả do hệ thống AI gây ra', ma:'8.A3.2', tang:6},
+      {nhan:'Bài 7', ten:'Trách nhiệm giải trình khi sử dụng AI trong học tập', ma:'8.A3.3', tang:7},
+      {nhan:'Bài 8', ten:'Bảo vệ dữ liệu cá nhân và giảm thiểu rủi ro an toàn thông tin', ma:'8.B2.1', tang:8},
+      {nhan:'Bài 9', ten:'Các nguyên tắc đạo đức cần tuân thủ khi ứng dụng AI', ma:'8.B3.1', tang:9},
+      {nhan:'Bài 10', ten:'Tìm hiểu cơ chế "nghe", "đọc", "nhìn" cơ bản của máy tính', ma:'8.C1.1', tang:10},
+      {nhan:'Bài 11', ten:'Thiết kế kịch bản và sơ đồ luồng hội thoại cho Chatbot', ma:'8.D2.1', tang:11},
+      {nhan:'Bài 12', ten:'Thực hành làm việc nhóm lập kế hoạch dự án AI học đường', ma:'8.D1.1', tang:12}
+    ],
+    9: [
+      {nhan:'Bài 1', ten:'Thách thức xã hội và sự đánh đổi trong phát triển công nghệ AI', ma:'9.A1.1', tang:1},
+      {nhan:'Bài 2', ten:'Tác động sâu rộng của Trí tuệ nhân tạo đối với cấu trúc xã hội', ma:'9.A2.1', tang:2},
+      {nhan:'Bài 3', ten:'Bản chất của hiện tượng "thiên vị" và "thành kiến" thuật toán', ma:'9.A2.2', tang:3},
+      {nhan:'Bài 4', ten:'Những năng lực cốt lõi con người cần rèn luyện trong kỷ nguyên AI', ma:'9.A3.1', tang:4},
+      {nhan:'Bài 5', ten:'Xác định mục tiêu học tập cá nhân đồng hành cùng AI', ma:'9.A3.2', tang:5},
+      {nhan:'Bài 6', ten:'Khai thác AI như công cụ phát triển bản thân và đam mê', ma:'9.A3.3', tang:6},
+      {nhan:'Bài 7', ten:'Sự dịch chuyển nghề nghiệp tương lai và chuẩn bị kỹ năng làm việc', ma:'9.A3.4', tang:7},
+      {nhan:'Bài 8', ten:'Trách nhiệm giải trình và vai trò kiểm soát hệ thống của người dùng', ma:'9.B2.1', tang:8},
+      {nhan:'Bài 9', ten:'Vai trò của cá nhân, cộng đồng trong giám sát và phản hồi AI', ma:'9.B2.2', tang:9},
+      {nhan:'Bài 10', ten:'Nhận diện và phòng chống các thủ đoạn lừa đảo giả mạo bằng AI', ma:'9.B2.3', tang:10},
+      {nhan:'Bài 11', ten:'Ý thức thiết kế các hệ thống AI công bằng và không phân biệt', ma:'9.B3.1', tang:11},
+      {nhan:'Bài 12', ten:'Con người dẫn dắt và các phương pháp đánh giá sản phẩm AI', ma:'9.D1.1', tang:12}
+    ]
+  };
+  const TU_DONG_TANG_CAO = 1.13;   /* tháp 12 tầng cao ~13,63m → mỗi tầng ~1,13m */
+  const TU_DONG_Y_NEN = 0.45;      /* sàn cabin ở tầng 1 */
+  function tuDongYTang(n){ return TU_DONG_Y_NEN + (n - 1) * TU_DONG_TANG_CAO; }
+  /* ---- 2. Bảng tầng (canvas) cho thang máy ---- */
+  function tuDongVeBangTang(tm, tang, cheDo){
+    const g = tm.ctx;
+    g.clearRect(0, 0, 512, 256);
+    const grd = g.createLinearGradient(0, 0, 0, 256);
+    grd.addColorStop(0, '#1F2A44'); grd.addColorStop(1, '#0B1220');
+    g.fillStyle = grd; g.fillRect(0, 0, 512, 256);
+    g.strokeStyle = '#C9A227'; g.lineWidth = 12; g.strokeRect(8, 8, 496, 240);
+    g.textAlign = 'center'; g.textBaseline = 'middle';
+    g.fillStyle = '#E8C95A';
+    g.font = '800 110px "Be Vietnam Pro", Arial, sans-serif';
+    g.fillText('TẦNG ' + tang, 256, 96);
+    g.fillStyle = '#FDF6E3';
+    g.font = '700 44px "Be Vietnam Pro", Arial, sans-serif';
+    if(cheDo === 'len') g.fillText('▲ ĐANG LÊN TẦNG ' + tm.tangDich, 256, 196);
+    else if(cheDo === 'toi') g.fillText('● ĐÃ TỚI — MỜI CẢ LỚP RA', 256, 196);
+    else g.fillText('🛗 SẴN SÀNG ĐÓN LỚP', 256, 196);
+    tm.tex.needsUpdate = true;
+  }
+  function tuDongTextureChu(dongLon, dongNho){
+    const c = document.createElement('canvas'); c.width = 512; c.height = 160;
+    const g = c.getContext('2d');
+    const grd = g.createLinearGradient(0, 0, 0, 160);
+    grd.addColorStop(0, '#1F2A44'); grd.addColorStop(1, '#0B1220');
+    g.fillStyle = grd; g.fillRect(0, 0, 512, 160);
+    g.strokeStyle = '#C9A227'; g.lineWidth = 8; g.strokeRect(6, 6, 500, 148);
+    g.textAlign = 'center'; g.textBaseline = 'middle';
+    g.fillStyle = '#E8C95A'; g.font = '800 64px "Be Vietnam Pro", Arial, sans-serif';
+    g.fillText(dongLon, 256, 62);
+    g.fillStyle = '#FDF6E3'; g.font = '600 34px "Be Vietnam Pro", Arial, sans-serif';
+    g.fillText(dongNho, 256, 122);
+    const t = new THREE.CanvasTexture(c); t.anisotropy = 8;
+    return t;
+  }
+  /* ---- 3. Thang máy kính ngoài mặt tiền tòa tháp (1 cái / tòa) ---- */
+  function dungThangMayTuDong(k){
+    if(window.__thangMay[k.khoi]) return window.__thangMay[k.khoi];
+    const cx = -39.1, cz = k.z;   /* sat mat tien dong cua toa (mat dong x=-40,67; cua chinh o giua) — thang kinh la loi vao, thay ro tu quang truong */
+    const vangMat = new THREE.MeshStandardMaterial({color:0xC9A227, roughness:0.35, metalness:0.6});
+    const kinhMat = new THREE.MeshStandardMaterial({color:0x9FD8FF, roughness:0.15, metalness:0.1, transparent:true, opacity:0.32, side:THREE.DoubleSide});
+    const sanMat = new THREE.MeshStandardMaterial({color:0x8A7A5A, roughness:0.9});
+    const demMat = new THREE.MeshStandardMaterial({color:0x3A3F4A, roughness:0.9});
+    const nhom = new THREE.Group(); nhom.name = 'thang-may-khoi-' + k.khoi;
+    function them(mesh, x, y, z){ mesh.position.set(x, y, z); mesh.castShadow = true; nhom.add(mesh); return mesh; }
+    /* Đế + 4 trụ góc vàng + giếng kính cao 15m + nóc máy */
+    them(new THREE.Mesh(new THREE.BoxGeometry(3.4, 0.25, 3.8), sanMat), cx, 0.12, cz);
+    [[-1.5, -1.7], [1.5, -1.7], [-1.5, 1.7], [1.5, 1.7]].forEach(function(p){
+      them(new THREE.Mesh(new THREE.BoxGeometry(0.2, 15.0, 0.2), vangMat), cx + p[0], 7.5, cz + p[1]);
+    });
+    const kinhTay = new THREE.Mesh(new THREE.PlaneGeometry(3.4, 15.0), kinhMat);
+    kinhTay.rotation.y = -Math.PI / 2; them(kinhTay, cx - 1.6, 7.5, cz);
+    const kinhBac = new THREE.Mesh(new THREE.PlaneGeometry(3.2, 15.0), kinhMat);
+    them(kinhBac, cx, 7.5, cz - 1.7);
+    const kinhNam = new THREE.Mesh(new THREE.PlaneGeometry(3.2, 15.0), kinhMat);
+    them(kinhNam, cx, 7.5, cz + 1.7);
+    them(new THREE.Mesh(new THREE.BoxGeometry(3.4, 0.5, 3.8), vangMat), cx, 15.25, cz);
+    const denNoc = new THREE.Mesh(new THREE.SphereGeometry(0.22, 12, 10), new THREE.MeshBasicMaterial({color:0xFF5A5A}));
+    them(denNoc, cx, 15.7, cz);
+    /* Cabin kính: sàn + vách + trần có đèn, cửa mở phía đông (+x) */
+    const cabin = new THREE.Group(); cabin.name = 'cabin-thang-may';
+    const sanCabin = new THREE.Mesh(new THREE.BoxGeometry(2.0, 0.1, 2.2), demMat);
+    sanCabin.position.set(0, 0.05, 0); cabin.add(sanCabin);
+    const tranCabin = new THREE.Mesh(new THREE.BoxGeometry(2.0, 0.08, 2.2), vangMat);
+    tranCabin.position.set(0, 2.05, 0); cabin.add(tranCabin);
+    const denCabin = new THREE.Mesh(new THREE.PlaneGeometry(1.2, 0.8), new THREE.MeshBasicMaterial({color:0xFFF2B0}));
+    denCabin.rotation.x = Math.PI / 2; denCabin.position.set(0, 2.0, 0); cabin.add(denCabin);
+    const vachTay = new THREE.Mesh(new THREE.PlaneGeometry(2.2, 2.0), kinhMat);
+    vachTay.rotation.y = -Math.PI / 2; vachTay.position.set(-1.0, 1.05, 0); cabin.add(vachTay);
+    const vachBac = new THREE.Mesh(new THREE.PlaneGeometry(2.0, 2.0), kinhMat);
+    vachBac.position.set(0, 1.05, -1.1); cabin.add(vachBac);
+    const vachNam = new THREE.Mesh(new THREE.PlaneGeometry(2.0, 2.0), kinhMat);
+    vachNam.position.set(0, 1.05, 1.1); cabin.add(vachNam);
+    cabin.position.set(cx, TU_DONG_Y_NEN, cz);
+    nhom.add(cabin);
+    /* 2 cánh cửa trượt phía đông (x = cx + 1.3), trượt dọc z */
+    const cuaMat = new THREE.MeshStandardMaterial({color:0xC9A227, roughness:0.3, metalness:0.7});
+    const cuaTrai = new THREE.Mesh(new THREE.BoxGeometry(0.1, 2.0, 1.36), cuaMat);
+    cuaTrai.position.set(cx + 1.3, TU_DONG_Y_NEN + 1.0, cz - 0.68); cuaTrai.castShadow = true; nhom.add(cuaTrai);
+    const cuaPhai = new THREE.Mesh(new THREE.BoxGeometry(0.1, 2.0, 1.36), cuaMat);
+    cuaPhai.position.set(cx + 1.3, TU_DONG_Y_NEN + 1.0, cz + 0.68); cuaPhai.castShadow = true; nhom.add(cuaPhai);
+    /* Biển tên + bảng tầng trên mặt đông (nhìn từ quảng trường) */
+    const bien = new THREE.Mesh(new THREE.PlaneGeometry(2.6, 0.8), new THREE.MeshBasicMaterial({map:tuDongTextureChu('🛗 THANG MÁY', 'Tòa ' + k.khoi + ' · 12 tầng')}));
+    bien.rotation.y = Math.PI / 2; bien.position.set(cx + 1.62, 2.75, cz); nhom.add(bien);
+    const cv = document.createElement('canvas'); cv.width = 512; cv.height = 256;
+    const tex = new THREE.CanvasTexture(cv); tex.anisotropy = 8;
+    const bang = new THREE.Mesh(new THREE.PlaneGeometry(2.4, 1.2), new THREE.MeshBasicMaterial({map:tex}));
+    bang.rotation.y = Math.PI / 2; bang.position.set(cx + 1.62, 4.1, cz); nhom.add(bang);
+    nhom.traverse(function(o){ o.userData.doiDoHoa = 7; });
+    sceneCity.add(nhom);
+    const tm = {khoi:k.khoi, cx:cx, cz:cz, nhom:nhom, cabin:cabin, cuaTrai:cuaTrai, cuaPhai:cuaPhai,
+      ctx:cv.getContext('2d'), tex:tex, y:TU_DONG_Y_NEN, yDich:TU_DONG_Y_NEN, tangHien:1, tangDich:1,
+      trangThai:'cho', cua:1, t0:0, trongThang:false};
+    tuDongVeBangTang(tm, 1, 'cho');
+    window.__thangMay[k.khoi] = tm;
+    return tm;
+  }
+  if(typeof KHOI_NHA !== 'undefined') KHOI_NHA.forEach(function(k){ try{ dungThangMayTuDong(k); }catch(e){} });
+  /* ---- 4. Giao diện màn mở đầu: 2 chế độ + chọn bài ---- */
+  const st = document.createElement('style');
+  st.textContent = '.td-che-do{width:min(1060px,96%);background:rgba(11,18,32,.82);border:2px solid #C9A227;border-radius:16px;padding:12px 16px}'
+    + '.td-tieu-de{font-size:20px;font-weight:800;color:#E8C95A;text-align:center;margin-bottom:8px}'
+    + '.td-hang{display:flex;gap:14px;justify-content:center;flex-wrap:wrap}'
+    + '.td-nut{display:flex;flex-direction:column;gap:4px;min-width:300px;align-items:center;text-align:center}'
+    + '.td-nut span{font-size:15px;font-weight:600;opacity:.9}'
+    + '.td-nut.chon{outline:3px solid #E8C95A;box-shadow:0 0 18px rgba(232,201,90,.55)}'
+    + '.td-trang-thai{text-align:center;font-size:16px;color:#FDF6E3;margin-top:8px;font-weight:600}'
+    + '.td-chon-bai{width:min(1060px,96%);background:rgba(11,18,32,.82);border:2px solid #C9A227;border-radius:16px;padding:12px 16px;max-height:44vh;overflow:auto}'
+    + '.td-luoi{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}'
+    + '@media (max-width:900px){.td-luoi{grid-template-columns:repeat(2,1fr)}}'
+    + '.td-bai{text-align:left;background:#1F2A44;border:1px solid #3A4A6B;border-radius:10px;color:#FDF6E3;padding:10px 12px;cursor:pointer;display:flex;flex-direction:column;gap:2px}'
+    + '.td-bai b{font-size:16px;color:#E8C95A}'
+    + '.td-bai span{font-size:15px;font-weight:600;line-height:1.3}'
+    + '.td-bai small{font-size:13px;opacity:.85}'
+    + '.td-bai.chon{background:#C9A227;color:#0B1220;border-color:#E8C95A}'
+    + '.td-bai.chon b{color:#0B1220}'
+    + '.td-ghi-chu{text-align:center;font-size:14px;color:#FDF6E3;opacity:.9;margin-top:8px}';
+  document.head.appendChild(st);
+  const moDuoi = document.querySelector('.mo-dau-duoi');
+  if(moDuoi){
+    const hopCheDo = document.createElement('div');
+    hopCheDo.className = 'td-che-do'; hopCheDo.id = 'td-che-do';
+    hopCheDo.innerHTML = '<div class="td-tieu-de">🎮 Chọn cách vào lớp hôm nay:</div>'
+      + '<div class="td-hang">'
+      + '<button type="button" class="nut nut-lon td-nut chon" id="td-nut-thu-cong">🖐️ THỦ CÔNG<span>Tự đi lại, tự bấm E vào tòa tháp như mọi khi</span></button>'
+      + '<button type="button" class="nut nut-lon td-nut" id="td-nut-tu-dong">🤖 TỰ ĐỘNG<span>Robot dẫn đoàn thẳng vào lớp đã chọn</span></button>'
+      + '</div>'
+      + '<div class="td-trang-thai" id="td-trang-thai">Chế độ Thủ công — thầy tự dẫn đoàn như mọi khi.</div>';
+    moDuoi.insertBefore(hopCheDo, moDuoi.firstChild);
+    const hopBai = document.createElement('div');
+    hopBai.className = 'td-chon-bai'; hopBai.id = 'td-chon-bai'; hopBai.style.display = 'none';
+    hopBai.innerHTML = '<div class="td-tieu-de">📚 Chọn bài học — <span id="td-ten-lop">lớp …</span></div>'
+      + '<div class="td-luoi" id="td-luoi-bai"></div>'
+      + '<div class="td-ghi-chu" id="td-ghi-chu"></div>';
+    moDuoi.insertBefore(hopBai, hopCheDo.nextSibling);
+  }
+  function tuDongKhoiTuLop(){
+    try{ const lop = (typeof tenLop !== 'undefined' && tenLop) ? String(tenLop) : '7B'; return parseInt(lop, 10) || 7; }catch(e){ return 7; }
+  }
+  window.tuDongChonCheDo = function(cheDo){
+    window.tuDongCheDo = cheDo;
+    const a = document.getElementById('td-nut-thu-cong'), b = document.getElementById('td-nut-tu-dong');
+    if(a) a.classList.toggle('chon', cheDo === 'thu-cong');
+    if(b) b.classList.toggle('chon', cheDo === 'tu-dong');
+    const tt = document.getElementById('td-trang-thai');
+    if(cheDo === 'tu-dong'){
+      window.tuDongPhong = null; window.tuDongTenBai = ''; window.tuDongMaBai = '';
+      try{ const pl = $('panel-lop'); if(pl) pl.open = false; }catch(e){}   /* gap bang lop lai cho bang chon bai hien du */
+      if(tt) tt.textContent = 'Chế độ Tự động — thầy chọn lớp, chọn bài, chọn xe rồi bấm Bắt đầu; robot dẫn đoàn vào thẳng lớp.';
+      window.tuDongHienChonBai();
+    } else {
+      const p = document.getElementById('td-chon-bai'); if(p) p.style.display = 'none';
+      if(tt) tt.textContent = 'Chế độ Thủ công — thầy tự dẫn đoàn như mọi khi.';
+    }
+  };
+  window.tuDongHienChonBai = function(){
+    if(window.tuDongCheDo !== 'tu-dong') return;
+    const khoi = tuDongKhoiTuLop();
+    const hop = document.getElementById('td-chon-bai'); if(!hop) return;
+    const tenLopEl = document.getElementById('td-ten-lop');
+    try{ if(tenLopEl) tenLopEl.textContent = 'lớp ' + (typeof tenLop !== 'undefined' ? tenLop : ''); }catch(e){}
+    const luoi = document.getElementById('td-luoi-bai'); if(!luoi) return;
+    luoi.innerHTML = '';
+    (TU_DONG_BAI[khoi] || []).forEach(function(muc){
+      const nut = document.createElement('button');
+      nut.type = 'button'; nut.className = 'td-bai';
+      nut.innerHTML = '<b>' + muc.nhan + ' · ' + muc.ma + '</b><span>' + muc.ten + '</span><small>Tòa ' + khoi + ' · Tầng ' + muc.tang + ' — đi thang máy lên</small>';
+      nut.addEventListener('click', function(){ window.tuDongChonBai(khoi, muc, nut); });
+      luoi.appendChild(nut);
+    });
+    const gc = document.getElementById('td-ghi-chu');
+    if(gc) gc.textContent = (khoi === 8)
+      ? 'Lớp 8 còn 11 bài sau khi gộp Bài 3+4 (thầy gọi bài gộp là Bài 4, đi tầng 4). Tầng 3 (8.A2.1) vẫn mở được ở chế độ Thủ công.'
+      : 'Mỗi bài 1 tầng — Bài N đi tầng N của tòa ' + khoi + '.';
+    hop.style.display = 'block';
+  };
+  window.tuDongChonBai = function(khoi, muc, nut){
+    document.querySelectorAll('#td-luoi-bai .td-bai').forEach(function(b){ b.classList.remove('chon'); });
+    if(nut) nut.classList.add('chon');
+    let phong = null;
+    try{ phong = (typeof phongTuKhoiPhong === 'function') ? phongTuKhoiPhong(khoi, muc.tang) : null; }catch(e){ phong = null; }
+    window.tuDongKhoi = khoi; window.tuDongTang = muc.tang;
+    window.tuDongPhong = phong;
+    window.tuDongTenBai = muc.ten; window.tuDongMaBai = muc.ma;
+    const tt = document.getElementById('td-trang-thai');
+    if(!phong){ if(tt) tt.textContent = '⚠️ Phòng ' + muc.nhan + ' chưa có trong game — báo Lucky kiểm tra.'; return; }
+    if(tt) tt.textContent = 'Đã chọn: ' + muc.nhan + ' — ' + muc.ten + ' (' + muc.ma + ') · Tòa ' + khoi + ' · Tầng ' + muc.tang + ' · Phòng ' + phong.id + '. Thầy chọn xe rồi bấm Bắt đầu.';
+  };
+  const nutTC = document.getElementById('td-nut-thu-cong');
+  if(nutTC) nutTC.addEventListener('click', function(){ window.tuDongChonCheDo('thu-cong'); });
+  const nutTD = document.getElementById('td-nut-tu-dong');
+  if(nutTD) nutTD.addEventListener('click', function(){ window.tuDongChonCheDo('tu-dong'); });
+  const slLop = document.getElementById('chon-lop');
+  if(slLop) slLop.addEventListener('change', function(){ setTimeout(function(){ window.tuDongPhong = null; window.tuDongHienChonBai(); }, 500); });
+  const nutDS = document.getElementById('btn-dung-danh-sach');
+  if(nutDS) nutDS.addEventListener('click', function(){ setTimeout(function(){ window.tuDongHienChonBai(); }, 600); });
+  /* ---- 5. Luồng tự động sau tour (rẽ nhánh ở cuối tour) ---- */
+  window.tuDongDiToiToa = function(){
+    try{
+      const phong = window.tuDongPhong; if(!phong) return;
+      const k = (typeof khoiNhaCua === 'function') ? khoiNhaCua(phong.khoi) : null; if(!k) return;
+      const tm = window.__thangMay[phong.khoi]; if(!tm) return;
+      window.tuDongDaToiToa = true;
+      lxGiaiDoan = 'tu-dong-toi-toa';
+      try{ const pl = $('panel-lop'); if(pl) pl.open = false; }catch(e){}   /* chac chan bang lop khong che man hinh khi xem thang may */
+      const bb = document.getElementById('bien-bay'); if(bb) bb.style.display = 'none';
+      const nutBoQua = $('btn-bo-qua-noi'); if(nutBoQua) nutBoQua.style.display = 'none';
+      try{ if(typeof datLoiMoDau === 'function') datLoiMoDau('🤖 Tới tòa ' + phong.khoi + ' rồi — cả lớp theo robot vào thang máy nhé!'); }catch(e){}
+      try{ if(typeof datViTriNhanVat === 'function') datViTriNhanVat(-28, tm.cz); }catch(e){}
+      const cz = tm.cz;
+      doanThanhVien.forEach(function(m, i){
+        const hang = Math.floor(i / 2), cot = i % 2;
+        const qx = -36.4 + (cot === 0 ? 0 : 0.9), qz = cz - 1.4 + hang * 0.6;
+        m.userData.diChuyen = null;
+        datDoanDiCham(m, [
+          new THREE.Vector3(-10, 0, -2),
+          new THREE.Vector3(-24, 0, 10),
+          new THREE.Vector3(-35.0, 0, cz - 3),
+          new THREE.Vector3(qx, 0, qz)
+        ], i * 0.15, -Math.PI / 2, false);
+      });
+      try{ if(doanRobot){ doanRobot.visible = true; datDiChuyenNhieuDoan(doanRobot, [new THREE.Vector3(-10, 0.9, -2), new THREE.Vector3(-24, 0.9, 10), new THREE.Vector3(-36.0, 0.9, cz)], 0, 0, false); } }catch(e){}
+    }catch(e){}
+  };
+  window.tuDongVaoThangMay = function(){
+    try{
+      const phong = window.tuDongPhong; if(!phong) return;
+      const tm = window.__thangMay[phong.khoi]; if(!tm) return;
+      lxGiaiDoan = 'tu-dong-vao-thang';
+      try{ const pl = $('panel-lop'); if(pl) pl.open = false; }catch(e){}   /* bang lop khong che man hinh khi len thang */
+      try{ if(typeof datLoiMoDau === 'function') datLoiMoDau('🛗 Thang máy đây — cả lớp xếp hàng vào thang nào, lớp trưởng đi đầu!'); }catch(e){}
+      const cz = tm.cz;
+      const slotX = [-39.85, -39.4, -38.95, -38.5], slotZ = [cz - 0.75, cz, cz + 0.75];
+      doanThanhVien.forEach(function(m, i){
+        const hang = Math.floor(i / 3), cot = i % 3;
+        m.userData.diChuyen = null;
+        datDoanDiCham(m, [
+          new THREE.Vector3(-37.5, 0, cz),
+          new THREE.Vector3(slotX[hang], 0, slotZ[cot])
+        ], i * 0.5, Math.PI / 2, false);
+      });
+      try{ if(doanRobot){ doanRobot.visible = true; datDiChuyenNhieuDoan(doanRobot, [new THREE.Vector3(-37.5, 0.9, cz), new THREE.Vector3(-38.6, 0.9, cz + 0.85)], 0, Math.PI / 2, false); } }catch(e){}
+    }catch(e){}
+  };
+  window.tuDongLenThang = function(){
+    try{
+      const phong = window.tuDongPhong; if(!phong) return;
+      const tm = window.__thangMay[phong.khoi]; if(!tm) return;
+      lxGiaiDoan = 'tu-dong-thang-may';
+      tm.tangDich = window.tuDongTang;
+      tm.yDich = tuDongYTang(window.tuDongTang);
+      tm.trangThai = 'dong-cua'; tm.t0 = performance.now();
+      tm.trongThang = true;
+      /* Dua camera toi ngay goc xem thang may (khong cho camera lech tu tu). */
+      try{ if(typeof camCity !== 'undefined' && camCity){ camCity.position.set(-21, 3.4, tm.cz + 5.5); camCity.lookAt(-39.1, 4.2, tm.cz); } }catch(e){}
+      try{ if(typeof datLoiMoDau === 'function') datLoiMoDau('🛗 Cửa đóng rồi — thang máy lên tầng ' + window.tuDongTang + ' đây!'); }catch(e){}
+    }catch(e){}
+  };
+  window.tuDongRaThang = function(){
+    try{
+      const phong = window.tuDongPhong; if(!phong) return;
+      const tm = window.__thangMay[phong.khoi]; if(!tm) return;
+      lxGiaiDoan = 'tu-dong-ra-thang';
+      tm.trongThang = false;
+      try{ if(typeof datLoiMoDau === 'function') datLoiMoDau('🛗 Tới tầng ' + window.tuDongTang + ' rồi — cả lớp ra thang, vào lớp thôi!'); }catch(e){}
+      const cz = tm.cz;
+      doanThanhVien.forEach(function(m, i){
+        const hang = Math.floor(i / 2), cot = i % 2;
+        m.userData.diChuyen = null;
+        datDoanDiCham(m, [
+          new THREE.Vector3(-36.6, 0, cz - 1.2 + hang * 0.55),
+          new THREE.Vector3(-34.8, 0, cz - 1.5 + (cot === 0 ? 0 : 0.9) + hang * 0.1)
+        ], i * 0.15, Math.PI / 2, false);
+      });
+      try{ if(doanRobot){ doanRobot.visible = true; datDiChuyenNhieuDoan(doanRobot, [new THREE.Vector3(-36.6, 0.9, cz), new THREE.Vector3(-34.8, 0.9, cz)], 0, Math.PI / 2, false); } }catch(e){}
+    }catch(e){}
+  };
+  window.tuDongVaoPhong = function(){
+    try{
+      const phong = window.tuDongPhong; if(!phong) return;
+      lxGiaiDoan = 'xong';
+      window.tuDongDangChay = false;
+      try{ if(typeof moDanChuyenCanh === 'function') moDanChuyenCanh(); }catch(e){}
+      moHanhLang(phong, function(){
+        setTimeout(function(){
+          if(!phong) return;
+          if((ID_CU[phong.id] || phong.id) === '7-c4-1'){
+            chuyenSangCua(true);
+            hienBangGioiThieu(phong);
+            datDoanVaoPhong('door');
+          } else {
+            chuyenSangPhong(phong);
+          }
+          try{ if(typeof datBongBongRobot === 'function') datBongBongRobot('Vào học thôi!', phong.maBai + ' — ' + phong.ten, 5000); }catch(e){}
+        }, 450);
+      });
+    }catch(e){}
+  };
+  window.tuDongBoQuaToiToa = function(){
+    try{
+      const phong = window.tuDongPhong; if(!phong) return;
+      const tm = window.__thangMay[phong.khoi]; if(!tm) return;
+      const cz = tm.cz;
+      doanThanhVien.forEach(function(m, i){
+        const hang = Math.floor(i / 2), cot = i % 2;
+        m.userData.diChuyen = null;
+        m.position.set(-36.4 + (cot === 0 ? 0 : 0.9), 0, cz - 1.4 + hang * 0.6);
+        m.visible = true; m.rotation.y = -Math.PI / 2;
+      });
+      try{ if(doanRobot){ doanRobot.visible = true; doanRobot.position.set(-36.0, 0.9, cz); doanRobot.rotation.y = 0; doanRobot.userData.diChuyen = null; } }catch(e){}
+      window.tuDongDaToiToa = true;
+      lxGiaiDoan = 'tu-dong-toi-toa';
+      const nutBoQua = $('btn-bo-qua-noi'); if(nutBoQua) nutBoQua.style.display = 'none';
+      try{ if(typeof datLoiMoDau === 'function') datLoiMoDau('🤖 Tới tòa ' + phong.khoi + ' rồi — cả lớp vào thang máy nhé!'); }catch(e){}
+    }catch(e){}
+  };
+  /* Máy trạng thái thang máy — gọi mỗi khung hình từ capNhatDoan. */
+  window.capNhatThangMayTuDong = function(dt){
+    try{
+      const tm = window.__thangMay ? window.__thangMay[window.tuDongKhoi] : null;
+      if(!tm || tm.trangThai === 'cho') return;
+      const now = performance.now();
+      if(tm.trangThai === 'dong-cua'){
+        const u = Math.min(1, (now - tm.t0) / 800);
+        tm.cua = 1 - u;
+        if(u >= 1){ tm.trangThai = 'len'; tm.t0 = now; tm.yBatDau = tm.y; try{ if(typeof datLoiMoDau === 'function') datLoiMoDau('🛗 Thang máy đang lên tầng ' + tm.tangDich + ' — các em nhìn số tầng đổi nhé!'); }catch(e){} }
+      } else if(tm.trangThai === 'len'){
+        /* Dung dong ho thuc (performance.now) nhu luong den — len deu du FPS thap. */
+        const giu = (typeof window !== 'undefined') ? window.__tuDongGiuThang : null;
+        if(typeof giu === 'number'){
+          /* Moc kiem tra: giu cabin dung yen o muc giu de chup anh (chi test dung). */
+          tm.y = Math.min(tm.yDich, giu);
+        } else {
+          tm.y = Math.min(tm.yDich, (tm.yBatDau || TU_DONG_Y_NEN) + 1.3 * ((now - tm.t0) / 1000));
+        }
+        const tang = 1 + Math.round((tm.y - TU_DONG_Y_NEN) / TU_DONG_TANG_CAO);
+        if(tang !== tm.tangHien){ tm.tangHien = tang; tuDongVeBangTang(tm, tang, 'len'); }
+        if(tm.y >= tm.yDich){ tm.y = tm.yDich; tm.trangThai = 'mo-cua'; tm.t0 = now; tuDongVeBangTang(tm, tm.tangDich, 'toi'); }
+      } else if(tm.trangThai === 'mo-cua'){
+        const u = Math.min(1, (now - tm.t0) / 800);
+        tm.cua = u;
+        if(u >= 1){ tm.trangThai = 'xong'; window.tuDongRaThang(); }
+      }
+      tm.cabin.position.y = tm.y;
+      tm.cuaTrai.position.z = tm.cz - 0.68 - tm.cua * 0.62;
+      tm.cuaPhai.position.z = tm.cz + 0.68 + tm.cua * 0.62;
+      if(tm.trongThang){
+        doanThanhVien.forEach(function(m){ m.position.y = tm.y; });
+        if(doanRobot) doanRobot.position.y = tm.y + 0.9;
+      }
+    }catch(e){}
+  };
+  /* Hàm kiểm thử (chỉ dùng khi Lucky kiểm bằng trình duyệt thật): nhảy thẳng tới thang máy. */
+  window.__tuDongTest = {
+    vaoThangMay: function(khoi, tang){
+      const phong = phongTuKhoiPhong(khoi, tang);
+      if(!phong) return 'KHONG-CO-PHONG';
+      window.tuDongCheDo = 'tu-dong'; window.tuDongDangChay = true; window.tuDongDaToiToa = false;
+      window.tuDongKhoi = khoi; window.tuDongTang = tang; window.tuDongPhong = phong;
+      window.tuDongTenBai = phong.ten; window.tuDongMaBai = phong.maBai;
+      if(typeof xayDungDoan === 'function') xayDungDoan();
+      if(doanNhom.parent !== sceneCity) sceneCity.add(doanNhom);
+      doanNhom.visible = true;
+      window.tuDongBoQuaToiToa();
+      return phong.id;
+    }
+  };
+})();
+
   [[-6.5,-13],[6.5,-13],[-6.5,13],[6.5,13]].forEach(p=>{ /* fix5: ghe theo quang truong 28x28 */
     const ghe = new THREE.Group();
     const matGhe = new THREE.Mesh(new THREE.BoxGeometry(2.4, 0.12, 0.65), new THREE.MeshStandardMaterial({color:0x8A7A5A, roughness:0.8}));
@@ -5575,7 +6035,7 @@ function capNhatThanhPho(dt, t){
   camCity.position.y += (caoCity - camCity.position.y) * k;
   camCity.position.z += (cz - camCity.position.z) * k;
   camCity.lookAt(player.position.x, khoiGanNhat ? 4.6 : 3.8, player.position.z); /* fix4: nhin cao hon nua de thay du 4 tang + mai */
-  }  camCity.lookAt(player.position.x, khoiGanNhat ? 4.6 : 3.8, player.position.z); /* fix4: nhin cao hon nua de thay du 4 tang + mai */
+  }  if(!(typeof lxDangTour === 'function' && lxDangTour())) camCity.lookAt(player.position.x, khoiGanNhat ? 4.6 : 3.8, player.position.z); /* TU-DONG 23/11: khi dang tour thi giu huong nhin cua camera tour — dong lookAt le nay (co tu v15) luon xoay camera ve player sau khi capNhatCameraTour da dat huong khac, lam camera thang may nhin ve quang truong thay vi nhin thang */
   } /* TOA12TANG: het guard !hanhLang */
   /* fix5: NPC di bo tren via he (vong tron goc A=22.5, R=4) — re muot qua cua, heading dung quy uoc +Z (truoc day sai o 2 canh: huong PI thay vi 0 nen NPC di NGUOC), co nhip bob. R=4 de chan khong lan ra mep duong o goc cua. */
   npcs.forEach((n, i)=>{
@@ -6226,6 +6686,7 @@ function datDoanVaoPhong(canh){
 }
 function capNhatDoan(dt){
   if(!doanNhom || !doanNhom.visible) return;
+  try{ if(typeof capNhatThangMayTuDong === 'function') capNhatThangMayTuDong(dt); }catch(e){}
   const t = clock.elapsedTime;
   /* v15: luong den (duong bo qua mo dau) — xem khen 2s roi qua cong phan hieu da chon. */
   if(lxGiaiDoan === 'xuong' && doanThanhVien && doanThanhVien.length){
@@ -6244,7 +6705,15 @@ function capNhatDoan(dt){
     lxGiaiDoan = 'bay-quan'; lxQuetT0 = performance.now(); lxQuetDoan = -1;
     datLoiMoDau('🤖 Nhìn sang phía đông kìa — bể bơi và thư viện!');
   } else if(lxGiaiDoan === 'bay-quan' && performance.now() - lxQuetT0 >= 9000){
-    tapHopQuangTruong();
+    if(typeof window !== 'undefined' && window.tuDongDangChay){ tuDongDiToiToa(); } else { tapHopQuangTruong(); }
+  } else if(lxGiaiDoan === 'tu-dong-toi-toa' && doanThanhVien && doanThanhVien.length){
+    if(doanThanhVien.every(m => !m.userData.diChuyen)){ tuDongVaoThangMay(); }
+  } else if(lxGiaiDoan === 'tu-dong-vao-thang' && doanThanhVien && doanThanhVien.length){
+    if(doanThanhVien.every(m => !m.userData.diChuyen)){ tuDongLenThang(); }
+  } else if(lxGiaiDoan === 'tu-dong-ra-thang' && doanThanhVien && doanThanhVien.length){
+    if(doanThanhVien.every(m => !m.userData.diChuyen)){ tuDongVaoPhong(); }
+  } else if(lxGiaiDoan === 'xong' && typeof window !== 'undefined' && window.tuDongDangChay && !window.tuDongDaToiToa && doanThanhVien && doanThanhVien.length){
+    if(doanThanhVien.every(m => !m.userData.diChuyen)){ tuDongDiToiToa(); }
   }
   const capNhatMot = (obj, laRobot)=>{
     const dc = obj.userData.diChuyen;
@@ -17815,7 +18284,7 @@ function datDoanQuaCong(){
 let lxBoQuaMoDau = false, lxQuetT0 = 0, lxQuetDoan = -1, lxTourT0 = 0;
 let gocQuayHien = -1;
 let nhomBenDo = null, lxCamTam = null, lxCamHuong = null, lxTamTruoc = null;
-function lxDangTour(){ return (typeof lxGiaiDoan !== 'undefined' && (lxGiaiDoan === 'xuong-ben' || lxGiaiDoan === 'xem-khen' || lxGiaiDoan === 'tham-quan' || lxGiaiDoan === 'xem-bong' || lxGiaiDoan === 'bay-quan')); }
+function lxDangTour(){ return (typeof lxGiaiDoan !== 'undefined' && (lxGiaiDoan === 'xuong-ben' || lxGiaiDoan === 'xem-khen' || lxGiaiDoan === 'tham-quan' || lxGiaiDoan === 'xem-bong' || lxGiaiDoan === 'bay-quan' || lxGiaiDoan === 'tu-dong-toi-toa' || lxGiaiDoan === 'tu-dong-vao-thang' || lxGiaiDoan === 'tu-dong-thang-may' || lxGiaiDoan === 'tu-dong-ra-thang')); }
 function dungBenDo(){
   if(nhomBenDo || typeof sceneCity === 'undefined' || !sceneCity) return;
   const nhom = new THREE.Group(); nhom.name = 'benDo';
@@ -18048,6 +18517,7 @@ function tapHopQuangTruong(){
 }
 function boQuaTour(){
   try{
+    if(typeof window !== 'undefined' && window.tuDongDangChay){ tuDongBoQuaToiToa(); return; }
     if(doanThanhVien && doanThanhVien.length){
       doanThanhVien.forEach((m, i)=>{
         m.userData.diChuyen = null;
@@ -18070,6 +18540,14 @@ function capNhatCameraTour(dt){
       camCity.position.lerp(vtmp.set(gxE + 8, 9, -46), k);
       camCity.lookAt(gxE, 1.2, -16);
       return;
+    }
+    if(lxGiaiDoan === 'tu-dong-thang-may'){
+      const tm = (typeof window !== 'undefined' && window.__thangMay) ? window.__thangMay[window.tuDongKhoi] : null;
+      if(tm){
+        camCity.position.lerp(vtmp.set(-21, 3.4, tm.cz + 5.5), k);
+        camCity.lookAt(-39.1, 4.2, tm.cz);
+        return;
+      }
     }
     if(lxGiaiDoan === 'bay-quan'){
       const tq = (performance.now() - lxQuetT0)/1000;
@@ -18133,7 +18611,8 @@ function capNhatCameraTour(dt){
    mem (hop/tru/cau), KHONG hop vuong tho, KHONG voxel.
    Ghi chu: toa nha la cot moc nhin (khong mo duoc cua vao van phong that vi
    van phong co mat khau kiem tra phia may chu, khong co link cong khai). */
-/* ================= TOA NHA HOI DONG AI — 7 TANG (v11, 22/11) · v12: DO CAY/NUI CHE TOA · v13: MAP GAP 3 · v14: MAT TIEN TOA QUAY DONG + CAY NHO · v15: LUONG LEN XE MOI (CHON LOP TRUOC + XEM KHEN 2S + QUA CONG PHAN HIEU) · v16: LOP TRUONG DAN DOAN (1 HANG DOC + BANG DO + BIEN LOP TRUONG) · v17: MO RONG GIOI HAN DI CHUYEN ±100 (SUA LOI KHONG SANG DUOC TOA) · v18: KEO 4 TOA LAI GAN SAN x=-70->-43 · v19: 3 GOC MAY + HS TREN XE + BEN DO + LUONG DEN MOI + GOP CHON LOP TRUOC / DS HIEN NGAY TU LIVE · v20: GOP 3 MUC DOI DO HOA (vuon hoa + duong lat da + cot co) · v21: GOP MUC 4 DOI DO HOA (4 BO BAN GHE DA QUANH QUANG TRUONG) · v22: GOP MUC 5 DOI DO HOA (VUON CAY AN QUA PHIA DONG) · v23: GOP MUC 16 LUOT 1 DOI DO HOA (TUONG RAO PHIA DONG + CONG PHU DONG) =================
+/* ================= TOA NHA HOI DONG AI — 7 TANG (v11, 22/11) · v12: DO CAY/NUI CHE TOA · v13: MAP GAP 3 · v14: MAT TIEN TOA QUAY DONG + CAY NHO · v15: LUONG LEN XE MOI (CHON LOP TRUOC + XEM KHEN 2S + QUA CONG PHAN HIEU) · v16: LOP TRUONG DAN DOAN (1 HANG DOC + BANG DO + BIEN LOP TRUONG) · v17: MO RONG GIOI HAN DI CHUYEN ±100 (SUA LOI KHONG SANG DUOC TOA) · v18: KEO 4 TOA LAI GAN SAN x=-70->-43 · v19: 3 GOC MAY + HS TREN XE + BEN DO + LUONG DEN MOI + GOP CHON LOP TRUOC / DS HIEN NGAY TU LIVE · v20: GOP 3 MUC DOI DO HOA (vuon hoa + duong lat da + cot co) · v21: GOP MUC 4 DOI DO HOA (4 BO BAN GHE DA QUANH QUANG TRUONG) · v22: GOP MUC 5 DOI DO HOA (VUON CAY AN QUA PHIA DONG) · v23: GOP MUC 16 LUOT 1 DOI DO HOA (TUONG RAO PHIA DONG + CONG PHU DONG)
+· v24: GOP CHE DO TU DONG + THANG MAY (theo ban demo da duyet) =================
    Vi tri: suon ben canh duong di vao (tay duong chinh), (-16, -17), mat tien
    huong nam ve quang truong. Tang 1-4: 12 phong/tang; doi DO HOA tang 1 mo rong
    (do hoa + ve map + xay ha tang game). TANG 5 = DOI LUU TRU (doi chua co phong
