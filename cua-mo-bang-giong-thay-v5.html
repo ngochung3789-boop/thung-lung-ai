@@ -4654,6 +4654,63 @@ function dungThanhPho(){
       tru.position.set(x, 0.58, -24.2); tru.castShadow = true; tru.userData.doiDoHoa = 3; sceneCity.add(tru);
     });
   })();
+/* DOI-DO-HOA #4 (23/11): Ghế đá + bàn đá học nhóm ngoài trời quanh quảng trường (4 bộ).
+     Mỗi bộ: đế đá + bàn đá 1,8x1,0m + 2 ghế đá đối diện + chậu hoa nhỏ trên bàn.
+     Vị trí: (12,10.5) đông-nam, (12,-10) đông-bắc, (-12,-10) tây-bắc, (-12,-4) tây-giữa
+     (góc tây-nam đã có sân khấu + điểm đỗ xe buýt + vòng cung đoàn + khán đài nên không đặt).
+     Mỗi bộ xoay để trục dài vuông góc với hướng về đài phun nước. Không che tháp đồng hồ,
+     biển KHỐI, sân khấu khèn; không chắn lối đoàn (bộ gần nhất cách lối x=-9 hơn 1m). */
+  (function(){
+    const daSang = new THREE.MeshStandardMaterial({color:0xCFC8BC, roughness:0.75});
+    const daDam = new THREE.MeshStandardMaterial({color:0x8A8578, roughness:0.85});
+    const datNau = new THREE.MeshStandardMaterial({color:0x5A3A22, roughness:1});
+    const laXanh = new THREE.MeshStandardMaterial({color:0x3E7A34, roughness:0.9});
+    const mauHoa = [0xE63946, 0xFFD23F, 0xFF6FA5];
+    function taoBoBanDa(){
+      const bo = new THREE.Group();
+      /* Đế đá phẳng dưới bộ bàn ghế. */
+      const de = new THREE.Mesh(new THREE.BoxGeometry(3.0, 0.08, 2.4), daDam);
+      de.position.y = 0.04; de.receiveShadow = true; bo.add(de);
+      /* Bàn đá: mặt 1,8x1,0 dày 0,12, chân trụ giữa. */
+      const matBan = new THREE.Mesh(new THREE.BoxGeometry(1.8, 0.12, 1.0), daSang);
+      matBan.position.y = 0.78; matBan.castShadow = true; matBan.receiveShadow = true; bo.add(matBan);
+      const chanBan = new THREE.Mesh(new THREE.BoxGeometry(0.55, 0.72, 0.7), daDam);
+      chanBan.position.y = 0.4; chanBan.castShadow = true; bo.add(chanBan);
+      /* 2 ghế đá đối diện 2 bên bàn (mặt ghế + 2 chân). */
+      [-0.85, 0.85].forEach(z=>{
+        const ghe = new THREE.Group();
+        const matGhe = new THREE.Mesh(new THREE.BoxGeometry(1.8, 0.1, 0.45), daSang);
+        matGhe.position.y = 0.45; matGhe.castShadow = true; matGhe.receiveShadow = true; ghe.add(matGhe);
+        [-0.7, 0.7].forEach(x=>{
+          const chan = new THREE.Mesh(new THREE.BoxGeometry(0.18, 0.45, 0.4), daDam);
+          chan.position.set(x, 0.22, 0); chan.castShadow = true; ghe.add(chan);
+        });
+        ghe.position.z = z; bo.add(ghe);
+      });
+      /* Chậu hoa nhỏ đặt lệch 1 góc bàn. */
+      const chau = new THREE.Mesh(new THREE.CylinderGeometry(0.14, 0.11, 0.16, 12),
+        new THREE.MeshStandardMaterial({color:0xB03A2E, roughness:0.7}));
+      chau.position.set(0.65, 0.92, 0.3); chau.castShadow = true; bo.add(chau);
+      const dat = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.12, 0.03, 12), datNau);
+      dat.position.set(0.65, 0.99, 0.3); bo.add(dat);
+      for(let i=0;i<3;i++){
+        const a = i/3*Math.PI*2;
+        const bong = new THREE.Mesh(new THREE.SphereGeometry(0.055, 8, 6),
+          new THREE.MeshStandardMaterial({color:mauHoa[i], roughness:0.5, emissive:mauHoa[i], emissiveIntensity:0.2}));
+        bong.position.set(0.65 + Math.cos(a)*0.06, 1.08, 0.3 + Math.sin(a)*0.06); bo.add(bong);
+      }
+      return bo;
+    }
+    [[12, 10.5], [12, -10], [-12, -10], [-12, -4]].forEach(p=>{
+      const bo = taoBoBanDa();
+      bo.position.set(p[0], 0, p[1]);
+      /* Xoay để trục dài của bàn vuông góc với hướng từ bộ bàn về đài phun (0,0). */
+      bo.rotation.y = Math.atan2(-p[1], p[0]) + Math.PI/2;
+      bo.traverse(o=>{ o.userData.doiDoHoa = 4; });
+      sceneCity.add(bo);
+    });
+  })();
+
   [[-6.5,-13],[6.5,-13],[-6.5,13],[6.5,13]].forEach(p=>{ /* fix5: ghe theo quang truong 28x28 */
     const ghe = new THREE.Group();
     const matGhe = new THREE.Mesh(new THREE.BoxGeometry(2.4, 0.12, 0.65), new THREE.MeshStandardMaterial({color:0x8A7A5A, roughness:0.8}));
@@ -17881,7 +17938,7 @@ function capNhatCameraTour(dt){
    mem (hop/tru/cau), KHONG hop vuong tho, KHONG voxel.
    Ghi chu: toa nha la cot moc nhin (khong mo duoc cua vao van phong that vi
    van phong co mat khau kiem tra phia may chu, khong co link cong khai). */
-/* ================= TOA NHA HOI DONG AI — 7 TANG (v11, 22/11) · v12: DO CAY/NUI CHE TOA · v13: MAP GAP 3 · v14: MAT TIEN TOA QUAY DONG + CAY NHO · v15: LUONG LEN XE MOI (CHON LOP TRUOC + XEM KHEN 2S + QUA CONG PHAN HIEU) · v16: LOP TRUONG DAN DOAN (1 HANG DOC + BANG DO + BIEN LOP TRUONG) · v17: MO RONG GIOI HAN DI CHUYEN ±100 (SUA LOI KHONG SANG DUOC TOA) · v18: KEO 4 TOA LAI GAN SAN x=-70->-43 · v19: 3 GOC MAY + HS TREN XE + BEN DO + LUONG DEN MOI + GOP CHON LOP TRUOC / DS HIEN NGAY TU LIVE · v20: GOP 3 MUC DOI DO HOA (vuon hoa + duong lat da + cot co) =================
+/* ================= TOA NHA HOI DONG AI — 7 TANG (v11, 22/11) · v12: DO CAY/NUI CHE TOA · v13: MAP GAP 3 · v14: MAT TIEN TOA QUAY DONG + CAY NHO · v15: LUONG LEN XE MOI (CHON LOP TRUOC + XEM KHEN 2S + QUA CONG PHAN HIEU) · v16: LOP TRUONG DAN DOAN (1 HANG DOC + BANG DO + BIEN LOP TRUONG) · v17: MO RONG GIOI HAN DI CHUYEN ±100 (SUA LOI KHONG SANG DUOC TOA) · v18: KEO 4 TOA LAI GAN SAN x=-70->-43 · v19: 3 GOC MAY + HS TREN XE + BEN DO + LUONG DEN MOI + GOP CHON LOP TRUOC / DS HIEN NGAY TU LIVE · v20: GOP 3 MUC DOI DO HOA (vuon hoa + duong lat da + cot co) · v21: GOP MUC 4 DOI DO HOA (4 BO BAN GHE DA QUANH QUANG TRUONG) =================
    Vi tri: suon ben canh duong di vao (tay duong chinh), (-16, -17), mat tien
    huong nam ve quang truong. Tang 1-4: 12 phong/tang; doi DO HOA tang 1 mo rong
    (do hoa + ve map + xay ha tang game). TANG 5 = DOI LUU TRU (doi chua co phong
