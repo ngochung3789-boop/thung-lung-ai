@@ -5576,6 +5576,199 @@ function dungThanhPho(){
     sceneCity.add(nhom);
   })();
 
+/* DOI-DO-HOA #10 (24/11, mục 8): Sân bóng rổ cạnh khu thể thao (phía đông).
+     Tâm (73,62): sân 20×12m, trục dài theo x, mặt sân cam, vạch trắng, vòng tròn
+     giữa sân, 2 vòng 3 điểm, 2 khu vực hình chữ nhật (màu xanh) + vạch ném phạt;
+     2 rổ (cột thép navy, bảng trắng + ô cam, vành cam, lưới trắng) ở 2 đầu đông/tây;
+     1 quả bóng cam trên sân, 2 ghế gỗ dài phía bắc, biển 'SÂN BÓNG RỔ' ở mép nam
+     quay về phía sân bóng đá. Không lấn sân bóng đá, tường đông, đường vòng đông;
+     không chắn lối đoàn. */
+  (function(){
+    const nhom = new THREE.Group();
+    const CX = 73, CZ = 62;
+    const sanMat = new THREE.MeshStandardMaterial({color:0xE07B39, roughness:0.85});
+    const nenMat = new THREE.MeshStandardMaterial({color:0xCFC8BC, roughness:0.9});
+    const vachMat = new THREE.MeshStandardMaterial({color:0xFFFFFF, roughness:0.6});
+    const khuMat = new THREE.MeshStandardMaterial({color:0x2E6FB7, roughness:0.8});
+    const thepMat = new THREE.MeshStandardMaterial({color:0x1F2A44, roughness:0.5, metalness:0.4});
+    const bangMat = new THREE.MeshStandardMaterial({color:0xF5F7FA, roughness:0.4});
+    const camMat = new THREE.MeshStandardMaterial({color:0xE8722A, roughness:0.5});
+    const luoiMat = new THREE.MeshStandardMaterial({color:0xFFFFFF, roughness:0.6, wireframe:true, transparent:true, opacity:0.75});
+    const goMat = new THREE.MeshStandardMaterial({color:0x8B5A2B, roughness:0.75});
+    const vangMat = new THREE.MeshStandardMaterial({color:0xC9A227, roughness:0.35, metalness:0.6});
+    const cotMat = new THREE.MeshStandardMaterial({color:0x4A3226, roughness:0.8});
+    function them(mesh, x, y, z){
+      mesh.position.set(x, y, z); mesh.castShadow = true; nhom.add(mesh);
+      return mesh;
+    }
+    /* --- Nền xám viền quanh + mặt sân cam 20×12. --- */
+    them(new THREE.Mesh(new THREE.BoxGeometry(22, 0.1, 14), nenMat), CX, 0.05, CZ);
+    them(new THREE.Mesh(new THREE.BoxGeometry(20, 0.12, 12), sanMat), CX, 0.06, CZ);
+    /* --- Vạch trắng: biên 4 cạnh + vạch giữa sân. --- */
+    them(new THREE.Mesh(new THREE.BoxGeometry(20, 0.02, 0.12), vachMat), CX, 0.13, CZ - 5.94);
+    them(new THREE.Mesh(new THREE.BoxGeometry(20, 0.02, 0.12), vachMat), CX, 0.13, CZ + 5.94);
+    them(new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.02, 12), vachMat), CX - 9.94, 0.13, CZ);
+    them(new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.02, 12), vachMat), CX + 9.94, 0.13, CZ);
+    them(new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.02, 12), vachMat), CX, 0.13, CZ);
+    /* --- Vòng tròn giữa sân. --- */
+    const vong = them(new THREE.Mesh(new THREE.TorusGeometry(1.8, 0.06, 8, 40), vachMat), CX, 0.13, CZ);
+    vong.rotation.x = -Math.PI / 2;
+    /* --- Khu vực hình chữ nhật + vạch ném phạt 2 đầu. --- */
+    [-1, 1].forEach(h => {
+      const xk = CX + h * 7.1; /* tâm khu: cách biên 2.9m */
+      them(new THREE.Mesh(new THREE.BoxGeometry(5.8, 0.02, 3.6), khuMat), xk, 0.13, CZ);
+      them(new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.02, 3.6), vachMat), CX + h * 4.2, 0.13, CZ);
+    });
+    /* --- Vòng 3 điểm: nửa vòng tròn r=5.5 tâm tại rổ mỗi đầu, mở về giữa sân. --- */
+    [-1, 1].forEach(h => {
+      const g = new THREE.TorusGeometry(5.5, 0.06, 8, 40, Math.PI);
+      g.rotateX(-Math.PI / 2);
+      g.rotateY(h < 0 ? -Math.PI / 2 : Math.PI / 2);
+      them(new THREE.Mesh(g, vachMat), CX + h * 9.45, 0.13, CZ);
+    });
+    /* --- 2 rổ: cột + tay đỡ + bảng + ô cam + vành + lưới. --- */
+    [-1, 1].forEach(h => {
+      const xp = CX + h * 10.5;   /* cột: ngoài biên 0.5m */
+      const xb = CX + h * 9.9;    /* bảng */
+      const xr = CX + h * 9.45;   /* tâm vành (cách biên 0.55m) */
+      them(new THREE.Mesh(new THREE.CylinderGeometry(0.09, 0.09, 3.9, 10), thepMat), xp, 1.95, CZ);
+      them(new THREE.Mesh(new THREE.BoxGeometry(0.7, 0.1, 0.1), thepMat), CX + h * 10.2, 3.85, CZ);
+      const bang = them(new THREE.Mesh(new THREE.BoxGeometry(0.08, 1.05, 1.8), bangMat), xb, 3.5, CZ);
+      const oCam = them(new THREE.Mesh(new THREE.BoxGeometry(0.03, 0.45, 0.6), camMat), xb - h * 0.05, 3.3, CZ);
+      const vanh = them(new THREE.Mesh(new THREE.TorusGeometry(0.23, 0.02, 8, 20), camMat), xr, 3.05, CZ);
+      vanh.rotation.x = -Math.PI / 2;
+      them(new THREE.Mesh(new THREE.CylinderGeometry(0.23, 0.16, 0.35, 12, 1, true), luoiMat), xr, 2.85, CZ);
+    });
+    /* --- 1 quả bóng cam trên sân. --- */
+    them(new THREE.Mesh(new THREE.SphereGeometry(0.24, 16, 12), camMat), CX - 3, 0.36, CZ + 1.5);
+    /* --- 2 ghế gỗ dài phía bắc sân, quay mặt về sân. --- */
+    [68, 78].forEach(gx => {
+      them(new THREE.Mesh(new THREE.BoxGeometry(2.2, 0.12, 0.5), goMat), gx, 0.55, CZ + 8.5);
+      them(new THREE.Mesh(new THREE.BoxGeometry(2.2, 0.6, 0.08), goMat), gx, 0.95, CZ + 8.72);
+      them(new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.5, 0.45), goMat), gx - 0.95, 0.25, CZ + 8.5);
+      them(new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.5, 0.45), goMat), gx + 0.95, 0.25, CZ + 8.5);
+    });
+    /* --- Biển 'SÂN BÓNG RỔ' 2 cột gỗ ở mép nam, mặt quay về phía sân bóng đá (-z). --- */
+    [-1.1, 1.1].forEach(dx => {
+      them(new THREE.Mesh(new THREE.BoxGeometry(0.12, 1.7, 0.12), cotMat), CX + dx, 0.95, CZ - 7.8);
+    });
+    const bien = new THREE.Mesh(new THREE.PlaneGeometry(2.6, 0.85),
+      new THREE.MeshStandardMaterial({map: textureBien('SÂN BÓNG RỔ', 'Rổ · Vạch sân · Chơi nhóm', '#B45309'), roughness:0.6}));
+    bien.position.set(CX, 1.65, CZ - 7.8); bien.rotation.y = Math.PI; bien.castShadow = true; nhom.add(bien);
+    const khungBien = new THREE.Mesh(new THREE.BoxGeometry(2.7, 0.95, 0.06), vangMat);
+    khungBien.position.set(CX, 1.65, CZ - 7.75); nhom.add(khungBien);
+    nhom.traverse(o=>{ o.userData.doiDoHoa = 10; });
+    sceneCity.add(nhom);
+  })();
+
+/* DOI-DO-HOA #11 (24/11, mục 9): Góc đọc sách ngoài trời gần thư viện.
+     Tâm (71,-31), ngay trước cửa thư viện, nhìn ra hồ nước: sân lát gạch 7×5,5m;
+     kệ sách gỗ 3 tầng đầy sách nhiều màu ở mép nam; bàn đá tròn giữa sân + 2 ghế
+     gỗ đối diện; ô che nắng lớn màu cam trên bàn; 3 cuốn sách trên bàn; 2 chậu hoa
+     ở góc bắc; 1 cây nhỏ góc tây-nam; biển 'GÓC ĐỌC SÁCH' ở mép bắc quay về phía hồ.
+     Không lấn thư viện / hồ nước / vườn cây / đường bộ; không chắn lối đoàn. */
+  (function(){
+    const nhom = new THREE.Group();
+    const CX = 71, CZ = -31;
+    const gachMat = new THREE.MeshStandardMaterial({color:0xE8DCC8, roughness:0.9});
+    const gachMat2 = new THREE.MeshStandardMaterial({color:0xD9C7A7, roughness:0.9});
+    const goMat = new THREE.MeshStandardMaterial({color:0x8B5A2B, roughness:0.75});
+    const goDamMat = new THREE.MeshStandardMaterial({color:0x6B4423, roughness:0.75});
+    const daMat = new THREE.MeshStandardMaterial({color:0xCFC8BC, roughness:0.9});
+    const thepMat = new THREE.MeshStandardMaterial({color:0x1F2A44, roughness:0.5, metalness:0.4});
+    const camMat = new THREE.MeshStandardMaterial({color:0xF59E0B, roughness:0.6});
+    const trangMat = new THREE.MeshStandardMaterial({color:0xFDF6E3, roughness:0.6});
+    const vangMat = new THREE.MeshStandardMaterial({color:0xC9A227, roughness:0.35, metalness:0.6});
+    const cotMat = new THREE.MeshStandardMaterial({color:0x4A3226, roughness:0.8});
+    const laMat = new THREE.MeshStandardMaterial({color:0x2D8A4E, roughness:0.8});
+    const laNhatMat = new THREE.MeshStandardMaterial({color:0x4CAF50, roughness:0.8});
+    const mauSach = [0xDC2626, 0x2563EB, 0x059669, 0xD97706, 0x7C3AED];
+    const sachMats = mauSach.map(c => new THREE.MeshStandardMaterial({color:c, roughness:0.6}));
+    function them(mesh, x, y, z){
+      mesh.position.set(x, y, z); mesh.castShadow = true; nhom.add(mesh);
+      return mesh;
+    }
+    /* --- Sân lát gạch 7×5,5m: nền + 2 tông gạch xen kẽ theo hàng. --- */
+    them(new THREE.Mesh(new THREE.BoxGeometry(7, 0.1, 5.5), gachMat), CX, 0.05, CZ);
+    for(let r = 0; r < 5; r++){
+      for(let c = 0; c < 7; c++){
+        if((r + c) % 2 === 0) continue;
+        them(new THREE.Mesh(new THREE.BoxGeometry(0.98, 0.02, 1.08), gachMat2),
+          CX - 3 + c, 0.11, CZ - 2.2 + r * 1.1);
+      }
+    }
+    /* --- Kệ sách gỗ 3 tầng ở mép nam (z=-33.2), mặt sách quay về phía bắc (+z). --- */
+    const keX = CX, keZ = CZ - 2.2;
+    them(new THREE.Mesh(new THREE.BoxGeometry(0.12, 1.9, 0.55), goDamMat), keX - 1.25, 0.95, keZ);
+    them(new THREE.Mesh(new THREE.BoxGeometry(0.12, 1.9, 0.55), goDamMat), keX + 1.25, 0.95, keZ);
+    them(new THREE.Mesh(new THREE.BoxGeometry(2.6, 0.1, 0.55), goDamMat), keX, 1.9, keZ);
+    them(new THREE.Mesh(new THREE.BoxGeometry(2.6, 0.08, 0.5), goMat), keX, 0.08, keZ);
+    [0.62, 1.22].forEach(sy => {
+      them(new THREE.Mesh(new THREE.BoxGeometry(2.4, 0.06, 0.5), goMat), keX, sy, keZ);
+    });
+    them(new THREE.Mesh(new THREE.BoxGeometry(2.6, 1.9, 0.06), goMat), keX, 0.95, keZ - 0.26);
+    [0.35, 0.92, 1.52].forEach((sy, tang) => {
+      for(let s = 0; s < 7; s++){
+        const mau = sachMats[(tang * 3 + s) % 5];
+        them(new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.42, 0.36), mau),
+          keX - 1.02 + s * 0.34, sy, keZ + 0.02);
+      }
+    });
+    /* --- Bàn đá tròn giữa sân + 3 cuốn sách trên bàn. --- */
+    them(new THREE.Mesh(new THREE.CylinderGeometry(0.85, 0.85, 0.1, 24), daMat), CX, 0.75, CZ + 0.5);
+    them(new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.18, 0.7, 12), daMat), CX, 0.38, CZ + 0.5);
+    them(new THREE.Mesh(new THREE.CylinderGeometry(0.45, 0.5, 0.08, 20), daMat), CX, 0.04, CZ + 0.5);
+    [[0.28, 0.12, 0], [-0.2, 0.12, 0.25], [0.05, 0.12, -0.3]].forEach((o, i) => {
+      const b = them(new THREE.Mesh(new THREE.BoxGeometry(0.42, 0.07, 0.3), sachMats[(i * 2 + 1) % 5]),
+        CX + o[0], 0.84, CZ + 0.5 + o[2]);
+      b.rotation.y = (i - 1) * 0.5;
+    });
+    /* --- 2 ghế gỗ 2 bên bàn (ghế tây quay về kệ sách, ghế đông quay ra hồ). --- */
+    [[-1.5, 1], [1.5, -1]].forEach(g => {
+      const gx = CX + g[0], huong = g[1];
+      them(new THREE.Mesh(new THREE.BoxGeometry(1.8, 0.1, 0.45), goMat), gx, 0.5, CZ + 0.5);
+      them(new THREE.Mesh(new THREE.BoxGeometry(1.8, 0.55, 0.08), goMat), gx, 0.85, CZ + 0.5 + huong * 0.24);
+      them(new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.45, 0.4), goMat), gx - 0.8, 0.25, CZ + 0.5);
+      them(new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.45, 0.4), goMat), gx + 0.8, 0.25, CZ + 0.5);
+    });
+    /* --- Ô che nắng lớn màu cam trên bàn: cột thép + tán nón + chóp vàng + viền trắng. --- */
+    them(new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.06, 2.9, 10), thepMat), CX, 1.45, CZ + 0.5);
+    const tan = them(new THREE.Mesh(new THREE.ConeGeometry(2.3, 0.9, 12, 1, true), camMat), CX, 2.95, CZ + 0.5);
+    const chop = them(new THREE.Mesh(new THREE.ConeGeometry(0.55, 0.35, 12), trangMat), CX, 3.45, CZ + 0.5);
+    const vien = them(new THREE.Mesh(new THREE.TorusGeometry(2.28, 0.04, 8, 24), trangMat), CX, 2.52, CZ + 0.5);
+    vien.rotation.x = Math.PI / 2;
+    them(new THREE.Mesh(new THREE.SphereGeometry(0.09, 10, 8), vangMat), CX, 3.68, CZ + 0.5);
+    /* --- 2 chậu hoa ở 2 góc bắc của sân. --- */
+    [[-1, -1], [1, -1]].forEach(g => {
+      const px = CX + g[0] * 3.1, pz = CZ + g[1] * 2.4;
+      them(new THREE.Mesh(new THREE.CylinderGeometry(0.32, 0.24, 0.4, 12),
+        new THREE.MeshStandardMaterial({color:0xB45309, roughness:0.7})), px, 0.2, pz);
+      them(new THREE.Mesh(new THREE.CylinderGeometry(0.28, 0.28, 0.05, 12),
+        new THREE.MeshStandardMaterial({color:0x5B3A1E, roughness:0.9})), px, 0.4, pz);
+      for(let f = 0; f < 5; f++){
+        const a = f * Math.PI * 2 / 5;
+        them(new THREE.Mesh(new THREE.SphereGeometry(0.11, 8, 6), sachMats[f % 5]),
+          px + Math.cos(a) * 0.14, 0.62, pz + Math.sin(a) * 0.14);
+      }
+      them(new THREE.Mesh(new THREE.SphereGeometry(0.13, 8, 6), sachMats[1]), px, 0.68, pz);
+    });
+    /* --- 1 cây nhỏ ở góc tây-nam của sân (không che nhà). --- */
+    them(new THREE.Mesh(new THREE.CylinderGeometry(0.09, 0.12, 1.2, 8), cotMat), CX - 3.1, 0.6, CZ - 2.4);
+    them(new THREE.Mesh(new THREE.SphereGeometry(0.9, 12, 10), laMat), CX - 3.1, 1.7, CZ - 2.4);
+    them(new THREE.Mesh(new THREE.SphereGeometry(0.55, 10, 8), laNhatMat), CX - 2.7, 2.1, CZ - 2.2);
+    /* --- Biển 'GÓC ĐỌC SÁCH' 2 cột gỗ ở mép bắc, mặt quay về phía hồ (+z). --- */
+    [-1.1, 1.1].forEach(dx => {
+      them(new THREE.Mesh(new THREE.BoxGeometry(0.12, 1.7, 0.12), cotMat), CX + dx, 0.95, CZ + 2.9);
+    });
+    const bien = new THREE.Mesh(new THREE.PlaneGeometry(2.6, 0.85),
+      new THREE.MeshStandardMaterial({map: textureBien('GÓC ĐỌC SÁCH', 'Kệ sách · Ghế ngồi · Ô che nắng', '#78350F'), roughness:0.6}));
+    bien.position.set(CX, 1.65, CZ + 2.9); bien.castShadow = true; nhom.add(bien);
+    const khungBien = new THREE.Mesh(new THREE.BoxGeometry(2.7, 0.95, 0.06), vangMat);
+    khungBien.position.set(CX, 1.65, CZ + 2.85); nhom.add(khungBien);
+    nhom.traverse(o=>{ o.userData.doiDoHoa = 11; });
+    sceneCity.add(nhom);
+  })();
+
 [[-6.5,-13],[6.5,-13],[-6.5,13],[6.5,13]].forEach(p=>{ /* fix5: ghe theo quang truong 28x28 */
     const ghe = new THREE.Group();
     const matGhe = new THREE.Mesh(new THREE.BoxGeometry(2.4, 0.12, 0.65), new THREE.MeshStandardMaterial({color:0x8A7A5A, roughness:0.8}));
@@ -18916,6 +19109,7 @@ function capNhatCameraTour(dt){
 · v24: GOP CHE DO TU DONG + THANG MAY (theo ban demo da duyet)
 · v25: GOP NHA DE XE MUC 6 + DS 8A PH II 42 BAN
 · v26: GOP HANH KHACH (CUA-SO-TRON + VONG-BAY-CAO 28s + BEN DO TRUOC CONG CHINH + CONG CHINH TO x1.3 + LUONG DI 1 MACH + LOP TRUONG NOI LT-T1..T12) + HO NUOC CAU CONG MUC 7
+· v27: GOP SAN BONG RO MUC 8 + GOC DOC SACH MUC 9
 · v26a: SUA BIEN CONG (dong 1 gioi han 1500px, het cat chu T/H)
 · v26b: TACH CUA SO TRON (nhom cuaSoXe luon hien; sua loi an cua so khi xuong xe)
 · v26c: GIU BONG BONG TRAM (gan lai khi doan dung lai do doi lop bat dong bo) =================
