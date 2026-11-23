@@ -5366,7 +5366,134 @@ function dungThanhPho(){
   };
 })();
 
-  [[-6.5,-13],[6.5,-13],[-6.5,13],[6.5,13]].forEach(p=>{ /* fix5: ghe theo quang truong 28x28 */
+  /* DOI-DO-HOA #8 (23/11, mục 6): Nhà để xe đạp / xe máy có mái che gần cổng chính.
+     Tâm (22,-80), phía đông cổng chính; nền bê tông 16.8×6.2m, mái tôn xanh nghiêng
+     nhẹ, 6 cột thép, mặt mở hướng bắc về quảng trường. 8 xe đạp nhiều màu dựng giá
+     chữ U + 3 xe máy ở dãy trong; biển 'NHÀ ĐỂ XE · Xe đạp · Xe máy' 2 cột trước
+     mái; 2 chậu hoa 2 góc trước. Không chắn cổng chính, đường đi bộ lát đá, lối
+     đoàn, đường vòng nam và tường nam (cách tường 16m). */
+  (function(){
+    const nhom = new THREE.Group();
+    const beMat = new THREE.MeshStandardMaterial({color:0xC9C2B4, roughness:0.95});
+    const thepMat = new THREE.MeshStandardMaterial({color:0x4A6B8A, roughness:0.4, metalness:0.6});
+    const tonMat = new THREE.MeshStandardMaterial({color:0x2E5A88, roughness:0.45, metalness:0.35});
+    const vienMat = new THREE.MeshStandardMaterial({color:0xF2E8D5, roughness:0.7});
+    const vangMat = new THREE.MeshStandardMaterial({color:0xC9A227, roughness:0.35, metalness:0.6});
+    const denMat = new THREE.MeshStandardMaterial({color:0x222222, roughness:0.6});
+    const bacMat = new THREE.MeshStandardMaterial({color:0xC0C0C0, roughness:0.3, metalness:0.7});
+    const laMat = new THREE.MeshStandardMaterial({color:0x3E7A34, roughness:0.9});
+    const chauMat = new THREE.MeshStandardMaterial({color:0xA8542E, roughness:0.8});
+    function them(mesh, x, y, z){
+      mesh.position.set(x, y, z); mesh.castShadow = true; nhom.add(mesh);
+      return mesh;
+    }
+    /* Ống nối 2 điểm (khung xe đạp). */
+    function ong(p1, p2, r, mat){
+      const a = new THREE.Vector3(p1[0], p1[1], p1[2]);
+      const b = new THREE.Vector3(p2[0], p2[1], p2[2]);
+      const d = new THREE.Vector3().subVectors(b, a);
+      const m = new THREE.Mesh(new THREE.CylinderGeometry(r, r, d.length(), 8), mat);
+      m.position.copy(a).addScaledVector(d, 0.5);
+      m.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), d.clone().normalize());
+      m.castShadow = true; return m;
+    }
+    /* --- Nền + cột + mái. --- */
+    them(new THREE.Mesh(new THREE.BoxGeometry(16.8, 0.1, 6.2), beMat), 22, 0.05, -80);
+    [15, 22, 29].forEach(x => {
+      [-82.4, -77.6].forEach(z => {
+        them(new THREE.Mesh(new THREE.BoxGeometry(0.22, 3.0, 0.22), thepMat), x, 1.6, z);
+      });
+    });
+    const mai = them(new THREE.Mesh(new THREE.BoxGeometry(17.4, 0.12, 6.8), tonMat), 22, 3.18, -80);
+    mai.rotation.x = 0.06;
+    them(new THREE.Mesh(new THREE.BoxGeometry(17.4, 0.14, 0.12), vienMat), 22, 3.12, -76.62);
+    them(new THREE.Mesh(new THREE.BoxGeometry(17.4, 0.14, 0.12), vienMat), 22, 3.32, -83.38);
+    /* --- Xe đạp: 2 bánh + khung ống + ghi đông + yên. --- */
+    function taoXeDap(mauThan){
+      const g = new THREE.Group();
+      const thanMat = new THREE.MeshStandardMaterial({color:mauThan, roughness:0.5, metalness:0.4});
+      [-0.55, 0.55].forEach(z => {
+        const b = new THREE.Mesh(new THREE.TorusGeometry(0.34, 0.03, 8, 20), denMat);
+        b.position.set(0, 0.34, z); b.rotation.y = Math.PI / 2; b.castShadow = true; g.add(b);
+        const nan = new THREE.Mesh(new THREE.CylinderGeometry(0.015, 0.015, 0.62, 6), bacMat);
+        nan.position.set(0, 0.34, z); nan.rotation.x = Math.PI / 2; g.add(nan);
+      });
+      g.add(ong([0, 0.34, -0.55], [0, 0.85, -0.15], 0.025, thanMat));
+      g.add(ong([0, 0.85, -0.15], [0, 0.82, 0.45], 0.025, thanMat));
+      g.add(ong([0, 0.35, 0.05], [0, 0.34, -0.55], 0.025, thanMat));
+      g.add(ong([0, 0.35, 0.05], [0, 0.85, -0.15], 0.025, thanMat));
+      g.add(ong([0, 0.35, 0.05], [0, 0.7, 0.48], 0.025, thanMat));
+      g.add(ong([0, 0.7, 0.48], [0, 0.34, 0.55], 0.02, bacMat));
+      const ghiDong = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, 0.5, 8), bacMat);
+      ghiDong.rotation.z = Math.PI / 2; ghiDong.position.set(0, 0.95, 0.48); ghiDong.castShadow = true; g.add(ghiDong);
+      const yen = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.04, 0.26), denMat);
+      yen.position.set(0, 0.88, -0.15); yen.castShadow = true; g.add(yen);
+      const banDap = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.04, 0.08), denMat);
+      banDap.position.set(0, 0.35, 0.05); g.add(banDap);
+      return g;
+    }
+    /* --- Xe máy: 2 bánh + thân + yên + tay lái + đèn. --- */
+    function taoXeMay(mauThan){
+      const g = new THREE.Group();
+      const thanMat = new THREE.MeshStandardMaterial({color:mauThan, roughness:0.45, metalness:0.4});
+      [-0.55, 0.55].forEach(z => {
+        const b = new THREE.Mesh(new THREE.TorusGeometry(0.28, 0.045, 8, 20), denMat);
+        b.position.set(0, 0.28, z); b.rotation.y = Math.PI / 2; b.castShadow = true; g.add(b);
+      });
+      const than = new THREE.Mesh(new THREE.BoxGeometry(0.42, 0.32, 1.15), thanMat);
+      than.position.set(0, 0.55, 0); than.castShadow = true; g.add(than);
+      const yenXe = new THREE.Mesh(new THREE.BoxGeometry(0.36, 0.08, 0.6), denMat);
+      yenXe.position.set(0, 0.76, -0.2); yenXe.castShadow = true; g.add(yenXe);
+      const chan = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.3, 0.5), thanMat);
+      chan.position.set(0, 0.62, 0.42); chan.rotation.x = -0.25; chan.castShadow = true; g.add(chan);
+      const tayLai = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, 0.55, 8), bacMat);
+      tayLai.rotation.z = Math.PI / 2; tayLai.position.set(0, 0.85, 0.45); tayLai.castShadow = true; g.add(tayLai);
+      const denTruoc = new THREE.Mesh(new THREE.SphereGeometry(0.06, 10, 8),
+        new THREE.MeshStandardMaterial({color:0xFFF2B0, roughness:0.2, emissive:0x554400}));
+      denTruoc.position.set(0, 0.62, 0.62); g.add(denTruoc);
+      const ongXa = new THREE.Mesh(new THREE.CylinderGeometry(0.035, 0.035, 0.5, 8), bacMat);
+      ongXa.rotation.x = Math.PI / 2; ongXa.position.set(0.18, 0.32, -0.35); g.add(ongXa);
+      return g;
+    }
+    /* --- Giá chữ U + 8 xe đạp (dãy ngoài, đầu xe hướng bắc ra cửa). --- */
+    const mauXe = [0xC0392B, 0x2471A3, 0x1E8449, 0xF39C12, 0x8E44AD, 0x16A085, 0xD35400, 0x2C3E50];
+    mauXe.forEach((mau, i) => {
+      const x = 15.2 + i * 1.95;
+      const gia = new THREE.Mesh(new THREE.TorusGeometry(0.22, 0.025, 8, 16, Math.PI), bacMat);
+      gia.position.set(x, 0.1, -78.6); gia.castShadow = true; nhom.add(gia);
+      const xe = taoXeDap(mau);
+      xe.position.set(x, 0.1, -79.6); xe.rotation.y = (i % 2 === 0 ? 0.06 : -0.06);
+      xe.traverse(o => { o.castShadow = true; }); nhom.add(xe);
+    });
+    /* --- 3 xe máy dãy trong, đầu xe hướng bắc. --- */
+    [0xB03A2E, 0x1F2A44, 0x6C3483].forEach((mau, i) => {
+      const xe = taoXeMay(mau);
+      xe.position.set(18.5 + i * 3.5, 0.1, -81.8);
+      xe.traverse(o => { o.castShadow = true; }); nhom.add(xe);
+    });
+    /* --- Biển 'NHÀ ĐỂ XE' 2 cột trước mái, quay về phía bắc (quảng trường). --- */
+    [-1.7, 1.7].forEach(dx => {
+      them(new THREE.Mesh(new THREE.BoxGeometry(0.12, 1.9, 0.12), thepMat), 22 + dx, 1.05, -76.9);
+    });
+    const bien = new THREE.Mesh(new THREE.PlaneGeometry(3.6, 1.12),
+      new THREE.MeshStandardMaterial({map: textureBien('NHÀ ĐỂ XE', 'Xe đạp · Xe máy', '#1F4E79'), roughness:0.6}));
+    bien.position.set(22, 2.35, -76.9); bien.castShadow = true; nhom.add(bien);
+    const khungBien = new THREE.Mesh(new THREE.BoxGeometry(3.7, 1.22, 0.06), vangMat);
+    khungBien.position.set(22, 2.35, -76.95); nhom.add(khungBien);
+    /* --- 2 chậu hoa 2 góc trước. --- */
+    [[14.6, -77.2], [29.4, -77.2]].forEach(p => {
+      them(new THREE.Mesh(new THREE.CylinderGeometry(0.32, 0.24, 0.45, 12), chauMat), p[0], 0.32, p[1]);
+      [[0xE74C3C, 0], [0xF1C40F, 0.12], [0xE91E63, -0.12]].forEach(f => {
+        const bong = new THREE.Mesh(new THREE.SphereGeometry(0.11, 8, 6),
+          new THREE.MeshStandardMaterial({color:f[0], roughness:0.7}));
+        bong.position.set(p[0] + f[1], 0.68, p[1]); bong.castShadow = true; nhom.add(bong);
+      });
+    });
+    nhom.traverse(o=>{ o.userData.doiDoHoa = 8; });
+    sceneCity.add(nhom);
+  })();
+
+[[-6.5,-13],[6.5,-13],[-6.5,13],[6.5,13]].forEach(p=>{ /* fix5: ghe theo quang truong 28x28 */
     const ghe = new THREE.Group();
     const matGhe = new THREE.Mesh(new THREE.BoxGeometry(2.4, 0.12, 0.65), new THREE.MeshStandardMaterial({color:0x8A7A5A, roughness:0.8}));
     matGhe.position.y = 0.45; matGhe.castShadow = true; ghe.add(matGhe);
@@ -6561,7 +6688,7 @@ function capNhatPhong(dt, t){
 
 /* ================= ĐOÀN LỚP ================= */
 function taoNhanVatTen(tenDayDu, chiSo){
-  const mvDoan = skMauNguoi(chiSo+20); const g = taoHocSinh(null, null, mvDoan.id, 1.85); /* NGUOI-DA-DANG: chi doi mau, giu cao 1.85m (doan ngoi theo ghe co dinh) — GLB ban tach co pivot nen di bo xoay chan that */
+  const mvDoan = (chiSo === 0 && tenLop === '8A') ? skMauNguoiNu(0) : skMauNguoi(chiSo+20); /* 23/11: lop truong 8A la Tram (nu) — dung mau nu */ const g = taoHocSinh(null, null, mvDoan.id, 1.85); /* NGUOI-DA-DANG: chi doi mau, giu cao 1.85m (doan ngoi theo ghe co dinh) — GLB ban tach co pivot nen di bo xoay chan that */
   const tenGoi = tenDayDu.indexOf('Bạn mẫu') === 0 ? tenDayDu : tenDayDu.trim().split(/\s+/).pop(); /* v4b-fix2: ten giu cho hien day du, khong chi lay chu so cuoi. */
   const sp = new THREE.Sprite(new THREE.SpriteMaterial({map:textureTen(tenGoi), transparent:true, depthWrite:false}));
   sp.scale.set(0.95, 0.24, 1); sp.position.y = 2.15 + (chiSo % 3) * 0.28; g.add(sp); /* fix4: ten nho lai chut de khoi chong; fix7-5loi: nhan lech cao theo chi so de khong de nhau khi di sat */
@@ -18612,7 +18739,8 @@ function capNhatCameraTour(dt){
    Ghi chu: toa nha la cot moc nhin (khong mo duoc cua vao van phong that vi
    van phong co mat khau kiem tra phia may chu, khong co link cong khai). */
 /* ================= TOA NHA HOI DONG AI — 7 TANG (v11, 22/11) · v12: DO CAY/NUI CHE TOA · v13: MAP GAP 3 · v14: MAT TIEN TOA QUAY DONG + CAY NHO · v15: LUONG LEN XE MOI (CHON LOP TRUOC + XEM KHEN 2S + QUA CONG PHAN HIEU) · v16: LOP TRUONG DAN DOAN (1 HANG DOC + BANG DO + BIEN LOP TRUONG) · v17: MO RONG GIOI HAN DI CHUYEN ±100 (SUA LOI KHONG SANG DUOC TOA) · v18: KEO 4 TOA LAI GAN SAN x=-70->-43 · v19: 3 GOC MAY + HS TREN XE + BEN DO + LUONG DEN MOI + GOP CHON LOP TRUOC / DS HIEN NGAY TU LIVE · v20: GOP 3 MUC DOI DO HOA (vuon hoa + duong lat da + cot co) · v21: GOP MUC 4 DOI DO HOA (4 BO BAN GHE DA QUANH QUANG TRUONG) · v22: GOP MUC 5 DOI DO HOA (VUON CAY AN QUA PHIA DONG) · v23: GOP MUC 16 LUOT 1 DOI DO HOA (TUONG RAO PHIA DONG + CONG PHU DONG)
-· v24: GOP CHE DO TU DONG + THANG MAY (theo ban demo da duyet) =================
+· v24: GOP CHE DO TU DONG + THANG MAY (theo ban demo da duyet)
+· v25: GOP NHA DE XE MUC 6 + DS 8A PH II 42 BAN =================
    Vi tri: suon ben canh duong di vao (tay duong chinh), (-16, -17), mat tien
    huong nam ve quang truong. Tang 1-4: 12 phong/tang; doi DO HOA tang 1 mo rong
    (do hoa + ve map + xay ha tang game). TANG 5 = DOI LUU TRU (doi chua co phong
@@ -22754,6 +22882,21 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
       if(sel2) sel2.value = '6A';
       var tay2 = document.getElementById('danh-sach-tay');
       if(tay2) tay2.value = DS_6A.join('\n');
+    }
+  }catch(e){ /* trinh duyet chan luu tru — game van chay, thay tai file la duoc */ }
+})();
+/* Hat giong 8A PHAN HIEU II — 23/11/2026: file bang diem thay gui (42 ban, lop truong Hoang Ha Tram, nu).
+   Chi 1 lan duy nhat tren moi trinh duyet: GHI DE lop 8A bang DS that tu file (Sheet chi co 8A PH I),
+   GIU NGUYEN cac lop khac da luu. Tram dung dau danh sach de game gan lam lop truong. */
+(function(){
+  var DS_8A = ["Hoàng Hà Trâm", "Giàng Đức Diện", "Ma Thị Lường Diệp", "Dương Lê Dũng", "Giàng Văn Dũng", "Lý Á Dũng", "Lê Thị Thùy Dương", "Thào Minh Dương", "Mã Thành Đạt", "Trương Thị Thu Hà", "Hoàng Gia Hân", "Dương Văn Hóa", "Lường Huy Hoàng", "Giàng Thị Hường", "La Hải Lâm", "Lý Đức Luân", "Hoàng Thị Mai", "Vàng Thị Mai", "Giàng Thị Mái", "Lý Văn Mạnh", "Vàng Thanh Mạnh", "Lý Á Minh", "Ban Triệu Lin Na", "Mô Văn Nam", "Ma Thúy Nụ", "La Dương Phong", "Giàng Thị Phương", "Giàng Phước Quý", "Sằm Thị Sen", "Ngô Văn Sơn", "Giàng Văn Tân", "Sằm Văn Thái", "Giàng Á Thành", "Ma Chí Thiện", "Sằm Phú Trọng", "Hoàng Anh Tuấn", "Thào Thị Vân", "Mã Thị Xuân Viên", "Giàng Văn Viện", "Trương Thế Vinh", "Lường Thị Tường Vy", "Thào Ngữ Yên"];
+  try{
+    if(localStorage.getItem('ds-lop-seed-v2') !== '8A'){
+      var _bn = {};
+      try{ _bn = JSON.parse(localStorage.getItem('khu-pho-ai-lop-nhieu') || '{}') || {}; }catch(e){ _bn = {}; }
+      _bn['8A'] = DS_8A.slice();
+      localStorage.setItem('khu-pho-ai-lop-nhieu', JSON.stringify(_bn));
+      localStorage.setItem('ds-lop-seed-v2', '8A');
     }
   }catch(e){ /* trinh duyet chan luu tru — game van chay, thay tai file la duoc */ }
 })();
