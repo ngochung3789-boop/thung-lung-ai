@@ -1169,7 +1169,7 @@ let mayBayIntro = null, mayBayLon = null, demTruocMoDau = false, loiMoDauHien = 
 /* v5 — Chuyến bay mở đầu 18s: MÁY BAY chở cả lớp bay qua không gian đẹp ban ngày
    (mây trắng, núi xanh, sông phía tây, nắng) rồi hạ cánh xuống sân bay phía nam cổng,
    KHÔNG bay xuyên vũ trụ/hành tinh nữa. 7 khung, mỗi chặng 3s. */
-const BAY_THOI_GIAN = 18;
+const BAY_THOI_GIAN = 28; /* VONG-BAY-CAO 23/11: 18s -> 28s (vong bay cao ~611m, van ~22 m/s) */
 const BAY_KHUNG = [ /* v13: duong bay bat dau xa gap 3 (z x3), dich van la cong khu z=-14 */
   {p:[-9,17,-225], n:[-9,2.5,-14]},
   {p:[-9,13,-195], n:[-9,2.5,-14]},
@@ -1208,40 +1208,28 @@ let mayGiong = null, chimBay = [], botNuoc = [];
 const XE_KHUNG = []; /* vi tri xe tren lan rieng — cung nhip 18s voi BAY_KHUNG */
 function duongBayChoXe(id, gx){
   const cong = [gx, 2.5, -14];
-  /* HANHTRINH 15/11: lane VONG VEO 6 keyframe (thay 4 thang) — xe lac qua lai
-     quanh gx, qua khe giua 2 nui phia nam (-22,-48)/(22,-48), cach tam nui
-     >= 11,1 m (nui ban kinh 6 m); tong quang duong ~38,5 m / 18 s (van 2,1 m/s).
-     Thuyen GIU song x=-42, chi lac nhe trong long song. Thoi luong KHONG doi. */
-  /* FIX3d: chuyen bay KET THUC o bai phia nam (z=-34, truoc day toa nam z=-27) —
-     lane thang FIX3 di toi z=-18 nen xe + camera xuyen qua toa T5/T6 (rong 7m,
-     cao 12.4m). Camera lui sau xe 9m + cao hon 5m de thay tron xe + duong + cong. */
-  if(id === 'may-bay') return {
-    cam: [
-      {p:[gx,17,-75], n:cong}, {p:[gx-7,15,-68], n:cong},
-      {p:[gx,12,-61], n:cong}, {p:[gx,9.5,-54], n:cong},
-      {p:[gx+2,8,-48], n:cong}, {p:[gx,7.2,-43], n:cong}],
-    xe: [[gx,12,-66], [gx-7,10,-59], [gx,8,-52], [gx,5.5,-45], [gx+2,3.5,-39], [gx,2.2,-34]] };
-  if(id === 'khinh-khi-cau') return {
-    cam: [
-      {p:[gx,22,-75], n:cong}, {p:[gx-7,19.5,-68], n:cong},
-      {p:[gx,16,-61], n:cong}, {p:[gx,13,-54], n:cong},
-      {p:[gx+2,11,-48], n:cong}, {p:[gx,9.5,-43], n:cong}],
-    xe: [[gx,17,-66], [gx-7,14.5,-59], [gx,11,-52], [gx,8,-45], [gx+2,6,-39], [gx,4.5,-34]] };
+  /* VONG-BAY-CAO 23/11 (thay chot: "may bay hay o to bay luon xung quanh tren cao nhin xuong thay toan canh truong roi bay xuong do truoc cong truong"):
+     11 keyframe / 28s (moi chang ~2.8s, van ~22 m/s). Xe bay cao luon vong quanh truong
+     (dong -> bac -> tay -> nam), roi ha xuong do truoc CONG CHINH (gx, 2, -108).
+     Thuyen GIU song x=-42 (khong bay vong), chi keo dai lan de du 28s. */
   if(id === 'thuyen') return {
     cam: [
-      {p:[-42,5.5,-75], n:[-42,1,-50]}, {p:[-41,5.5,-69], n:[-42,1,-48]},
-      {p:[-43,5.2,-63], n:[-42,1,-46]}, {p:[-41.5,5,-59], n:[-40,1.5,-40]},
-      {p:[-42.5,4.8,-56], n:[-36,2,-34]}, {p:[-42,4.5,-53], n:[-30,2,-30]}],
-    xe: [[-42,0.15,-66], [-41,0.15,-60], [-43,0.15,-54], [-41.5,0.15,-50], [-42.5,0.15,-47], [-42,0.15,-44]] };
-  /* tau-dien / xe-buyt / o-to: di tren mat dat. Build 10 (12/11): camera ha xuong
-     2.8m + lui xa 13m + lech phai 2.5m de thay DUOC mat sau xe (truoc day cao 5.2m,
-     cach 9m -> chi thay mai xe, khong nhan ra xe buyt — anh v2-17/18). */
-  return {
-    cam: [
-      {p:[gx+2.5,2.8,-79], n:cong}, {p:[gx-4.5,2.8,-72], n:cong},
-      {p:[gx+2.5,2.8,-65], n:cong}, {p:[gx+2.5,2.8,-58], n:cong},
-      {p:[gx+4.5,2.8,-52], n:cong}, {p:[gx+2.5,2.8,-47], n:cong}],
-    xe: [[gx,0.15,-66], [gx-7,0.15,-59], [gx,0.15,-52], [gx,0.15,-45], [gx+2,0.15,-39], [gx,0.15,-34]] };
+      {p:[-42,5.5,-95], n:[-42,1,-80]}, {p:[-41,5.5,-85], n:[-42,1,-70]},
+      {p:[-43,5.2,-72], n:[-42,1,-60]}, {p:[-41.5,5,-60], n:[-40,1.5,-50]},
+      {p:[-42.5,4.8,-50], n:[-36,2,-44]}, {p:[-42,4.5,-47], n:[-30,2,-40]}],
+    xe: [[-42,0.15,-95], [-41,0.15,-85], [-43,0.15,-72], [-41.5,0.15,-60], [-42.5,0.15,-50], [-42,0.15,-44]] };
+  /* may-bay / khinh-khi-cau / tau-dien / xe-buyt / o-to: cung vong bay cao. */
+  const xe = [
+    [gx,8,-135], [40,30,-110], [80,40,-60], [85,38,10], [65,38,75],
+    [0,36,95], [-65,36,65], [-80,34,-5], [-55,22,-75], [-15,10,-102], [gx,2,-108]];
+  const cam = [
+    {p:[gx,12,-150], n:[gx,8,-135]}, {p:[40,34,-125], n:[40,30,-110]},
+    {p:[80,44,-75], n:[80,40,-60]}, {p:[85,42,-5], n:[85,38,10]},
+    {p:[65,42,60], n:[65,38,75]}, {p:[0,40,80], n:[0,36,95]},
+    {p:[-65,40,50], n:[-65,36,65]}, {p:[-80,38,-20], n:[-80,34,-5]},
+    {p:[-55,26,-90], n:[-55,22,-75]}, {p:[-15,14,-115], n:[-15,10,-102]},
+    {p:[gx,6,-120], n:[gx,2,-108]}];
+  return {cam: cam, xe: xe};
 }
 /* Lucky đề xuất: 1 SỰ KIỆN NHỎ mỗi xe (vui, không sợ, không phá nhịp 15 giây) + robot gọi tên 1 bạn. */
 const SU_KIEN_XE = {
@@ -1329,17 +1317,17 @@ function dungVatBay(){
    San bay phia Nam = bai dap z=-34; Doi Xanh = 2 nui (-22,-48)/(22,-48);
    Cong Thung Lung = cong khu da chon; Ben song / Song = song x=-42). */
 const NOI_BAY = {
-  'may-bay': ['🛫 Bến đỗ phía Nam — cất cánh!', '⛰️ Đang bay qua Đồi Xanh!', '🚪 Sắp tới Cổng Thung Lũng!'],
-  'khinh-khi-cau': ['🎈 Bến đỗ phía Nam — bay lên!', '⛰️ Đang bay qua Đồi Xanh!', '🚪 Sắp tới Cổng Thung Lũng!'],
-  'tau-dien': ['🚆 Bến đỗ phía Nam — tàu chạy!', '⛰️ Đang đi qua Đồi Xanh!', '🚪 Sắp tới Cổng Thung Lũng!'],
-  'xe-buyt': ['🚌 Bến đỗ phía Nam — lăn bánh!', '⛰️ Đang đi qua Đồi Xanh!', '🚪 Sắp tới Cổng Thung Lũng!'],
-  'o-to': ['🚗 Bến đỗ phía Nam — xe chạy!', '⛰️ Đang đi qua Đồi Xanh!', '🚪 Sắp tới Cổng Thung Lũng!'],
+  'may-bay': ['🛫 Cất cánh — bay lên cao!', '🌄 Đang lượn vòng ngắm toàn cảnh trường!', '🛬 Hạ xuống — đỗ trước cổng trường!'],
+  'khinh-khi-cau': ['🎈 Bến đỗ phía Nam — bay lên!', '🌄 Đang lượn vòng ngắm toàn cảnh trường!', '🛬 Hạ xuống — đỗ trước cổng trường!'],
+  'tau-dien': ['🚆 Bến đỗ phía Nam — tàu chạy!', '🌄 Đang lượn vòng ngắm toàn cảnh trường!', '🛬 Hạ xuống — đỗ trước cổng trường!'],
+  'xe-buyt': ['🚌 Bến đỗ phía Nam — lăn bánh!', '🌄 Đang lượn vòng ngắm toàn cảnh trường!', '🛬 Hạ xuống — đỗ trước cổng trường!'],
+  'o-to': ['🚗 Bến đỗ phía Nam — xe chạy!', '🌄 Đang lượn vòng ngắm toàn cảnh trường!', '🛬 Hạ xuống — đỗ trước cổng trường!'],
   'thuyen': ['🚤 Bến sông phía Tây!', '🌊 Đang đi trên Sông!', '⚓ Sắp tới bến — đi bộ tới cổng!']
 };
 let bienBayHien = -1;
 function hienBienBay(t){
   const bb = document.getElementById('bien-bay'); if(!bb) return;
-  const doan = t < 6 ? 0 : (t < 12 ? 1 : 2);
+  const doan = t < BAY_THOI_GIAN/3 ? 0 : (t < 2*BAY_THOI_GIAN/3 ? 1 : 2);
   if(doan === bienBayHien) return;
   bienBayHien = doan;
   bb.textContent = (NOI_BAY[phuongTien] || NOI_BAY['may-bay'])[doan];
@@ -1425,42 +1413,42 @@ function dungLaneBay(){
     const m = new THREE.Mesh(geo, new THREE.MeshStandardMaterial({color:mau, roughness:0.9}));
     m.position.set(x, y, z); m.receiveShadow = true; nhom.add(m); return m;
   };
-  /* Duong bang may bay (lane x=0, z -75..-17): nen xam dam + 6 vach trang giua + 2 vach vang dau. */
+  /* Duong bang may bay (lane x=0, z -130..-100, truoc cong chinh): nen xam dam + 6 vach trang giua + 2 vach vang dau. */
   const rb = lamLane('lane-may-bay');
-  them(rb, new THREE.BoxGeometry(4.5, 0.08, 44), 0x2F3542, 0, 0.05, -53); /* FIX3d: lane ngan lai (z -75..-31), dung truoc day toa */
-  for(let i=0;i<5;i++) them(rb, new THREE.BoxGeometry(0.35, 0.1, 3), 0xFDF6E3, 0, 0.06, -70 + i*9);
-  them(rb, new THREE.BoxGeometry(4.5, 0.1, 1), 0xC9A227, 0, 0.06, -72);
-  them(rb, new THREE.BoxGeometry(4.5, 0.1, 1), 0xC9A227, 0, 0.06, -34);
+  them(rb, new THREE.BoxGeometry(4.5, 0.08, 30), 0x2F3542, 0, 0.05, -115); /* FIX3d: lane ngan lai (z -75..-31), dung truoc day toa */
+  for(let i=0;i<5;i++) them(rb, new THREE.BoxGeometry(0.35, 0.1, 3), 0xFDF6E3, 0, 0.06, -127 + i*6);
+  them(rb, new THREE.BoxGeometry(4.5, 0.1, 1), 0xC9A227, 0, 0.06, -129);
+  them(rb, new THREE.BoxGeometry(4.5, 0.1, 1), 0xC9A227, 0, 0.06, -101);
   /* Duong ray tau dien: nen da + 2 ray thep sang + 8 tam go. */
   const rt = lamLane('lane-tau-dien');
-  them(rt, new THREE.BoxGeometry(2.6, 0.08, 44), 0x3A3A3A, 0, 0.05, -53);
-  them(rt, new THREE.BoxGeometry(0.14, 0.12, 44), 0xB0B8C0, -0.7, 0.08, -53);
-  them(rt, new THREE.BoxGeometry(0.14, 0.12, 44), 0xB0B8C0, 0.7, 0.08, -53);
-  for(let i=0;i<6;i++) them(rt, new THREE.BoxGeometry(2.2, 0.09, 0.6), 0x6B4F2A, 0, 0.06, -70 + i*7);
+  them(rt, new THREE.BoxGeometry(2.6, 0.08, 30), 0x3A3A3A, 0, 0.05, -115);
+  them(rt, new THREE.BoxGeometry(0.14, 0.12, 30), 0xB0B8C0, -0.7, 0.08, -115);
+  them(rt, new THREE.BoxGeometry(0.14, 0.12, 30), 0xB0B8C0, 0.7, 0.08, -115);
+  for(let i=0;i<6;i++) them(rt, new THREE.BoxGeometry(2.2, 0.09, 0.6), 0x6B4F2A, 0, 0.06, -127 + i*5);
   /* Duong bo xe buyt / o-to: nen xam + 5 vach trang giua. */
   const duong = (ten)=>{
     const g = lamLane(ten);
-    them(g, new THREE.BoxGeometry(3.8, 0.08, 44), 0x2F3542, 0, 0.05, -53);
-    for(let i=0;i<4;i++) them(g, new THREE.BoxGeometry(0.3, 0.1, 2.5), 0xFDF6E3, 0, 0.06, -68 + i*11);
+    them(g, new THREE.BoxGeometry(3.8, 0.08, 30), 0x2F3542, 0, 0.05, -115);
+    for(let i=0;i<4;i++) them(g, new THREE.BoxGeometry(0.3, 0.1, 2.5), 0xFDF6E3, 0, 0.06, -126 + i*7);
     return g;
   };
   duong('lane-xe-buyt');
   duong('lane-o-to');
-  /* San ha khinh khi cau: vong tron vang o (0,-34) + vong trong — doi ve bai phia nam (FIX3d). */
+  /* San ha khinh khi cau: vong tron vang o (0,-108) + vong trong — doi ve bai phia nam (FIX3d). */
   const sk = lamLane('lane-khinh-khi-cau');
   const vong = new THREE.Mesh(new THREE.CircleGeometry(3.5, 32), new THREE.MeshStandardMaterial({color:0xC9A227, roughness:0.8}));
-  vong.rotation.x = -Math.PI/2; vong.position.set(0, 0.07, -34); sk.add(vong);
+  vong.rotation.x = -Math.PI/2; vong.position.set(0, 0.07, -108); sk.add(vong);
   const vongTrong = new THREE.Mesh(new THREE.RingGeometry(2.6, 3.1, 32), new THREE.MeshStandardMaterial({color:0x0B1220, roughness:0.8}));
-  vongTrong.rotation.x = -Math.PI/2; vongTrong.position.set(0, 0.08, -34); sk.add(vongTrong);
+  vongTrong.rotation.x = -Math.PI/2; vongTrong.position.set(0, 0.08, -108); sk.add(vongTrong);
   /* Ben go thuyen: be go o song (x=-42, z=-46) + 2 coc. */
   const bt = lamLane('lane-thuyen');
   them(bt, new THREE.BoxGeometry(5, 0.5, 4), 0x8B5A2B, -42, 0.3, -46);
   them(bt, new THREE.BoxGeometry(0.3, 1.2, 0.3), 0x6B4F2A, -44, 0.8, -48);
   them(bt, new THREE.BoxGeometry(0.3, 1.2, 0.3), 0x6B4F2A, -40, 0.8, -48);
-  /* Cot sang vang o cong dich: hinh tru trong suot, cao 30m — nhin thay tu dau chuyen. */
+  /* Cot sang vang o cong chinh: hinh tru trong suot, cao 30m — nhin thay tu dau chuyen. */
   laneBeaconMat = new THREE.MeshBasicMaterial({color:0xFFD94D, transparent:true, opacity:0.25, side:THREE.DoubleSide, depthWrite:false});
   const cot = new THREE.Mesh(new THREE.CylinderGeometry(0.5, 0.9, 30, 12, 1, true), laneBeaconMat);
-  cot.position.set(0, 15, -14); cot.name = 'beacon';
+  cot.position.set(0, 15, -99); cot.name = 'beacon';
   nhomLaneBay.add(cot);
   sceneCity.add(nhomLaneBay);
   nhomLaneBay.visible = false;
@@ -1487,7 +1475,7 @@ function capNhatBay(t){
   while(i < n-2 && t > doan[i+1]) i++;
   const u = smooth((t - doan[i]) / (doan[i+1] - doan[i]));
   const a = BAY_KHUNG[i], b = BAY_KHUNG[i+1];
-  /* FIX3: xe chay tren LAN RIENG (XE_KHUNG) — cung nhip 18s voi camera, khong con
+  /* FIX3: xe chay tren LAN RIENG (XE_KHUNG) — cung nhip 28s voi camera, khong con
      nam truoc camera theo huong nhin (cu: xe lac theo camera zigzag, chay qua co/nha). */
   let xeX = null, xeY = null, xeZ = null;
   if(xeBayHien && xeBayHien.visible){
@@ -1499,27 +1487,27 @@ function capNhatBay(t){
     const ax = XE_KHUNG[j], bx = XE_KHUNG[j+1];
     xeX = lerp(ax[0], bx[0], ux); xeY = lerp(ax[1], bx[1], ux); xeZ = lerp(ax[2], bx[2], ux);
     xeBayHien.position.set(xeX, xeY, xeZ);
-    /* Huong xe: nhin ve diem ke tiep tren lan; doan cuoi thi nhin ve cong dich. */
+    /* Huong xe: nhin ve diem ke tiep tren lan; doan cuoi thi nhin ve cong chinh. */
     const gxDich2 = (KHU_CONG[khuDaChon] || KHU_CONG['chinh']).x;
-    const dichHuong = (j < n-2) ? XE_KHUNG[j+1] : [gxDich2, 2, -14];
+    const dichHuong = (j < n-2) ? XE_KHUNG[j+1] : [gxDich2, 2, -99];
     xeBayHien.lookAt(dichHuong[0], dichHuong[1], dichHuong[2]);
-    if(phuongTien === 'thuyen' && t >= 6 && t <= 11){ xeBayHien.rotateZ(Math.sin(t*2.2)*0.06); }
+    if(phuongTien === 'thuyen' && t >= BAY_THOI_GIAN/3 && t <= 2*BAY_THOI_GIAN/3){ xeBayHien.rotateZ(Math.sin(t*2.2)*0.06); }
     else if(phuongTien !== 'khinh-khi-cau'){ xeBayHien.rotateZ(Math.sin(t*0.5)*0.03); }
     /* HANHTRINH 15/11: nghieng khi re — ti le van toc ngang (6u(1-u) = 0 tai
-       keyframe nen khong giat cuc khi doi doan; dx toi da 13 m -> ~0,16 rad). */
+       keyframe nen khong giat cuc khi doi doan; dx lon o vong bay cao -> KEP o +-0.22 rad). */
     { const dxDoan = (j < n-2) ? (XE_KHUNG[j+1][0] - XE_KHUNG[j][0]) : (XE_KHUNG[n-1][0] - XE_KHUNG[n-2][0]);
-      xeBayHien.rotateZ(-dxDoan * 6 * ux * (1 - ux) * 0.008 * (phuongTien === 'khinh-khi-cau' ? 0.5 : 1)); }
+      xeBayHien.rotateZ(Math.max(-0.22, Math.min(0.22, -dxDoan * 6 * ux * (1 - ux) * 0.008)) * (phuongTien === 'khinh-khi-cau' ? 0.5 : 1)); }
     if(phuongTien === 'khinh-khi-cau'){ xeBayHien.position.y += Math.sin(t*1.1)*0.2; xeY = xeBayHien.position.y; }
   }
   /* v16 (22/11) — 3 GOC MAY, cat cung nhu phim (thay dan):
-     0-6s TRONG XE: camera trong khoang, thay lung 2 ban ghe truoc + khung
-     cua so, canh ngoai troi qua. 6-12s NGOAI CUA SO: camera bay song song ben
+     0-~9s TRONG XE: camera trong khoang, thay lung 2 ban ghe truoc + khung
+     cua so, canh ngoai troi qua. ~9-~19s NGOAI CUA SO: camera bay song song ben
      hong xe (phia ve giua map cho thoang, tranh nui), thay ro xe + cac ban
-     ghe mat ra cua so. 12-18s TU TREN TROI: camera cao 58m nhin chech
+     ghe mat ra cua so. ~19-28s TU TREN TROI: camera cao 58m nhin chech
      xuong toan thung lung — thoang, khong vat nao che. */
   let cx = lerp(a.p[0], b.p[0], u), cy = lerp(a.p[1], b.p[1], u), cz = lerp(a.p[2], b.p[2], u);
   let nx = lerp(a.n[0], b.n[0], u), ny = lerp(a.n[1], b.n[1], u), nz = lerp(a.n[2], b.n[2], u);
-  const canhQuay = t < 6 ? 0 : (t < 12 ? 1 : 2);
+  const canhQuay = t < BAY_THOI_GIAN/3 ? 0 : (t < 2*BAY_THOI_GIAN/3 ? 1 : 2);
   if(canhQuay !== gocQuayHien){
     gocQuayHien = canhQuay;
     const gq = document.getElementById('goc-quay');
@@ -1542,8 +1530,8 @@ function capNhatBay(t){
       xeBayHien.updateMatrixWorld(true);
       const mo = (phuongTien === 'thuyen' || phuongTien === 'khinh-khi-cau');
       const ben0 = ((typeof KHU_CONG !== 'undefined' && KHU_CONG[khuDaChon]) ? KHU_CONG[khuDaChon].x : 0) >= 0 ? -1 : 1;
-      const pCam = xeBayHien.localToWorld(new THREE.Vector3(mo ? 0 : kt.cx + ben0*(kt.rong/2 - 0.3), mo ? 1.4 : kt.cao*0.47, mo ? -0.9 : kt.cz + 0.65));
-      const pNhin = xeBayHien.localToWorld(new THREE.Vector3(mo ? 0 : kt.cx + ben0*(kt.rong/2 + 8), mo ? 1.2 : kt.cao*0.40, mo ? kt.dai : kt.cz + kt.dai*0.18));
+      const pCam = xeBayHien.localToWorld(new THREE.Vector3(mo ? 0 : kt.cx + ben0*((kt.nuaThan || kt.rong/2) - 0.3), mo ? 1.4 : kt.cao*0.47, mo ? -0.9 : kt.cz + 0.65));
+      const pNhin = xeBayHien.localToWorld(new THREE.Vector3(mo ? 0 : kt.cx + ben0*((kt.nuaThan || kt.rong/2) + 8), mo ? 1.2 : kt.cao*0.40, mo ? kt.dai : kt.cz + kt.dai*0.18));
       dx = pCam.x; dy = pCam.y; dz = pCam.z; lx2 = pNhin.x; ly2 = pNhin.y; lz2 = pNhin.z;
     } else { dx = cx; dy = cy; dz = cz; lx2 = nx; ly2 = ny; lz2 = nz; }
   } else if(canhQuay === 1){
@@ -1552,14 +1540,15 @@ function capNhatBay(t){
     const ben = gxD >= 0 ? -1 : 1;
     if(xeBayHien){
       xeBayHien.updateMatrixWorld(true);
-      const pCam = xeBayHien.localToWorld(new THREE.Vector3(ben*(kt.rong/2 + 5.5), kt.cao*0.55 + 0.4, -2));
+      const pCam = xeBayHien.localToWorld(new THREE.Vector3(ben*((kt.nuaThan || kt.rong/2) + 5.5), kt.cao*0.55 + 0.4, -2));
       const pNhin = xeBayHien.localToWorld(new THREE.Vector3(0, kt.cao*0.5, 0));
       dx = pCam.x; dy = Math.max(1.6, pCam.y); dz = pCam.z; lx2 = pNhin.x; ly2 = pNhin.y; lz2 = pNhin.z;
     } else { dx = cx; dy = cy; dz = cz; lx2 = nx; ly2 = ny; lz2 = nz; }
   } else {
-    /* TU TREN TROI: cao 58m, nhin chech xuong tam thung lung. */
-    dx = (xeX !== null ? xeX*0.4 : 0); dy = 58; dz = -34;
-    lx2 = 0; ly2 = 0; lz2 = -6;
+    /* TU TREN TROI (VONG-BAY-CAO 23/11): luc xe con cao thi cao 58m nhin xuong tam thung lung;
+       luc xe ha xuong (xeZ <= -60) camera ha theo xe, nhin ve cong chinh. */
+    if(xeZ !== null && xeZ < -60){ dx = xeX + 25; dy = 40; dz = xeZ - 20; lx2 = xeX; ly2 = 2; lz2 = -99; }
+    else { dx = (xeX !== null ? xeX*0.4 : 0); dy = 58; dz = -34; lx2 = 0; ly2 = 0; lz2 = -6; }
   }
   camCity.position.set(dx, dy, dz);
   camCity.lookAt(lx2, ly2, lz2);
@@ -3217,6 +3206,7 @@ function textureBien(dong1, dong2, mauNen){
 function textureCongTL(){
   /* fix6: bang cong thung lung — 2 dong chu to, vang gold tren nen navy, vien vang.
      12/11 doi ten: dong 1 'THUNG LUNG 12 TOA NHA AI', dong 2 'PTDTBT THCS CAO MINH'.
+     23/11 CONG-TO: doi dong 1 = TEN TRUONG DAY DU 'TRUONG PTDTBT THCS CAO MINH', dong 2 = ten thung lung.
      Canvas 2048x640; co chu tu thu nho neu chu dai. */
   const c = document.createElement('canvas'); c.width = 2048; c.height = 640;
   const g = c.getContext('2d');
@@ -3227,12 +3217,14 @@ function textureCongTL(){
   g.strokeStyle = 'rgba(232,201,90,0.55)'; g.lineWidth = 6; g.strokeRect(44,44,1960,552);
   g.textAlign = 'center'; g.textBaseline = 'middle';
   g.fillStyle = '#E8C95A';
+  /* CONG-TO 23/11: dong 1 = TEN TRUONG DAY DU, chu to nhat (thay chot: "ghi la truong PTDTBT THCS Cao Minh");
+     dong 2 = ten thung lung. Chu van gon trong lo mo cua vom (rong <= ~5.6m) de vom khong che. */
   let fs = 210; g.font = '800 ' + fs + 'px "Be Vietnam Pro", Arial, sans-serif';
-  while (g.measureText('THUNG LŨNG 4 TÒA THÁP AI').width > 1380 && fs > 60) { fs -= 6; g.font = '800 ' + fs + 'px "Be Vietnam Pro", Arial, sans-serif'; } /* fix6b: chu gon trong lo mo cua vom (rong <= ~4.4m) de vom khong che chu dau/cuoi khi nhin tu phia nam */
-  g.fillText('THUNG LŨNG 4 TÒA THÁP AI', 1024, 250);
+  while (g.measureText('TRƯỜNG PTDTBT THCS CAO MINH').width > 1500 && fs > 60) { fs -= 6; g.font = '800 ' + fs + 'px "Be Vietnam Pro", Arial, sans-serif'; } /* v26a: gioi han 1800 -> 1500 (bang 6.4x1.8 keo ngang 1.11x so voi canvas, 1800px cat mat chu T/H o 2 dau) */
+  g.fillText('TRƯỜNG PTDTBT THCS CAO MINH', 1024, 250);
   let fs2 = 150; g.font = '800 ' + fs2 + 'px "Be Vietnam Pro", Arial, sans-serif';
-  while (g.measureText('PTDTBT THCS CAO MINH').width > 700 && fs2 > 40) { fs2 -= 4; g.font = '800 ' + fs2 + 'px "Be Vietnam Pro", Arial, sans-serif'; }
-  g.fillText('PTDTBT THCS CAO MINH', 1024, 470);
+  while (g.measureText('THUNG LŨNG 4 TÒA THÁP AI').width > 1300 && fs2 > 40) { fs2 -= 4; g.font = '800 ' + fs2 + 'px "Be Vietnam Pro", Arial, sans-serif'; }
+  g.fillText('THUNG LŨNG 4 TÒA THÁP AI', 1024, 470);
   return new THREE.CanvasTexture(c);
 }
 function dungCongThungLung(){
@@ -3240,6 +3232,7 @@ function dungCongThungLung(){
      Loi di thong: giua 2 tru x -3.45..3.45, duoi bang chu y < 8.7 — khong vat can. */
   if(!sceneCity) return;
   const cong = new THREE.Group(); cong.position.set(0, 0, -99); /* v13: cong chinh ra ria map gap 3 (-33->-99) */
+  cong.scale.setScalar(1.3); /* CONG-TO 23/11 (thay chot: cong chinh phai TO): tru ~9.4m, vom dinh ~15.2m, bien 8.3m — ten truong doc duoc tu xa. */
   const daToi = new THREE.MeshStandardMaterial({color:0x4A4A55, roughness:0.85});
   const daSang = new THREE.MeshStandardMaterial({color:0xE8DCC0, roughness:0.7});
   const vang = new THREE.MeshStandardMaterial({color:0xC9A227, roughness:0.3, metalness:0.6});
@@ -5493,6 +5486,96 @@ function dungThanhPho(){
     sceneCity.add(nhom);
   })();
 
+/* DOI-DO-HOA #9 (23/11, mục 7): Hồ nước nhỏ + cầu cong ở khu đông (gần bể bơi).
+     Tâm (71,-21): hồ elip rx=4.2, rz=3.0, mặt nước xanh trong, viền đá; cầu cong gỗ
+     bắc qua hồ theo trục z (vòm cao ~1m, lan can 2 bên); lá sen + hoa sen trên mặt
+     nước, 2 tảng đá + 2 bụi cây ở bờ, biển 'HỒ NƯỚC · Cầu cong · Ngắm cảnh' quay
+     về phía bể bơi. Không lấn vườn cây, đường bộ, bể bơi, khu thể thao, thư viện;
+     không chắn lối đoàn và đường vòng đông. */
+(function(){
+    const nhom = new THREE.Group();
+    const CX = 71, CZ = -21, RX = 4.2, RZ = 3.0;
+    const nuocMat = new THREE.MeshStandardMaterial({color:0x1E90D6, roughness:0.15, metalness:0.1, transparent:true, opacity:0.9});
+    const dayMat = new THREE.MeshStandardMaterial({color:0xC2B280, roughness:0.95});
+    const daMat = new THREE.MeshStandardMaterial({color:0xD8D2C4, roughness:0.85});
+    const goMat = new THREE.MeshStandardMaterial({color:0x8B5A2B, roughness:0.75});
+    const goDamMat = new THREE.MeshStandardMaterial({color:0x6B4423, roughness:0.75});
+    const laMat = new THREE.MeshStandardMaterial({color:0x2E7D32, roughness:0.9});
+    const hoaMat = new THREE.MeshStandardMaterial({color:0xF48FB1, roughness:0.6});
+    const daXamMat = new THREE.MeshStandardMaterial({color:0x9A9A9A, roughness:0.9});
+    const cotMat = new THREE.MeshStandardMaterial({color:0x4A3226, roughness:0.8});
+    const vangMat = new THREE.MeshStandardMaterial({color:0xC9A227, roughness:0.35, metalness:0.6});
+    function them(mesh, x, y, z){
+      mesh.position.set(x, y, z); mesh.castShadow = true; nhom.add(mesh);
+      return mesh;
+    }
+    /* --- Đáy cát + mặt nước (elip, dẹt theo z). --- */
+    const day = them(new THREE.Mesh(new THREE.CylinderGeometry(4.6, 4.6, 0.12, 40), dayMat), CX, 0.06, CZ);
+    day.scale.z = RZ * 1.1 / RX;
+    const matNuoc = them(new THREE.Mesh(new THREE.CylinderGeometry(RX, RX, 0.1, 40), nuocMat), CX, 0.14, CZ);
+    matNuoc.scale.z = RZ / RX;
+    /* --- Viền 16 viên đá quanh bờ hồ. --- */
+    for(let i = 0; i < 16; i++){
+      const a = i / 16 * Math.PI * 2;
+      const x = CX + (RX + 0.35) * Math.cos(a), z = CZ + (RZ + 0.35) * Math.sin(a);
+      const vien = them(new THREE.Mesh(new THREE.BoxGeometry(0.55, 0.26, 0.38), daMat), x, 0.13, z);
+      vien.rotation.y = -a;
+    }
+    /* --- Cầu cong gỗ: 11 ván dọc theo vòm (z -24.8..-17.2, đỉnh cao ~1.18m). --- */
+    function cauY(t){ return 0.18 + 1.0 * Math.sin(Math.PI * t); }
+    function cauZ(t){ return -24.8 + 7.6 * t; }
+    for(let i = 0; i <= 10; i++){
+      const t = i / 10;
+      const van = them(new THREE.Mesh(new THREE.BoxGeometry(1.4, 0.08, 0.78), goMat), CX, cauY(t), cauZ(t));
+      van.rotation.x = -Math.atan2(Math.PI * Math.cos(Math.PI * t), 7.6);
+    }
+    /* Lan can 2 bên: 2 ống cong + 2 dầm cong + 5 cột mỗi bên. */
+    [-0.65, 0.65].forEach(dx => {
+      const diemLan = [0, 0.25, 0.5, 0.75, 1].map(t =>
+        new THREE.Vector3(CX + dx, cauY(t) + 0.84, cauZ(t)));
+      const lan = new THREE.Mesh(new THREE.TubeGeometry(
+        new THREE.CatmullRomCurve3(diemLan), 20, 0.04, 8, false), goDamMat);
+      lan.castShadow = true; nhom.add(lan);
+      const diemDam = [0, 0.25, 0.5, 0.75, 1].map(t =>
+        new THREE.Vector3(CX + dx, cauY(t) + 0.02, cauZ(t)));
+      const dam = new THREE.Mesh(new THREE.TubeGeometry(
+        new THREE.CatmullRomCurve3(diemDam), 20, 0.06, 8, false), goDamMat);
+      dam.castShadow = true; nhom.add(dam);
+      [0, 0.25, 0.5, 0.75, 1].forEach(t => {
+        them(new THREE.Mesh(new THREE.CylinderGeometry(0.035, 0.035, 0.8, 8), goDamMat),
+          CX + dx, cauY(t) + 0.44, cauZ(t));
+      });
+    });
+    /* --- Lá sen + hoa sen trên mặt nước. --- */
+    [[69.5, -20.0], [72.5, -22.5], [70.0, -19.3]].forEach(p => {
+      const la = them(new THREE.Mesh(new THREE.CylinderGeometry(0.35, 0.35, 0.03, 12), laMat), p[0], 0.21, p[1]);
+      la.scale.z = 0.9;
+    });
+    [[69.8, -22.8], [72.2, -19.8]].forEach(p => {
+      them(new THREE.Mesh(new THREE.SphereGeometry(0.13, 10, 8), hoaMat), p[0], 0.28, p[1]);
+      them(new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, 0.14, 6), laMat), p[0], 0.24, p[1]);
+    });
+    /* --- 2 tảng đá + 2 bụi cây ở bờ hồ. --- */
+    [[66.9, -23.5], [75.0, -18.8]].forEach(p => {
+      const da = them(new THREE.Mesh(new THREE.DodecahedronGeometry(0.45, 0), daXamMat), p[0], 0.2, p[1]);
+      da.scale.y = 0.7;
+    });
+    [[69.6, -25.0], [72.4, -17.0]].forEach(p => {
+      them(new THREE.Mesh(new THREE.SphereGeometry(0.55, 12, 10), laMat), p[0], 0.45, p[1]);
+    });
+    /* --- Biển 'HỒ NƯỚC' 2 cột gỗ ở góc đông-nam, mặt quay về phía bể bơi (+z). --- */
+    [-1.1, 1.1].forEach(dx => {
+      them(new THREE.Mesh(new THREE.BoxGeometry(0.12, 1.7, 0.12), cotMat), 74.5 + dx, 0.95, -25.4);
+    });
+    const bien = new THREE.Mesh(new THREE.PlaneGeometry(2.6, 0.85),
+      new THREE.MeshStandardMaterial({map: textureBien('HỒ NƯỚC', 'Cầu cong · Ngắm cảnh', '#0C4A6E'), roughness:0.6}));
+    bien.position.set(74.5, 1.65, -25.4); bien.castShadow = true; nhom.add(bien);
+    const khungBien = new THREE.Mesh(new THREE.BoxGeometry(2.7, 0.95, 0.06), vangMat);
+    khungBien.position.set(74.5, 1.65, -25.45); nhom.add(khungBien);
+    nhom.traverse(o=>{ o.userData.doiDoHoa = 9; });
+    sceneCity.add(nhom);
+  })();
+
 [[-6.5,-13],[6.5,-13],[-6.5,13],[6.5,13]].forEach(p=>{ /* fix5: ghe theo quang truong 28x28 */
     const ghe = new THREE.Group();
     const matGhe = new THREE.Mesh(new THREE.BoxGeometry(2.4, 0.12, 0.65), new THREE.MeshStandardMaterial({color:0x8A7A5A, roughness:0.8}));
@@ -6739,6 +6822,9 @@ function xayDungDoan(){
     doanNhom.add(m); doanThanhVien.push(m);
   });
   banDuocMoi = null;
+  /* v26c: neu Tram vua noi (bong bong dang hien) ma doan bi dung lai (doi lop bat dong bo),
+     gan lai bong bong len ban dau hang moi (khong phat lai giong). */
+  try{ if(window.__ltDaNoi && window.__ltTang && (Date.now() - (window.__ltNoiLuc || 0)) < 6000 && typeof lopTruongNoi === 'function'){ lopTruongNoi(window.__ltTang, true); } }catch(e){}
 }
 /* fix7b: vi tri ban doi — 4 day (cot x) x 2 hang (z), moi ban 2 ghe (trai/phai theo i chan/le). */
 const COT_BAN_FIX7B = [-3.6, -1.2, 1.2, 3.6];
@@ -6822,17 +6908,13 @@ function capNhatDoan(dt){
     lxGiaiDoan = 'qua-cong';
     if(typeof datDoanQuaCong === 'function') datDoanQuaCong();
   } else if(lxGiaiDoan === 'xuong-ben' && doanThanhVien && doanThanhVien.length){
-    /* v16: doan da di bo tu ben do qua cong toi vong cung san khau -> xem khen 2s. */
-    if(doanThanhVien.every(m => !m.userData.diChuyen)){ lxGiaiDoan = 'xem-khen'; lxXemT0 = performance.now(); datLoiMoDau('🤖 Sân khấu múa khèn kìa — cả lớp đứng xem một chút nhé!'); }
-  } else if(lxGiaiDoan === 'xem-khen' && performance.now() - lxXemT0 >= 2000){
-    lxGiaiDoan = 'tham-quan'; datDoanToiSanBong();
-  } else if(lxGiaiDoan === 'tham-quan' && doanThanhVien && doanThanhVien.length){
-    if(doanThanhVien.every(m => !m.userData.diChuyen)){ lxGiaiDoan = 'xem-bong'; lxXemT0 = performance.now(); datLoiMoDau('🤖 Sân bóng chuyền đây — các bạn đang chơi bóng kìa!'); }
-  } else if(lxGiaiDoan === 'xem-bong' && performance.now() - lxXemT0 >= 3000){
-    lxGiaiDoan = 'bay-quan'; lxQuetT0 = performance.now(); lxQuetDoan = -1;
-    datLoiMoDau('🤖 Nhìn sang phía đông kìa — bể bơi và thư viện!');
-  } else if(lxGiaiDoan === 'bay-quan' && performance.now() - lxQuetT0 >= 9000){
-    if(typeof window !== 'undefined' && window.tuDongDangChay){ tuDongDiToiToa(); } else { tapHopQuangTruong(); }
+    /* LUONG-MOI 23/11 (thay chot): doan di 1 MACH tu ben do truoc cong chinh qua cong phan hieu,
+       san khau khen, san bong — KHONG dung o diem nao (bo xem-khen 2s, xem-bong 3s, bay-quan 9s);
+       camera xa-gan (capNhatCameraTour) thay cho dung. Khi ca doan toi san bong thi re sang toa
+       (tu dong) / tap hop o quang truong (thu cong). */
+    if(doanThanhVien.every(m => !m.userData.diChuyen)){
+      if(typeof window !== 'undefined' && window.tuDongDangChay){ tuDongDiToiToa(); } else { tapHopQuangTruong(); }
+    }
   } else if(lxGiaiDoan === 'tu-dong-toi-toa' && doanThanhVien && doanThanhVien.length){
     if(doanThanhVien.every(m => !m.userData.diChuyen)){ tuDongVaoThangMay(); }
   } else if(lxGiaiDoan === 'tu-dong-vao-thang' && doanThanhVien && doanThanhVien.length){
@@ -15658,7 +15740,7 @@ async function tuChayKiemTra(){
     ghi('bay-mo-dau', introState === 'bay', 'introState=' + introState);
     await new Promise(r=>setTimeout(r, 800));
     ghi('bay-vat', !!troiBay && troiBay.visible === true && !!mayBayLon && mayBayLon.visible === true && !!mayBayChuyen && mayBayChuyen.visible === true && (!hanhTinhBay || hanhTinhBay.visible === false), 'troiBay=' + (troiBay && troiBay.visible) + ' mayBayLon=' + (mayBayLon && mayBayLon.visible) + ' hanhTinh=' + (hanhTinhBay && hanhTinhBay.visible));
-    ghi('bay-15s', BAY_THOI_GIAN === 18 && BAY_KHUNG.length === 4 && XE_KHUNG.length === 4, 'thoiGian=' + BAY_THOI_GIAN + ' khungCam=' + BAY_KHUNG.length + ' khungXe=' + XE_KHUNG.length);
+    ghi('bay-28s', BAY_THOI_GIAN === 28 && BAY_KHUNG.length === 11 && XE_KHUNG.length === 11, 'thoiGian=' + BAY_THOI_GIAN + ' khungCam=' + BAY_KHUNG.length + ' khungXe=' + XE_KHUNG.length);
     $('btn-bo-qua-noi').click();
     await doiDieuKien(()=>activeScene === 'city', 5000);
     ghi('sang-thanh-pho', activeScene === 'city', activeScene);
@@ -15992,6 +16074,9 @@ function batDauDiBo(phong){
   }
   xayDungDoan();
   phongHienTai = phong;
+  /* LOP-TRUONG-NOI 23/11 (thu cong): luc xuong xe chua biet tang nen chua noi; gio thay vua chon
+     tang -> Tram noi ngay (lop truong dan doan len dung tang vua chon), roi doan di ve toa. */
+  try{ if(!window.__ltDaNoi){ const tc = layTangCuaPhong(phong); if(tc) lopTruongNoi(tc); } }catch(e){}
   /* Đoàn xuất hiện ở quảng trường: robot dẫn đầu, mỗi bạn tên nổi trên đầu. */
   if(doanNhom.parent !== sceneCity) sceneCity.add(doanNhom);
   doanNhom.visible = true;
@@ -18411,17 +18496,17 @@ function datDoanQuaCong(){
 let lxBoQuaMoDau = false, lxQuetT0 = 0, lxQuetDoan = -1, lxTourT0 = 0;
 let gocQuayHien = -1;
 let nhomBenDo = null, lxCamTam = null, lxCamHuong = null, lxTamTruoc = null;
-function lxDangTour(){ return (typeof lxGiaiDoan !== 'undefined' && (lxGiaiDoan === 'xuong-ben' || lxGiaiDoan === 'xem-khen' || lxGiaiDoan === 'tham-quan' || lxGiaiDoan === 'xem-bong' || lxGiaiDoan === 'bay-quan' || lxGiaiDoan === 'tu-dong-toi-toa' || lxGiaiDoan === 'tu-dong-vao-thang' || lxGiaiDoan === 'tu-dong-thang-may' || lxGiaiDoan === 'tu-dong-ra-thang')); }
+function lxDangTour(){ return (typeof lxGiaiDoan !== 'undefined' && (lxGiaiDoan === 'xuong-ben' || lxGiaiDoan === 'tu-dong-toi-toa' || lxGiaiDoan === 'tu-dong-vao-thang' || lxGiaiDoan === 'tu-dong-thang-may' || lxGiaiDoan === 'tu-dong-ra-thang')); } /* LUONG-MOI 23/11: bo 4 phase dung (xem-khen, tham-quan, xem-bong, bay-quan) */
 function dungBenDo(){
   if(nhomBenDo || typeof sceneCity === 'undefined' || !sceneCity) return;
   const nhom = new THREE.Group(); nhom.name = 'benDo';
-  const nen = new THREE.Mesh(new THREE.BoxGeometry(34, 0.12, 13), new THREE.MeshStandardMaterial({color:0x3A3F4A, roughness:0.95}));
-  nen.position.set(0, 0.06, -34.5); nen.receiveShadow = true; nhom.add(nen);
+  const nen = new THREE.Mesh(new THREE.BoxGeometry(34, 0.12, 15), new THREE.MeshStandardMaterial({color:0x3A3F4A, roughness:0.95})); /* BEN-DO-MOI 23/11: san do truoc cong chinh (z -100..-115) */
+  nen.position.set(0, 0.06, -107.5); nen.receiveShadow = true; nhom.add(nen);
   const vang = new THREE.MeshStandardMaterial({color:0xC9A227, roughness:0.6});
   const trang = new THREE.MeshStandardMaterial({color:0xFDF6E3, roughness:0.6});
   const vien = (w, d, x, z, mat)=>{ const m = new THREE.Mesh(new THREE.BoxGeometry(w, 0.03, d), mat); m.position.set(x, 0.13, z); nhom.add(m); };
-  vien(34, 0.25, 0, -28.1, vang); vien(34, 0.25, 0, -40.9, vang);
-  vien(0.25, 12.6, -5.67, -34.5, trang); vien(0.25, 12.6, 5.67, -34.5, trang);
+  vien(34, 0.25, 0, -100.6, vang); vien(34, 0.25, 0, -114.4, vang);
+  vien(0.25, 14.6, -5.67, -107.5, trang); vien(0.25, 14.6, 5.67, -107.5, trang);
   /* Loi di bo vao tung cong (3 cong x=-9/0/9, z=-14). */
   [-9, 0, 9].forEach(gx=>{
     const loi = new THREE.Mesh(new THREE.BoxGeometry(2.2, 0.04, 13), new THREE.MeshStandardMaterial({color:0xB8A888, roughness:0.9}));
@@ -18431,7 +18516,7 @@ function dungBenDo(){
   const lamChuSan = (dong1, dong2, x)=>{
     const tex = textureBien(dong1, dong2, '#1F2A44');
     const m = new THREE.Mesh(new THREE.PlaneGeometry(8.5, 2.6), new THREE.MeshBasicMaterial({map:tex}));
-    m.rotation.x = -Math.PI/2; m.position.set(x, 0.15, -37.5); nhom.add(m);
+    m.rotation.x = -Math.PI/2; m.position.set(x, 0.15, -111); nhom.add(m);
   };
   lamChuSan('PHÂN HIỆU CHÍNH', 'XUỐNG XE → CỔNG', -11.3);
   lamChuSan('PHÂN HIỆU 1', 'XUỐNG XE → CỔNG', 0);
@@ -18442,13 +18527,13 @@ function dungBenDo(){
   bang.position.y = 2.6; bien.add(bang);
   const cotMat = new THREE.MeshStandardMaterial({color:0x5C3A1E, roughness:0.9});
   [-3.2, 3.2].forEach(px=>{ const c = new THREE.Mesh(new THREE.CylinderGeometry(0.09, 0.09, 2.6, 8), cotMat); c.position.set(px, 1.3, 0); bien.add(c); });
-  bien.position.set(0, 0, -41.6); bien.rotation.y = Math.PI; nhom.add(bien);
+  bien.position.set(0, 0, -116.5); bien.rotation.y = Math.PI; nhom.add(bien);
   /* Mai che nho o mep tay san do (cho HS dung cho, khong che loi xe vao). */
   const mai = new THREE.Group();
   const tamMai = new THREE.Mesh(new THREE.BoxGeometry(4.5, 0.12, 3), new THREE.MeshStandardMaterial({color:0x2E7D6B, roughness:0.7}));
   tamMai.position.y = 2.6; mai.add(tamMai);
   [[-2, -1.2], [2, -1.2], [-2, 1.2], [2, 1.2]].forEach(p=>{ const c = new THREE.Mesh(new THREE.CylinderGeometry(0.07, 0.07, 2.6, 8), cotMat); c.position.set(p[0], 1.3, p[1]); mai.add(c); });
-  mai.position.set(-14.5, 0, -34.5); nhom.add(mai);
+  mai.position.set(-14.5, 0, -107.5); nhom.add(mai);
   sceneCity.add(nhom); nhomBenDo = nhom;
 }
 function dungHanhKhachTrenXe(){
@@ -18456,17 +18541,21 @@ function dungHanhKhachTrenXe(){
     const xe = (typeof xeBayHien !== 'undefined') ? xeBayHien : null;
     if(!xe || !sceneCity) return;
     if(xe.userData.hanhKhach){ xe.remove(xe.userData.hanhKhach); xe.userData.hanhKhach = null; }
+    if(xe.userData.cuaSoXe){ xe.remove(xe.userData.cuaSoXe); xe.userData.cuaSoXe = null; } /* v26b: go ca nhom cua so cu */
     xe.position.set(0, 0, 0); xe.rotation.set(0, 0, 0); xe.updateMatrixWorld(true);
     const bb = new THREE.Box3().setFromObject(xe);
     const rong = Math.max(1.5, bb.max.x - bb.min.x), dai = Math.max(2.5, bb.max.z - bb.min.z), cao = Math.max(1.8, bb.max.y - bb.min.y);
     const cx = (bb.max.x + bb.min.x)/2, cz = (bb.max.z + bb.min.z)/2;
-    xe.userData.ktXe = {cao:cao, rong:rong, dai:dai, cx:cx, cz:cz};
+    const nuaThan = (phuongTien === 'may-bay') ? 1.07 : rong/2; /* CUA-SO-TRON 23/11: may bay dung nua rong THAN (1.07m do bang tia, cao do cua so), KHONG dung saI canh (11.3m) — saI canh dat cua so ngoai canh, trong nhu giay dan. Xe khac (buyt/o-to/tau) than la hop nen rong/2 chinh la mat ben. */
+    const sanXe = (phuongTien === 'may-bay') ? 1.2 : 0; /* san khoang may bay cao hon mat dat 1.2m (day than) */
+    xe.userData.ktXe = {cao:cao, rong:rong, dai:dai, cx:cx, cz:cz, nuaThan:nuaThan};
     /* sua 22/11 (goc TRONG XE): vo xe chi ve mat ngoai (FrontSide) — tu trong
        xe nhin ra, vo bien mat nen thay canh ngoai troi qua cua so; tu ngoai
        van thay xe binh thuong. (GLB Blender de DoubleSide nen truoc day tu
        trong chi thay vach vang dac, du camera da sat cua so.) */
     xe.traverse(o=>{ if(o.isMesh){ const ms = Array.isArray(o.material) ? o.material : [o.material]; ms.forEach(m=>{ if(m) m.side = THREE.FrontSide; }); } });
     const nhom = new THREE.Group(); nhom.name = 'hanhKhachXe';
+    const nhomCua = new THREE.Group(); nhomCua.name = 'cuaSoXe'; /* v26b: cua so tron la cua XE (luon hien), khong phai hanh khach (an khi xuong xe) */
     const xeMo = (phuongTien === 'thuyen' || phuongTien === 'khinh-khi-cau');
     const gheMat = new THREE.MeshStandardMaterial({color:0x2E5A4A, roughness:0.8});
     const khungMat = new THREE.MeshStandardMaterial({color:0x1F2A44, roughness:0.5, metalness:0.3});
@@ -18483,48 +18572,65 @@ function dungHanhKhachTrenXe(){
       /* 2 ban ngoi ghe truoc — camera TRONG XE thay lung + dau cac ban. */
       [-0.5, 0.5].forEach(dx=>{
         const ghe = new THREE.Mesh(new THREE.BoxGeometry(0.62, 0.55, 0.55), gheMat);
-        ghe.position.set(cx + dx, 0.28, cz + dai*0.14); nhom.add(ghe);
+        ghe.position.set(cx + dx, 0.28 + sanXe, cz + dai*0.14); nhom.add(ghe);
         const tua = new THREE.Mesh(new THREE.BoxGeometry(0.62, 0.75, 0.12), gheMat);
-        tua.position.set(cx + dx, 0.85, cz + dai*0.14 - 0.28); nhom.add(tua);
+        tua.position.set(cx + dx, 0.85 + sanXe, cz + dai*0.14 - 0.28); nhom.add(tua);
         const hs = taoHocSinhNho(dx < 0 ? 2 : 4); hs.scale.setScalar(0.72);
-        hs.position.set(cx + dx, -0.3, cz + dai*0.14);
+        hs.position.set(cx + dx, -0.3 + sanXe, cz + dai*0.14);
         hs.userData.chanT.rotation.x = -1.4; hs.userData.chanP.rotation.x = -1.4;
         hs.userData.tayT.rotation.x = -0.7; hs.userData.tayP.rotation.x = -0.7;
         nhom.add(hs);
       });
       /* Khung cua so 2 ben (camera trong xe nhin ra thay khung, canh ngoai troi qua). */
       [-1, 1].forEach(s=>{
-        const x = cx + s*(rong/2 - 0.08);
+        const x = cx + s*(nuaThan - 0.08);
         [cao*0.62, cao*0.32].forEach(py=>{ const ng = new THREE.Mesh(new THREE.BoxGeometry(0.07, 0.09, 2.6), khungMat); ng.position.set(x, py, cz); nhom.add(ng); });
         [-1.3, 1.3].forEach(dz=>{ const dc = new THREE.Mesh(new THREE.BoxGeometry(0.07, cao*0.32, 0.09), khungMat); dc.position.set(x, cao*0.47, cz + dz); nhom.add(dc); });
       });
-      /* 3 ban ghe mat ra cua so (ben huong ve giua map khi bay) — chi dau + vai,
-         sau lung la o cua so toi; khong dung ca nguoi (than xe dac se che / loi ra ngoai). */
-      const lamDauCuaSo = (mauAo)=>{
-        const g = new THREE.Group();
-        const vai = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.22, 0.3), HS_NHO.mat.ao[mauAo % HS_NHO.mat.ao.length]); vai.position.y = 0.02; g.add(vai);
-        const dau = new THREE.Mesh(new THREE.SphereGeometry(0.19, 12, 10), HS_NHO.mat.da); dau.position.y = 0.3; g.add(dau);
-        const toc = new THREE.Mesh(new THREE.SphereGeometry(0.2, 12, 10, 0, Math.PI*2, 0, Math.PI*0.55), HS_NHO.mat.tocArr[mauAo % 3]); toc.position.y = 0.34; g.add(toc);
-        return g;
-      };
+      /* CUA-SO-TRON 23/11 (thay chot: "chi nhin thay dau nguoi nho nho qua cac cham tron cua so thoi"):
+         BO han 3 tam vuong navy 1.1m + dau to dan ngoai than (trong nhu giay dan, che chu TRUONG).
+         Moi cua so gio la 1 CHAM TRON NHO tren mat than: vong khung tron + kinh trong hoi mo
+         + chi DAU NGUOI NHO sau kinh (khong vai, khong than). Dat theo nuaThan (mat than that). */
       const ben = ((typeof KHU_CONG !== 'undefined' && KHU_CONG[khuDaChon]) ? KHU_CONG[khuDaChon].x : 0) >= 0 ? -1 : 1;
+      const kinhMat = new THREE.MeshStandardMaterial({color:0xBFE3F2, transparent:true, opacity:0.35, roughness:0.08, metalness:0.25, side:THREE.FrontSide});
+      const vongMat = new THREE.MeshStandardMaterial({color:0x3A3F4A, roughness:0.4, metalness:0.5, side:THREE.DoubleSide});
+      const sangMat = new THREE.MeshBasicMaterial({color:0xFFFFFF, transparent:true, opacity:0.32, side:THREE.FrontSide, depthWrite:false});
       [-1.3, 0, 1.3].forEach((dz, i)=>{
-        const khung = new THREE.Mesh(new THREE.PlaneGeometry(1.1, 1.1), new THREE.MeshStandardMaterial({color:0x0B1220, roughness:0.4, side:THREE.FrontSide}));
-        khung.rotation.y = ben * Math.PI/2; /* sua 22/11: mat truoc huong ra ngoai -> tu trong xe nhin ra tam bien mat, khong che canh; tu ngoai van thay tam den + mat cac ban */
-        khung.position.set(cx + ben*(rong/2 + 0.03), cao*0.58, cz + dz); nhom.add(khung);
-        const hs = lamDauCuaSo(i*2);
-        hs.position.set(cx + ben*(rong/2 + 0.12), cao*0.58 - 0.12, cz + dz);
-        hs.rotation.y = ben * Math.PI/2;
-        if(i === 1) hs.rotation.z = 0.15; /* ban giua nghieng dau cuoi */
-        nhom.add(hs);
+        const yCua = cao*0.58;
+        /* Vong khung tron (ban kinh ngoai 0.345) ap sat mat than. */
+        const vong = new THREE.Mesh(new THREE.TorusGeometry(0.30, 0.045, 10, 28), vongMat);
+        vong.rotation.y = ben * Math.PI/2;
+        vong.position.set(cx + ben*(nuaThan + 0.02), yCua, cz + dz);
+        nhomCua.add(vong); /* v26b */
+        /* Kinh tron hoi mo (ban kinh 0.28), ngoai cung — dau nguoi nam sau kinh. */
+        const kinh = new THREE.Mesh(new THREE.CircleGeometry(0.28, 28), kinhMat);
+        kinh.rotation.y = ben * Math.PI/2;
+        kinh.position.set(cx + ben*(nuaThan + 0.10), yCua, cz + dz);
+        nhomCua.add(kinh); /* v26b */
+        /* Vet sang phan chieu tren kinh (cham tron nho lech tren-trai). */
+        const sang = new THREE.Mesh(new THREE.CircleGeometry(0.07, 16), sangMat);
+        sang.rotation.y = ben * Math.PI/2;
+        sang.position.set(cx + ben*(nuaThan + 0.105), yCua + 0.13, cz + dz - 0.09);
+        nhomCua.add(sang); /* v26b */
+        /* Dau nguoi NHO sau kinh: chi dau (r=0.14) + mu toc, khong vai/than. */
+        const dau = new THREE.Group();
+        const d = new THREE.Mesh(new THREE.SphereGeometry(0.14, 14, 12), HS_NHO.mat.da);
+        d.position.y = 0; dau.add(d);
+        const toc = new THREE.Mesh(new THREE.SphereGeometry(0.145, 14, 12, 0, Math.PI*2, 0, Math.PI*0.55), HS_NHO.mat.tocArr[(i*2) % 3]);
+        toc.position.y = 0.02; dau.add(toc);
+        dau.position.set(cx + ben*(nuaThan - 0.07), yCua - 0.03, cz + dz);
+        dau.rotation.y = ben * Math.PI/2;
+        if(i === 1) dau.rotation.z = 0.12; /* ban giua nghieng dau nhe */
+        nhomCua.add(dau); /* v26b: dau nam trong nhom cua so -> van thay qua kinh khi xe do */
       });
     }
     xe.add(nhom); xe.userData.hanhKhach = nhom;
+    xe.add(nhomCua); xe.userData.cuaSoXe = nhomCua; /* v26b: cua so tron luon hien */
   }catch(e){ /* hanh khach la phu — loi thi bay khong co HS, khong vo chuyen bay */ }
 }
 /* Di bo nhieu doan TOC DO CHAM (2,2 m/s) cho luong den — giong datDiChuyenNhieuDoan
    nhung KHONG cap dur 1s. */
-function datDoanDiCham(m, diem, tre, xoayCuoi, ngoiKhiToi){
+function datDoanDiCham(m, diem, tre, xoayCuoi, ngoiKhiToi, tocDo){
   if(!m || !diem || !diem.length) return;
   let idx = 0;
   const diTiep = ()=>{
@@ -18533,12 +18639,73 @@ function datDoanDiCham(m, diem, tre, xoayCuoi, ngoiKhiToi){
     const cuoi = idx === diem.length - 1;
     m.userData.errand = !(cuoi && ngoiKhiToi);
     const dist = Math.hypot(den.x - m.position.x, den.z - m.position.z);
-    const dur = Math.max(0.6, dist/2.2);
+    const dur = Math.max(0.6, dist/(tocDo || 2.2)); /* tocDo mac dinh 2.2 m/s; luong di chinh dung 3.0 m/s */
     m.userData.diChuyen = {tu: new THREE.Vector3(m.position.x, 0, m.position.z), den: den.clone(), batDauMs: performance.now(), dur: dur, tre: idx === 0 ? (tre || 0) : 0, xoay: cuoi ? xoayCuoi : 0, xong: cuoi ? null : ()=>{ setTimeout(diTiep, 40); }};
     idx++;
   };
   diTiep();
 }
+/* ================= LOP-TRUONG-NOI (23/11) =================
+   Tram (lop truong, ban dau hang, bien do LOP TRUONG) noi khi doan vua xuong xe:
+   "Lop truong dua cac ban trong lop len tang {TANG}, phong thuc hanh AI tai tang {TANG}.
+    Cac ban hay theo minh." — loi thay doc nguyen van, chi thay so tang theo bai dang hoc.
+   Bong bong thoai 3 dong tren dau Tram + phat clip giong nu da thu san (LT-T{tang}.txt
+   trong am-giong-nu/, giong nu Bac 1, da kiem tra khong lap). Sau 6.5s bong bong tu an.
+   Tang lay tu layTangCuaPhong(phong) — phong.toa = 't4' (so bai = so tang); KHONG dung
+   phong.tang (do la chi so khoi 1-4, sai). */
+const LT_TANG_CHU = {1:'một', 2:'hai', 3:'ba', 4:'bốn', 5:'năm', 6:'sáu', 7:'bảy', 8:'tám', 9:'chín', 10:'mười', 11:'mười một', 12:'mười hai'};
+function layTangCuaPhong(p){
+  if(!p) return 0;
+  if(typeof p.toa === 'string'){ const n = parseInt(p.toa.replace(/^t/i, ''), 10); if(n >= 1 && n <= 12) return n; }
+  if(typeof p.toa === 'number' && p.toa >= 1 && p.toa <= 12) return p.toa;
+  const m = String(p.id || '').match(/^t(\d+)-f/);
+  if(m) return parseInt(m[1], 10);
+  return 0;
+}
+function textureBongBong3(d1, d2, d3, ten){
+  const c = document.createElement('canvas'); c.width = 1024; c.height = 420;
+  const g = c.getContext('2d');
+  g.fillStyle = 'rgba(255,253,240,0.96)';
+  g.beginPath(); g.roundRect(6, 6, 1012, 400, 42); g.fill();
+  g.strokeStyle = '#C9A227'; g.lineWidth = 8; g.stroke();
+  g.fillStyle = '#B91C1C'; g.font = '800 46px "Be Vietnam Pro", Arial, sans-serif';
+  g.textAlign = 'center'; g.textBaseline = 'middle';
+  g.fillText('🗣️ ' + (ten || 'LỚP TRƯỞNG'), 512, 48);
+  g.fillStyle = '#1F2937'; g.font = '700 54px "Be Vietnam Pro", Arial, sans-serif';
+  g.fillText(d1, 512, 140); g.fillText(d2, 512, 215); g.fillText(d3, 512, 290);
+  g.fillStyle = '#92400E'; g.font = '700 40px "Be Vietnam Pro", Arial, sans-serif';
+  g.fillText('— Các bạn hãy theo mình —', 512, 368);
+  const tex = new THREE.CanvasTexture(c); tex.colorSpace = THREE.SRGBColorSpace; tex.anisotropy = 4;
+  return tex;
+}
+function lopTruongNoi(tang, chiBongBong){ /* v26c: chiBongBong=true -> chi hien lai bong bong, khong phat lai giong */
+  try{
+    const t = Math.max(1, Math.min(12, tang || 4));
+    const tram = (typeof doanThanhVien !== 'undefined' && doanThanhVien.length) ? doanThanhVien[0] : null;
+    if(!tram) return;
+    const chu = LT_TANG_CHU[t] || ('' + t);
+    const d1 = 'Lớp trưởng đưa các bạn trong lớp lên tầng ' + chu + ',';
+    const d2 = 'phòng thực hành AI tại tầng ' + chu + '.';
+    const d3 = 'Các bạn hãy theo mình.';
+    if(!tram.userData.bongBongLT){
+      tram.userData.bongBongLT = new THREE.Sprite(new THREE.SpriteMaterial({map:textureBongBong3(d1, d2, d3, 'TRÂM · LỚP TRƯỞNG'), transparent:true, depthWrite:false}));
+      tram.userData.bongBongLT.scale.set(3.2, 1.3, 1);
+      tram.userData.bongBongLT.position.y = 3.1;
+      tram.add(tram.userData.bongBongLT);
+    } else {
+      tram.userData.bongBongLT.material.map = textureBongBong3(d1, d2, d3, 'TRÂM · LỚP TRƯỞNG');
+      tram.userData.bongBongLT.material.needsUpdate = true;
+    }
+    tram.userData.bongBongLT.visible = true;
+    /* Loi noi mo dau (robot dan doan): hien cau noi cua Tram o bang loi. */
+    if(typeof datLoiMoDau === 'function' && !chiBongBong) datLoiMoDau('🗣️ Trâm: ' + d1 + ' ' + d2 + ' ' + d3);
+    /* Phat clip giong nu da thu san (LT-T{tang}.txt) — khong qua giongNuTimId (khong can MAP). */
+    if(typeof giongNuPhatFile === 'function' && !chiBongBong) giongNuPhatFile('LT-T' + t);
+    if(!chiBongBong){ window.__ltDaNoi = true; window.__ltTang = t; window.__ltNoiLuc = Date.now(); } /* v26c */
+    setTimeout(()=>{ try{ if(tram.userData.bongBongLT) tram.userData.bongBongLT.visible = false; }catch(e){} }, 6500);
+  }catch(e){}
+}
+
 function datDoanXuongBenDo(){
   try{
     if(typeof doanThanhVien === 'undefined' || !doanThanhVien.length){
@@ -18551,8 +18718,14 @@ function datDoanXuongBenDo(){
     dungBenDo();
     const cong = (typeof KHU_CONG !== 'undefined' && KHU_CONG[khuDaChon]) || {x:0, z:-14};
     const gx = cong.x, gz = cong.z;
+    /* LOP-TRUONG-NOI 23/11: Tram noi khi doan vua xuong xe. Tu dong: tang = tuDongTang (da biet).
+       Thu cong: luc xuong xe chua biet tang -> KHONG noi o day; noi khi thay chon tang o batDauDiBo.
+       Noi xong doan moi bat dau di (tre 6.5s). */
+    window.__ltDaNoi = false;
+    try{ if(typeof window !== 'undefined' && window.tuDongDangChay && window.tuDongTang){ lopTruongNoi(window.tuDongTang); } }catch(e){}
+    const treNoi = window.__ltDaNoi ? 6.5 : 0;
     /* Xe do dung o ben do (dung loai thay da chon); thuyen o lai ben song. */
-    const diemXuatPhat = {x: gx, z: -33};
+    const diemXuatPhat = {x: gx, z: -108}; /* BEN-DO-MOI 23/11: xuong xe truoc cong chinh (z=-108), khong xuong trong san nua */
     try{
       if(phuongTien === 'thuyen'){
         diemXuatPhat.x = -39; diemXuatPhat.z = -44;
@@ -18560,7 +18733,7 @@ function datDoanXuongBenDo(){
       } else if(typeof xeBayHien !== 'undefined' && xeBayHien){
         if(xeBayHien.userData.hanhKhach) xeBayHien.userData.hanhKhach.visible = false; /* cac ban da xuong xe */
         xeBayHien.visible = true;
-        xeBayHien.position.set(gx, 0, -34);
+        xeBayHien.position.set(gx, 0, -108);
         xeBayHien.rotation.set(0, 0, 0);
       }
     }catch(e){}
@@ -18570,7 +18743,8 @@ function datDoanXuongBenDo(){
         doanRobot.visible = true;
         doanRobot.position.set(diemXuatPhat.x + 2, 0.9, diemXuatPhat.z + 1);
         doanRobot.rotation.y = Math.PI;
-        if(typeof datDiChuyenNhieuDoan === 'function') datDiChuyenNhieuDoan(doanRobot, [new THREE.Vector3(gx + 2, 0.9, gz + 6), new THREE.Vector3(-5.5, 0.9, 2)], 0.5, Math.PI/2, false);
+        /* LUONG-MOI 23/11: robot dan doan theo duong tien duy nhat: cong chinh -> doc duong vao -> cong phan hieu -> san khau khen -> san bong. */
+        if(typeof datDiChuyenNhieuDoan === 'function') datDiChuyenNhieuDoan(doanRobot, [new THREE.Vector3(2, 0.9, -96), new THREE.Vector3(0, 0.9, -60), new THREE.Vector3(gx, 0.9, -10), new THREE.Vector3(-5.5, 0.9, 2), new THREE.Vector3(7.5, 0.9, -8)], treNoi, Math.PI/2, false);
       }
     }catch(e){}
     /* 12 ban buoc xuong tu cua xe, xep 2 hang, roi di bo: truoc cong -> lot qua
@@ -18583,16 +18757,26 @@ function datDoanXuongBenDo(){
       const z = tamZ + bk * Math.cos(goc);
       const xoay = Math.atan2(tamX - x, tamZ - z);
       const lech = (i - (n - 1)/2) * 0.7;
-      const diem = (phuongTien === 'thuyen') ? [
-        new THREE.Vector3(-24 + lech, 0, gz + 5),
-        new THREE.Vector3(gx + lech*0.5, 0, gz - 2),
-        new THREE.Vector3(gx + lech, 0, gz - 9),
-        new THREE.Vector3(x, 0, z)
+      /* LUONG-MOI 23/11 (thay chot): 1 DUONG TIEN DUY NHAT tu ben do truoc cong chinh
+       (gx,-108) -> qua cong chinh (-96) -> doc duong vao (-60) -> qua cong phan hieu (-10)
+       -> san khau khen (vong cung phia bac) -> san bong. KHONG quay lai, KHONG di 2 lan qua 1 cho.
+       diemBong = o xem san bong: hang truoc z=-7.5, hang sau z=-8.7 (truoc san, khong chan san). */
+    const diemBong = new THREE.Vector3(2 + (i % 6) * 2.1, 0, -7.5 - Math.floor(i/6) * 1.2);
+    const diem = (phuongTien === 'thuyen') ? [
+        new THREE.Vector3(-24 + lech, 0, -20),
+        new THREE.Vector3(gx + lech*0.5, 0, -10),
+        new THREE.Vector3(gx + lech, 0, -2),
+        new THREE.Vector3(x, 0, z),
+        diemBong
       ] : [
-        new THREE.Vector3(gx + lech, 0, gz + 5),
-        new THREE.Vector3(gx + lech*0.5, 0, gz - 2),
-        new THREE.Vector3(gx + lech, 0, gz - 9),
-        new THREE.Vector3(x, 0, z)
+        new THREE.Vector3(gx + lech, 0, -100),
+        new THREE.Vector3(lech*0.3, 0, -96),
+        new THREE.Vector3(lech*0.3, 0, -60),
+        new THREE.Vector3(gx + lech*0.5, 0, -20),
+        new THREE.Vector3(gx + lech*0.5, 0, -10),
+        new THREE.Vector3(gx + lech, 0, -2),
+        new THREE.Vector3(x, 0, z),
+        diemBong
       ];
       m.visible = false;
       m.position.set(diemXuatPhat.x - 1.8 + (i % 2) * 1.1, 0, diemXuatPhat.z + Math.floor(i/2) * 0.9);
@@ -18600,7 +18784,7 @@ function datDoanXuongBenDo(){
       m.userData.dungLenT0 = 0; m.userData.errand = false;
       if(m.userData.bongBong) m.userData.bongBong.visible = false;
       m.userData.diChuyen = null;
-      datDoanDiCham(m, diem, i*0.25, xoay, false);
+      datDoanDiCham(m, diem, treNoi + i*0.25, xoay, false, 3.0); /* LUONG-MOI 23/11: di 3.0 m/s (doan ~137m -> ~46s); tre 6.5s neu Tram vua noi */
     });
     lxGiaiDoan = 'xuong-ben';
     lxTourT0 = performance.now();
@@ -18609,7 +18793,7 @@ function datDoanXuongBenDo(){
     const nutBoQua = $('btn-bo-qua-noi');
     if(nutBoQua){ nutBoQua.style.display = 'block'; nutBoQua.textContent = 'Bỏ qua tham quan ⏭'; }
     const tenKhu = (typeof KHU_TEN !== 'undefined' && KHU_TEN[khuDaChon]) ? KHU_TEN[khuDaChon] : '';
-    datLoiMoDau('🤖 Xuống xe thôi! Đây là bến đỗ — cả lớp đi bộ vào cổng ' + tenKhu + ' nào!');
+    datLoiMoDau('🤖 Xuống xe thôi! Bến đỗ trước cổng trường đây — cả lớp đi bộ qua cổng chính nào!');
   }catch(e){}
 }
 function datDoanToiSanBong(){
@@ -18661,11 +18845,11 @@ function capNhatCameraTour(dt){
     if(!camCity || !sceneCity) return;
     const k = 1 - Math.pow(0.002, dt);
     if(lxGiaiDoan === 'xuong-ben' && lxTourT0 && (performance.now() - lxTourT0) < 4000){
-      /* 4s dau: goc rong tu phia nam — thay xe do o ben do + 3 loi di bo
-         + cong phan hieu, doan dang xuong xe di ve phia may quay. */
+      /* 4s dau: goc rong tu phia nam — thay xe do o ben do truoc cong chinh
+         + cong chinh to, doan dang xuong xe di ve phia may quay. */
       const gxE = (typeof KHU_CONG !== 'undefined' && KHU_CONG[khuDaChon]) ? KHU_CONG[khuDaChon].x : 0;
-      camCity.position.lerp(vtmp.set(gxE + 8, 9, -46), k);
-      camCity.lookAt(gxE, 1.2, -16);
+      camCity.position.lerp(vtmp.set(gxE + 10, 10, -122), k);
+      camCity.lookAt(gxE, 2, -99);
       return;
     }
     if(lxGiaiDoan === 'tu-dong-thang-may'){
@@ -18676,30 +18860,6 @@ function capNhatCameraTour(dt){
         return;
       }
     }
-    if(lxGiaiDoan === 'bay-quan'){
-      const tq = (performance.now() - lxQuetT0)/1000;
-      const doanQ = tq < 3 ? 0 : (tq < 6 ? 1 : 2);
-      if(doanQ !== lxQuetDoan){
-        lxQuetDoan = doanQ;
-        const bb = document.getElementById('bien-bay');
-        const ten = ['🏐 SÂN BÓNG CHUYỀN', '🏊 BỂ BƠI', '📚 THƯ VIỆN'][doanQ];
-        if(bb){ bb.textContent = ten; bb.style.display = 'block'; }
-        datLoiMoDau(['🤖 Sân bóng chuyền — các bạn đang chơi bóng kìa!', '🤖 Bể bơi ở phía đông — nước xanh, có 5 làn bơi!', '🤖 Thư viện ở đông-bắc — vào đọc sách nhé!'][doanQ]);
-      }
-      const diem = [
-        {p:[7.5, 16, -14], n:[7.5, 1, -1]},
-        {p:[60, 18, -20], n:[75, 1, -5]},
-        {p:[58, 18, -52], n:[70, 2, -40]}
-      ][doanQ];
-      const truoc = doanQ === 0 ? {p:[0, 10, -14], n:[-8.5, 1, 5]} : [
-        {p:[7.5, 16, -14], n:[7.5, 1, -1]},
-        {p:[60, 18, -20], n:[75, 1, -5]}
-      ][doanQ - 1];
-      const u = smooth(Math.min(1, (tq - doanQ*3)/3));
-      camCity.position.set(lerp(truoc.p[0], diem.p[0], u), lerp(truoc.p[1], diem.p[1], u), lerp(truoc.p[2], diem.p[2], u));
-      camCity.lookAt(lerp(truoc.n[0], diem.n[0], u), lerp(truoc.n[1], diem.n[1], u), lerp(truoc.n[2], diem.n[2], u));
-      return;
-    }
     /* Camera theo sau doan di bo. */
     let cx = 0, cz = 0, dem = 0;
     if(doanThanhVien && doanThanhVien.length){
@@ -18709,23 +18869,37 @@ function capNhatCameraTour(dt){
     if(!lxCamTam) lxCamTam = new THREE.Vector3(cx, 0, cz);
     lxCamTam.x += (cx - lxCamTam.x) * k; lxCamTam.z += (cz - lxCamTam.z) * k;
     let hx = 0, hz = 1;
-    if(lxGiaiDoan === 'xem-khen'){ hx = -8.5 - lxCamTam.x; hz = 5 - lxCamTam.z; }
-    else if(lxGiaiDoan === 'xem-bong'){ hx = 7.5 - lxCamTam.x; hz = -1 - lxCamTam.z; }
-    else {
-      if(!lxCamHuong) lxCamHuong = new THREE.Vector3(0, 0, 1);
-      if(lxTamTruoc){
-        const mx = lxCamTam.x - lxTamTruoc.x, mz = lxCamTam.z - lxTamTruoc.z;
-        if(Math.hypot(mx, mz) > 0.002){ const l = Math.hypot(mx, mz); lxCamHuong.x += ((mx/l) - lxCamHuong.x) * k; lxCamHuong.z += ((mz/l) - lxCamHuong.z) * k; }
-      }
-      lxTamTruoc = {x: lxCamTam.x, z: lxCamTam.z};
-      hx = lxCamHuong.x; hz = lxCamHuong.z;
+    /* LUONG-MOI 23/11: bo huong nhin co dinh vao san khau/san bong (da bo cac phase dung);
+       huong camera luon la huong doan dang di (tu tam truoc toi tam hien tai). */
+    if(!lxCamHuong) lxCamHuong = new THREE.Vector3(0, 0, 1);
+    if(lxTamTruoc){
+      const mx = lxCamTam.x - lxTamTruoc.x, mz = lxCamTam.z - lxTamTruoc.z;
+      if(Math.hypot(mx, mz) > 0.002){ const l = Math.hypot(mx, mz); lxCamHuong.x += ((mx/l) - lxCamHuong.x) * k; lxCamHuong.z += ((mz/l) - lxCamHuong.z) * k; }
     }
+    lxTamTruoc = {x: lxCamTam.x, z: lxCamTam.z};
+    hx = lxCamHuong.x; hz = lxCamHuong.z;
     const hl = Math.hypot(hx, hz) || 1; hx /= hl; hz /= hl;
-    const px = lxCamTam.x - hx*9, pz = lxCamTam.z - hz*9;
+    /* CAMERA XA-GAN 23/11 (thay chot: quay xa roi lai gan, chuyen canh tu nhien, khong cat):
+       binh thuong goc rong (cach doan 12m, cao 7m); khi doan gan san khau khen (<=16m)
+       hoac san bong (<=16m) thi zoom vao 1 chut (cach 6.5m, cao 3.6m) de thay ro hoat canh,
+       roi lui ra. Tat ca qua lerp k nen chuyen canh muot, khong giat. */
+    const dKhen = Math.hypot(lxCamTam.x + 8.5, lxCamTam.z - 5);
+    const dBong = Math.hypot(lxCamTam.x - 7.5, lxCamTam.z + 1);
+    let kcCam = 12, caoCam = 7, nhinX = lxCamTam.x + hx*4, nhinZ = lxCamTam.z + hz*4;
+    if(dKhen < 16){
+      const u = smooth(1 - dKhen/16);
+      kcCam = 12 + (6.5 - 12)*u; caoCam = 7 + (3.6 - 7)*u;
+      nhinX = nhinX + (-8.5 - nhinX)*u; nhinZ = nhinZ + (5 - nhinZ)*u;
+    } else if(dBong < 16){
+      const u = smooth(1 - dBong/16);
+      kcCam = 12 + (6.5 - 12)*u; caoCam = 7 + (3.6 - 7)*u;
+      nhinX = nhinX + (7.5 - nhinX)*u; nhinZ = nhinZ + (-1 - nhinZ)*u;
+    }
+    const px = lxCamTam.x - hx*kcCam, pz = lxCamTam.z - hz*kcCam;
     camCity.position.x += (px - camCity.position.x) * k;
-    camCity.position.y += (5.2 - camCity.position.y) * k;
+    camCity.position.y += (caoCam - camCity.position.y) * k;
     camCity.position.z += (pz - camCity.position.z) * k;
-    camCity.lookAt(lxCamTam.x + hx*4, 1.4, lxCamTam.z + hz*4);
+    camCity.lookAt(nhinX, 1.4, nhinZ);
   }catch(e){}
 }
 
@@ -18740,7 +18914,11 @@ function capNhatCameraTour(dt){
    van phong co mat khau kiem tra phia may chu, khong co link cong khai). */
 /* ================= TOA NHA HOI DONG AI — 7 TANG (v11, 22/11) · v12: DO CAY/NUI CHE TOA · v13: MAP GAP 3 · v14: MAT TIEN TOA QUAY DONG + CAY NHO · v15: LUONG LEN XE MOI (CHON LOP TRUOC + XEM KHEN 2S + QUA CONG PHAN HIEU) · v16: LOP TRUONG DAN DOAN (1 HANG DOC + BANG DO + BIEN LOP TRUONG) · v17: MO RONG GIOI HAN DI CHUYEN ±100 (SUA LOI KHONG SANG DUOC TOA) · v18: KEO 4 TOA LAI GAN SAN x=-70->-43 · v19: 3 GOC MAY + HS TREN XE + BEN DO + LUONG DEN MOI + GOP CHON LOP TRUOC / DS HIEN NGAY TU LIVE · v20: GOP 3 MUC DOI DO HOA (vuon hoa + duong lat da + cot co) · v21: GOP MUC 4 DOI DO HOA (4 BO BAN GHE DA QUANH QUANG TRUONG) · v22: GOP MUC 5 DOI DO HOA (VUON CAY AN QUA PHIA DONG) · v23: GOP MUC 16 LUOT 1 DOI DO HOA (TUONG RAO PHIA DONG + CONG PHU DONG)
 · v24: GOP CHE DO TU DONG + THANG MAY (theo ban demo da duyet)
-· v25: GOP NHA DE XE MUC 6 + DS 8A PH II 42 BAN =================
+· v25: GOP NHA DE XE MUC 6 + DS 8A PH II 42 BAN
+· v26: GOP HANH KHACH (CUA-SO-TRON + VONG-BAY-CAO 28s + BEN DO TRUOC CONG CHINH + CONG CHINH TO x1.3 + LUONG DI 1 MACH + LOP TRUONG NOI LT-T1..T12) + HO NUOC CAU CONG MUC 7
+· v26a: SUA BIEN CONG (dong 1 gioi han 1500px, het cat chu T/H)
+· v26b: TACH CUA SO TRON (nhom cuaSoXe luon hien; sua loi an cua so khi xuong xe)
+· v26c: GIU BONG BONG TRAM (gan lai khi doan dung lai do doi lop bat dong bo) =================
    Vi tri: suon ben canh duong di vao (tay duong chinh), (-16, -17), mat tien
    huong nam ve quang truong. Tang 1-4: 12 phong/tang; doi DO HOA tang 1 mo rong
    (do hoa + ve map + xay ha tang game). TANG 5 = DOI LUU TRU (doi chua co phong
