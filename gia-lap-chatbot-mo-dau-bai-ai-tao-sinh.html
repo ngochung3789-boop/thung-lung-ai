@@ -1,0 +1,505 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="color-scheme" content="light" />
+<link rel="icon" href="data:," />
+<title>ChatGPT</title>
+<style>
+  /* Giao diện luôn là nền trắng (ChatGPT chế độ sáng), kể cả khi máy đang ở chế độ tối */
+  :root{
+    color-scheme: light;
+    --bg:#ffffff; --sidebar:#f9f9f9; --sidebar-border:#e7e7e7;
+    --text:#0d0d0d; --muted:#6b6b6b; --faint:#9b9b9b;
+    --bubble-user:#f4f4f4; --hover:rgba(0,0,0,.05); --active:#ececec;
+    --border:#e5e5e5; --input-border:#d9d9d9;
+    --accent:#0d0d0d; --accent-text:#fff;
+    --link:#2563eb; --voice:#2563eb;
+    --panel:#f9f9f9; --card:#fff;
+    --shadow:0 4px 24px rgba(0,0,0,.08);
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{margin:0;font-family:ui-sans-system,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;background:var(--bg);color:var(--text);display:flex;flex-direction:column}
+  button{cursor:pointer;font:inherit}
+  svg{display:block}
+  .ic{width:20px;height:20px;flex:0 0 20px;stroke:currentColor;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+  .ic.sm{width:18px;height:18px;flex-basis:18px}
+
+  /* ===== Layout ===== */
+  .app{flex:1;display:flex;min-height:0}
+
+  /* ===== Sidebar (giống ảnh ChatGPT) ===== */
+  .sidebar{width:260px;flex:0 0 260px;background:var(--sidebar);padding:10px 12px 12px;display:flex;flex-direction:column;overflow-y:auto}
+  .side-top{display:flex;align-items:center;justify-content:space-between;padding:6px 4px 12px}
+  .side-logo{font-size:19px;font-weight:700;letter-spacing:-.01em}
+  .side-top-icons{display:flex;gap:4px;color:var(--muted)}
+  .icon-btn{border:0;background:transparent;color:inherit;width:34px;height:34px;border-radius:8px;display:grid;place-items:center;padding:0}
+  .icon-btn:hover{background:var(--hover)}
+  .nav{display:flex;flex-direction:column;gap:2px}
+  .nav-item{display:flex;align-items:center;gap:11px;padding:8px 10px;border-radius:10px;font-size:14.5px;color:var(--text);border:0;background:transparent;text-align:left;width:100%;min-height:38px}
+  .nav-item:hover{background:var(--hover)}
+  .nav-item.active{background:var(--active);font-weight:500}
+  .side-label{font-size:13.5px;color:var(--muted);font-weight:600;padding:20px 10px 6px}
+  .side-empty{font-size:14px;color:var(--faint);padding:2px 10px}
+  .recent-item{display:block;padding:7px 10px;border-radius:10px;font-size:14.5px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .recent-item:hover{background:var(--hover)}
+  .side-user{margin-top:auto;padding-top:14px}
+  .user-row{display:flex;align-items:center;gap:10px;padding:4px 6px 12px}
+  .user-ava{width:30px;height:30px;border-radius:50%;background:#7c3aed;color:#fff;display:grid;place-items:center;font-size:12px;font-weight:700;flex:0 0 30px}
+  .user-name{font-size:14.5px;font-weight:600;line-height:1.25}
+  .user-plan{font-size:12.5px;color:var(--muted);line-height:1.25}
+  .offer-btn{width:100%;border:1px solid var(--border);background:var(--card);color:var(--text);border-radius:999px;padding:10px;font-size:14px;font-weight:600;display:flex;align-items:center;justify-content:center;gap:8px;min-height:42px}
+  .offer-btn:hover{background:var(--hover)}
+
+  /* ===== Main ===== */
+  .main{flex:1;display:flex;flex-direction:column;min-width:0}
+  .topbar{display:flex;align-items:center;justify-content:flex-end;gap:6px;padding:10px 16px}
+  .offer-link{color:var(--link);font-size:14.5px;font-weight:600;text-decoration:none;display:flex;align-items:center;gap:6px;padding:6px 8px;border-radius:8px}
+  .offer-link:hover{background:var(--hover)}
+  .topbar .icon-btn{color:var(--muted)}
+
+  .chat-wrap{flex:1;overflow-y:auto;padding:8px 16px 16px;display:flex;flex-direction:column}
+  .chat{width:100%;max-width:768px;margin:0 auto;display:flex;flex-direction:column;gap:22px}
+
+  /* Hero — màn hình trống giống ảnh */
+  .hero{margin:auto;width:100%;max-width:768px;text-align:center;padding:10px 0 30px}
+  .hero h1{font-size:30px;font-weight:500;letter-spacing:-.01em;margin:0 0 26px}
+  .suggest{max-width:640px;margin:20px auto 0;text-align:left;display:flex;flex-direction:column;gap:4px}
+  .suggest button{display:flex;align-items:center;gap:12px;border:0;background:transparent;color:var(--muted);font-size:15.5px;padding:9px 12px;border-radius:10px;text-align:left}
+  .suggest button:hover{background:var(--hover);color:var(--text)}
+
+  /* Messages */
+  .msg{display:flex;gap:12px;align-items:flex-start;animation:fade .25s ease}
+  @keyframes fade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+  @media (prefers-reduced-motion: reduce){.msg{animation:none}}
+  .avatar{width:32px;height:32px;border-radius:50%;flex:0 0 32px;display:grid;place-items:center;font-weight:800;font-size:13px}
+  .avatar.ai{background:#fff;color:#0d0d0d;border:1px solid var(--border)}
+  .avatar.user{background:#7c3aed;color:#fff}
+  .msg-body{flex:1;min-width:0;font-size:18px;line-height:1.75}
+  .msg.user{flex-direction:row-reverse}
+  .msg.user .msg-body{background:var(--bubble-user);padding:12px 18px;border-radius:22px;flex:0 1 auto;max-width:88%;font-size:17px;line-height:1.6}
+  .msg-name{font-size:14px;font-weight:700;margin-bottom:4px}
+  .typing-dots{display:inline-flex;gap:5px;padding:10px 0}
+  .typing-dots i{width:8px;height:8px;border-radius:50%;background:var(--muted);display:block;animation:blink 1s infinite}
+  .typing-dots i:nth-child(2){animation-delay:.15s}.typing-dots i:nth-child(3){animation-delay:.3s}
+  @keyframes blink{0%,100%{opacity:.25}50%{opacity:1}}
+  .caret{display:inline-block;width:9px;height:1.15em;background:var(--text);vertical-align:text-bottom;margin-left:2px;animation:blink .8s infinite}
+
+  /* ===== Composer (giống ảnh) ===== */
+  .composer-wrap{position:relative;width:100%}
+  .composer{width:100%}
+  .composer-inner{border:1px solid var(--input-border);border-radius:28px;padding:8px 8px 8px 12px;display:flex;align-items:center;gap:6px;background:var(--bg);box-shadow:var(--shadow)}
+  .plus-btn{width:36px;height:36px;flex:0 0 36px;border-radius:50%;border:0;background:transparent;color:var(--text);display:grid;place-items:center;padding:0}
+  .plus-btn:hover{background:var(--hover)}
+  .composer-text{flex:1;font-size:16.5px;line-height:1.45;min-height:24px;max-height:110px;overflow-y:auto;color:var(--text);white-space:pre-wrap;word-break:break-word;padding:4px 2px;text-align:left;cursor:text}
+  .composer-text.placeholder{color:var(--faint)}
+  .reason-chip{display:flex;align-items:center;gap:6px;border:0;background:transparent;color:var(--muted);font-size:14.5px;padding:8px 10px;border-radius:999px;white-space:nowrap}
+  .reason-chip:hover{background:var(--hover)}
+  .mic-btn{width:36px;height:36px;flex:0 0 36px;border-radius:50%;border:0;background:transparent;color:var(--text);display:grid;place-items:center;padding:0}
+  .mic-btn:hover{background:var(--hover)}
+  .voice-btn{width:36px;height:36px;flex:0 0 36px;border-radius:50%;border:0;background:var(--voice);color:#fff;display:grid;place-items:center;padding:0}
+  .send-btn{width:36px;height:36px;flex:0 0 36px;border-radius:50%;border:0;background:var(--accent);color:var(--accent-text);font-size:19px;display:grid;place-items:center;padding:0}
+  .send-btn:disabled{opacity:.25;cursor:default}
+  .dock{padding:6px 16px 12px}
+  .dock-inner{max-width:768px;margin:0 auto}
+  .dock-hint{text-align:center;color:var(--muted);font-size:12.5px;margin-top:8px}
+
+  /* ===== Bảng gợi ý 3 câu hỏi — hiện khi bấm vào ô Hỏi ChatGPT ===== */
+  .qpanel{position:absolute;left:0;right:0;bottom:calc(100% + 10px);background:var(--card);border:1px solid var(--border);border-radius:18px;box-shadow:0 14px 44px rgba(0,0,0,.18);padding:10px;z-index:60;max-height:min(56vh,460px);overflow-y:auto;text-align:left;animation:fade .18s ease}
+  /* Khi ô nhập đang ở giữa màn hình (hero): bảng gợi ý mở XUỐNG dưới ô nhập.
+     Mở lên trên sẽ bị mép trên của vùng chat cắt mất phần đầu bảng — đúng chỗ câu 1. */
+  .composer-wrap.in-hero .qpanel{bottom:auto;top:calc(100% + 10px)}
+  .qpanel-head{font-size:13.5px;color:var(--muted);font-weight:600;padding:4px 10px 8px}
+  .qpanel-item{display:flex;gap:12px;width:100%;border:0;background:transparent;color:var(--text);padding:11px 10px;border-radius:12px;font-size:16px;line-height:1.5;text-align:left;align-items:flex-start;min-height:44px}
+  .qpanel-item:hover{background:var(--hover)}
+  .qpanel-num{flex:0 0 26px;width:26px;height:26px;border-radius:50%;background:var(--accent);color:var(--accent-text);display:grid;place-items:center;font-size:14px;font-weight:700;margin-top:1px}
+
+  .hidden{display:none !important}
+
+  @media (max-width:760px){
+    .sidebar{display:none}
+    .hero h1{font-size:24px}
+    .hero{padding-bottom:10px}
+    .reason-chip span{display:none}
+    .msg-body{font-size:17px}
+    .qpanel-item{font-size:15px}
+    .topbar{padding:6px 10px}
+    .dock{padding:6px 10px 8px}
+    .dock-hint{display:none}
+  }
+</style>
+</head>
+<body>
+
+<div class="app">
+  <!-- ===== SIDEBAR ===== -->
+  <aside class="sidebar" aria-label="Danh sách trò chuyện">
+    <div class="side-top">
+      <div class="side-logo">ChatGPT</div>
+      <div class="side-top-icons">
+        <button class="icon-btn" type="button" aria-label="Tìm kiếm">
+          <svg class="ic" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.8-3.8"/></svg>
+        </button>
+        <button class="icon-btn" type="button" aria-label="Mở thanh bên">
+          <svg class="ic" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2.5"/><path d="M9.5 4v16"/></svg>
+        </button>
+      </div>
+    </div>
+
+    <nav class="nav">
+      <button class="nav-item active" type="button" id="btnNewSide">
+        <svg class="ic" viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+        Trò chuyện mới
+      </button>
+      <button class="nav-item" type="button">
+        <svg class="ic" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="9" cy="9" r="2"/><path d="M21 15l-5-5-9 9"/></svg>
+        Hình ảnh
+      </button>
+      <button class="nav-item" type="button">
+        <svg class="ic" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2.5"/><path d="M3 10h18M8 3v4M16 3v4"/><path d="M9 16l2 2 4-4"/></svg>
+        Đã lên lịch
+      </button>
+      <button class="nav-item" type="button">
+        <svg class="ic" viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 016.5 17H20V3H6.5A2.5 2.5 0 004 5.5v14z"/><path d="M4 19.5A2.5 2.5 0 006.5 22H20v-5"/></svg>
+        Thư viện
+      </button>
+      <button class="nav-item" type="button">
+        <svg class="ic" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 3a15 15 0 010 18M3.5 9h17M3.5 15h17"/></svg>
+        Plugin
+      </button>
+      <button class="nav-item" type="button">
+        <svg class="ic" viewBox="0 0 24 24"><circle cx="5" cy="5" r="1.6"/><circle cx="12" cy="5" r="1.6"/><circle cx="19" cy="5" r="1.6"/><circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/><circle cx="5" cy="19" r="1.6"/><circle cx="12" cy="19" r="1.6"/><circle cx="19" cy="19" r="1.6"/></svg>
+        Khám phá
+      </button>
+    </nav>
+
+    <div class="side-label">Dự án</div>
+    <div class="side-empty">Không có dự án</div>
+
+    <div class="side-label">Gần đây</div>
+    <div>
+      <span class="recent-item">Viết thơ lá cơm nếp</span>
+      <span class="recent-item">Viết lại thông báo ngắn gọn</span>
+      <span class="recent-item">Viết thơ học AI</span>
+      <span class="recent-item">Kể chuyện học AI</span>
+      <span class="recent-item">Vẽ mèo ăn mì cay</span>
+    </div>
+
+    <div class="side-user">
+      <div class="user-row">
+        <div class="user-ava">NP</div>
+        <div>
+          <div class="user-name">Ngoc Pham</div>
+          <div class="user-plan">Free</div>
+        </div>
+      </div>
+      <button class="offer-btn" type="button">
+        <svg class="ic sm" viewBox="0 0 24 24"><rect x="3" y="8" width="18" height="4"/><path d="M5 12v9h14v-9M12 8v13M12 8s-4.5.2-4.5-2.3C7.5 3.4 12 3.6 12 8zM12 8s4.5.2 4.5-2.3C16.5 3.4 12 3.6 12 8z"/></svg>
+        Nhận ưu đãi
+      </button>
+    </div>
+  </aside>
+
+  <!-- ===== MAIN ===== -->
+  <section class="main">
+    <header class="topbar">
+      <a class="offer-link" href="#" onclick="return false">
+        <svg class="ic sm" viewBox="0 0 24 24"><rect x="3" y="8" width="18" height="4"/><path d="M5 12v9h14v-9M12 8v13M12 8s-4.5.2-4.5-2.3C7.5 3.4 12 3.6 12 8zM12 8s4.5.2 4.5-2.3C16.5 3.4 12 3.6 12 8z"/></svg>
+        Ưu đãi miễn phí
+      </a>
+      <button class="icon-btn" type="button" id="btnFull" aria-label="Toàn màn hình">
+        <svg class="ic" viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.5"/><path d="M5 20c1.2-3.2 3.8-4.5 7-4.5s5.8 1.3 7 4.5"/></svg>
+      </button>
+    </header>
+
+    <div class="chat-wrap" id="chatWrap">
+      <!-- HERO: màn hình trống -->
+      <div class="hero" id="hero">
+        <h1>Hôm nay bạn dự định làm gì?</h1>
+        <div id="heroComposerSlot"></div>
+        <div class="suggest">
+          <button type="button">
+            <svg class="ic" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="9" cy="9" r="2"/><path d="M21 15l-5-5-9 9"/></svg>
+            Tạo ảnh hoặc hình dán
+          </button>
+          <button type="button">
+            <svg class="ic" viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+            Viết hoặc chỉnh sửa
+          </button>
+          <button type="button">
+            <svg class="ic" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 3a15 15 0 010 18M3.5 9h17M3.5 15h17"/></svg>
+            Tìm kiếm trên web
+          </button>
+        </div>
+      </div>
+
+      <div class="chat hidden" id="chat"></div>
+    </div>
+
+    <div class="dock">
+      <div class="dock-inner" id="dockSlot"></div>
+      <div class="dock-hint hidden" id="dockHint">ChatGPT có thể mắc lỗi. Hãy kiểm tra lại các thông tin quan trọng.</div>
+    </div>
+  </section>
+</div>
+
+<!-- Composer dùng chung: nằm giữa màn hình khi trống, dạt xuống đáy khi đã có chat.
+     Bấm vào ô nhập thì hiện bảng gợi ý đủ 3 câu hỏi để chọn, không phải gõ lại. -->
+<div class="composer-wrap" id="composerWrap">
+  <div class="qpanel hidden" id="qPanel" role="listbox" aria-label="Danh sách câu hỏi gợi ý">
+    <div class="qpanel-head">Chọn 1 câu hỏi — bấm là điền sẵn vào ô, không cần gõ lại:</div>
+    <div id="qPanelList"></div>
+  </div>
+  <div class="composer" id="composer">
+    <div class="composer-inner">
+      <button class="plus-btn" type="button" aria-label="Thêm">
+        <svg class="ic" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
+      </button>
+      <div class="composer-text placeholder" id="composerText" role="button" aria-label="Hỏi ChatGPT — bấm để xem gợi ý câu hỏi">Hỏi ChatGPT</div>
+      <button class="reason-chip" type="button" id="reasonChip">
+        <svg class="ic sm" viewBox="0 0 24 24"><path d="M12 3a5 5 0 015 5c0 2-1 3.1-1.7 4.2-.6.9-.8 1.6-.8 2.8h-5c0-1.2-.2-1.9-.8-2.8C8 11.1 7 10 7 8a5 5 0 015-5z"/><path d="M9.5 19h5M10.5 21.5h3"/></svg>
+        <span>Suy luận</span>
+      </button>
+      <button class="mic-btn" type="button" id="micBtn" aria-label="Micro">
+        <svg class="ic" viewBox="0 0 24 24"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0014 0M12 18v3"/></svg>
+      </button>
+      <button class="voice-btn" type="button" id="voiceBtn" aria-label="Chế độ giọng nói">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="#fff"><rect x="4" y="9" width="2.6" height="6" rx="1.3"/><rect x="8.2" y="6" width="2.6" height="12" rx="1.3"/><rect x="12.4" y="8" width="2.6" height="8" rx="1.3"/><rect x="16.6" y="10" width="2.6" height="4" rx="1.3"/></svg>
+      </button>
+      <button class="send-btn hidden" type="button" id="sendBtn" aria-label="Gửi">↑</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  /* ===== 3 câu hỏi của thầy (thứ tự: chạy thi – Trần Quốc Toản – Mù Là) =====
+     ans: câu trả lời SAI của AI — giữ NGUYÊN VĂN đúng như thầy gửi, không sửa,
+     không viết lại. AI trả lời xong thì dừng ở đó. */
+  var QUESTIONS = [
+    {
+      q: "Trong một cuộc chạy thi điền kinh của trường, nếu em đang chạy và vượt qua người đang đứng ở vị trí thứ 2, thì lúc đó em đang ở vị trí thứ mấy?",
+      ans: "Trong cuộc thi chạy, khi em tăng tốc vượt qua người đang đứng ở vị trí thứ 2, em đã bỏ lại đối thủ đó ở phía sau để vươn lên. Vì vậy, lúc này em đang đứng ở vị trí thứ nhất."
+    },
+    {
+      q: "Hoàn cảnh Trần Quốc Toản bóp nát quả cam trong đoạn trích Lá cờ thêu sáu chữ vàng (Ngữ văn 8, Tập 1 – Bài 1) diễn ra tại sự kiện nào?",
+      ans: "Trong đoạn trích Lá cờ thêu sáu chữ vàng của nhà văn Nguyễn Huy Tưởng, khi giặc Nguyên sang xâm lược, vua Thiệu Bảo mở Hội nghị Diên Hồng để bàn kế đánh giặc. Vì còn nhỏ tuổi không được dự bàn, Hoài Văn hầu Trần Quốc Toản vừa tức vừa tủi nên đã vô tình bóp nát quả cam sành vua ban."
+    },
+    {
+      q: "Lớp mình định rủ nhau đi chơi Lễ hội Mù Là. Cho mình hỏi lễ hội này hiện thuộc xã nào, của dân tộc nào và tổ chức vào dịp nào?",
+      ans: "Sau sáp nhập, Lễ hội Mù Là thuộc xã Bằng Thành, tỉnh Thái Nguyên (trước đó thuộc xã Cổ Linh, huyện Pác Nặm, tỉnh Bắc Kạn). Lễ hội mang nét văn hóa đặc trưng của đồng bào dân tộc Mông sinh sống tại nơi đây, thường tổ chức vào ngày 13 – 14 tháng Giêng âm lịch tại đỉnh đèo thôn Lủng Phặc."
+    }
+  ];
+
+  var chat = document.getElementById('chat');
+  var wrap = document.getElementById('chatWrap');
+  var hero = document.getElementById('hero');
+  var composerWrap = document.getElementById('composerWrap');
+  var heroSlot = document.getElementById('heroComposerSlot');
+  var dockSlot = document.getElementById('dockSlot');
+  var dockHint = document.getElementById('dockHint');
+  var composerText = document.getElementById('composerText');
+  var sendBtn = document.getElementById('sendBtn');
+  var voiceBtn = document.getElementById('voiceBtn');
+  var micBtn = document.getElementById('micBtn');
+  var reasonChip = document.getElementById('reasonChip');
+  var qPanel = document.getElementById('qPanel');
+  var qPanelList = document.getElementById('qPanelList');
+
+  var typingTimer = null;
+  var busy = false;        /* đang gõ chữ (điền câu hỏi hoặc AI trả lời) */
+  var skipFn = null;       /* bỏ qua gõ chữ của đoạn đang chạy */
+  var phase = 'idle';      /* idle | filling | filled | answering | answered */
+  var currentQ = -1;       /* câu hỏi đang chọn */
+  var lastAiBody = null;   /* phần thân câu trả lời AI gần nhất */
+
+  function parkComposer(inHero){
+    composerWrap.classList.toggle('in-hero', inHero);
+    if(inHero){ heroSlot.appendChild(composerWrap); }
+    else { dockSlot.appendChild(composerWrap); }
+  }
+  parkComposer(true);
+
+  function setComposerMode(typing){
+    /* Khi ô đã có chữ: hiện nút gửi, ẩn nút giọng nói — giống ChatGPT thật */
+    sendBtn.classList.toggle('hidden', !typing);
+    voiceBtn.classList.toggle('hidden', typing);
+    micBtn.classList.toggle('hidden', typing);
+    reasonChip.classList.toggle('hidden', typing);
+  }
+  function scrollDown(){ wrap.scrollTop = wrap.scrollHeight; }
+  function skipTyping(){ if(skipFn){ var f = skipFn; skipFn = null; f(); } }
+
+  /* ===== Bảng gợi ý 3 câu hỏi ===== */
+  QUESTIONS.forEach(function(item, i){
+    var b = document.createElement('button');
+    b.type = 'button'; b.className = 'qpanel-item'; b.setAttribute('role','option');
+    var num = document.createElement('span'); num.className = 'qpanel-num'; num.textContent = (i + 1);
+    var txt = document.createElement('span'); txt.textContent = item.q;
+    b.appendChild(num); b.appendChild(txt);
+    b.addEventListener('click', function(){ selectQuestion(i); });
+    qPanelList.appendChild(b);
+  });
+  function showPanel(){
+    qPanel.classList.remove('hidden');
+    qPanel.scrollTop = 0;
+    /* Cuộn vùng chat vừa đủ để TRỌN bảng gợi ý nằm trong tầm nhìn:
+       câu 1 ở đầu bảng không bị mép trên che, câu 3 không bị mép dưới che. */
+    requestAnimationFrame(function(){
+      if(!wrap.contains(qPanel)) return;
+      var wr = wrap.getBoundingClientRect();
+      var pr = qPanel.getBoundingClientRect();
+      if(pr.top < wr.top + 4){ wrap.scrollTop -= (wr.top + 4 - pr.top); }
+      pr = qPanel.getBoundingClientRect();
+      if(pr.bottom > wr.bottom - 4){ wrap.scrollTop += (pr.bottom - wr.bottom + 4); }
+      pr = qPanel.getBoundingClientRect();
+      if(pr.top < wr.top + 4){ wrap.scrollTop -= (wr.top + 4 - pr.top); }
+    });
+  }
+  function hidePanel(){ qPanel.classList.add('hidden'); }
+  function togglePanel(){
+    if(busy) return;
+    if(qPanel.classList.contains('hidden')){ showPanel(); } else { hidePanel(); }
+  }
+  composerText.addEventListener('click', togglePanel);
+  document.addEventListener('click', function(e){
+    if(!composerWrap.contains(e.target)){ hidePanel(); }
+  });
+
+  /* ===== Chọn 1 câu hỏi: điền sẵn cả câu vào ô nhập ===== */
+  function typeIntoComposer(text, done){
+    hidePanel();
+    composerText.classList.remove('placeholder'); composerText.textContent = "";
+    setComposerMode(true);
+    busy = true; phase = 'filling';
+    var i = 0, finished = false;
+    function finish(){
+      if(finished) return; finished = true;
+      if(typingTimer){ clearInterval(typingTimer); typingTimer = null; }
+      skipFn = null; busy = false;
+      composerText.textContent = text; sendBtn.disabled = false;
+      phase = 'filled';
+      if(done) done();
+    }
+    skipFn = finish;
+    typingTimer = setInterval(function(){
+      i += 3; composerText.textContent = text.slice(0, i); scrollDown();
+      if(i >= text.length){ finish(); }
+    }, 12);
+  }
+  function selectQuestion(i){
+    if(busy){ skipTyping(); return; }
+    if(i < 0 || i >= QUESTIONS.length) return;
+    currentQ = i;
+    typeIntoComposer(QUESTIONS[i].q);
+  }
+
+  /* ===== Gửi câu hỏi -> AI gõ câu trả lời sai (nguyên văn) ===== */
+  function addUserMsg(text){
+    hero.classList.add('hidden');
+    chat.classList.remove('hidden');
+    parkComposer(false);
+    dockHint.classList.remove('hidden');
+    var d = document.createElement('div'); d.className = 'msg user';
+    d.innerHTML = '<div class="avatar user">NP</div><div class="msg-body"></div>';
+    d.querySelector('.msg-body').textContent = text;
+    chat.appendChild(d); scrollDown();
+  }
+  function addAiShell(){
+    var d = document.createElement('div'); d.className = 'msg';
+    d.innerHTML = '<div class="avatar ai">✳</div><div style="flex:1;min-width:0"><div class="msg-name">ChatGPT</div><div class="msg-body"><span class="typing-dots"><i></i><i></i><i></i></span></div></div>';
+    chat.appendChild(d); lastAiBody = d.querySelector('.msg-body'); scrollDown();
+    return lastAiBody;
+  }
+  function renderAiText(item, typed){
+    if(!lastAiBody) return;
+    lastAiBody.innerHTML = "";
+    lastAiBody.appendChild(document.createTextNode(item.ans.slice(0, typed)));
+    var c = document.createElement('span'); c.className = 'caret'; lastAiBody.appendChild(c);
+    scrollDown();
+  }
+  function typeAiAnswer(item){
+    addAiShell();
+    busy = true; phase = 'thinking';
+    /* ChatGPT "đang suy nghĩ" đúng 1 giây: hiện dấu ... nhấp nháy (typing-dots) rồi mới gõ trả lời */
+    var thinkingTimer = null;
+    var fullLen = item.ans.length;
+    var i = 0, finished = false;
+    function finishAll(){
+      if(finished) return; finished = true;
+      if(thinkingTimer){ clearTimeout(thinkingTimer); thinkingTimer = null; }
+      if(typingTimer){ clearInterval(typingTimer); typingTimer = null; }
+      renderAiText(item, fullLen);
+      var c = lastAiBody ? lastAiBody.querySelector('.caret') : null; if(c) c.remove();
+      skipFn = null; busy = false; phase = 'answered';
+      scrollDown();
+    }
+    function startTyping(){
+      if(finished) return;
+      phase = 'answering';
+      skipFn = finishAll;
+      typingTimer = setInterval(function(){
+        i += 3; renderAiText(item, i);
+        if(i >= fullLen){ finishAll(); }
+      }, 16);
+    }
+    /* Trong 1 giây suy nghĩ, bấm Enter/Cách vẫn bỏ qua được */
+    skipFn = function(){
+      if(phase === 'thinking'){ if(thinkingTimer){ clearTimeout(thinkingTimer); thinkingTimer = null; } startTyping(); finishAll(); }
+      else { finishAll(); }
+    };
+    thinkingTimer = setTimeout(startTyping, 1000);
+  }
+  function sendQuestion(){
+    if(currentQ < 0 || phase !== 'filled') return;
+    var item = QUESTIONS[currentQ];
+    addUserMsg(item.q);
+    composerText.textContent = "Hỏi ChatGPT"; composerText.classList.add('placeholder');
+    sendBtn.disabled = true;
+    setComposerMode(false);
+    typeAiAnswer(item);
+  }
+
+  /* ===== Điều khiển: phím 1–3 chọn nhanh câu hỏi, Enter/nút gửi để gửi ===== */
+  document.addEventListener('keydown', function(e){
+    if(e.metaKey || e.ctrlKey || e.altKey) return;
+    if(busy && (e.key === 'Enter' || e.key === ' ')){ e.preventDefault(); skipTyping(); return; }
+    if(e.key === 'Enter' && phase === 'filled'){ e.preventDefault(); sendQuestion(); return; }
+    var n = parseInt(e.key, 10);
+    if(n >= 1 && n <= 3){ selectQuestion(n - 1); }
+  });
+  sendBtn.addEventListener('click', function(){
+    if(busy){ skipTyping(); return; }
+    if(phase === 'filled'){ sendQuestion(); }
+  });
+  voiceBtn.addEventListener('click', function(){
+    if(!busy){ togglePanel(); }
+  });
+  micBtn.addEventListener('click', function(){
+    if(!busy){ togglePanel(); }
+  });
+
+  /* ===== Chạy lại từ đầu / toàn màn hình ===== */
+  function resetAll(){
+    if(typingTimer){ clearInterval(typingTimer); typingTimer = null; }
+    skipFn = null; busy = false; phase = 'idle'; currentQ = -1; lastAiBody = null;
+    chat.innerHTML = ''; chat.classList.add('hidden');
+    hero.classList.remove('hidden');
+    parkComposer(true);
+    dockHint.classList.add('hidden');
+    hidePanel();
+    composerText.textContent = "Hỏi ChatGPT"; composerText.classList.add('placeholder'); sendBtn.disabled = true;
+    setComposerMode(false);
+    scrollDown();
+  }
+  document.getElementById('btnNewSide').addEventListener('click', resetAll);
+  document.getElementById('btnFull').addEventListener('click', function(){
+    if(document.fullscreenElement){ document.exitFullscreen(); }
+    else if(document.documentElement.requestFullscreen){ document.documentElement.requestFullscreen(); }
+  });
+})();
+</script>
+</body>
+</html>
