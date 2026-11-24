@@ -116,15 +116,43 @@
       }
       .guide b{ color:#111; }
 
-      /* ---------- Khu kéo thả ---------- */
-      .play-grid{ display:grid; grid-template-columns:1fr; gap:16px; }
-      @media (min-width:860px){
-        .play-grid{ grid-template-columns:.92fr 1.3fr; align-items:start; }
-        .pool-box{ position:sticky; top:14px; order:1; }
-        .slots-box{ order:2; }
-      }
+      /* ---------- Khu kéo thả: 5 hàng ngang ---------- */
       .box-title{ font-size:19px; font-weight:800; margin:0 0 12px; }
-      .pool-box{ order:-1; }
+      .row3{
+        display:grid; grid-template-columns:1.05fr .95fr 1.15fr;
+        gap:8px; align-items:stretch; margin-bottom:12px;
+      }
+      .row3:last-child{ margin-bottom:2px; }
+      .cell-card{ display:flex; }
+      .cell-card .chip{ flex:1; }
+      .cell-empty{
+        flex:1; border:3px dashed var(--line); border-radius:12px;
+        display:flex; align-items:center; justify-content:center;
+        color:var(--muted); font-size:14px; font-weight:700;
+        background:#f7faff; min-height:56px; text-align:center; padding:6px;
+      }
+      .row3 .slot{ margin-bottom:0; display:flex; flex-direction:column; justify-content:center; }
+      .row3 .chip{ font-size:clamp(14px,3.2vw,18px); padding:10px 8px; }
+      .row3 .chip.has-logo{
+        flex-direction:row; min-width:0; justify-content:flex-start;
+        padding:8px; gap:8px;
+      }
+      .row3 .chip.has-logo .chip-logo{ width:52px; height:40px; flex:none; }
+      .row3 .chip.placed.has-logo .chip-logo{ width:46px; height:34px; }
+      .cell-func{
+        display:flex; align-items:center; gap:8px;
+        font-size:clamp(15px,3.4vw,19px); font-weight:800; line-height:1.35;
+        padding:6px 2px;
+      }
+      .cell-func .num{
+        flex:none; display:inline-flex; align-items:center; justify-content:center;
+        width:28px; height:28px; border-radius:50%;
+        background:var(--blue); color:#fff; font-size:15px;
+      }
+      @media (min-width:700px){
+        .row3{ grid-template-columns:1fr 1fr 1.25fr; gap:12px; }
+        .row3 .chip.has-logo .chip-logo{ width:72px; height:52px; }
+      }
 
       .pool{ display:flex; flex-wrap:wrap; gap:10px; min-height:64px; }
       .chip{
@@ -298,6 +326,14 @@
         font-size:17px; font-weight:800; border-radius:10px; padding:11px 10px;
       }
 
+      /* ---------- Khống chế thời gian ---------- */
+      .team-bar .timer.sap-het{ background:var(--red-bg); color:var(--red); }
+      .limit-note{
+        font-weight:700; color:var(--blue);
+        background:var(--blue-soft); border-radius:10px; padding:10px 12px;
+      }
+      .time-quick{ justify-content:flex-start; margin:0 0 4px; }
+
       .foot{ text-align:center; font-size:13.5px; color:#8496b3; padding:0 16px 26px; line-height:1.6; }
       .hidden{ display:none !important; }
     </style>
@@ -325,6 +361,7 @@
           <span class="step-tag">BÀI 2 · LỚP 8</span>
           <span class="step-tag">BƯỚC 1 · NHẬP TÊN NHÓM</span>
           <p>Bài tập kéo thả của <b>Bài 2 – Lớp 8</b>.<br>Mỗi nhóm dùng <b>1 điện thoại</b> (hoặc 1 máy tính).<br>Nhập tên nhóm rồi bấm <b>“Vào làm bài”</b> — đồng hồ bắt đầu tính giờ từ lúc này.</p>
+          <p class="limit-note" id="limitNote">⏱ Không giới hạn thời gian làm bài.</p>
           <label for="teamInput">Tên nhóm của em</label>
           <input type="text" id="teamInput" maxlength="40" placeholder="Ví dụ: Nhóm 1" autocomplete="off" />
           <button class="btn-primary" id="joinBtn" type="button">Vào làm bài →</button>
@@ -341,18 +378,12 @@
           </div>
 
           <div class="guide">
-            <b>Cách làm:</b> Kéo thẻ tên công cụ AI thả vào ô có <b>chức năng</b> đúng của nó — trên điện thoại thì <b>chạm vào thẻ</b> rồi <b>chạm vào ô</b> muốn đặt. Muốn đổi chỗ, bấm dấu <b>✕</b> để lấy thẻ ra. Nối đủ 5 cặp rồi bấm <b>Nộp câu trả lời</b>.
+            <b>Cách làm:</b> Mỗi hàng có 1 <b>thẻ công cụ AI</b> ở cột trái, 1 <b>ô trống</b> ở giữa và <b>chức năng</b> ở cột phải. Kéo thẻ thả vào ô trống của hàng có chức năng đúng của nó — trên điện thoại thì <b>chạm vào thẻ</b> rồi <b>chạm vào ô trống</b> muốn đặt. Muốn đổi chỗ, bấm dấu <b>✕</b> để lấy thẻ ra. Nối đủ 5 cặp rồi bấm <b>Nộp câu trả lời</b>.
           </div>
 
-          <div class="play-grid">
-            <div class="card slots-box">
-              <p class="box-title">🎯 Chức năng — thả thẻ vào ô trống</p>
-              <div id="slots"></div>
-            </div>
-            <div class="card pool-box">
-              <p class="box-title">🏷️ Các công cụ AI — kéo thẻ này</p>
-              <div class="pool" id="pool"></div>
-            </div>
+          <div class="card board-box">
+            <p class="box-title">🧩 Thẻ công cụ AI — ô trống — chức năng</p>
+            <div id="board"></div>
           </div>
 
           <div class="submit-row">
@@ -387,6 +418,27 @@
         <p class="rule-note">Xếp hạng tự động: <b>điểm cao xếp trước</b> — hai nhóm <b>bằng điểm thì so thời gian làm bài</b>, nhóm làm nhanh hơn xếp trên. Bảng tự cập nhật ngay khi có nhóm nộp bài, thầy không cần tải lại trang. Chiếu bảng này lên TV cho cả lớp xem. Bảng điều khiển này và mọi nút <b>xóa / sửa</b> (<b>Xóa hết</b>, <b>Lưu đề</b>, <b>Khôi phục đề mẫu</b>) đều khóa bằng mật khẩu của thầy — học sinh không có mật khẩu thì không vào, không xóa, không sửa được.</p>
         <div class="rank-list" id="rankList">
           <div class="empty-note">Chưa có nhóm nào nộp bài.<br>Kết quả sẽ hiện ở đây ngay khi nhóm đầu tiên bấm Nộp bài.</div>
+        </div>
+
+        <div class="card edit-box">
+          <h3>⏱ Khống chế thời gian làm bài</h3>
+          <p>Thầy đặt <b>số phút tối đa</b> mỗi nhóm được làm bài. Học sinh mở bài sẽ thấy <b>đồng hồ đếm ngược</b> đúng số phút này, tính từ lúc nhóm bấm “Vào làm bài”; <b>hết giờ bài tự nộp</b> — cặp nào chưa nối thì tính là chưa đúng. Điền <b>0</b> là không giới hạn thời gian. Nếu thầy đổi số phút giữa chừng, máy của các nhóm đang làm sẽ áp dụng ngay theo thời gian đã trôi qua.</p>
+          <div class="edit-row">
+            <label for="limitInput">Số phút làm bài tối đa (0 = không giới hạn)</label>
+            <input type="number" id="limitInput" min="0" max="180" step="1" value="0" inputmode="numeric" />
+          </div>
+          <div class="quick-teams time-quick" id="quickTimes">
+            <button type="button" data-phut="0">Không giới hạn</button>
+            <button type="button" data-phut="3">3 phút</button>
+            <button type="button" data-phut="5">5 phút</button>
+            <button type="button" data-phut="7">7 phút</button>
+            <button type="button" data-phut="10">10 phút</button>
+          </div>
+          <div class="edit-actions">
+            <button class="btn-ghost" id="saveTimeBtn" type="button" style="background:var(--blue);color:#fff">⏱ Lưu thời gian</button>
+          </div>
+          <div class="save-msg" id="timeMsg"></div>
+          <p class="rule-note" id="timeCurrent" style="margin:8px 0 0">Đang áp dụng: <b>không giới hạn thời gian</b> — đồng hồ của học sinh đếm xuôi như bình thường.</p>
         </div>
 
         <div class="card edit-box">
@@ -457,6 +509,14 @@ var placements = [null, null, null, null, null]; // placements[slot] = cardId ho
 var selectedCard = null;             // cardId đang chọn (chạm để đặt)
 var submitted = false;
 var localResults = [];               // dự phòng khi mất mạng: kết quả nộp trên chính máy này
+var gioiHanGiay = 0;                 // giới hạn thời gian thầy đặt (giây); 0 = không giới hạn
+var thuTuHang = [0, 1, 2, 3, 4];     // thứ tự các hàng (theo chức năng) trong lượt làm này
+var thuTuThe = [0, 1, 2, 3, 4];      // thứ tự thẻ ở cột trái — xáo độc lập với thứ tự hàng
+function xaoTronLai(){
+  thuTuHang = shuffle([0, 1, 2, 3, 4]);
+  do { thuTuThe = shuffle([0, 1, 2, 3, 4]); }
+  while (thuTuThe.join(",") === thuTuHang.join(","));
+}
 
 /* ================= TIỆN ÍCH ================= */
 function $(id){ return document.getElementById(id); }
@@ -511,6 +571,7 @@ function ngheDe(){
       var khac = JSON.stringify(moi) !== JSON.stringify(quiz);
       quiz = moi;
       dienFormSuaDe();
+      if (khac) xaoTronLai();
       if (khac && team && !submitted){
         placements = [null, null, null, null, null];
         selectedCard = null;
@@ -575,6 +636,7 @@ function vaoLamBai(){
   submitted = false;
   placements = [null, null, null, null, null];
   selectedCard = null;
+  xaoTronLai();
   $("teamLabel").textContent = team;
   $("setup").classList.add("hidden");
   $("result").classList.add("hidden");
@@ -601,7 +663,24 @@ function batDauTinhGio(){
   timerId = setInterval(capNhatDongHo, 500);
 }
 function dungTinhGio(){ if (timerId){ clearInterval(timerId); timerId = null; } }
-function capNhatDongHo(){ $("timer").textContent = "⏱ " + fmtTime((Date.now() - startAt) / 1000); }
+function capNhatDongHo(){
+  var daLam = (Date.now() - startAt) / 1000;
+  var oDongHo = $("timer");
+  if (gioiHanGiay > 0){
+    var conLai = gioiHanGiay - daLam;
+    if (conLai <= 0){
+      oDongHo.textContent = "⏳ 0:00 — HẾT GIỜ";
+      oDongHo.classList.add("sap-het");
+      hetGioTuNop();
+      return;
+    }
+    oDongHo.textContent = "⏳ Còn " + fmtTime(conLai);
+    oDongHo.classList.toggle("sap-het", conLai <= 30);
+  } else {
+    oDongHo.textContent = "⏱ " + fmtTime(daLam);
+    oDongHo.classList.remove("sap-het");
+  }
+}
 
 /* ================= VẼ KHU KÉO THẢ ================= */
 function theDangDung(cardId){
@@ -610,72 +689,77 @@ function theDangDung(cardId){
 }
 
 function veLai(){
-  /* --- Các ô đích --- */
-  var slotsEl = $("slots");
-  slotsEl.innerHTML = "";
-  quiz.forEach(function(item, idx){
-    var slot = document.createElement("div");
-    slot.className = "slot" + (placements[idx] !== null ? " filled" : "");
-    slot.setAttribute("data-slot", idx);
-    slot.setAttribute("role", "button");
-    slot.setAttribute("tabindex", "0");
-    slot.setAttribute("aria-label", "Ô chức năng: " + item.q);
-    slot.addEventListener("keydown", function(e){
-      if ((e.key === "Enter" || e.key === " ") && selectedCard !== null && !submitted){
-        e.preventDefault();
-        datThe(selectedCard, idx);
-        selectedCard = null;
-        veLai();
+  /* --- Bảng 5 hàng ngang: thẻ (trái) — ô trống (giữa) — chức năng (phải) --- */
+  var board = $("board");
+  board.innerHTML = "";
+  for (var r = 0; r < 5; r++){
+    (function(r){
+      var funcIdx = thuTuHang[r];
+      var cardId = thuTuThe[r];
+      var row = document.createElement("div");
+      row.className = "row3";
+
+      /* Cột trái: thẻ công cụ AI của hàng (ô trống mờ khi thẻ đã được đặt đi nơi khác) */
+      var cell = document.createElement("div");
+      cell.className = "cell-card";
+      if (!theDangDung(cardId)){
+        cell.appendChild(taoChip(cardId, false));
+      } else {
+        var ph = document.createElement("div");
+        ph.className = "cell-empty";
+        ph.textContent = "✓ đã đặt";
+        cell.appendChild(ph);
       }
-    });
+      row.appendChild(cell);
 
-    var q = document.createElement("p");
-    q.className = "q";
-    q.innerHTML = '<span class="num">' + (idx + 1) + "</span>" + escapeHtml(item.q);
-    slot.appendChild(q);
-
-    if (placements[idx] !== null){
-      var wrap = document.createElement("div");
-      wrap.className = "placed-wrap";
-      var chip = taoChip(placements[idx], true);
-      var undo = document.createElement("button");
-      undo.type = "button";
-      undo.className = "undo";
-      undo.textContent = "✕";
-      undo.setAttribute("aria-label", "Lấy thẻ ra khỏi câu " + (idx + 1));
-      undo.addEventListener("click", function(){
-        placements[idx] = null;
-        selectedCard = null;
-        veLai();
+      /* Cột giữa: ô trống thả thẻ — thuộc về chức năng của hàng này */
+      var slot = document.createElement("div");
+      slot.className = "slot" + (placements[funcIdx] !== null ? " filled" : "");
+      slot.setAttribute("data-slot", funcIdx);
+      slot.setAttribute("role", "button");
+      slot.setAttribute("tabindex", "0");
+      slot.setAttribute("aria-label", "Ô trống cho chức năng: " + quiz[funcIdx].q);
+      slot.addEventListener("keydown", function(e){
+        if ((e.key === "Enter" || e.key === " ") && selectedCard !== null && !submitted){
+          e.preventDefault();
+          datThe(selectedCard, funcIdx);
+          selectedCard = null;
+          veLai();
+        }
       });
-      wrap.appendChild(chip);
-      wrap.appendChild(undo);
-      slot.appendChild(wrap);
-    } else {
-      var hint = document.createElement("div");
-      hint.className = "drop-hint";
-      hint.textContent = "— thả thẻ vào đây —";
-      slot.appendChild(hint);
-    }
-    slotsEl.appendChild(slot);
-  });
+      if (placements[funcIdx] !== null){
+        var wrap = document.createElement("div");
+        wrap.className = "placed-wrap";
+        var chip = taoChip(placements[funcIdx], true);
+        var undo = document.createElement("button");
+        undo.type = "button";
+        undo.className = "undo";
+        undo.textContent = "✕";
+        undo.setAttribute("aria-label", "Lấy thẻ ra khỏi hàng " + (r + 1));
+        undo.addEventListener("click", function(){
+          placements[funcIdx] = null;
+          selectedCard = null;
+          veLai();
+        });
+        wrap.appendChild(chip);
+        wrap.appendChild(undo);
+        slot.appendChild(wrap);
+      } else {
+        var hint = document.createElement("div");
+        hint.className = "drop-hint";
+        hint.textContent = "— thả vào đây —";
+        slot.appendChild(hint);
+      }
+      row.appendChild(slot);
 
-  /* --- Kho thẻ --- */
-  var poolEl = $("pool");
-  poolEl.innerHTML = "";
-  var thuTu = shuffle([0, 1, 2, 3, 4]);
-  var conLai = 0;
-  thuTu.forEach(function(cardId){
-    if (!theDangDung(cardId)){
-      poolEl.appendChild(taoChip(cardId, false));
-      conLai++;
-    }
-  });
-  if (conLai === 0){
-    var done = document.createElement("div");
-    done.className = "pool-empty";
-    done.textContent = "✓ Đã nối hết 5 thẻ — kiểm tra lại rồi bấm Nộp câu trả lời nhé!";
-    poolEl.appendChild(done);
+      /* Cột phải: chữ chức năng của hàng */
+      var fc = document.createElement("div");
+      fc.className = "cell-func";
+      fc.innerHTML = '<span class="num">' + (r + 1) + "</span><span>" + escapeHtml(quiz[funcIdx].q) + "</span>";
+      row.appendChild(fc);
+
+      board.appendChild(row);
+    })(r);
   }
 
   /* --- Nút nộp --- */
@@ -829,15 +913,25 @@ $("resetBtn").addEventListener("click", function(){
 });
 
 /* ================= NỘP BÀI + CHẤM ĐIỂM ================= */
-$("submitBtn").addEventListener("click", function(){
+$("submitBtn").addEventListener("click", function(){ nopBai(false); });
+
+/* Hết giờ: tự nộp với những cặp đã nối, cặp chưa nối tính là chưa đúng */
+function hetGioTuNop(){
+  if (!team || submitted) return;
+  if ($("play").classList.contains("hidden")) return;
+  nopBai(true);
+}
+
+function nopBai(tuDong){
   if (submitted) return;
-  if (placements.some(function(p){ return p === null; })) return;
+  if (!tuDong && placements.some(function(p){ return p === null; })) return;
   submitted = true;
   dungTinhGio();
   var duration = Math.round((Date.now() - startAt) / 1000);
 
   var dung = 0;
   var answers = placements.map(function(cardId, idx){
+    if (cardId === null) return { q: quiz[idx].q, chon: "(chưa ghép)", dungLa: quiz[idx].a, ok: false };
     var isOk = cardId === idx; /* thẻ i là đáp án đúng của câu i */
     if (isOk) dung++;
     return { q: quiz[idx].q, chon: quiz[cardId].a, dungLa: quiz[idx].a, ok: isOk };
@@ -848,7 +942,8 @@ $("submitBtn").addEventListener("click", function(){
   var hien = ("0" + gio.getHours()).slice(-2) + ":" + ("0" + gio.getMinutes()).slice(-2) + ":" + ("0" + gio.getSeconds()).slice(-2);
   var record = {
     team: team, score: score, correct: dung, total: 5,
-    durationSec: duration, hien: hien, answers: answers
+    durationSec: duration, hien: hien, answers: answers,
+    auto: tuDong ? 1 : 0
   };
 
   function hienKetQua(){
@@ -856,7 +951,7 @@ $("submitBtn").addEventListener("click", function(){
     $("result").classList.remove("hidden");
     $("resScore").textContent = score;
     $("resCorrect").textContent = "Đúng " + dung + " / 5 ý · mỗi ý đúng được 2 điểm";
-    $("resTime").textContent = "⏱ Thời gian làm bài: " + fmtTime(duration) + " · Nộp lúc " + hien;
+    $("resTime").textContent = (tuDong ? "⏰ Hết giờ — bài đã tự nộp. " : "") + "⏱ Thời gian làm bài: " + fmtTime(duration) + " · Nộp lúc " + hien;
     var ul = $("reviewList");
     ul.innerHTML = "";
     answers.forEach(function(a, i){
@@ -864,6 +959,9 @@ $("submitBtn").addEventListener("click", function(){
       li.className = a.ok ? "ok" : "sai";
       if (a.ok){
         li.innerHTML = '<span class="stt">Cặp ' + (i + 1) + ':</span> <span class="dung">✓ Đúng (+2 điểm)</span> — ' + escapeHtml(a.q) + ' → ' + escapeHtml(a.chon);
+      } else if (a.chon === "(chưa ghép)"){
+        li.innerHTML = '<span class="stt">Cặp ' + (i + 1) + ':</span> <span class="sai-txt">✗ Chưa ghép</span> — ' + escapeHtml(a.q) + ': em chưa nối thẻ nào vào ô này' +
+          '<span class="dap-an-dung">Đáp án đúng: ' + escapeHtml(a.q) + ' → ' + escapeHtml(a.dungLa) + "</span>";
       } else {
         li.innerHTML = '<span class="stt">Cặp ' + (i + 1) + ':</span> <span class="sai-txt">✗ Chưa đúng</span> — ' + escapeHtml(a.q) + ': em chọn ' + escapeHtml(a.chon) +
           '<span class="dap-an-dung">Đáp án đúng: ' + escapeHtml(a.q) + ' → ' + escapeHtml(a.dungLa) + "</span>";
@@ -887,12 +985,13 @@ $("submitBtn").addEventListener("click", function(){
     localResults.push(record);
     hienKetQua();
   }
-});
+}
 
 $("againBtn").addEventListener("click", function(){
   submitted = false;
   placements = [null, null, null, null, null];
   selectedCard = null;
+  xaoTronLai();
   $("result").classList.add("hidden");
   $("play").classList.remove("hidden");
   batDauTinhGio();
@@ -922,7 +1021,7 @@ function veBangThay(list){
     row.innerHTML =
       '<div class="rank-badge">' + badge + "</div>" +
       '<div class="rank-main"><div class="rname">' + escapeHtml(r.team || "Nhóm") + "</div>" +
-      '<div class="rdetail">Đúng ' + (r.correct || 0) + " / " + (r.total || 5) + " ý · Nộp lúc " + escapeHtml(r.hien || "") + "</div></div>" +
+      '<div class="rdetail">Đúng ' + (r.correct || 0) + " / " + (r.total || 5) + " ý · Nộp lúc " + escapeHtml(r.hien || "") + (r.auto ? " · ⏰ hết giờ, tự nộp" : "") + "</div></div>" +
       '<div class="rank-score"><div class="pts">' + (r.score || 0) + ' <small>điểm</small></div>' +
       '<div class="rtime">⏱ ' + fmtTime(r.durationSec || 0) + "</div></div>";
     box.appendChild(row);
@@ -1083,12 +1182,80 @@ $("defaultQuizBtn").addEventListener("click", function(){
   );
 });
 
+/* ================= KHỐNG CHẾ THỜI GIAN ================= */
+function capNhatNhanThoiGian(){
+  var coGioiHan = gioiHanGiay > 0;
+  var phut = Math.round(gioiHanGiay / 60);
+  $("limitNote").textContent = coGioiHan
+    ? "⏳ Thời gian làm bài: " + phut + " phút — đồng hồ đếm ngược, hết giờ bài TỰ NỘP, cặp chưa nối tính là chưa đúng."
+    : "⏱ Không giới hạn thời gian làm bài.";
+  $("timeCurrent").innerHTML = coGioiHan
+    ? "Đang áp dụng: <b>giới hạn " + phut + " phút</b> — đồng hồ trên máy học sinh đếm ngược, hết giờ tự nộp."
+    : "Đang áp dụng: <b>không giới hạn thời gian</b> — đồng hồ của học sinh đếm xuôi như bình thường.";
+  var inp = $("limitInput");
+  if (document.activeElement !== inp) inp.value = phut;
+}
+function apDungGioiHan(phut){
+  phut = Math.max(0, Math.round(phut) || 0);
+  gioiHanGiay = phut * 60;
+  capNhatNhanThoiGian();
+  if (timerId) capNhatDongHo(); /* đang làm dở mà thầy đổi giờ: áp dụng ngay, đã quá giờ thì tự nộp */
+}
+function ngheCaiDat(){
+  if (!db) return;
+  db.ref(ROOT + "/caidat").on("value", function(snap){
+    var v = snap.val() || {};
+    apDungGioiHan(typeof v.phut === "number" ? v.phut : 0);
+  });
+}
+function thucHienLuuThoiGian(){
+  var phut = parseInt($("limitInput").value, 10);
+  if (isNaN(phut) || phut < 0) phut = 0;
+  if (phut > 180) phut = 180;
+  $("limitInput").value = phut;
+  apDungGioiHan(phut);
+  if (db){
+    db.ref(ROOT + "/caidat").set({ phut: phut }).then(function(){
+      $("timeMsg").textContent = phut > 0
+        ? "✓ Đã đặt giới hạn " + phut + " phút — máy của các nhóm đã nhận, đồng hồ đếm ngược tính từ lúc nhóm bấm Vào làm bài."
+        : "✓ Đã bỏ giới hạn thời gian — máy của các nhóm đã nhận.";
+      $("timeMsg").style.color = "var(--green)";
+    }).catch(function(){
+      $("timeMsg").textContent = "Đã đặt trên máy này nhưng chưa gửi được lên máy chủ — kiểm tra mạng rồi bấm Lưu thời gian lại.";
+      $("timeMsg").style.color = "var(--red)";
+    });
+  } else {
+    $("timeMsg").textContent = "✓ Đã đặt trên máy này (chưa có kết nối máy chủ nên chưa gửi tới máy học sinh).";
+    $("timeMsg").style.color = "var(--green)";
+  }
+}
+$("saveTimeBtn").addEventListener("click", function(){
+  yeuCauMatKhau(
+    "🔒 Đặt thời gian làm bài?",
+    "Nhập mật khẩu của thầy để lưu số phút giới hạn — đồng hồ đếm ngược sẽ hiện trên máy của mọi nhóm. Học sinh không có mật khẩu thì không đặt được.",
+    "⏱ Lưu thời gian",
+    false,
+    thucHienLuuThoiGian
+  );
+});
+/* Nút chọn nhanh số phút trong Bảng của thầy */
+(function(){
+  var btns = $("quickTimes").querySelectorAll("button[data-phut]");
+  for (var i = 0; i < btns.length; i++){
+    (function(b){
+      b.addEventListener("click", function(){ $("limitInput").value = b.getAttribute("data-phut"); });
+    })(btns[i]);
+  }
+})();
+
 /* ================= KHỞI TẠO ================= */
 dienFormSuaDe();
 veLai();
+capNhatNhanThoiGian();
 if (khoiTaoFirebase()){
   ngheDe();
   ngheKetQua();
+  ngheCaiDat();
 } else {
   veBangThay(localResults);
 }
