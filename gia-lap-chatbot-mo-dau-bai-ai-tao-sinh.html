@@ -6,6 +6,8 @@
 <meta name="color-scheme" content="light" />
 <link rel="icon" href="data:," />
 <title>ChatGPT</title>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
 <style>
   /* Giao diện luôn là nền trắng (ChatGPT chế độ sáng), kể cả khi máy đang ở chế độ tối */
   :root{
@@ -281,6 +283,9 @@
   @media (prefers-reduced-motion:reduce){.bell-btn.armed{animation:none}}
   .bell-note{font-size:17px;line-height:1.5;color:#5b6b8c;margin:20px 0 0;max-width:520px}
   .bell-note b{color:#14264d}
+  .bell-conn{font-size:14.5px;font-weight:600;line-height:1.45;color:#5b6b8c;margin:14px 0 0;max-width:520px}
+  .bell-conn.ok{color:#157347}
+  .bell-conn.err{color:#b45309}
   .bell-board{flex:0 0 400px;background:#fff;border-radius:18px;box-shadow:0 6px 22px rgba(27,42,94,.10);padding:18px 20px 20px;display:flex;flex-direction:column}
   .bell-board-head{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:12px}
   .bell-board-head h3{margin:0;font-size:22px;font-weight:800;color:#1b2a5e;text-transform:uppercase}
@@ -909,6 +914,7 @@
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 8a6 6 0 10-12 0c0 7-3 8-3 8h18s-3-1-3-8"/><path d="M10.3 21a2 2 0 003.4 0"/></svg>
       </button>
       <p class="bell-note" id="bellNote">Chọn tên nhóm của mình ở phía trên, chờ thầy hô rồi bấm chuông thật nhanh!</p>
+      <p class="bell-conn" id="bellConn">Đang kết nối đồng bộ…</p>
     </section>
 
     <aside class="bell-board" aria-label="Bảng của thầy">
@@ -1848,6 +1854,138 @@
   var tickId = null;
   var results = {};         /* số nhóm -> thời gian bấm (ms) tính từ lúc thầy hô */
 
+  /* ===== ĐỒNG BỘ FIREBASE — dùng đúng project hd3-bai4 như app Kéo thả nộp bài
+     và app Bấm chuông HĐ3 của thầy (KHÔNG dùng Apps Script).
+     Dữ liệu của tab này nằm ở nhánh RIÊNG "hd3-bai4/bamchuong-taosinh",
+     không đụng nhánh keotha (kéo thả) hay buzzer (HĐ3) cũ.
+     Luồng: thầy bấm "Thầy hô bắt đầu" -> trạng thái mở chuông lên Firebase,
+     điện thoại các nhóm mở cùng link thấy chuông đã mở; nhóm bấm chuông ->
+     lượt bấm (nhóm, thời gian từ lúc thầy hô, giờ bấm) đẩy lên Firebase ngay;
+     Bảng của thầy tự cập nhật theo thời gian thực, xếp nhanh nhất lên đầu.
+     Mất mạng / không kết nối được Firebase thì tab vẫn chạy 1 màn hình như trước. ===== */
+  var FB_ROOT = 'hd3-bai4/bamchuong-taosinh';
+  var FB_CONFIG = {
+    apiKey: "AIzaSyA0GfN_myC2bvAq5TQWPd5mBIZnESR8_EI",
+    authDomain: "hd3-bai4.firebaseapp.com",
+    databaseURL: "https://hd3-bai4-default-rtdb.asia-southeast1.firebasedatabase.app",
+    projectId: "hd3-bai4",
+    storageBucket: "hd3-bai4.firebasestorage.app",
+    messagingSenderId: "1082513446758",
+    appId: "1:1082513446758:web:c3bd58e33e78d8d7341aa7"
+  };
+  var connEl = document.getElementById('bellConn');
+  var db = null;
+  var serverOffset = 0;   /* độ lệch giờ máy này so với giờ máy chủ Firebase (ms) */
+  var round = 1;          /* số vòng hiện tại — đồng bộ qua Firebase */
+  var roundLive = false;  /* vòng này đã được thầy hô mở chưa (chỉ gộp lượt bấm khi đã mở) */
+  var moLuc = 0;          /* mốc giờ máy chủ lúc thầy hô của vòng này (ms), 0 = chưa rõ */
+  var pressesRef = null;
+
+  function nowServer(){ return Date.now() + serverOffset; }
+  function fmtClockTime(d){
+    function p(n){ return ('0' + n).slice(-2); }
+    return p(d.getHours()) + ':' + p(d.getMinutes()) + ':' + p(d.getSeconds());
+  }
+  function setConn(txt, state){
+    if(!connEl) return;
+    connEl.textContent = txt;
+    connEl.className = 'bell-conn' + (state === true ? ' ok' : state === false ? ' err' : '');
+  }
+  function startClock(elapsedMs){
+    running = true;
+    startAt = performance.now() - Math.max(0, elapsedMs || 0);
+    if(tickId) clearInterval(tickId);
+    tickId = setInterval(function(){ paintClock(performance.now() - startAt); }, 31);
+  }
+  function stopClock(){
+    if(tickId){ clearInterval(tickId); tickId = null; }
+  }
+  function resetRound(){
+    running = false;
+    roundLive = false;
+    moLuc = 0;
+    results = {};
+    stopClock();
+    paintClock(0);
+  }
+
+  /* Nghe lượt bấm của vòng hiện tại: máy nào bấm thì mọi máy thấy ngay trên Bảng của thầy */
+  function ngheLuotBam(){
+    if(!db) return;
+    if(pressesRef) pressesRef.off();
+    pressesRef = db.ref(FB_ROOT + '/luotbam/' + round);
+    pressesRef.on('value', function(snap){
+      if(!roundLive) return;   /* vòng chưa mở: không gộp lượt bấm cũ còn lưu trên máy chủ */
+      var v = snap.val() || {};
+      var changed = false;
+      Object.keys(v).forEach(function(k){
+        var g = parseInt(String(k).replace('nhom', ''), 10);
+        var rec = v[k];
+        if(!(g >= 1 && g <= 6) || !rec || rec.ms == null) return;
+        var ms = Number(rec.ms);
+        if(results[g] == null || ms < results[g]){ results[g] = ms; changed = true; }
+      });
+      if(changed){
+        if(rungCount() >= 6 && tickId){
+          stopClock();
+          var maxMs = 0;
+          Object.keys(results).forEach(function(g){ if(results[g] > maxMs) maxMs = results[g]; });
+          paintClock(maxMs);
+        }
+        paint();
+      }
+    });
+  }
+
+  /* Nghe trạng thái chuông: thầy hô ở máy nào thì mọi máy mở chuông theo,
+     thầy bấm Chơi lại thì mọi máy về trạng thái chờ của vòng mới */
+  function ngheTrangThai(){
+    if(!db) return;
+    db.ref(FB_ROOT + '/trangthai').on('value', function(snap){
+      var v = snap.val();
+      if(!v) return;
+      var vong = Number(v.vong) || 1;
+      if(vong < round) return;                 /* trạng thái của vòng cũ — bỏ qua */
+      if(vong > round){                        /* vòng mới: dọn sạch, chờ hô lại */
+        round = vong;
+        resetRound();
+        ngheLuotBam();
+      }
+      if(v.mo){
+        roundLive = true;
+        moLuc = Number(v.moLuc) || 0;
+        if(!running) startClock(moLuc ? nowServer() - moLuc : 0);
+      } else if(running){
+        resetRound();
+      }
+      paint();
+    });
+  }
+
+  function khoiTaoFirebase(){
+    if(typeof firebase === 'undefined' || !firebase.database){
+      setConn('Đang chạy chế độ 1 màn hình (chưa tải được thư viện đồng bộ) — kiểm tra mạng nếu muốn các nhóm bấm từ điện thoại.', false);
+      return;
+    }
+    try {
+      if(!firebase.apps.length) firebase.initializeApp(FB_CONFIG);
+      db = firebase.database();
+    } catch(e){
+      db = null;
+      setConn('Đang chạy chế độ 1 màn hình (không có đồng bộ).', false);
+      return;
+    }
+    db.ref('.info/serverTimeOffset').on('value', function(snap){
+      serverOffset = Number(snap.val()) || 0;
+    });
+    db.ref('.info/connected').on('value', function(snap){
+      if(snap.val() === true) setConn('● Đã kết nối đồng bộ — các nhóm mở cùng link này trên điện thoại sẽ bấm chuông về máy thầy.', true);
+      else setConn('⚠ Mất kết nối đồng bộ — tab vẫn bấm được trên máy này, có mạng lại sẽ tự nối lại.', false);
+    });
+    ngheTrangThai();
+    ngheLuotBam();
+  }
+
   /* Thời gian dạng giây, 2 chữ số phần thập phân, dấu phẩy: 1240ms -> "1,24 giây" */
   function fmtSec(ms){
     return (Math.max(0, ms) / 1000).toFixed(2).replace('.', ',');
@@ -1946,35 +2084,59 @@
 
   startBtn.addEventListener('click', function(){
     if(running) return;
-    running = true;
-    startAt = performance.now();
-    if(tickId) clearInterval(tickId);
-    tickId = setInterval(function(){ paintClock(performance.now() - startAt); }, 31);
+    roundLive = true;
+    startClock(0);
+    /* Đẩy trạng thái mở chuông lên Firebase: các máy khác mở cùng link thấy chuông đã mở ngay.
+       Ghi 1 lần nguyên tử kèm xóa lượt bấm cũ của vòng này (nếu có) cho sạch. */
+    if(db){
+      var upd = {};
+      upd['trangthai'] = {
+        vong: round, mo: true,
+        moLuc: firebase.database.ServerValue.TIMESTAMP
+      };
+      upd['luotbam/' + round] = null;
+      db.ref(FB_ROOT).update(upd).catch(function(){});
+    }
     paint();
   });
 
   bellBtn.addEventListener('click', function(){
     if(!running || results[currentGroup] != null) return;
     var ms = performance.now() - startAt;
-    results[currentGroup] = ms;
+    /* Có đồng bộ thì tính giờ theo mốc giờ máy chủ lúc thầy hô, để mọi máy khớp nhau */
+    var msGui = (db && moLuc) ? Math.max(0, nowServer() - moLuc) : ms;
+    results[currentGroup] = msGui;
     ding();
+    /* Đẩy lượt bấm lên Firebase ngay: tên nhóm, thời gian từ lúc thầy hô, giờ bấm.
+       Transaction giữ lượt bấm ĐẦU TIÊN của nhóm trong vòng này. */
+    if(db){
+      var gioBam = fmtClockTime(new Date());
+      var vongBam = round;
+      db.ref(FB_ROOT + '/luotbam/' + vongBam + '/nhom' + currentGroup).transaction(function(cur){
+        if(cur) return;
+        return { ms: Math.round(msGui), gio: gioBam, t: firebase.database.ServerValue.TIMESTAMP };
+      }).catch(function(){});
+    }
     if(rungCount() >= 6){
-      if(tickId){ clearInterval(tickId); tickId = null; }
-      paintClock(ms);
+      stopClock();
+      paintClock(msGui);
     }
     paint();
   });
 
   againBtn.addEventListener('click', function(){
-    running = false;
-    results = {};
-    if(tickId){ clearInterval(tickId); tickId = null; }
-    paintClock(0);
+    round = round + 1;               /* vòng mới — lượt bấm ghi sang nhánh vòng mới */
+    resetRound();
+    if(db){
+      db.ref(FB_ROOT + '/trangthai').set({ vong: round, mo: false, moLuc: 0 }).catch(function(){});
+      ngheLuotBam();
+    }
     paint();
   });
 
   paintClock(0);
   paint();
+  khoiTaoFirebase();
 })();
 </script>
 </body>
