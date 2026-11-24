@@ -1604,30 +1604,62 @@
   });
   renderBoard();
 
-  /* Chọn nhóm: Nhóm 1-3 sáng khung trái (Tình huống 1), Nhóm 4-6 sáng khung phải (Tình huống 2) */
+  /* Chọn nhóm: Nhóm 1-3 sáng khung trái (Tình huống 1), Nhóm 4-6 sáng khung phải (Tình huống 2).
+     Mỗi nhóm có bản nháp riêng trong khung của mình: bấm chuyển nhóm thì lưu nháp của nhóm đang
+     mở rồi nạp nháp của nhóm mới (chưa gõ gì thì ô trống), nên không còn thấy chữ của nhóm khác. */
   var panels = {
     1: document.querySelector('.hd2-panel[data-panel="1"]'),
     2: document.querySelector('.hd2-panel[data-panel="2"]')
   };
+  var drafts = {}; /* số nhóm -> {a1, a2} nội dung đang gõ dở của riêng nhóm đó */
+  var panelGroup = {1: 1, 2: 4}; /* mỗi khung đang hiển thị nháp của nhóm nào */
+  function sideOf(g){ return g <= 3 ? 1 : 2; }
+  function savePanel(side){
+    var g = panelGroup[side];
+    if(!g) return;
+    drafts[g] = {
+      a1: panels[side].querySelector('[data-field="a1"]').value,
+      a2: panels[side].querySelector('[data-field="a2"]').value
+    };
+  }
+  function loadPanel(side, g){
+    var d = drafts[g] || {a1: '', a2: ''};
+    panels[side].querySelector('[data-field="a1"]').value = d.a1;
+    panels[side].querySelector('[data-field="a2"]').value = d.a2;
+    panelGroup[side] = g;
+  }
   function paintPanels(){
-    var side = currentGroup <= 3 ? 1 : 2;
+    var side = sideOf(currentGroup);
     panels[1].classList.toggle('active', side === 1);
     panels[2].classList.toggle('active', side === 2);
   }
   document.querySelectorAll('.hd2-gbtn').forEach(function(btn){
     btn.addEventListener('click', function(){
-      currentGroup = parseInt(btn.getAttribute('data-group'), 10);
+      var g = parseInt(btn.getAttribute('data-group'), 10);
+      if(g === currentGroup) return;
+      savePanel(1);
+      savePanel(2);
+      currentGroup = g;
       document.querySelectorAll('.hd2-gbtn').forEach(function(b){
         b.classList.toggle('on', b === btn);
+      });
+      loadPanel(sideOf(g), g);
+      document.querySelectorAll('.hd2-msg').forEach(function(m){
+        m.textContent = '';
+        m.className = 'hd2-msg';
       });
       paintPanels();
       ensureStart(currentGroup);
     });
   });
   paintPanels();
-  /* Bắt đầu tính giờ làm bài cho nhóm đang chọn ngay khi gõ chữ đầu tiên vào phiếu */
+  /* Gõ tới đâu lưu nháp của nhóm sở hữu khung tới đó, đồng thời bắt đầu tính giờ làm bài cho nhóm đang chọn */
   document.querySelectorAll('.hd2-input').forEach(function(inp){
-    inp.addEventListener('input', function(){ ensureStart(currentGroup); });
+    inp.addEventListener('input', function(){
+      var panel = inp.closest('.hd2-panel');
+      if(panel) savePanel(panel.getAttribute('data-panel') === '1' ? 1 : 2);
+      ensureStart(currentGroup);
+    });
   });
 
   /* Đồng hồ đếm ngược 03:00: chạy khi mở tab Hoạt động 2, bấm vào đồng hồ để đặt lại */
