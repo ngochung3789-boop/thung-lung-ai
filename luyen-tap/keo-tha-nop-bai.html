@@ -268,6 +268,36 @@
       .edit-actions{ display:flex; gap:8px; flex-wrap:wrap; margin-top:6px; }
       .save-msg{ font-size:15.5px; font-weight:700; color:var(--green); min-height:22px; margin-top:8px; }
 
+      /* ---------- Hộp nhập mật khẩu xóa bảng ---------- */
+      .modal-overlay{
+        position:fixed; inset:0; z-index:1000;
+        background:rgba(7,42,102,.62);
+        display:flex; align-items:center; justify-content:center;
+        padding:18px;
+      }
+      .modal-card{
+        background:#fff; border-radius:18px; width:100%; max-width:420px;
+        padding:22px 20px 20px; box-shadow:0 18px 44px rgba(0,0,0,.32);
+        text-align:left;
+      }
+      .modal-card h3{ font-size:22px; margin:0 0 6px; line-height:1.3; }
+      .modal-card p{ font-size:16px; color:var(--muted); line-height:1.5; margin:0 0 14px; }
+      .modal-card label{ display:block; font-size:16px; font-weight:800; margin-bottom:6px; }
+      .modal-card input{
+        width:100%; font-size:20px; padding:13px 12px;
+        border:3px solid var(--blue); border-radius:12px; color:var(--ink);
+      }
+      .pwd-error{ font-size:15.5px; font-weight:700; color:var(--red); min-height:22px; margin-top:8px; }
+      .modal-actions{ display:flex; gap:8px; margin-top:6px; }
+      .modal-actions .btn-cancel{
+        flex:1; background:#fff; color:var(--muted); border:2px solid var(--line);
+        font-size:17px; font-weight:800; border-radius:10px; padding:11px 10px;
+      }
+      .modal-actions .btn-confirm-delete{
+        flex:1.4; background:var(--red); color:#fff; border:2px solid var(--red);
+        font-size:17px; font-weight:800; border-radius:10px; padding:11px 10px;
+      }
+
       .foot{ text-align:center; font-size:13.5px; color:#8496b3; padding:0 16px 26px; line-height:1.6; }
       .hidden{ display:none !important; }
     </style>
@@ -354,7 +384,7 @@
             <button class="btn-danger" id="clearBtn" type="button">🗑 Xóa hết – làm lượt mới</button>
           </div>
         </div>
-        <p class="rule-note">Xếp hạng tự động: <b>điểm cao xếp trước</b> — hai nhóm <b>bằng điểm thì so thời gian làm bài</b>, nhóm làm nhanh hơn xếp trên. Bảng tự cập nhật ngay khi có nhóm nộp bài, thầy không cần tải lại trang. Chiếu bảng này lên TV cho cả lớp xem.</p>
+        <p class="rule-note">Xếp hạng tự động: <b>điểm cao xếp trước</b> — hai nhóm <b>bằng điểm thì so thời gian làm bài</b>, nhóm làm nhanh hơn xếp trên. Bảng tự cập nhật ngay khi có nhóm nộp bài, thầy không cần tải lại trang. Chiếu bảng này lên TV cho cả lớp xem. Bảng điều khiển này và mọi nút <b>xóa / sửa</b> (<b>Xóa hết</b>, <b>Lưu đề</b>, <b>Khôi phục đề mẫu</b>) đều khóa bằng mật khẩu của thầy — học sinh không có mật khẩu thì không vào, không xóa, không sửa được.</p>
         <div class="rank-list" id="rankList">
           <div class="empty-note">Chưa có nhóm nào nộp bài.<br>Kết quả sẽ hiện ở đây ngay khi nhóm đầu tiên bấm Nộp bài.</div>
         </div>
@@ -371,6 +401,21 @@
         </div>
       </div>
 
+    </div>
+
+    <!-- HỘP NHẬP MẬT KHẨU CỦA THẦY (mở bảng điều khiển + mọi nút xóa/sửa) -->
+    <div class="modal-overlay hidden" id="pwdModal" role="dialog" aria-modal="true" aria-labelledby="pwdTitle">
+      <div class="modal-card">
+        <h3 id="pwdTitle">🔒 Khu vực của thầy</h3>
+        <p id="pwdDesc">Nhập mật khẩu của thầy để tiếp tục. Học sinh không có mật khẩu thì không vào được mục này.</p>
+        <label for="pwdInput">Mật khẩu của thầy</label>
+        <input type="password" id="pwdInput" autocomplete="off" placeholder="Nhập mật khẩu" />
+        <div class="pwd-error" id="pwdError" aria-live="polite"></div>
+        <div class="modal-actions">
+          <button type="button" class="btn-cancel" id="pwdCancelBtn">Hủy</button>
+          <button type="button" class="btn-confirm-delete" id="pwdConfirmBtn" style="background:var(--blue);border-color:var(--blue)">Tiếp tục</button>
+        </div>
+      </div>
     </div>
 
     <p class="foot">Chỉ gửi tên nhóm, đáp án đã ghép, điểm và thời gian làm bài.<br>Không thu thập thông tin cá nhân của học sinh.</p>
@@ -498,7 +543,16 @@ function chonCheDo(teacher){
   if (teacher) ngheKetQua();
 }
 $("modeStudent").addEventListener("click", function(){ chonCheDo(false); });
-$("modeTeacher").addEventListener("click", function(){ chonCheDo(true); });
+$("modeTeacher").addEventListener("click", function(){
+  if (!$("teacherView").classList.contains("hidden")) return; /* đang ở bảng rồi */
+  yeuCauMatKhau(
+    "🔒 Bảng điều khiển của thầy",
+    "Nhập mật khẩu của thầy để mở bảng điều khiển. Học sinh không có mật khẩu thì không vào được.",
+    "Mở bảng của thầy",
+    false,
+    function(){ chonCheDo(true); }
+  );
+});
 
 /* ================= BƯỚC 1: NHẬP TÊN NHÓM ================= */
 (function taoNutChonNhanh(){
@@ -886,11 +940,73 @@ $("refreshBtn").addEventListener("click", function(){
   }
 });
 
-$("clearBtn").addEventListener("click", function(){
+/* ---------- Cổng mật khẩu của thầy ----------
+   Áp cho: mở Bảng điều khiển + mọi nút xóa/sửa trong bảng (Xóa hết, Lưu đề, Khôi phục đề mẫu).
+   Trang tĩnh nên mật khẩu chỉ lưu dạng mã băm (không ghi rõ trong mã nguồn) —
+   đây là khóa chống học sinh bấm nhầm/nghịch, không phải bảo mật cấp tài khoản. */
+var MAT_KHAU_BAM = 5861590;
+var hanhDongCho = null; // việc sẽ làm sau khi nhập đúng mật khẩu
+
+function bamChuoi(s){
+  var h = 5381;
+  for (var i = 0; i < s.length; i++) h = ((h * 33) + s.charCodeAt(i)) >>> 0;
+  return h;
+}
+function yeuCauMatKhau(tieuDe, moTa, nutText, nutDo, hanhDong){
+  $("pwdTitle").textContent = tieuDe;
+  $("pwdDesc").textContent = moTa;
+  var nut = $("pwdConfirmBtn");
+  nut.textContent = nutText;
+  nut.style.background = nutDo ? "var(--red)" : "var(--blue)";
+  nut.style.borderColor = nutDo ? "var(--red)" : "var(--blue)";
+  hanhDongCho = hanhDong;
+  $("pwdError").textContent = "";
+  $("pwdInput").value = "";
+  $("pwdModal").classList.remove("hidden");
+  setTimeout(function(){ $("pwdInput").focus(); }, 50);
+}
+function dongHopMatKhau(){
+  $("pwdModal").classList.add("hidden");
+  $("pwdInput").value = "";
+  $("pwdError").textContent = "";
+  hanhDongCho = null;
+}
+function xacNhanMatKhau(){
+  if (bamChuoi($("pwdInput").value) !== MAT_KHAU_BAM){
+    $("pwdError").textContent = "✗ Mật khẩu chưa đúng — chưa làm gì cả. Chỉ thầy mới mở được mục này.";
+    $("pwdInput").value = "";
+    $("pwdInput").focus();
+    return;
+  }
+  var viec = hanhDongCho;
+  dongHopMatKhau();
+  if (viec) viec();
+}
+$("pwdCancelBtn").addEventListener("click", dongHopMatKhau);
+$("pwdConfirmBtn").addEventListener("click", xacNhanMatKhau);
+$("pwdInput").addEventListener("keydown", function(e){
+  if (e.key === "Enter") xacNhanMatKhau();
+  if (e.key === "Escape") dongHopMatKhau();
+});
+$("pwdModal").addEventListener("click", function(e){
+  if (e.target === $("pwdModal")) dongHopMatKhau();
+});
+
+/* ---------- Xóa bảng kết quả (qua cổng mật khẩu) ---------- */
+function thucHienXoaBang(){
   if (!db){ localResults = []; veBangThay([]); return; }
   db.ref(ROOT + "/ketqua").remove().then(function(){
     veBangThay([]);
   });
+}
+$("clearBtn").addEventListener("click", function(){
+  yeuCauMatKhau(
+    "🔒 Xóa hết kết quả?",
+    "Nhập mật khẩu của thầy để xóa toàn bộ bảng kết quả và làm lượt mới. Học sinh không có mật khẩu thì không xóa được.",
+    "🗑 Xóa hết",
+    true,
+    thucHienXoaBang
+  );
 });
 
 /* ================= SOẠN ĐỀ ================= */
@@ -908,7 +1024,7 @@ function dienFormSuaDe(){
   });
 }
 
-$("saveQuizBtn").addEventListener("click", function(){
+function thucHienLuuDe(){
   var items = [];
   for (var i = 0; i < 5; i++){
     var q = document.querySelector('input[data-q="' + i + '"]').value.trim();
@@ -936,9 +1052,18 @@ $("saveQuizBtn").addEventListener("click", function(){
     $("saveMsg").textContent = "✓ Đã đổi đề trên máy này (chưa có kết nối máy chủ).";
     $("saveMsg").style.color = "var(--green)";
   }
+}
+$("saveQuizBtn").addEventListener("click", function(){
+  yeuCauMatKhau(
+    "🔒 Lưu đề mới?",
+    "Nhập mật khẩu của thầy để lưu đề — đề mới sẽ hiện trên máy của mọi nhóm. Học sinh không có mật khẩu thì không sửa được đề.",
+    "💾 Lưu đề",
+    false,
+    thucHienLuuDe
+  );
 });
 
-$("defaultQuizBtn").addEventListener("click", function(){
+function thucHienKhoiPhucDe(){
   quiz = DE_MAC_DINH.slice();
   dienFormSuaDe();
   placements = [null, null, null, null, null];
@@ -947,6 +1072,15 @@ $("defaultQuizBtn").addEventListener("click", function(){
   if (db) db.ref(ROOT + "/debai").set({ items: quiz });
   $("saveMsg").textContent = "✓ Đã khôi phục đề mẫu.";
   $("saveMsg").style.color = "var(--green)";
+}
+$("defaultQuizBtn").addEventListener("click", function(){
+  yeuCauMatKhau(
+    "🔒 Khôi phục đề mẫu?",
+    "Nhập mật khẩu của thầy để đưa đề về đề mẫu ban đầu. Học sinh không có mật khẩu thì không làm được việc này.",
+    "Khôi phục đề mẫu",
+    false,
+    thucHienKhoiPhucDe
+  );
 });
 
 /* ================= KHỞI TẠO ================= */
