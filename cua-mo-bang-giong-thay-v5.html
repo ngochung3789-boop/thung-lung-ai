@@ -6536,7 +6536,7 @@ function dungThanhPho(){
     them(hop(0.45, 0.45, 0.08, goNhatMat), -74.6, 0.225, -87.25);
     /* --- Bien go 'AO SEN' mat ve dong-bac (rotation.y = PI/4). --- */
     const gocBien = Math.PI / 4, bx = -75.5, bz = -82.3;
-    const dxB = Math.cos(gocBien) * 1.1, dzB = -Math.sin(gocBien) * 1.1;
+    const dxB = Math.cos(gocBien) * 1.45, dzB = -Math.sin(gocBien) * 1.45;
     them(hop(0.12, 1.7, 0.12, cotMat), bx - dxB, 0.95, bz - dzB);
     them(hop(0.12, 1.7, 0.12, cotMat), bx + dxB, 0.95, bz + dzB);
     const khungBien = them(hop(2.7, 0.95, 0.06, vangMat),
@@ -19906,6 +19906,7 @@ function capNhatCameraTour(dt){
 · v30: GOP BON HOA + CAY CANH MUC 14
 · v31: GOP KHU VUI CHOI MUC 15
 · v32: GOP AO SEN MUC 17
+v33: SUA BIEN AO SEN - DOI 2 COT RA NGOAI MEP BIEN
 · v26a: SUA BIEN CONG (dong 1 gioi han 1500px, het cat chu T/H)
 · v26b: TACH CUA SO TRON (nhom cuaSoXe luon hien; sua loi an cua so khi xuong xe)
 · v26c: GIU BONG BONG TRAM (gan lai khi doan dung lai do doi lop bat dong bo) =================
