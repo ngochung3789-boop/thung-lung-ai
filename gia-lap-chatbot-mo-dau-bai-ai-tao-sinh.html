@@ -99,6 +99,8 @@
   .plus-btn:hover{background:var(--hover)}
   .composer-text{flex:1;font-size:16.5px;line-height:1.45;min-height:24px;max-height:110px;overflow-y:auto;color:var(--text);white-space:pre-wrap;word-break:break-word;padding:4px 2px;text-align:left;cursor:text}
   .composer-text.placeholder{color:var(--faint)}
+  .composer-text:empty::before{content:"Hỏi ChatGPT";color:var(--faint)}
+  .composer-text:focus{outline:none}
   .reason-chip{display:flex;align-items:center;gap:6px;border:0;background:transparent;color:var(--muted);font-size:14.5px;padding:8px 10px;border-radius:999px;white-space:nowrap}
   .reason-chip:hover{background:var(--hover)}
   .mic-btn{width:36px;height:36px;flex:0 0 36px;border-radius:50%;border:0;background:transparent;color:var(--text);display:grid;place-items:center;padding:0}
@@ -118,7 +120,6 @@
   .qpanel-head{font-size:13.5px;color:var(--muted);font-weight:600;padding:4px 10px 8px}
   .qpanel-item{display:flex;gap:12px;width:100%;border:0;background:transparent;color:var(--text);padding:11px 10px;border-radius:12px;font-size:16px;line-height:1.5;text-align:left;align-items:flex-start;min-height:44px}
   .qpanel-item:hover{background:var(--hover)}
-  .qpanel-num{flex:0 0 26px;width:26px;height:26px;border-radius:50%;background:var(--accent);color:var(--accent-text);display:grid;place-items:center;font-size:14px;font-weight:700;margin-top:1px}
 
   .hidden{display:none !important}
 
@@ -253,7 +254,7 @@
      Bấm vào ô nhập thì hiện bảng gợi ý đủ 3 câu hỏi để chọn, không phải gõ lại. -->
 <div class="composer-wrap" id="composerWrap">
   <div class="qpanel hidden" id="qPanel" role="listbox" aria-label="Danh sách câu hỏi gợi ý">
-    <div class="qpanel-head">Chọn 1 câu hỏi — bấm là điền sẵn vào ô, không cần gõ lại:</div>
+    <div class="qpanel-head">Gợi ý — bấm vào là điền sẵn cả câu vào ô:</div>
     <div id="qPanelList"></div>
   </div>
   <div class="composer" id="composer">
@@ -261,7 +262,7 @@
       <button class="plus-btn" type="button" aria-label="Thêm">
         <svg class="ic" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
       </button>
-      <div class="composer-text placeholder" id="composerText" role="button" aria-label="Hỏi ChatGPT — bấm để xem gợi ý câu hỏi">Hỏi ChatGPT</div>
+      <div class="composer-text" id="composerText" contenteditable="true" role="textbox" aria-multiline="false" aria-label="Hỏi ChatGPT"></div>
       <button class="reason-chip" type="button" id="reasonChip">
         <svg class="ic sm" viewBox="0 0 24 24"><path d="M12 3a5 5 0 015 5c0 2-1 3.1-1.7 4.2-.6.9-.8 1.6-.8 2.8h-5c0-1.2-.2-1.9-.8-2.8C8 11.1 7 10 7 8a5 5 0 015-5z"/><path d="M9.5 19h5M10.5 21.5h3"/></svg>
         <span>Suy luận</span>
@@ -306,6 +307,39 @@
     }
   ];
 
+  /* Chuẩn hóa để so khớp mờ: chữ thường, bỏ dấu — gõ không dấu vẫn khớp */
+  function normStr(s){
+    return (s || "").toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/đ/g,'d').replace(/[^a-z0-9 ]/g,' ').replace(/\s+/g,' ').trim();
+  }
+  QUESTIONS.forEach(function(item){
+    item.normQ = normStr(item.q);
+    item.words = item.normQ.split(' ');
+  });
+  /* Điểm khớp giữa chữ đang gõ và 1 câu hỏi: -1 = không khớp.
+     Khớp ngay từ đầu câu > khớp ở giữa câu > khớp khoảng 50% số từ/chữ. */
+  function scoreQuestion(item, t){
+    if(!t) return -1;
+    if(item.normQ.indexOf(t) === 0) return 1000;
+    var idx = item.normQ.indexOf(t);
+    if(idx > 0) return 800 - idx;
+    var tWords = t.split(' '), matched = 0, earliest = 999;
+    tWords.forEach(function(tw){
+      for(var j = 0; j < item.words.length; j++){
+        var qw = item.words[j];
+        if(qw.indexOf(tw) === 0 || tw.indexOf(qw) === 0){ matched++; if(j < earliest) earliest = j; break; }
+      }
+    });
+    var ratio = matched / tWords.length;
+    if(ratio >= 0.5) return 400 + ratio * 100 - earliest;
+    var tChars = t.replace(/ /g,''), qi = 0, hit = 0;
+    for(var k = 0; k < item.normQ.length && qi < tChars.length; k++){
+      if(item.normQ[k] === tChars[qi]){ hit++; qi++; }
+    }
+    var cratio = tChars.length ? hit / tChars.length : 0;
+    if(cratio >= 0.5) return 100 + cratio * 50;
+    return -1;
+  }
+
   var chat = document.getElementById('chat');
   var wrap = document.getElementById('chatWrap');
   var hero = document.getElementById('hero');
@@ -325,7 +359,9 @@
   var imgTimer = null;     /* hẹn giờ hiện ảnh của câu tạo ảnh */
   var busy = false;        /* đang gõ chữ (điền câu hỏi hoặc AI trả lời) */
   var skipFn = null;       /* bỏ qua gõ chữ của đoạn đang chạy */
-  var phase = 'idle';      /* idle | filling | filled | answering | answered */
+  var phase = 'idle';      /* idle | typing | filled | answering | answered */
+  var topSuggestion = -1;  /* gợi ý duy nhất khớp nhất với chữ đang gõ */
+  var suppressInput = false;
   var currentQ = -1;       /* câu hỏi đang chọn */
   var lastAiBody = null;   /* phần thân câu trả lời AI gần nhất */
 
@@ -346,16 +382,29 @@
   function scrollDown(){ wrap.scrollTop = wrap.scrollHeight; }
   function skipTyping(){ if(skipFn){ var f = skipFn; skipFn = null; f(); } }
 
-  /* ===== Bảng gợi ý 3 câu hỏi ===== */
-  QUESTIONS.forEach(function(item, i){
+  /* ===== Gợi ý theo chữ đang gõ: chỉ hiện ĐÚNG 1 gợi ý khớp nhất,
+     chỉ hiện vài chữ đầu của câu, không số thứ tự, chưa gõ thì không hiện ===== */
+  function renderSuggestions(typed){
+    var t = normStr(typed);
+    qPanelList.innerHTML = '';
+    topSuggestion = -1;
+    if(!t){ hidePanel(); return; }
+    var best = -1, bestScore = -1;
+    QUESTIONS.forEach(function(item, i){
+      var s = scoreQuestion(item, t);
+      if(s > bestScore){ bestScore = s; best = i; }
+    });
+    if(best < 0){ hidePanel(); return; }
+    topSuggestion = best;
+    var item = QUESTIONS[best];
     var b = document.createElement('button');
     b.type = 'button'; b.className = 'qpanel-item'; b.setAttribute('role','option');
-    var num = document.createElement('span'); num.className = 'qpanel-num'; num.textContent = (i + 1);
     var txt = document.createElement('span'); txt.textContent = item.hint;
-    b.appendChild(num); b.appendChild(txt);
-    b.addEventListener('click', function(){ selectQuestion(i); });
+    b.appendChild(txt);
+    b.addEventListener('mousedown', function(e){ e.preventDefault(); fillQuestion(best); });
     qPanelList.appendChild(b);
-  });
+    showPanel();
+  }
   function showPanel(){
     qPanel.classList.remove('hidden');
     qPanel.scrollTop = 0;
@@ -373,42 +422,65 @@
     });
   }
   function hidePanel(){ qPanel.classList.add('hidden'); }
-  function togglePanel(){
-    if(busy) return;
-    if(qPanel.classList.contains('hidden')){ showPanel(); } else { hidePanel(); }
-  }
-  composerText.addEventListener('click', togglePanel);
+  /* Gợi ý chỉ hiện khi đang gõ và có câu khớp — bấm ra ngoài ô thì ẩn */
   document.addEventListener('click', function(e){
     if(!composerWrap.contains(e.target)){ hidePanel(); }
   });
 
-  /* ===== Chọn 1 câu hỏi: điền sẵn cả câu vào ô nhập ===== */
-  function typeIntoComposer(text, done){
-    hidePanel();
-    composerText.classList.remove('placeholder'); composerText.textContent = "";
-    setComposerMode(true);
-    busy = true; phase = 'filling';
-    var i = 0, finished = false;
-    function finish(){
-      if(finished) return; finished = true;
-      if(typingTimer){ clearInterval(typingTimer); typingTimer = null; }
-      skipFn = null; busy = false;
-      composerText.textContent = text; sendBtn.disabled = false;
-      phase = 'filled';
-      if(done) done();
-    }
-    skipFn = finish;
-    typingTimer = setInterval(function(){
-      i += 3; composerText.textContent = text.slice(0, i); scrollDown();
-      if(i >= text.length){ finish(); }
-    }, 12);
-  }
-  function selectQuestion(i){
-    if(busy){ skipTyping(); return; }
+  /* ===== Bấm vào gợi ý duy nhất: điền đủ nguyên văn câu hỏi vào ô ===== */
+  function fillQuestion(i){
+    if(busy) return;
     if(i < 0 || i >= QUESTIONS.length) return;
     currentQ = i;
-    typeIntoComposer(QUESTIONS[i].q);
+    suppressInput = true;
+    composerText.textContent = QUESTIONS[i].q;
+    suppressInput = false;
+    phase = 'filled';
+    hidePanel();
+    setComposerMode(true);
+    sendBtn.disabled = false;
+    placeCaretEnd();
+    composerText.focus();
   }
+  function placeCaretEnd(){
+    try{
+      var range = document.createRange();
+      range.selectNodeContents(composerText);
+      range.collapse(false);
+      var sel = window.getSelection();
+      sel.removeAllRanges(); sel.addRange(range);
+    }catch(e){}
+  }
+  function submitIntent(){
+    if(busy){ skipTyping(); return; }
+    if(phase === 'filled'){ sendQuestion(); return; }
+    if(topSuggestion >= 0){ var i = topSuggestion; fillQuestion(i); sendQuestion(); }
+  }
+  /* Gõ tự nhiên vào ô: mỗi chữ gõ vào đều soi gợi ý khớp mờ */
+  composerText.addEventListener('input', function(){
+    if(suppressInput || busy) return;
+    var t = composerText.innerText.replace(/\s+/g,' ').trim();
+    if(!t){
+      composerText.innerHTML = '';
+      phase = 'idle'; currentQ = -1; topSuggestion = -1;
+      setComposerMode(false); hidePanel();
+      return;
+    }
+    setComposerMode(true); sendBtn.disabled = false;
+    var nt = normStr(t), exact = -1;
+    QUESTIONS.forEach(function(item, i){ if(item.normQ === nt) exact = i; });
+    if(exact >= 0){ currentQ = exact; phase = 'filled'; topSuggestion = -1; hidePanel(); return; }
+    phase = 'typing'; currentQ = -1;
+    renderSuggestions(t);
+  });
+  composerText.addEventListener('keydown', function(e){
+    if(e.key === 'Enter'){ e.preventDefault(); submitIntent(); }
+  });
+  composerText.addEventListener('paste', function(e){
+    e.preventDefault();
+    var text = (e.clipboardData || window.clipboardData).getData('text');
+    document.execCommand('insertText', false, text.replace(/\n/g,' '));
+  });
 
   /* ===== Gửi câu hỏi -> AI gõ câu trả lời sai (nguyên văn) ===== */
   function addUserMsg(text){
@@ -464,6 +536,7 @@
         var c = lastAiBody ? lastAiBody.querySelector('.caret') : null; if(c) c.remove();
       }
       skipFn = null; busy = false; phase = 'answered';
+      composerText.contentEditable = 'true';
       scrollDown();
     }
     function startTyping(){
@@ -491,29 +564,30 @@
     if(currentQ < 0 || phase !== 'filled') return;
     var item = QUESTIONS[currentQ];
     addUserMsg(item.q);
-    composerText.textContent = "Hỏi ChatGPT"; composerText.classList.add('placeholder');
+    composerText.innerHTML = '';
+    composerText.contentEditable = 'false';
     sendBtn.disabled = true;
     setComposerMode(false);
+    hidePanel();
     typeAiAnswer(item);
   }
 
-  /* ===== Điều khiển: phím 1–3 chọn nhanh câu hỏi, Enter/nút gửi để gửi ===== */
+  /* ===== Điều khiển: Enter hoặc nút gửi để gửi ===== */
   document.addEventListener('keydown', function(e){
     if(e.metaKey || e.ctrlKey || e.altKey) return;
+    if(e.target === composerText) return; /* đang gõ trong ô: chữ, dấu cách, Enter chạy theo ô nhập */
     if(busy && (e.key === 'Enter' || e.key === ' ')){ e.preventDefault(); skipTyping(); return; }
     if(e.key === 'Enter' && phase === 'filled'){ e.preventDefault(); sendQuestion(); return; }
-    var n = parseInt(e.key, 10);
-    if(n >= 1 && n <= 3){ selectQuestion(n - 1); }
   });
   sendBtn.addEventListener('click', function(){
     if(busy){ skipTyping(); return; }
-    if(phase === 'filled'){ sendQuestion(); }
+    submitIntent();
   });
   voiceBtn.addEventListener('click', function(){
-    if(!busy){ togglePanel(); }
+    if(!busy){ composerText.focus(); }
   });
   micBtn.addEventListener('click', function(){
-    if(!busy){ togglePanel(); }
+    if(!busy){ composerText.focus(); }
   });
 
   /* ===== Chạy lại từ đầu / toàn màn hình ===== */
@@ -526,7 +600,7 @@
     parkComposer(true);
     dockHint.classList.add('hidden');
     hidePanel();
-    composerText.textContent = "Hỏi ChatGPT"; composerText.classList.add('placeholder'); sendBtn.disabled = true;
+    composerText.innerHTML = ''; composerText.contentEditable = 'true'; sendBtn.disabled = true; topSuggestion = -1;
     setComposerMode(false);
     scrollDown();
   }
