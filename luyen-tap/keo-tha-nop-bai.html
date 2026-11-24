@@ -383,7 +383,7 @@
           <p class="time-line" id="resTime"></p>
           <ul class="review" id="reviewList"></ul>
           <button class="btn-primary" id="againBtn" type="button">↻ Làm lại để nộp lại</button>
-          <p style="font-size:15px;color:var(--muted);margin:12px 0 0">Kết quả đã hiện trên bảng của thầy.<br>Nếu thầy bảo làm lại, bấm nút trên — bài nộp mới sẽ thay bài cũ.</p>
+          <p style="font-size:15px;color:var(--muted);margin:12px 0 0">Kết quả đã hiện trên bảng của thầy và được <b>lưu trong 1 tiếng</b> — thầy tải lại trang vẫn xem được.<br>Nếu thầy bảo làm lại, bấm nút trên — bài nộp mới sẽ thay bài cũ.</p>
         </div>
       </div>
 
@@ -406,9 +406,18 @@
           <h2>📊 Kết quả các nhóm — Bài 2 · Lớp 8</h2>
           <div class="teacher-actions">
             <button class="btn-ghost" id="refreshBtn" type="button">↻ Cập nhật</button>
+            <button class="btn-ghost" id="clearBtn" type="button" style="border-color:var(--red);color:var(--red)">🗑 Xóa hết kết quả</button>
           </div>
         </div>
-        <p class="rule-note">Xếp hạng tự động: <b>điểm cao xếp trước</b> — hai nhóm <b>bằng điểm thì so thời gian làm bài</b>, nhóm làm nhanh hơn xếp trên. Bảng tự cập nhật ngay khi có nhóm nộp bài, thầy không cần tải lại trang. Chiếu bảng này lên TV cho cả lớp xem.</p>
+        <div class="hidden" id="clearConfirm" style="background:var(--red-bg);border:2px solid var(--red);border-radius:12px;padding:12px 14px;margin-bottom:12px">
+          <p style="margin:0 0 10px;font-size:16px;line-height:1.5"><b>Xóa hết kết quả của các nhóm?</b> Bài đã nộp sẽ bị xóa khỏi máy chủ và khỏi bảng này, không khôi phục được. Đề bài và giới hạn thời gian giữ nguyên.</p>
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <button class="btn-ghost" id="clearYesBtn" type="button" style="background:var(--red);border-color:var(--red);color:#fff">Xóa hết ngay</button>
+            <button class="btn-ghost" id="clearNoBtn" type="button">Để lại, không xóa</button>
+          </div>
+        </div>
+        <div class="save-msg" id="clearMsg" style="margin:0 0 10px"></div>
+        <p class="rule-note">Xếp hạng tự động: <b>điểm cao xếp trước</b> — hai nhóm <b>bằng điểm thì so thời gian làm bài</b>, nhóm làm nhanh hơn xếp trên. Bảng tự cập nhật ngay khi có nhóm nộp bài, thầy không cần tải lại trang. Chiếu bảng này lên TV cho cả lớp xem.<br>💾 Kết quả được <b>lưu trên máy chủ trong 1 tiếng</b> kể từ lúc nhóm nộp — thầy cứ tải lại trang thoải mái, kết quả vẫn còn. Quá 1 tiếng, kết quả tự hết hạn và tự biến mất khỏi bảng. Muốn xóa sớm hơn thì bấm nút <b>🗑 Xóa hết kết quả</b> ở trên.</p>
         <div class="rank-list" id="rankList">
           <div class="empty-note">Chưa có nhóm nào nộp bài.<br>Kết quả sẽ hiện ở đây ngay khi nhóm đầu tiên bấm Nộp bài.</div>
         </div>
@@ -477,6 +486,7 @@ var DE_MAC_DINH = [
   { q: "Tạo và trò chuyện bằng văn bản", a: "ChatGPT" }
 ];
 var DIEM_MOI_Y = 2;
+var THOI_GIAN_LUU_MS = 60 * 60 * 1000; /* Kết quả được giữ trên máy chủ đúng 1 tiếng kể từ lúc nộp */
 
 /* ================= TRẠNG THÁI ================= */
 var db = null;
@@ -562,15 +572,49 @@ function ngheDe(){
   });
 }
 
+/* Một kết quả còn hạn giữ (trong vòng 1 tiếng) hay không.
+   r.t là mốc thời gian nộp (ms). Bản ghi cũ chưa có t thì coi như còn hạn. */
+function conHanLuu(r){
+  if (!r || typeof r.t !== "number") return true;
+  return (Date.now() - r.t) < THOI_GIAN_LUU_MS;
+}
+/* Gộp kết quả trên máy chủ với kết quả dự phòng trên chính máy này (khi mất mạng),
+   bỏ trùng theo tên nhóm (bản trên máy chủ thắng) và bỏ bản đã quá 1 tiếng */
+function gopKetQua(list){
+  var theoNhom = {};
+  (list || []).forEach(function(r){ if (r && r.team) theoNhom[khoaDoi(r.team)] = r; });
+  localResults.forEach(function(r){
+    var k = khoaDoi(r.team);
+    if (!theoNhom[k]) theoNhom[k] = r;
+  });
+  return Object.keys(theoNhom).map(function(k){ return theoNhom[k]; })
+    .filter(conHanLuu);
+}
+
 /* Nghe kết quả các nhóm cho bảng của thầy */
 function ngheKetQua(){
-  if (!db) { veBangThay(localResults); return; }
+  if (!db) { veBangThay(gopKetQua([])); return; }
   db.ref(ROOT + "/ketqua").on("value", function(snap){
     var v = snap.val() || {};
     var list = Object.keys(v).map(function(k){ return v[k]; });
-    veBangThay(list);
+    donKetQuaHetHan(v);
+    veBangThay(gopKetQua(list));
   }, function(){
-    veBangThay(localResults);
+    veBangThay(gopKetQua([]));
+  });
+}
+
+/* Tự dọn trên máy chủ những kết quả đã quá 1 tiếng (chạy tối đa 1 lần mỗi phút) */
+var lanDonCuoi = 0;
+function donKetQuaHetHan(v){
+  var bayGio = Date.now();
+  if (bayGio - lanDonCuoi < 60000) return;
+  lanDonCuoi = bayGio;
+  if (!db || !v) return;
+  Object.keys(v).forEach(function(k){
+    if (!conHanLuu(v[k])){
+      db.ref(ROOT + "/ketqua/" + k).remove().catch(function(){});
+    }
   });
 }
 
@@ -950,7 +994,8 @@ function nopBai(tuDong){
   var record = {
     team: team, score: score, correct: dung, total: 5,
     durationSec: duration, hien: hien, answers: answers,
-    auto: tuDong ? 1 : 0
+    auto: tuDong ? 1 : 0,
+    t: Date.now() /* mốc nộp theo giờ máy này — dùng cho bản dự phòng và tính hạn 1 tiếng */
   };
 
   function hienKetQua(){
@@ -979,8 +1024,11 @@ function nopBai(tuDong){
   }
 
   if (db){
-    record.t = firebase.database.ServerValue.TIMESTAMP;
-    db.ref(ROOT + "/ketqua/" + khoaDoi(team)).set(record)
+    /* Bản gửi lên máy chủ dùng giờ máy chủ cho mốc nộp, để hạn 1 tiếng khớp nhau trên mọi máy */
+    var banLenMayChu = {};
+    for (var key in record) banLenMayChu[key] = record[key];
+    banLenMayChu.t = firebase.database.ServerValue.TIMESTAMP;
+    db.ref(ROOT + "/ketqua/" + khoaDoi(team)).set(banLenMayChu)
       .then(hienKetQua)
       .catch(function(){
         localResults = localResults.filter(function(r){ return r.team !== team; });
@@ -1009,8 +1057,10 @@ $("againBtn").addEventListener("click", function(){
 /* ================= BẢNG CỦA THẦY ================= */
 function veBangThay(list){
   var box = $("rankList");
-  if (!list || list.length === 0){
-    box.innerHTML = '<div class="empty-note">Chưa có nhóm nào nộp bài.<br>Kết quả sẽ hiện ở đây ngay khi nhóm đầu tiên bấm Nộp bài.</div>';
+  /* Chỉ hiện kết quả còn trong hạn lưu 1 tiếng */
+  list = (list || []).filter(conHanLuu);
+  if (list.length === 0){
+    box.innerHTML = '<div class="empty-note">Chưa có nhóm nào nộp bài.<br>Kết quả sẽ hiện ở đây ngay khi nhóm đầu tiên bấm Nộp bài.<br><span style="font-size:15px">Kết quả được lưu 1 tiếng — tải lại trang vẫn còn; quá 1 tiếng tự hết hạn.</span></div>';
     return;
   }
   /* Điểm cao trước → bằng điểm thì thời gian làm ngắn hơn trước → vẫn bằng thì nộp sớm hơn trước */
@@ -1025,10 +1075,15 @@ function veBangThay(list){
     var row = document.createElement("div");
     row.className = "rank-row" + (i === 0 ? " top1" : "");
     var badge = medals[i] || String(i + 1);
+    var cachDay = "";
+    if (typeof r.t === "number"){
+      var phutTruoc = Math.max(0, Math.floor((Date.now() - r.t) / 60000));
+      cachDay = phutTruoc <= 0 ? " · vừa nộp xong" : " · nộp cách đây " + phutTruoc + " phút";
+    }
     row.innerHTML =
       '<div class="rank-badge">' + badge + "</div>" +
       '<div class="rank-main"><div class="rname">' + escapeHtml(r.team || "Nhóm") + "</div>" +
-      '<div class="rdetail">Đúng ' + (r.correct || 0) + " / " + (r.total || 5) + " ý · Nộp lúc " + escapeHtml(r.hien || "") + (r.auto ? " · ⏰ hết giờ, tự nộp" : "") + "</div></div>" +
+      '<div class="rdetail">Đúng ' + (r.correct || 0) + " / " + (r.total || 5) + " ý · Nộp lúc " + escapeHtml(r.hien || "") + cachDay + (r.auto ? " · ⏰ hết giờ, tự nộp" : "") + "</div></div>" +
       '<div class="rank-score"><div class="pts">' + (r.score || 0) + ' <small>điểm</small></div>' +
       '<div class="rtime">⏱ ' + fmtTime(r.durationSec || 0) + "</div></div>";
     box.appendChild(row);
@@ -1039,10 +1094,42 @@ $("refreshBtn").addEventListener("click", function(){
   if (db){
     db.ref(ROOT + "/ketqua").once("value").then(function(snap){
       var v = snap.val() || {};
-      veBangThay(Object.keys(v).map(function(k){ return v[k]; }));
+      donKetQuaHetHan(v);
+      veBangThay(gopKetQua(Object.keys(v).map(function(k){ return v[k]; })));
     });
   } else {
-    veBangThay(localResults);
+    veBangThay(gopKetQua([]));
+  }
+});
+
+/* ================= XÓA HẾT KẾT QUẢ =================
+   Đã nhập mật khẩu 1 lần ở cổng bảng (teacherUnlocked) nên không hỏi lại mật khẩu,
+   nhưng xóa là việc không khôi phục được nên có bước xác nhận riêng ngay trên trang.
+   Xóa thật trên máy chủ Firebase + xóa bản dự phòng trên máy này, xong báo rõ đã xóa. */
+$("clearBtn").addEventListener("click", function(){
+  $("clearMsg").textContent = "";
+  $("clearConfirm").classList.remove("hidden");
+  $("clearConfirm").scrollIntoView({ behavior: "smooth", block: "center" });
+});
+$("clearNoBtn").addEventListener("click", function(){
+  $("clearConfirm").classList.add("hidden");
+});
+$("clearYesBtn").addEventListener("click", function(){
+  $("clearConfirm").classList.add("hidden");
+  localResults = [];
+  veBangThay([]);
+  if (db){
+    db.ref(ROOT + "/ketqua").remove().then(function(){
+      $("clearMsg").textContent = "✓ Đã xóa hết kết quả trên máy chủ — bảng đã trống, các nhóm nộp lại từ đầu được rồi.";
+      $("clearMsg").style.color = "var(--green)";
+      veBangThay([]);
+    }).catch(function(){
+      $("clearMsg").textContent = "Chưa xóa được trên máy chủ — thầy kiểm tra mạng rồi bấm Xóa hết kết quả lại nhé. (Bảng trên máy này đã xóa tạm.)";
+      $("clearMsg").style.color = "var(--red)";
+    });
+  } else {
+    $("clearMsg").textContent = "✓ Đã xóa kết quả trên máy này. (Đang mất kết nối máy chủ nên chưa xóa được bản trên máy chủ — kết nối lại rồi bấm Xóa hết lần nữa cho chắc.)";
+    $("clearMsg").style.color = "var(--red)";
   }
 });
 
@@ -1174,7 +1261,7 @@ if (khoiTaoFirebase()){
   ngheKetQua();
   ngheCaiDat();
 } else {
-  veBangThay(localResults);
+  veBangThay(gopKetQua([]));
 }
 </script>
   </body>
