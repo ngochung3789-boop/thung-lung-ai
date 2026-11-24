@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <meta name="color-scheme" content="light" />
     <link rel="icon" href="data:," />
-    <title>Kéo thả – Nộp bài theo nhóm</title>
+    <title>Kéo thả – Bài 2 Lớp 8 – Nộp bài theo nhóm</title>
     <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
     <style>
@@ -49,6 +49,14 @@
       .conn{ margin-top:10px; font-size:14px; font-weight:700; color:#9db8dd; }
       .conn.ok{ color:#7dff9b; }
       .conn.err{ color:#ffb4b4; }
+      .lesson-badge{
+        display:inline-flex; align-items:center; gap:7px;
+        background:var(--yellow); color:#111;
+        font-size:clamp(14px,2.8vw,17px); font-weight:900; letter-spacing:.3px;
+        border-radius:999px; padding:6px 14px; margin-bottom:10px;
+        box-shadow:0 2px 0 var(--yellow-dark);
+      }
+      .lesson-badge .dot{ width:8px; height:8px; border-radius:50%; background:var(--blue); flex:none; }
 
       .wrap{ max-width:1060px; margin:0 auto; padding:16px 14px 40px; }
 
@@ -267,8 +275,9 @@
   <body>
 
     <div class="topbar">
+      <div class="lesson-badge"><span class="dot"></span> BÀI 2 · LỚP 8</div>
       <h1>🧩 Kéo thả – Nộp bài theo nhóm</h1>
-      <p class="sub">Ghép đúng mỗi ý được <b>2 điểm</b> • 5 ý = tối đa <b>10 điểm</b> • Đội bằng điểm thì đội làm nhanh hơn xếp trên</p>
+      <p class="sub">Hoạt động của <b>Bài 2 – Lớp 8</b>: nối công cụ AI với chức năng đúng. Ghép đúng mỗi ý được <b>2 điểm</b> • 5 ý = tối đa <b>10 điểm</b> • Đội bằng điểm thì đội làm nhanh hơn xếp trên</p>
       <div class="mode-switch" role="group" aria-label="Chọn màn hình">
         <button type="button" id="modeStudent" class="on">👥 Nhóm làm bài</button>
         <button type="button" id="modeTeacher">📊 Bảng của thầy</button>
@@ -283,8 +292,9 @@
 
         <!-- BƯỚC 1 -->
         <div class="card" id="setup">
+          <span class="step-tag">BÀI 2 · LỚP 8</span>
           <span class="step-tag">BƯỚC 1 · NHẬP TÊN NHÓM</span>
-          <p>Mỗi nhóm dùng <b>1 điện thoại</b> (hoặc 1 máy tính).<br>Nhập tên nhóm rồi bấm <b>“Vào làm bài”</b> — đồng hồ bắt đầu tính giờ từ lúc này.</p>
+          <p>Bài tập kéo thả của <b>Bài 2 – Lớp 8</b>.<br>Mỗi nhóm dùng <b>1 điện thoại</b> (hoặc 1 máy tính).<br>Nhập tên nhóm rồi bấm <b>“Vào làm bài”</b> — đồng hồ bắt đầu tính giờ từ lúc này.</p>
           <label for="teamInput">Tên nhóm của em</label>
           <input type="text" id="teamInput" maxlength="40" placeholder="Ví dụ: Nhóm 1" autocomplete="off" />
           <button class="btn-primary" id="joinBtn" type="button">Vào làm bài →</button>
@@ -324,6 +334,7 @@
 
         <!-- KẾT QUẢ CỦA NHÓM -->
         <div class="card hidden" id="result">
+          <span class="step-tag">BÀI 2 · LỚP 8</span>
           <span class="step-tag vang">ĐÃ NỘP BÀI ✓</span>
           <div class="score-big"><span id="resScore">0</span><span style="font-size:.45em;color:var(--muted)"> / 10 điểm</span></div>
           <p class="score-sub" id="resCorrect"></p>
@@ -337,7 +348,7 @@
       <!-- ================= MÀN HÌNH CỦA THẦY ================= -->
       <div id="teacherView" class="hidden">
         <div class="teacher-head">
-          <h2>📊 Kết quả các nhóm</h2>
+          <h2>📊 Kết quả các nhóm — Bài 2 · Lớp 8</h2>
           <div class="teacher-actions">
             <button class="btn-ghost" id="refreshBtn" type="button">↻ Cập nhật</button>
             <button class="btn-danger" id="clearBtn" type="button">🗑 Xóa hết – làm lượt mới</button>
