@@ -6273,7 +6273,67 @@ function dungThanhPho(){
     sceneCity.add(nhomLon);
   })();
 
-[[-6.5,-13],[6.5,-13],[-6.5,13],[6.5,13]].forEach(p=>{ /* fix5: ghe theo quang truong 28x28 */
+/* DOI-DO-HOA #16 (24/11, muc 14): Bon hoa + cay canh truoc cua moi toa thap.
+     Moi toa 2 bon hoa tron + 2 cay canh, doi xung 2 ben cua chinh (z = kz +- 4,8),
+     loi vao cong (|dz| < 1,5) trong hoan toan. TOA DO TUONG DOI theo khoiNhaCua(khoi)
+     (ban doi toa x=-70, ban live toa x=-43): bon o (k.x+5,2, kz+-4,8),
+     cay o (k.x+3,7, kz+-4,8) — gop len live khong phai doi so, khong cham thang may
+     live (thang may z kz+-1,9, cach bon/cay >= 2m theo z). Khong che bien KHOI
+     (o k.x+11,6), khong chan duong vong tay / loi doan / lo trinh robot. */
+  (function(){
+    const nhom = new THREE.Group();
+    const daTrangMat = new THREE.MeshStandardMaterial({color:0xE8E2D4, roughness:0.9});
+    const datNauMat = new THREE.MeshStandardMaterial({color:0x8B5A2B, roughness:0.85});
+    const chauMat = new THREE.MeshStandardMaterial({color:0xB45309, roughness:0.8});
+    const thanMat = new THREE.MeshStandardMaterial({color:0x6B4423, roughness:0.9});
+    const laMat = new THREE.MeshStandardMaterial({color:0x16A34A, roughness:0.7});
+    const laDamMat = new THREE.MeshStandardMaterial({color:0x15803D, roughness:0.7});
+    const mauHoa = [
+      new THREE.MeshStandardMaterial({color:0xEF4444, roughness:0.6}),
+      new THREE.MeshStandardMaterial({color:0xEC4899, roughness:0.6}),
+      new THREE.MeshStandardMaterial({color:0xF59E0B, roughness:0.6}),
+      new THREE.MeshStandardMaterial({color:0xF97316, roughness:0.6}),
+      new THREE.MeshStandardMaterial({color:0xA855F7, roughness:0.6}),
+      new THREE.MeshStandardMaterial({color:0xFDF6E3, roughness:0.6}),
+      new THREE.MeshStandardMaterial({color:0x3B82F6, roughness:0.6})
+    ];
+    function them(mesh, x, y, z){
+      mesh.position.set(x, y, z); mesh.castShadow = true; nhom.add(mesh);
+      return mesh;
+    }
+    function bonHoa(x, z, lechMau){
+      /* Vien da trang + dat nau. */
+      them(new THREE.Mesh(new THREE.CylinderGeometry(0.85, 0.95, 0.35, 20), daTrangMat), x, 0.175, z);
+      them(new THREE.Mesh(new THREE.CylinderGeometry(0.78, 0.78, 0.06, 20), datNauMat), x, 0.33, z);
+      /* 7 bong nho tren vong r=0,45 + 1 bong to o giua (kieu bon hoa #1). */
+      for(let i = 0; i < 7; i++){
+        const a = (i / 7) * Math.PI * 2 + lechMau;
+        them(new THREE.Mesh(new THREE.SphereGeometry(0.09, 8, 6), mauHoa[(i + lechMau) % 7]),
+          x + Math.cos(a) * 0.45, 0.46, z + Math.sin(a) * 0.45);
+      }
+      them(new THREE.Mesh(new THREE.SphereGeometry(0.14, 10, 8), mauHoa[lechMau % 7]), x, 0.5, z);
+    }
+    function cayCanh(x, z){
+      /* Chau dat nung + dat + than + tan tron 3 qua cau. */
+      them(new THREE.Mesh(new THREE.CylinderGeometry(0.32, 0.26, 0.4, 14), chauMat), x, 0.2, z);
+      them(new THREE.Mesh(new THREE.CylinderGeometry(0.28, 0.28, 0.05, 14), datNauMat), x, 0.4, z);
+      them(new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.07, 0.7, 8), thanMat), x, 0.75, z);
+      them(new THREE.Mesh(new THREE.SphereGeometry(0.42, 10, 8), laMat), x, 1.45, z);
+      them(new THREE.Mesh(new THREE.SphereGeometry(0.3, 10, 8), laDamMat), x - 0.3, 1.2, z + 0.12);
+      them(new THREE.Mesh(new THREE.SphereGeometry(0.3, 10, 8), laMat), x + 0.3, 1.22, z - 0.12);
+    }
+    [6, 7, 8, 9].forEach((khoi, i) => {
+      const k = khoiNhaCua(khoi); if(!k) return;
+      [-4.8, 4.8].forEach(dz => {
+        bonHoa(k.x + 5.2, k.z + dz, i);
+        cayCanh(k.x + 3.7, k.z + dz);
+      });
+    });
+    nhom.traverse(o=>{ o.userData.doiDoHoa = 16; });
+    sceneCity.add(nhom);
+  })();
+
+  [[-6.5,-13],[6.5,-13],[-6.5,13],[6.5,13]].forEach(p=>{ /* fix5: ghe theo quang truong 28x28 */
     const ghe = new THREE.Group();
     const matGhe = new THREE.Mesh(new THREE.BoxGeometry(2.4, 0.12, 0.65), new THREE.MeshStandardMaterial({color:0x8A7A5A, roughness:0.8}));
     matGhe.position.y = 0.45; matGhe.castShadow = true; ghe.add(matGhe);
@@ -19614,6 +19674,7 @@ function capNhatCameraTour(dt){
 · v25: GOP NHA DE XE MUC 6 + DS 8A PH II 42 BAN
 · v26: GOP HANH KHACH (CUA-SO-TRON + VONG-BAY-CAO 28s + BEN DO TRUOC CONG CHINH + CONG CHINH TO x1.3 + LUONG DI 1 MACH + LOP TRUONG NOI LT-T1..T12) + HO NUOC CAU CONG MUC 7
 · v27: GOP SAN BONG RO MUC 8 + GOC DOC SACH MUC 9 · v28: GOP SAN KHAU NHO KHU DONG MUC 13 · v29: GOP BIEN CHI DAN MUC 10 + VUON RAU MUC 11 + DEN LONG MUC 12
+· v30: GOP BON HOA + CAY CANH MUC 14
 · v26a: SUA BIEN CONG (dong 1 gioi han 1500px, het cat chu T/H)
 · v26b: TACH CUA SO TRON (nhom cuaSoXe luon hien; sua loi an cua so khi xuong xe)
 · v26c: GIU BONG BONG TRAM (gan lai khi doan dung lai do doi lop bat dong bo) =================
