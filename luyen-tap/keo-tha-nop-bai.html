@@ -382,8 +382,9 @@
           <p class="score-sub" id="resCorrect"></p>
           <p class="time-line" id="resTime"></p>
           <ul class="review" id="reviewList"></ul>
+          <p id="saveStatus" style="font-size:16px;font-weight:800;line-height:1.5;margin:0 0 14px;padding:11px 13px;border-radius:12px;background:var(--blue-soft);color:var(--blue)">Đang gửi kết quả lên máy chủ…</p>
           <button class="btn-primary" id="againBtn" type="button">↻ Làm lại để nộp lại</button>
-          <p style="font-size:15px;color:var(--muted);margin:12px 0 0">Kết quả đã hiện trên bảng của thầy và được <b>lưu trong 1 tiếng</b> — thầy tải lại trang vẫn xem được.<br>Nếu thầy bảo làm lại, bấm nút trên — bài nộp mới sẽ thay bài cũ.</p>
+          <p style="font-size:15px;color:var(--muted);margin:12px 0 0">Xem dòng trạng thái ở trên: khi hiện <b>“Đã lưu lên máy chủ”</b> thì kết quả đã lên bảng của thầy và được <b>lưu trong 1 tiếng</b> — thầy tải lại trang vẫn xem được.<br>Nếu thầy bảo làm lại, bấm nút trên — bài nộp mới sẽ thay bài cũ.</p>
         </div>
       </div>
 
@@ -471,7 +472,12 @@ var FIREBASE_CONFIG = {
   messagingSenderId: "1082513446758",
   appId: "1:1082513446758:web:c3bd58e33e78d8d7341aa7"
 };
-var ROOT = "keo-tha-nop-bai";
+/* QUAN TRỌNG: Rules của project hd3-bai4 chỉ mở đọc/ghi cho nhánh "hd3-bai4"
+   (nhánh mà 2 app Bấm chuông và Đội điều tra đang dùng tốt).
+   Bản cũ ghi vào nhánh "keo-tha-nop-bai" nên bị Rules từ chối (PERMISSION_DENIED)
+   mà lỗi bị nuốt im lặng → tải lại trang là mất hết kết quả.
+   Vì vậy toàn bộ dữ liệu của app này nằm dưới nhánh con hd3-bai4/keotha. */
+var ROOT = "hd3-bai4/keotha";
 </script>
 <script>
 "use strict";
@@ -497,7 +503,34 @@ var timerId = null;
 var placements = [null, null, null, null, null]; // placements[slot] = cardId hoặc null
 var selectedCard = null;             // cardId đang chọn (chạm để đặt)
 var submitted = false;
-var localResults = [];               // dự phòng khi mất mạng: kết quả nộp trên chính máy này
+var localResults = [];               // dự phòng: kết quả nộp trên chính máy này (đồng bộ với localStorage)
+
+/* ---------- Bản dự phòng trong localStorage của máy nộp ----------
+   Mỗi bài nộp đều được ghi thêm 1 bản vào localStorage của chính máy nộp,
+   nên máy đó tải lại trang vẫn thấy bài của mình kể cả khi máy chủ lỗi/mất mạng.
+   Bản dự phòng cũng chỉ giữ 1 tiếng như trên máy chủ. */
+var KHOA_DU_PHONG = "keotha_ketqua_du_phong_v1";
+function luuDuPhongLocal(){
+  try {
+    var conHan = localResults.filter(conHanLuu);
+    localStorage.setItem(KHOA_DU_PHONG, JSON.stringify(conHan));
+  } catch(e){ /* localStorage bị chặn (trình duyệt riêng tư…) thì bỏ qua, máy chủ vẫn là chính */ }
+}
+function taiDuPhongLocal(){
+  try {
+    var raw = localStorage.getItem(KHOA_DU_PHONG);
+    if (!raw) return;
+    var arr = JSON.parse(raw);
+    if (Array.isArray(arr)){
+      localResults = arr.filter(function(r){ return r && r.team; }).filter(conHanLuu);
+      luuDuPhongLocal(); /* dọn luôn bản đã quá 1 tiếng khỏi localStorage */
+    }
+  } catch(e){ localResults = []; }
+}
+function xoaDuPhongLocal(){
+  localResults = [];
+  try { localStorage.removeItem(KHOA_DU_PHONG); } catch(e){}
+}
 var gioiHanGiay = 0;                 // giới hạn thời gian thầy đặt (giây); 0 = không giới hạn
 var thuTuHang = [0, 1, 2, 3, 4];     // thứ tự các hàng (theo chức năng) trong lượt làm này
 var thuTuThe = [0, 1, 2, 3, 4];      // thứ tự thẻ ở cột trái — xáo độc lập với thứ tự hàng
@@ -540,8 +573,18 @@ function khoiTaoFirebase(){
   try {
     if (!firebase.apps.length) firebase.initializeApp(FIREBASE_CONFIG);
     db = firebase.database();
-    st.textContent = "● Đã kết nối — bài nộp sẽ hiện ngay trên bảng của thầy.";
-    st.className = "conn ok";
+    st.textContent = "Đang kiểm tra kết nối tới máy chủ kết quả…";
+    st.className = "conn";
+    /* Chỉ báo "Đã kết nối" khi máy chủ thật sự phản hồi, không báo trước */
+    db.ref(".info/connected").on("value", function(snap){
+      if (snap.val() === true){
+        st.textContent = "● Đã kết nối máy chủ — bài nộp sẽ hiện ngay trên bảng của thầy và được lưu 1 tiếng.";
+        st.className = "conn ok";
+      } else {
+        st.textContent = "⚠ Đang mất kết nối máy chủ — vẫn làm bài được, kết quả tạm lưu trên máy này, có mạng lại sẽ gửi lên.";
+        st.className = "conn err";
+      }
+    });
     return true;
   } catch(e){
     st.textContent = "⚠ Chưa kết nối được máy chủ kết quả — vẫn làm bài được trên máy này.";
@@ -613,7 +656,9 @@ function donKetQuaHetHan(v){
   if (!db || !v) return;
   Object.keys(v).forEach(function(k){
     if (!conHanLuu(v[k])){
-      db.ref(ROOT + "/ketqua/" + k).remove().catch(function(){});
+      db.ref(ROOT + "/ketqua/" + k).remove().catch(function(err){
+        if (window.console) console.warn("Chưa dọn được kết quả hết hạn trên máy chủ:", err && err.message ? err.message : err);
+      });
     }
   });
 }
@@ -1023,22 +1068,36 @@ function nopBai(tuDong){
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
+  /* Luôn lưu bản dự phòng vào localStorage của máy nộp TRƯỚC,
+     để tải lại trang trên máy này vẫn thấy bài của mình dù máy chủ có lỗi */
+  localResults = localResults.filter(function(r){ return r.team !== team; });
+  localResults.push(record);
+  luuDuPhongLocal();
+
+  hienKetQua();
+  var oLuu = $("saveStatus");
+
   if (db){
-    /* Bản gửi lên máy chủ dùng giờ máy chủ cho mốc nộp, để hạn 1 tiếng khớp nhau trên mọi máy */
+    /* Bản gửi lên máy chủ dùng giờ máy chủ cho mốc nộp, để hạn 1 tiếng khớp nhau trên mọi máy.
+       CHỈ báo "đã lưu" sau khi .set() hoàn tất thật; lỗi thì hiện rõ ra màn hình. */
+    oLuu.style.background = "var(--blue-soft)"; oLuu.style.color = "var(--blue)";
+    oLuu.textContent = "⏳ Đang gửi kết quả lên máy chủ…";
     var banLenMayChu = {};
     for (var key in record) banLenMayChu[key] = record[key];
     banLenMayChu.t = firebase.database.ServerValue.TIMESTAMP;
     db.ref(ROOT + "/ketqua/" + khoaDoi(team)).set(banLenMayChu)
-      .then(hienKetQua)
-      .catch(function(){
-        localResults = localResults.filter(function(r){ return r.team !== team; });
-        localResults.push(record);
-        hienKetQua();
+      .then(function(){
+        oLuu.style.background = "var(--green-bg)"; oLuu.style.color = "var(--green)";
+        oLuu.textContent = "✓ Đã lưu lên máy chủ — thầy tải lại trang vẫn xem được kết quả này (lưu trong 1 tiếng).";
+      })
+      .catch(function(err){
+        var chiTiet = err && (err.code || err.message) ? (err.code ? err.code + " — " : "") + (err.message || "") : "không rõ nguyên nhân";
+        oLuu.style.background = "var(--red-bg)"; oLuu.style.color = "var(--red)";
+        oLuu.textContent = "⚠ CHƯA LƯU ĐƯỢC LÊN MÁY CHỦ: " + chiTiet + ". Kết quả tạm thời chỉ lưu trên máy này (tải lại trên máy này vẫn còn trong 1 tiếng) — em chụp màn hình điểm này gửi thầy, và báo thầy kiểm tra mạng rồi bấm “Làm lại để nộp lại” để nộp lại nhé.";
       });
   } else {
-    localResults = localResults.filter(function(r){ return r.team !== team; });
-    localResults.push(record);
-    hienKetQua();
+    oLuu.style.background = "var(--red-bg)"; oLuu.style.color = "var(--red)";
+    oLuu.textContent = "⚠ CHƯA CÓ KẾT NỐI MÁY CHỦ nên kết quả CHƯA lên được bảng của thầy — hiện chỉ lưu trên máy này (tải lại trên máy này vẫn còn trong 1 tiếng). Em báo thầy và nộp lại khi có mạng nhé.";
   }
 }
 
@@ -1116,15 +1175,15 @@ $("clearNoBtn").addEventListener("click", function(){
 });
 $("clearYesBtn").addEventListener("click", function(){
   $("clearConfirm").classList.add("hidden");
-  localResults = [];
+  xoaDuPhongLocal();
   veBangThay([]);
   if (db){
     db.ref(ROOT + "/ketqua").remove().then(function(){
       $("clearMsg").textContent = "✓ Đã xóa hết kết quả trên máy chủ — bảng đã trống, các nhóm nộp lại từ đầu được rồi.";
       $("clearMsg").style.color = "var(--green)";
       veBangThay([]);
-    }).catch(function(){
-      $("clearMsg").textContent = "Chưa xóa được trên máy chủ — thầy kiểm tra mạng rồi bấm Xóa hết kết quả lại nhé. (Bảng trên máy này đã xóa tạm.)";
+    }).catch(function(err){
+      $("clearMsg").textContent = "⚠ CHƯA XÓA ĐƯỢC TRÊN MÁY CHỦ: " + (err && err.message ? err.message : "không rõ nguyên nhân") + " — thầy kiểm tra mạng rồi bấm Xóa hết kết quả lại nhé. (Bảng và bản dự phòng trên máy này đã xóa.)";
       $("clearMsg").style.color = "var(--red)";
     });
   } else {
@@ -1187,9 +1246,18 @@ function thucHienKhoiPhucDe(){
   placements = [null, null, null, null, null];
   selectedCard = null;
   veLai();
-  if (db) db.ref(ROOT + "/debai").set({ items: quiz });
-  $("saveMsg").textContent = "✓ Đã khôi phục đề mẫu.";
-  $("saveMsg").style.color = "var(--green)";
+  if (db){
+    db.ref(ROOT + "/debai").set({ items: quiz }).then(function(){
+      $("saveMsg").textContent = "✓ Đã khôi phục đề mẫu và gửi lên máy chủ.";
+      $("saveMsg").style.color = "var(--green)";
+    }).catch(function(err){
+      $("saveMsg").textContent = "⚠ Đã khôi phục đề mẫu trên máy này nhưng CHƯA gửi được lên máy chủ: " + (err && err.message ? err.message : "không rõ nguyên nhân");
+      $("saveMsg").style.color = "var(--red)";
+    });
+  } else {
+    $("saveMsg").textContent = "✓ Đã khôi phục đề mẫu trên máy này (chưa có kết nối máy chủ).";
+    $("saveMsg").style.color = "var(--green)";
+  }
 }
 $("defaultQuizBtn").addEventListener("click", thucHienKhoiPhucDe);
 
@@ -1253,6 +1321,7 @@ $("saveTimeBtn").addEventListener("click", thucHienLuuThoiGian);
 })();
 
 /* ================= KHỞI TẠO ================= */
+taiDuPhongLocal(); /* nạp bản dự phòng của máy này trước, để tải lại trang vẫn thấy bài đã nộp trên máy này */
 dienFormSuaDe();
 veLai();
 capNhatNhanThoiGian();
