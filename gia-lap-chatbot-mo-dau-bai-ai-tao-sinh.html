@@ -149,51 +149,104 @@
   .keo-view{flex:1;min-height:0;display:flex;background:#fff}
   .keo-view iframe{flex:1;width:100%;border:0;display:block}
 
-  /* ===== Tab 4: HOẠT ĐỘNG 2 — hai tình huống xanh, viền rõ, chữ to + Bảng của thầy ===== */
-  .hd2-view{flex:1;min-height:0;display:flex;flex-direction:column;background:#e8f1fc;color:#0f2a52}
-  .hd2-toolbar{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 18px 2px;flex-wrap:wrap}
-  .hd2-title{font-size:25px;font-weight:800;color:#17457e;margin:0}
-  .hd2-title small{font-size:16.5px;font-weight:600;color:#3d6db0}
-  .hd2-board-btn{border:2px solid #17457e;background:#17457e;color:#fff;font-size:17.5px;font-weight:700;border-radius:10px;padding:10px 18px;display:flex;align-items:center;gap:9px}
+  /* ===== Tab 4: HOẠT ĐỘNG 2 — PHIẾU HỌC TẬP SỐ 2, tự luận 6 nhóm + Bảng của thầy ===== */
+  .hd2-view{flex:1;min-height:0;display:flex;flex-direction:column;background:linear-gradient(135deg,#dbeafe 0%,#e6e6fb 55%,#d9f2ec 100%);color:#14264d}
+  .hd2-head{position:relative;padding:20px 18px 4px;text-align:center}
+  .hd2-title{font-size:31px;font-weight:800;color:#1b2a5e;margin:0;letter-spacing:.01em;text-transform:uppercase}
+  .hd2-side-btns{position:absolute;top:16px;right:18px;display:flex;align-items:center;gap:10px}
+  .hd2-timer{display:flex;align-items:center;gap:7px;background:#fff3e6;border:2px solid #f6c48a;color:#e8710a;font-size:20px;font-weight:800;border-radius:999px;padding:7px 16px;font-variant-numeric:tabular-nums}
+  .hd2-timer.done{color:#b91c1c;border-color:#f3a3a3;background:#fdecec}
+  .hd2-board-btn{border:2px solid #17457e;background:#17457e;color:#fff;font-size:16.5px;font-weight:700;border-radius:999px;padding:9px 16px;display:flex;align-items:center;gap:8px}
   .hd2-board-btn:hover{background:#123a6e}
-  .hd2-board-btn .cnt{background:#fff;color:#17457e;border-radius:999px;padding:1px 10px;font-size:15.5px;font-weight:800}
-  .hd2-main{flex:1;min-height:0;display:flex;gap:16px;padding:12px 18px 18px;align-items:stretch}
-  .hd2-panels{flex:1;min-width:0;display:grid;grid-template-columns:1fr 1fr;gap:16px}
-  .hd2-panel{background:#fff;border:3px solid #1d6fd1;border-radius:14px;display:flex;flex-direction:column;overflow:hidden}
-  .hd2-panel-head{background:#1d6fd1;color:#fff;padding:11px 16px;display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
-  .hd2-panel-head h3{margin:0;font-size:21px;font-weight:800;letter-spacing:.01em}
-  .hd2-group{display:flex;align-items:center;gap:8px;font-size:16.5px;font-weight:700}
-  .hd2-group select{font:inherit;font-size:17px;font-weight:700;color:#17457e;border:2px solid #fff;border-radius:8px;padding:5px 8px;background:#fff;cursor:pointer}
-  .hd2-body{padding:14px 18px 18px;overflow-y:auto;display:flex;flex-direction:column}
-  .hd2-sit{border:2px solid #9cc3ee;background:#eef5ff;border-radius:10px;padding:12px 14px;font-size:19px;line-height:1.55;margin:0 0 16px}
-  .hd2-q{margin-bottom:18px}
-  .hd2-qtext{font-size:20px;font-weight:700;line-height:1.45;margin:0 0 10px;color:#123a6e}
-  .hd2-opt{display:flex;gap:11px;width:100%;text-align:left;border:2px solid #b9d4f2;background:#f7fbff;color:#173a5e;font-size:18.5px;line-height:1.5;padding:10px 14px;border-radius:10px;margin-bottom:8px;align-items:flex-start;cursor:pointer}
-  .hd2-opt:hover{border-color:#1d6fd1}
-  .hd2-opt .dot{width:20px;height:20px;flex:0 0 20px;border:2.5px solid #7aa7dd;border-radius:50%;margin-top:3px;background:#fff}
-  .hd2-opt.sel{border-color:#1d6fd1;background:#d9eafd;font-weight:600;color:#0f2a52}
-  .hd2-opt.sel .dot{background:#1d6fd1;border-color:#1d6fd1;box-shadow:inset 0 0 0 3.5px #d9eafd}
-  .hd2-order{display:flex;align-items:center;gap:9px;flex-wrap:wrap;font-size:20px;color:#1d6fd1;font-weight:800}
-  .hd2-order select{font:inherit;font-size:19px;font-weight:700;color:#17457e;border:2.5px solid #1d6fd1;border-radius:9px;padding:7px 10px;background:#fff;cursor:pointer;min-width:74px;text-align:center}
-  .hd2-submit{margin-top:auto;width:100%;border:0;border-radius:11px;background:#1d6fd1;color:#fff;font-size:19px;font-weight:800;padding:13px;letter-spacing:.01em}
-  .hd2-submit:hover{background:#155cb2}
-  .hd2-msg{font-size:16.5px;line-height:1.45;margin:10px 2px 0;min-height:24px}
+  .hd2-board-btn .cnt{background:#fff;color:#17457e;border-radius:999px;padding:1px 10px;font-size:15px;font-weight:800}
+  .hd2-groups{display:flex;justify-content:center;gap:10px;flex-wrap:wrap;padding:14px 18px 2px}
+  .hd2-gbtn{border:2px solid #c3cfe8;background:#fff;color:#33436b;font-size:17.5px;font-weight:700;border-radius:999px;padding:8px 22px;min-height:44px}
+  .hd2-gbtn:hover{border-color:#2f7fe0}
+  .hd2-gbtn.on{background:#2f6fe4;border-color:#2f6fe4;color:#fff;box-shadow:0 4px 14px rgba(47,111,228,.35)}
+  .hd2-main{flex:1;min-height:0;display:flex;gap:16px;padding:14px 18px 18px;align-items:stretch}
+  .hd2-panels{flex:1;min-width:0;display:grid;grid-template-columns:1fr 1fr;gap:18px}
+  .hd2-panel{background:#fff;border-radius:18px;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 6px 22px rgba(27,42,94,.10);opacity:.62;transition:opacity .2s ease,box-shadow .2s ease}
+  .hd2-panel.active{opacity:1;box-shadow:0 0 0 3.5px #2f6fe4,0 12px 30px rgba(27,42,94,.20)}
+  .hd2-panel.p2.active{box-shadow:0 0 0 3.5px #0da08c,0 12px 30px rgba(27,42,94,.20)}
+  .hd2-panel-head{color:#fff;padding:13px 18px;display:flex;align-items:center;gap:11px}
+  .hd2-panel.p1 .hd2-panel-head{background:linear-gradient(90deg,#2f7fe0,#38a1f2)}
+  .hd2-panel.p2 .hd2-panel-head{background:linear-gradient(90deg,#0da08c,#2cc4a6)}
+  .hd2-panel-head h3{margin:0;font-size:19.5px;font-weight:800;letter-spacing:.01em}
+  .hd2-panel-head .ic{width:24px;height:24px;flex-basis:24px}
+  .hd2-body{padding:16px 20px 18px;overflow-y:auto;display:flex;flex-direction:column;flex:1}
+  .hd2-sit{font-size:18px;line-height:1.55;font-style:italic;color:#33436b;margin:0 0 16px}
+  .hd2-q{margin-bottom:15px}
+  .hd2-qtext{font-size:18.5px;font-weight:700;line-height:1.45;margin:0 0 7px;color:#14264d}
+  .hd2-input{width:100%;border:2px solid #d3dcee;border-radius:10px;background:#fbfcff;font:inherit;font-size:17.5px;line-height:1.5;color:#14264d;padding:10px 13px;resize:vertical;min-height:58px}
+  .hd2-input:focus{outline:none;border-color:#2f7fe0;background:#fff}
+  .hd2-panel.p2 .hd2-input:focus{border-color:#0da08c}
+  .hd2-input.short{min-height:46px;resize:none}
+  .hd2-foot{margin-top:auto;display:flex;justify-content:flex-end;padding-top:4px}
+  .hd2-submit{border:0;border-radius:10px;color:#fff;font-size:17.5px;font-weight:800;padding:11px 22px;display:flex;align-items:center;gap:9px}
+  .hd2-panel.p1 .hd2-submit{background:#2f7fe0}
+  .hd2-panel.p1 .hd2-submit:hover{background:#1f66c4}
+  .hd2-panel.p2 .hd2-submit{background:#0da08c}
+  .hd2-panel.p2 .hd2-submit:hover{background:#0b8574}
+  .hd2-msg{font-size:16px;line-height:1.45;margin:10px 2px 0;min-height:23px;text-align:right}
   .hd2-msg.warn{color:#b91c1c;font-weight:600}
   .hd2-msg.ok{color:#15803d;font-weight:700}
-  .hd2-board{width:372px;flex:0 0 372px;background:#fff;border:3px solid #17457e;border-radius:14px;display:flex;flex-direction:column;overflow:hidden}
-  .hd2-board-head{background:#17457e;color:#fff;padding:12px 16px;font-size:20px;font-weight:800}
-  .hd2-board-list{flex:1;overflow-y:auto;padding:12px 14px;display:flex;flex-direction:column;gap:12px}
-  .hd2-board-empty{color:#5b7ba3;font-size:16.5px;line-height:1.5;text-align:center;padding:26px 10px;border:2px dashed #b9d4f2;border-radius:10px}
-  .hd2-entry{border:2px solid #9cc3ee;border-radius:10px;padding:11px 13px;background:#f7fbff}
-  .hd2-entry h4{margin:0 0 7px;font-size:18.5px;color:#17457e}
-  .hd2-entry p{margin:3px 0;font-size:16.5px;line-height:1.5}
-  .hd2-entry .hd2-time{color:#5b7ba3;font-size:14px;margin-top:6px}
+  /* Bảng tổng hợp của thầy: màn riêng trong tab Hoạt động 2, mở bằng nút "Bảng của thầy".
+     Khi mở, ẩn phần phiếu (đầu trang + dãy nhóm + 2 khung) để bảng chiếm trọn màn hình. */
+  .hd2-view.show-board .hd2-head,.hd2-view.show-board .hd2-groups,.hd2-view.show-board .hd2-main{display:none}
+  .hd2-boardview{flex:1;min-height:0;overflow-y:auto;padding:20px 22px 24px;display:flex;flex-direction:column}
+  .hd2-bv-head{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}
+  .hd2-bv-title{font-size:28px;font-weight:800;color:#1b2a5e;margin:0;letter-spacing:.01em;text-transform:uppercase}
+  .hd2-bv-actions{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+  .hd2-bv-count{background:#dcf5e3;border:2px solid #8fd6a4;color:#157347;font-size:17px;font-weight:800;border-radius:999px;padding:8px 16px;font-variant-numeric:tabular-nums;white-space:nowrap}
+  .hd2-bv-chot{border:0;background:#2f6fe4;color:#fff;font-size:17px;font-weight:800;border-radius:10px;padding:11px 18px;display:flex;align-items:center;gap:8px;min-height:46px}
+  .hd2-bv-chot:hover{background:#1f66c4}
+  .hd2-bv-chot.on{background:#157347}
+  .hd2-bv-back{border:2px solid #17457e;background:#fff;color:#17457e;font-size:16px;font-weight:700;border-radius:10px;padding:9px 15px;min-height:46px}
+  .hd2-bv-back:hover{background:#eaf2fd}
+  .hd2-bv-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:18px}
+  .hd2-card{background:#fff;border-radius:14px;overflow:hidden;box-shadow:0 6px 20px rgba(27,42,94,.12);display:flex;flex-direction:column}
+  .hd2-card-head{color:#fff;padding:11px 16px;display:flex;align-items:center;justify-content:space-between;gap:10px}
+  .hd2-card.s1 .hd2-card-head{background:linear-gradient(90deg,#2f7fe0,#38a1f2)}
+  .hd2-card.s2 .hd2-card-head{background:linear-gradient(90deg,#0da08c,#2cc4a6)}
+  .hd2-card-name{font-size:20px;font-weight:800}
+  .hd2-card-sit{background:rgba(255,255,255,.28);border-radius:999px;padding:3px 12px;font-size:14.5px;font-weight:700;white-space:nowrap}
+  .hd2-card-body{padding:13px 16px 15px;display:flex;flex-direction:column;gap:8px;flex:1}
+  .hd2-card-line{font-size:16.5px;line-height:1.45;color:#33436b;display:flex;gap:6px;min-width:0;margin:0}
+  .hd2-card-line .lbl{font-weight:700;color:#14264d;flex:0 0 auto}
+  .hd2-card-line .val{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+  .hd2-card-status .val{font-weight:800}
+  .hd2-card.done .hd2-card-status .val{color:#15803d}
+  .hd2-card.wait .hd2-card-status .val{color:#b45309}
+  .hd2-card-foot{margin-top:auto;padding-top:8px;display:flex;align-items:center;justify-content:space-between;gap:10px;min-height:38px}
+  .hd2-steps{background:#22b573;color:#fff;font-weight:800;font-size:16.5px;border-radius:8px;padding:7px 14px;letter-spacing:.02em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:75%}
+  .hd2-score{display:flex;align-items:center;gap:7px;font-size:16px;font-weight:700;color:#14264d;white-space:nowrap}
+  .hd2-score-input{width:66px;border:2px solid #f0b429;border-radius:8px;background:#fffbeb;font:inherit;font-size:16.5px;font-weight:800;color:#92400e;padding:6px 6px;text-align:center}
+  .hd2-score-input:focus{outline:none;border-color:#d97706;background:#fff}
+  .hd2-score-input::placeholder{color:#d6b98a;font-weight:600}
+  .hd2-key{margin-top:20px;background:#fff;border:3px solid #157347;border-radius:16px;padding:18px 22px}
+  .hd2-key h3{margin:0 0 12px;font-size:22px;color:#157347}
+  .hd2-key-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  .hd2-key-box{border:2px solid #d3dcee;border-radius:12px;padding:13px 16px}
+  .hd2-key-box h4{margin:0 0 8px;font-size:18.5px;color:#14264d}
+  .hd2-key-box p{margin:5px 0;font-size:16.5px;line-height:1.55;color:#33436b}
+  .hd2-key-box b{color:#14264d}
+  .hd2-key-proc{margin-top:16px;background:#eaf7ee;border:2px solid #8fd6a4;border-radius:12px;padding:13px 16px;font-size:17.5px;line-height:1.55;color:#14532d}
+  @media (max-width:1180px){
+    .hd2-bv-grid{grid-template-columns:1fr 1fr}
+    .hd2-key-grid{grid-template-columns:1fr}
+  }
+  @media (max-width:700px){
+    .hd2-bv-grid{grid-template-columns:1fr}
+    .hd2-bv-title{font-size:22px}
+    .hd2-boardview{padding:14px 12px 18px}
+  }
   @media (max-width:1180px){
     .hd2-main{flex-direction:column;overflow-y:auto}
     .hd2-panels{grid-template-columns:1fr}
     .hd2-panel{overflow:visible}
     .hd2-body{overflow:visible}
-    .hd2-board{width:auto;flex:0 0 auto;max-height:70vh}
+    .hd2-side-btns{position:static;justify-content:center;margin-top:12px}
+    .hd2-title{font-size:24px}
   }
 
   /* ===== Tab 3: SUNO giả lập tạo nhạc (giao diện tối như ảnh) ===== */
@@ -579,123 +632,200 @@
   </section>
 </div>
 
-<!-- ===== TAB 4: HOẠT ĐỘNG 2 — hai tình huống + Bảng của thầy ===== -->
+<!-- ===== TAB 4: HOẠT ĐỘNG 2 — PHIẾU HỌC TẬP SỐ 2, tự luận 6 nhóm + Bảng của thầy ===== -->
 <div class="hd2-view hidden" id="viewHd2">
-  <div class="hd2-toolbar">
-    <h2 class="hd2-title">Hoạt động 2 <small>— Mỗi nhóm đọc tình huống của mình, chọn đáp án rồi bấm Nộp</small></h2>
-    <button class="hd2-board-btn" type="button" id="hd2BoardBtn">Bảng của thầy <span class="cnt" id="hd2BoardCount">0</span></button>
+  <div class="hd2-head">
+    <h2 class="hd2-title">Phiếu học tập số 2 - Thảo luận 6 nhóm</h2>
+    <div class="hd2-side-btns">
+      <button class="hd2-board-btn" type="button" id="hd2BoardBtn">Bảng của thầy <span class="cnt" id="hd2BoardCount">0/6</span></button>
+      <span class="hd2-timer" id="hd2Timer" role="timer" title="Đồng hồ đếm ngược — bấm để đặt lại 03:00">
+        <svg class="ic sm" viewBox="0 0 24 24"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 2.5M9 2.5h6"/></svg>
+        <span id="hd2TimerText">03:00</span>
+      </span>
+    </div>
   </div>
+
+  <div class="hd2-groups" role="group" aria-label="Chọn nhóm">
+    <button class="hd2-gbtn on" type="button" data-group="1">Nhóm 1</button>
+    <button class="hd2-gbtn" type="button" data-group="2">Nhóm 2</button>
+    <button class="hd2-gbtn" type="button" data-group="3">Nhóm 3</button>
+    <button class="hd2-gbtn" type="button" data-group="4">Nhóm 4</button>
+    <button class="hd2-gbtn" type="button" data-group="5">Nhóm 5</button>
+    <button class="hd2-gbtn" type="button" data-group="6">Nhóm 6</button>
+  </div>
+
   <div class="hd2-main">
     <div class="hd2-panels">
 
-      <!-- PHẦN TRÁI: Tình huống 1 -->
-      <section class="hd2-panel" data-panel="1" aria-label="Tình huống 1, nhóm bạn Minh">
+      <!-- KHUNG TRÁI: Tình huống 1 -->
+      <section class="hd2-panel p1 active" data-panel="1" aria-label="Tình huống 1, nhóm bạn Minh">
         <div class="hd2-panel-head">
-          <h3>Tình huống 1 · Nhóm 1, 2, 3</h3>
-          <label class="hd2-group">Tên nhóm:
-            <select class="hd2-group-sel" aria-label="Chọn tên nhóm, tình huống 1">
-              <option value="">— Chọn nhóm —</option>
-              <option>Nhóm 1</option>
-              <option>Nhóm 2</option>
-              <option>Nhóm 3</option>
-              <option>Nhóm 4</option>
-              <option>Nhóm 5</option>
-              <option>Nhóm 6</option>
-            </select>
-          </label>
+          <svg class="ic" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H6a4 4 0 00-4 4v2"/><circle cx="9.5" cy="7.5" r="3.5"/><path d="M22 21v-2a4 4 0 00-3-3.85M15.5 4.15a3.5 3.5 0 010 6.7"/></svg>
+          <h3>NHÓM 1, 2, 3 - TÌNH HUỐNG 1 (NHÓM MINH)</h3>
         </div>
         <div class="hd2-body">
-          <p class="hd2-sit"><strong>Tình huống 1 (Nhóm 1, 2, 3):</strong> <em>“Cả nhóm bạn Minh nhờ AI viết hộ bài cảm nhận văn học. Bài xong rất nhanh nhưng cả nhóm nộp bài giống hệt nhau, khi thầy hỏi ý kiến riêng thì không ai trả lời được.”</em></p>
+          <p class="hd2-sit">&ldquo;Cả nhóm bạn Minh nhờ AI viết hộ bài cảm nhận văn học. Bài xong rất nhanh nhưng cả nhóm nộp bài giống hệt nhau, khi thầy hỏi ý kiến riêng thì không ai trả lời được&rdquo;</p>
 
-          <div class="hd2-q" data-q="1" data-max="2">
-            <p class="hd2-qtext">1. Khoanh vào 2 rủi ro lớn nhất của nhóm bạn Minh:</p>
-            <button class="hd2-opt" type="button" data-letter="A"><span class="dot"></span><span>A. Mất kĩ năng tự đọc hiểu, suy nghĩ suy giảm tư duy phản biện.</span></button>
-            <button class="hd2-opt" type="button" data-letter="B"><span class="dot"></span><span>B. Bài làm giống hệt nhau, mất nét riêng (suy giảm kĩ năng sáng tạo).</span></button>
-            <button class="hd2-opt" type="button" data-letter="C"><span class="dot"></span><span>C. Máy tính bị hết pin nhanh.</span></button>
+          <div class="hd2-q">
+            <p class="hd2-qtext">1. Rủi ro / Hậu quả (từ khóa):</p>
+            <textarea class="hd2-input" data-field="a1" rows="2" aria-label="Câu 1: Rủi ro, hậu quả — tình huống 1"></textarea>
+          </div>
+          <div class="hd2-q">
+            <p class="hd2-qtext">2. Cách làm đúng:</p>
+            <textarea class="hd2-input" data-field="a2" rows="2" aria-label="Câu 2: Cách làm đúng — tình huống 1"></textarea>
+          </div>
+          <div class="hd2-q">
+            <p class="hd2-qtext">3. Thứ tự 4 bước (A, B, C, D):</p>
+            <textarea class="hd2-input short" data-field="a3" rows="1" aria-label="Câu 3: Thứ tự 4 bước — tình huống 1"></textarea>
           </div>
 
-          <div class="hd2-q" data-q="2" data-max="1">
-            <p class="hd2-qtext">2. Để làm đúng, nhóm Minh nên làm gì?</p>
-            <button class="hd2-opt" type="button" data-letter="A"><span class="dot"></span><span>A. Xóa bài đi nhờ một công cụ AI khác viết lại.</span></button>
-            <button class="hd2-opt" type="button" data-letter="B"><span class="dot"></span><span>B. Tự đọc bài, ghi ý chính trước rồi mới nhờ AI gợi ý và tự viết lại.</span></button>
+          <div class="hd2-foot">
+            <button class="hd2-submit" type="button">Gửi kết quả
+              <svg class="ic sm" viewBox="0 0 24 24"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/></svg>
+            </button>
           </div>
-
-          <div class="hd2-q" data-q="3">
-            <p class="hd2-qtext">3. Thứ tự đúng của Quy trình 4 bước (A, B, C, D trên Tivi):</p>
-            <div class="hd2-order">
-              <select class="hd2-step" aria-label="Bước 1"><option value="">…..</option><option>A</option><option>B</option><option>C</option><option>D</option></select>
-              <span>→</span>
-              <select class="hd2-step" aria-label="Bước 2"><option value="">…..</option><option>A</option><option>B</option><option>C</option><option>D</option></select>
-              <span>→</span>
-              <select class="hd2-step" aria-label="Bước 3"><option value="">…..</option><option>A</option><option>B</option><option>C</option><option>D</option></select>
-              <span>→</span>
-              <select class="hd2-step" aria-label="Bước 4"><option value="">…..</option><option>A</option><option>B</option><option>C</option><option>D</option></select>
-            </div>
-          </div>
-
-          <button class="hd2-submit" type="button">Nộp bài</button>
           <p class="hd2-msg" role="status"></p>
         </div>
       </section>
 
-      <!-- PHẦN PHẢI: Tình huống 2 -->
-      <section class="hd2-panel" data-panel="2" aria-label="Tình huống 2, bạn Hà">
+      <!-- KHUNG PHẢI: Tình huống 2 -->
+      <section class="hd2-panel p2" data-panel="2" aria-label="Tình huống 2, bạn Hà">
         <div class="hd2-panel-head">
-          <h3>Tình huống 2 · Nhóm 4, 5, 6</h3>
-          <label class="hd2-group">Tên nhóm:
-            <select class="hd2-group-sel" aria-label="Chọn tên nhóm, tình huống 2">
-              <option value="">— Chọn nhóm —</option>
-              <option>Nhóm 1</option>
-              <option>Nhóm 2</option>
-              <option>Nhóm 3</option>
-              <option>Nhóm 4</option>
-              <option>Nhóm 5</option>
-              <option>Nhóm 6</option>
-            </select>
-          </label>
+          <svg class="ic" viewBox="0 0 24 24"><path d="M21 11.5a8.5 8.5 0 01-8.5 8.5c-1.5 0-3-.4-4.2-1.1L3 20l1.1-5.3A8.5 8.5 0 1121 11.5z"/></svg>
+          <h3>NHÓM 4, 5, 6 - TÌNH HUỐNG 2 (BẠN HÀ)</h3>
         </div>
         <div class="hd2-body">
-          <p class="hd2-sit"><strong>Tình huống 2 (Nhóm 4, 5, 6):</strong> <em>“Bạn Hà nhờ AI tìm tài liệu cho bài thuyết trình Lịch sử. AI giới thiệu rất chi tiết một cuốn sách nghe cực hợp lí, nhưng khi thầy kiểm tra thì cuốn sách đó không hề tồn tại.”</em></p>
+          <p class="hd2-sit">&ldquo;Bạn Hà nhờ AI tìm tài liệu cho bài thuyết trình Lịch sử. AI giới thiệu rất chi tiết một cuốn sách nghe cực hợp lí, nhưng khi thầy kiểm tra thì cuốn sách đó không hề tồn tại.&rdquo;</p>
 
-          <div class="hd2-q" data-q="1" data-max="1">
-            <p class="hd2-qtext">1. Bạn Hà gặp phải rủi ro nào khi dùng AI?</p>
-            <button class="hd2-opt" type="button" data-letter="A"><span class="dot"></span><span>A. AI bịa thông tin sai nhưng nghe rất hợp lí (hiện tượng ảo giác).</span></button>
-            <button class="hd2-opt" type="button" data-letter="B"><span class="dot"></span><span>B. AI viết quá ngắn không đủ thời gian thuyết trình.</span></button>
-            <button class="hd2-opt" type="button" data-letter="C"><span class="dot"></span><span>C. Bài thuyết trình bị giống các bạn khác.</span></button>
+          <div class="hd2-q">
+            <p class="hd2-qtext">1. Rủi ro / Hậu quả (từ khóa):</p>
+            <textarea class="hd2-input" data-field="a1" rows="2" aria-label="Câu 1: Rủi ro, hậu quả — tình huống 2"></textarea>
+          </div>
+          <div class="hd2-q">
+            <p class="hd2-qtext">2. Cách làm đúng:</p>
+            <textarea class="hd2-input" data-field="a2" rows="2" aria-label="Câu 2: Cách làm đúng — tình huống 2"></textarea>
+          </div>
+          <div class="hd2-q">
+            <p class="hd2-qtext">3. Thứ tự 4 bước (A, B, C, D):</p>
+            <textarea class="hd2-input short" data-field="a3" rows="1" aria-label="Câu 3: Thứ tự 4 bước — tình huống 2"></textarea>
           </div>
 
-          <div class="hd2-q" data-q="2" data-max="1">
-            <p class="hd2-qtext">2. Cách xử lí đúng thay cho bạn Hà là gì?</p>
-            <button class="hd2-opt" type="button" data-letter="A"><span class="dot"></span><span>A. Hỏi lại AI một lần nữa cho chắc.</span></button>
-            <button class="hd2-opt" type="button" data-letter="B"><span class="dot"></span><span>B. Kiểm chứng lại tên sách bằng sách giáo khoa, thư viện hoặc hỏi thầy cô.</span></button>
+          <div class="hd2-foot">
+            <button class="hd2-submit" type="button">Gửi kết quả
+              <svg class="ic sm" viewBox="0 0 24 24"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/></svg>
+            </button>
           </div>
-
-          <div class="hd2-q" data-q="3">
-            <p class="hd2-qtext">3. Thứ tự đúng của Quy trình 4 bước (A, B, C, D trên Tivi):</p>
-            <div class="hd2-order">
-              <select class="hd2-step" aria-label="Bước 1"><option value="">…..</option><option>A</option><option>B</option><option>C</option><option>D</option></select>
-              <span>→</span>
-              <select class="hd2-step" aria-label="Bước 2"><option value="">…..</option><option>A</option><option>B</option><option>C</option><option>D</option></select>
-              <span>→</span>
-              <select class="hd2-step" aria-label="Bước 3"><option value="">…..</option><option>A</option><option>B</option><option>C</option><option>D</option></select>
-              <span>→</span>
-              <select class="hd2-step" aria-label="Bước 4"><option value="">…..</option><option>A</option><option>B</option><option>C</option><option>D</option></select>
-            </div>
-          </div>
-
-          <button class="hd2-submit" type="button">Nộp bài</button>
           <p class="hd2-msg" role="status"></p>
         </div>
       </section>
     </div>
 
-    <!-- Bảng của thầy: hiện kết quả các nhóm đã nộp -->
-    <aside class="hd2-board hidden" id="hd2Board" aria-label="Bảng của thầy">
-      <div class="hd2-board-head">Bảng của thầy — Kết quả các nhóm</div>
-      <div class="hd2-board-list" id="hd2BoardList">
-        <div class="hd2-board-empty" id="hd2BoardEmpty">Chưa có nhóm nào nộp bài.<br>Nhóm nào nộp thì kết quả sẽ hiện ở đây.</div>
+  </div>
+
+  <!-- Bảng tổng hợp của thầy: 6 thẻ nhóm + Chốt kiến thức (mở bằng nút "Bảng của thầy") -->
+  <div class="hd2-boardview hidden" id="hd2BoardView">
+    <div class="hd2-bv-head">
+      <h2 class="hd2-bv-title">Bảng tổng hợp kết quả 6 nhóm - Giáo viên</h2>
+      <div class="hd2-bv-actions">
+        <span class="hd2-bv-count" id="hd2SubmittedCount">Đã nộp: 0/6 nhóm</span>
+        <button class="hd2-bv-chot" type="button" id="hd2ChotBtn">
+          <svg class="ic sm" viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg>
+          Chốt kiến thức
+        </button>
+        <button class="hd2-bv-back" type="button" id="hd2BackBtn">← Quay lại phiếu</button>
       </div>
-    </aside>
+    </div>
+
+    <div class="hd2-bv-grid" id="hd2CardGrid">
+      <article class="hd2-card s1 wait" data-card="1">
+        <div class="hd2-card-head"><span class="hd2-card-name">Nhóm 1</span><span class="hd2-card-sit">Tình huống 1</span></div>
+        <div class="hd2-card-body">
+          <p class="hd2-card-line hd2-card-status"><span class="lbl">Trạng thái:</span><span class="val">Chưa nộp</span></p>
+          <p class="hd2-card-line"><span class="lbl">Rủi ro:</span><span class="val" data-f="a1"></span></p>
+          <p class="hd2-card-line"><span class="lbl">Cách làm đúng:</span><span class="val" data-f="a2"></span></p>
+          <p class="hd2-card-line"><span class="lbl">Thời gian làm bài:</span><span class="val" data-f="dur"></span></p>
+          <p class="hd2-card-line"><span class="lbl">Giờ nộp:</span><span class="val" data-f="at"></span></p>
+          <div class="hd2-card-foot"><span class="hd2-steps hidden"></span><label class="hd2-score">Điểm: <input class="hd2-score-input" type="number" min="0" max="10" step="0.5" inputmode="decimal" placeholder="..." aria-label="Điểm thầy chấm cho Nhóm 1"></label></div>
+        </div>
+      </article>
+
+      <article class="hd2-card s1 wait" data-card="2">
+        <div class="hd2-card-head"><span class="hd2-card-name">Nhóm 2</span><span class="hd2-card-sit">Tình huống 1</span></div>
+        <div class="hd2-card-body">
+          <p class="hd2-card-line hd2-card-status"><span class="lbl">Trạng thái:</span><span class="val">Chưa nộp</span></p>
+          <p class="hd2-card-line"><span class="lbl">Rủi ro:</span><span class="val" data-f="a1"></span></p>
+          <p class="hd2-card-line"><span class="lbl">Cách làm đúng:</span><span class="val" data-f="a2"></span></p>
+          <p class="hd2-card-line"><span class="lbl">Thời gian làm bài:</span><span class="val" data-f="dur"></span></p>
+          <p class="hd2-card-line"><span class="lbl">Giờ nộp:</span><span class="val" data-f="at"></span></p>
+          <div class="hd2-card-foot"><span class="hd2-steps hidden"></span><label class="hd2-score">Điểm: <input class="hd2-score-input" type="number" min="0" max="10" step="0.5" inputmode="decimal" placeholder="..." aria-label="Điểm thầy chấm cho Nhóm 2"></label></div>
+        </div>
+      </article>
+
+      <article class="hd2-card s1 wait" data-card="3">
+        <div class="hd2-card-head"><span class="hd2-card-name">Nhóm 3</span><span class="hd2-card-sit">Tình huống 1</span></div>
+        <div class="hd2-card-body">
+          <p class="hd2-card-line hd2-card-status"><span class="lbl">Trạng thái:</span><span class="val">Chưa nộp</span></p>
+          <p class="hd2-card-line"><span class="lbl">Rủi ro:</span><span class="val" data-f="a1"></span></p>
+          <p class="hd2-card-line"><span class="lbl">Cách làm đúng:</span><span class="val" data-f="a2"></span></p>
+          <p class="hd2-card-line"><span class="lbl">Thời gian làm bài:</span><span class="val" data-f="dur"></span></p>
+          <p class="hd2-card-line"><span class="lbl">Giờ nộp:</span><span class="val" data-f="at"></span></p>
+          <div class="hd2-card-foot"><span class="hd2-steps hidden"></span><label class="hd2-score">Điểm: <input class="hd2-score-input" type="number" min="0" max="10" step="0.5" inputmode="decimal" placeholder="..." aria-label="Điểm thầy chấm cho Nhóm 3"></label></div>
+        </div>
+      </article>
+
+      <article class="hd2-card s2 wait" data-card="4">
+        <div class="hd2-card-head"><span class="hd2-card-name">Nhóm 4</span><span class="hd2-card-sit">Tình huống 2</span></div>
+        <div class="hd2-card-body">
+          <p class="hd2-card-line hd2-card-status"><span class="lbl">Trạng thái:</span><span class="val">Chưa nộp</span></p>
+          <p class="hd2-card-line"><span class="lbl">Rủi ro:</span><span class="val" data-f="a1"></span></p>
+          <p class="hd2-card-line"><span class="lbl">Cách làm đúng:</span><span class="val" data-f="a2"></span></p>
+          <p class="hd2-card-line"><span class="lbl">Thời gian làm bài:</span><span class="val" data-f="dur"></span></p>
+          <p class="hd2-card-line"><span class="lbl">Giờ nộp:</span><span class="val" data-f="at"></span></p>
+          <div class="hd2-card-foot"><span class="hd2-steps hidden"></span><label class="hd2-score">Điểm: <input class="hd2-score-input" type="number" min="0" max="10" step="0.5" inputmode="decimal" placeholder="..." aria-label="Điểm thầy chấm cho Nhóm 4"></label></div>
+        </div>
+      </article>
+
+      <article class="hd2-card s2 wait" data-card="5">
+        <div class="hd2-card-head"><span class="hd2-card-name">Nhóm 5</span><span class="hd2-card-sit">Tình huống 2</span></div>
+        <div class="hd2-card-body">
+          <p class="hd2-card-line hd2-card-status"><span class="lbl">Trạng thái:</span><span class="val">Chưa nộp</span></p>
+          <p class="hd2-card-line"><span class="lbl">Rủi ro:</span><span class="val" data-f="a1"></span></p>
+          <p class="hd2-card-line"><span class="lbl">Cách làm đúng:</span><span class="val" data-f="a2"></span></p>
+          <p class="hd2-card-line"><span class="lbl">Thời gian làm bài:</span><span class="val" data-f="dur"></span></p>
+          <p class="hd2-card-line"><span class="lbl">Giờ nộp:</span><span class="val" data-f="at"></span></p>
+          <div class="hd2-card-foot"><span class="hd2-steps hidden"></span><label class="hd2-score">Điểm: <input class="hd2-score-input" type="number" min="0" max="10" step="0.5" inputmode="decimal" placeholder="..." aria-label="Điểm thầy chấm cho Nhóm 5"></label></div>
+        </div>
+      </article>
+
+      <article class="hd2-card s2 wait" data-card="6">
+        <div class="hd2-card-head"><span class="hd2-card-name">Nhóm 6</span><span class="hd2-card-sit">Tình huống 2</span></div>
+        <div class="hd2-card-body">
+          <p class="hd2-card-line hd2-card-status"><span class="lbl">Trạng thái:</span><span class="val">Chưa nộp</span></p>
+          <p class="hd2-card-line"><span class="lbl">Rủi ro:</span><span class="val" data-f="a1"></span></p>
+          <p class="hd2-card-line"><span class="lbl">Cách làm đúng:</span><span class="val" data-f="a2"></span></p>
+          <p class="hd2-card-line"><span class="lbl">Thời gian làm bài:</span><span class="val" data-f="dur"></span></p>
+          <p class="hd2-card-line"><span class="lbl">Giờ nộp:</span><span class="val" data-f="at"></span></p>
+          <div class="hd2-card-foot"><span class="hd2-steps hidden"></span><label class="hd2-score">Điểm: <input class="hd2-score-input" type="number" min="0" max="10" step="0.5" inputmode="decimal" placeholder="..." aria-label="Điểm thầy chấm cho Nhóm 6"></label></div>
+        </div>
+      </article>
+    </div>
+
+    <div class="hd2-key hidden" id="hd2Key">
+      <h3>Chốt kiến thức — Đáp án đúng</h3>
+      <div class="hd2-key-grid">
+        <div class="hd2-key-box">
+          <h4>Tình huống 1 (Nhóm Minh)</h4>
+          <p><b>Rủi ro:</b> Mất kĩ năng tự đọc hiểu, suy giảm tư duy phản biện và bài giống nhau, mất sáng tạo.</p>
+          <p><b>Cách làm đúng:</b> Tự đọc bài, ghi ý chính trước rồi mới nhờ AI gợi ý và tự viết lại.</p>
+        </div>
+        <div class="hd2-key-box">
+          <h4>Tình huống 2 (Bạn Hà)</h4>
+          <p><b>Rủi ro:</b> AI bịa thông tin sai nhưng nghe rất hợp lí (hiện tượng ảo giác).</p>
+          <p><b>Cách làm đúng:</b> Kiểm chứng lại tên sách bằng sách giáo khoa, thư viện hoặc hỏi thầy cô.</p>
+        </div>
+      </div>
+      <div class="hd2-key-proc"><b>Quy trình 4 bước đúng:</b> Tự làm trước → Hỏi AI để mở rộng → Kiểm chứng thông tin → Viết lại bằng hiểu biết của mình.</div>
+    </div>
   </div>
 </div>
 
@@ -1411,96 +1541,170 @@
 
 <script>
 (function(){
-  /* ===== HOẠT ĐỘNG 2: chọn đáp án -> Nộp -> hiện vào Bảng của thầy ===== */
-  var boardBox = document.getElementById('hd2Board');
-  var boardList = document.getElementById('hd2BoardList');
-  var boardEmpty = document.getElementById('hd2BoardEmpty');
+  /* ===== HOẠT ĐỘNG 2: PHIẾU TỰ LUẬN — chọn nhóm -> khung sáng lên -> Gửi kết quả -> Bảng tổng hợp của thầy ===== */
+  var view = document.getElementById('viewHd2');
+  var boardView = document.getElementById('hd2BoardView');
   var boardCount = document.getElementById('hd2BoardCount');
-  var submitted = 0;
+  var submittedCount = document.getElementById('hd2SubmittedCount');
+  var submissions = {}; /* số nhóm -> {a1, a2, a3, dur, at} của lần gửi mới nhất */
+  var groupStart = {}; /* số nhóm -> mốc giờ bắt đầu làm (khi chọn nhóm / bắt đầu gõ) */
+  var currentGroup = 1;
 
+  function ensureStart(g){
+    if(!groupStart[g]) groupStart[g] = Date.now();
+  }
+  function fmtDur(ms){
+    var s = Math.max(0, Math.round(ms / 1000));
+    return String(Math.floor(s / 60)).padStart(2, '0') + ':' + String(s % 60).padStart(2, '0');
+  }
+  function fmtClock(d){
+    return String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0') + ':' + String(d.getSeconds()).padStart(2, '0');
+  }
+  function formatSteps(a3){
+    var letters = (a3 || '').toUpperCase().match(/[A-D]/g);
+    if(letters && letters.length === 4) return letters.join(' → ');
+    return a3;
+  }
+  function renderBoard(){
+    var n = Object.keys(submissions).length;
+    boardCount.textContent = n + '/6';
+    submittedCount.textContent = 'Đã nộp: ' + n + '/6 nhóm';
+    document.querySelectorAll('.hd2-card').forEach(function(card){
+      var sub = submissions[card.getAttribute('data-card')];
+      var statusVal = card.querySelector('.hd2-card-status .val');
+      var v1 = card.querySelector('[data-f="a1"]');
+      var v2 = card.querySelector('[data-f="a2"]');
+      var vDur = card.querySelector('[data-f="dur"]');
+      var vAt = card.querySelector('[data-f="at"]');
+      var steps = card.querySelector('.hd2-steps');
+      if(sub){
+        card.classList.add('done');
+        card.classList.remove('wait');
+        statusVal.textContent = 'Đã nộp';
+        v1.textContent = sub.a1;
+        v1.title = sub.a1;
+        v2.textContent = sub.a2;
+        v2.title = sub.a2;
+        vDur.textContent = sub.dur || '';
+        vAt.textContent = sub.at || '';
+        steps.textContent = formatSteps(sub.a3);
+        steps.title = sub.a3;
+        steps.classList.remove('hidden');
+      } else {
+        card.classList.add('wait');
+        card.classList.remove('done');
+        statusVal.textContent = 'Chưa nộp';
+        v1.textContent = '';
+        v1.removeAttribute('title');
+        v2.textContent = '';
+        v2.removeAttribute('title');
+        vDur.textContent = '';
+        vAt.textContent = '';
+        steps.textContent = '';
+        steps.removeAttribute('title');
+        steps.classList.add('hidden');
+      }
+    });
+  }
   document.getElementById('hd2BoardBtn').addEventListener('click', function(){
-    boardBox.classList.toggle('hidden');
+    renderBoard();
+    view.classList.add('show-board');
+    boardView.classList.remove('hidden');
+  });
+  document.getElementById('hd2BackBtn').addEventListener('click', function(){
+    view.classList.remove('show-board');
+    boardView.classList.add('hidden');
+  });
+  var chotBtn = document.getElementById('hd2ChotBtn');
+  var keyBox = document.getElementById('hd2Key');
+  chotBtn.addEventListener('click', function(){
+    var nowHidden = keyBox.classList.toggle('hidden');
+    chotBtn.classList.toggle('on', !nowHidden);
+    if(!nowHidden) keyBox.scrollIntoView({block: 'nearest'});
+  });
+  renderBoard();
+
+  /* Chọn nhóm: Nhóm 1-3 sáng khung trái (Tình huống 1), Nhóm 4-6 sáng khung phải (Tình huống 2) */
+  var panels = {
+    1: document.querySelector('.hd2-panel[data-panel="1"]'),
+    2: document.querySelector('.hd2-panel[data-panel="2"]')
+  };
+  function paintPanels(){
+    var side = currentGroup <= 3 ? 1 : 2;
+    panels[1].classList.toggle('active', side === 1);
+    panels[2].classList.toggle('active', side === 2);
+  }
+  document.querySelectorAll('.hd2-gbtn').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      currentGroup = parseInt(btn.getAttribute('data-group'), 10);
+      document.querySelectorAll('.hd2-gbtn').forEach(function(b){
+        b.classList.toggle('on', b === btn);
+      });
+      paintPanels();
+      ensureStart(currentGroup);
+    });
+  });
+  paintPanels();
+  /* Bắt đầu tính giờ làm bài cho nhóm đang chọn ngay khi gõ chữ đầu tiên vào phiếu */
+  document.querySelectorAll('.hd2-input').forEach(function(inp){
+    inp.addEventListener('input', function(){ ensureStart(currentGroup); });
   });
 
-  function lettersOf(q){
-    var out = [];
-    q.querySelectorAll('.hd2-opt.sel').forEach(function(o){ out.push(o.getAttribute('data-letter')); });
-    return out;
+  /* Đồng hồ đếm ngược 03:00: chạy khi mở tab Hoạt động 2, bấm vào đồng hồ để đặt lại */
+  var timerText = document.getElementById('hd2TimerText');
+  var timerBox = document.getElementById('hd2Timer');
+  var remain = 180, timerId = null;
+  function paintTimer(){
+    var m = String(Math.floor(remain / 60)).padStart(2, '0');
+    var ss = String(remain % 60).padStart(2, '0');
+    timerText.textContent = m + ':' + ss;
+    timerBox.classList.toggle('done', remain <= 0);
   }
-
-  document.querySelectorAll('.hd2-panel').forEach(function(panel){
-    /* Bấm vào phương án để chọn / bỏ chọn (câu 1 tình huống 1 chọn tối đa 2) */
-    panel.querySelectorAll('.hd2-q[data-max]').forEach(function(q){
-      var max = parseInt(q.getAttribute('data-max'), 10);
-      q.querySelectorAll('.hd2-opt').forEach(function(opt){
-        opt.addEventListener('click', function(){
-          if(opt.classList.contains('sel')){ opt.classList.remove('sel'); return; }
-          var sels = q.querySelectorAll('.hd2-opt.sel');
-          if(max === 1){
-            sels.forEach(function(o){ o.classList.remove('sel'); });
-            opt.classList.add('sel');
-          } else if(sels.length < max){
-            opt.classList.add('sel');
-          } else {
-            sels[0].classList.remove('sel');
-            opt.classList.add('sel');
-          }
-        });
-      });
+  function startTimer(){
+    if(timerId) return;
+    timerId = setInterval(function(){
+      if(remain > 0){ remain--; paintTimer(); }
+      if(remain <= 0){ clearInterval(timerId); timerId = null; }
+    }, 1000);
+  }
+  timerBox.addEventListener('click', function(){
+    remain = 180; paintTimer(); startTimer();
+  });
+  paintTimer();
+  /* Bắt đầu đếm khi tab Hoạt động 2 được mở */
+  document.querySelectorAll('.tabbtn').forEach(function(b){
+    b.addEventListener('click', function(){
+      if(b.getAttribute('data-view') === 'hd2'){ startTimer(); ensureStart(currentGroup); }
     });
+  });
 
+  /* Gửi kết quả của từng khung -> lấp vào đúng thẻ của nhóm đó trên Bảng tổng hợp */
+  document.querySelectorAll('.hd2-panel').forEach(function(panel){
     var msg = panel.querySelector('.hd2-msg');
     panel.querySelector('.hd2-submit').addEventListener('click', function(){
-      var group = panel.querySelector('.hd2-group-sel').value;
-      var q1 = panel.querySelector('.hd2-q[data-q="1"]');
-      var q2 = panel.querySelector('.hd2-q[data-q="2"]');
-      var a1 = lettersOf(q1);
-      var a2 = lettersOf(q2);
-      var need1 = parseInt(q1.getAttribute('data-max'), 10);
-      var steps = [];
-      panel.querySelectorAll('.hd2-step').forEach(function(s){ steps.push(s.value); });
-      var stepsDone = steps.every(function(v){ return v !== ''; });
-
-      if(!group){
-        msg.textContent = 'Hãy chọn tên nhóm ở phía trên trước khi nộp.';
+      var side = panel.getAttribute('data-panel') === '1' ? 1 : 2;
+      var inSide = side === 1 ? currentGroup <= 3 : currentGroup >= 4;
+      if(!inSide){
+        msg.textContent = 'Nhóm ' + currentGroup + ' thuộc khung tình huống bên ' + (side === 1 ? 'phải' : 'trái') + '. Hãy gửi ở khung đang sáng.';
         msg.className = 'hd2-msg warn';
         return;
       }
-      if(a1.length < need1 || a2.length < 1 || !stepsDone){
-        msg.textContent = 'Nhóm hãy trả lời đủ cả 3 câu rồi mới bấm Nộp.';
+      var a1 = panel.querySelector('[data-field="a1"]').value.trim();
+      var a2 = panel.querySelector('[data-field="a2"]').value.trim();
+      var a3 = panel.querySelector('[data-field="a3"]').value.trim();
+      if(!a1 || !a2 || !a3){
+        msg.textContent = 'Nhóm hãy viết đủ cả 3 ô rồi mới bấm Gửi kết quả.';
         msg.className = 'hd2-msg warn';
         return;
       }
 
-      if(boardEmpty){ boardEmpty.remove(); boardEmpty = null; }
-      submitted++;
-      boardCount.textContent = String(submitted);
-      var sitName = panel.getAttribute('data-panel') === '1' ? 'Tình huống 1' : 'Tình huống 2';
-      var now = new Date();
-      var hh = String(now.getHours()).padStart(2, '0');
-      var mm = String(now.getMinutes()).padStart(2, '0');
+      var nowD = new Date();
+      var start = groupStart[currentGroup] || nowD.getTime();
+      submissions[currentGroup] = {a1: a1, a2: a2, a3: a3, dur: fmtDur(nowD.getTime() - start), at: fmtClock(nowD)};
+      delete groupStart[currentGroup];
+      renderBoard();
 
-      var entry = document.createElement('div');
-      entry.className = 'hd2-entry';
-      var h = document.createElement('h4');
-      h.textContent = group + ' — ' + sitName;
-      entry.appendChild(h);
-      [['Câu 1', a1.join(', ')], ['Câu 2', a2.join(', ')], ['Câu 3', steps.join(' → ')]].forEach(function(row){
-        var p = document.createElement('p');
-        var b = document.createElement('b');
-        b.textContent = row[0] + ': ';
-        p.appendChild(b);
-        p.appendChild(document.createTextNode(row[1]));
-        entry.appendChild(p);
-      });
-      var t = document.createElement('p');
-      t.className = 'hd2-time';
-      t.textContent = 'Nộp lúc ' + hh + ':' + mm;
-      entry.appendChild(t);
-      boardList.appendChild(entry);
-      boardBox.classList.remove('hidden');
-
-      msg.textContent = 'Đã nộp! Kết quả của ' + group + ' đã hiện ở Bảng của thầy.';
+      msg.textContent = 'Đã gửi lúc ' + submissions[currentGroup].at + '! Nhóm ' + currentGroup + ' làm bài trong ' + submissions[currentGroup].dur + '. Kết quả đã hiện ở Bảng của thầy.';
       msg.className = 'hd2-msg ok';
     });
   });
