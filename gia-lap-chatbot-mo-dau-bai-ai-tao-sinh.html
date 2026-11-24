@@ -95,8 +95,10 @@
   .composer-wrap{position:relative;width:100%}
   .composer{width:100%}
   .composer-inner{border:1px solid var(--input-border);border-radius:28px;padding:8px 8px 8px 12px;display:flex;align-items:center;gap:6px;background:var(--bg);box-shadow:var(--shadow)}
-  .plus-btn{width:36px;height:36px;flex:0 0 36px;border-radius:50%;border:0;background:transparent;color:var(--text);display:grid;place-items:center;padding:0}
-  .plus-btn:hover{background:var(--hover)}
+  /* Nút đính kèm ảnh: vòng tròn nền xám + kẹp giấy, nhìn thấy rõ ngay trong ô nhập */
+  .plus-btn{width:40px;height:40px;flex:0 0 40px;border-radius:50%;border:1px solid var(--border);background:var(--active);color:var(--text);display:grid;place-items:center;padding:0}
+  .plus-btn:hover{background:#e0e0e0}
+  .plus-btn .ic{width:22px;height:22px;flex-basis:22px;stroke-width:1.9}
   .composer-text{flex:1;font-size:16.5px;line-height:1.45;min-height:24px;max-height:110px;overflow-y:auto;color:var(--text);white-space:pre-wrap;word-break:break-word;padding:4px 2px;text-align:left;cursor:text}
   .composer-text.placeholder{color:var(--faint)}
   .composer-text:empty::before{content:"Hỏi ChatGPT";color:var(--faint)}
@@ -121,11 +123,14 @@
   .qpanel-item{display:flex;gap:12px;width:100%;border:0;background:transparent;color:var(--text);padding:11px 10px;border-radius:12px;font-size:16px;line-height:1.5;text-align:left;align-items:flex-start;min-height:44px}
   .qpanel-item:hover{background:var(--hover)}
 
-  /* Ảnh đính kèm: xem trước trong ô nhập + ảnh trong bong bóng tin nhắn người dùng */
-  .attach-bar{display:flex;align-items:center;gap:10px;padding:4px 6px 8px}
-  .attach-thumb{width:54px;height:54px;object-fit:cover;border-radius:12px;border:1px solid var(--border);flex:0 0 54px}
+  /* Ảnh đính kèm: thumbnail xem trước trong ô nhập, nút × ghim trên góc ảnh
+     để bỏ ảnh; ảnh gốc cũng hiện trong bong bóng tin nhắn khi gửi đi */
+  .attach-bar{display:flex;align-items:center;gap:12px;padding:6px 6px 10px}
+  .attach-thumb-wrap{position:relative;flex:0 0 auto}
+  .attach-thumb{width:72px;height:72px;object-fit:cover;border-radius:14px;border:1px solid var(--border);display:block}
   .attach-name{font-size:13.5px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1;min-width:0}
-  .attach-remove{width:28px;height:28px;flex:0 0 28px;border-radius:50%;border:0;background:var(--hover);color:var(--text);font-size:15px;line-height:1;display:grid;place-items:center;padding:0}
+  .attach-remove{position:absolute;top:-8px;right:-8px;width:24px;height:24px;border-radius:50%;border:2px solid #fff;background:#0d0d0d;color:#fff;font-size:12px;line-height:1;display:grid;place-items:center;padding:0;box-shadow:0 1px 5px rgba(0,0,0,.3)}
+  .attach-remove:hover{background:#333}
   .user-att-img{display:block;max-width:260px;width:100%;border-radius:14px;margin-bottom:8px}
 
   .hidden{display:none !important}
@@ -267,12 +272,14 @@
   <div class="composer" id="composer">
     <div class="composer-inner" style="flex-wrap:wrap">
       <div class="attach-bar hidden" id="attachBar" style="flex:1 1 100%">
-        <img class="attach-thumb" id="attachThumb" alt="Ảnh đính kèm" />
+        <div class="attach-thumb-wrap">
+          <img class="attach-thumb" id="attachThumb" alt="Ảnh gốc đính kèm" />
+          <button class="attach-remove" type="button" id="attachRemove" aria-label="Bỏ ảnh đính kèm" title="Bỏ ảnh này">✕</button>
+        </div>
         <span class="attach-name" id="attachName"></span>
-        <button class="attach-remove" type="button" id="attachRemove" aria-label="Bỏ ảnh đính kèm">✕</button>
       </div>
-      <button class="plus-btn" type="button" id="plusBtn" aria-label="Thêm">
-        <svg class="ic" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
+      <button class="plus-btn" type="button" id="plusBtn" aria-label="Đính kèm ảnh" title="Đính kèm ảnh">
+        <svg class="ic" viewBox="0 0 24 24"><path d="M21.4 11.05l-9.19 9.19a6 6 0 01-8.49-8.49l8.57-8.57A4 4 0 1118 8.84l-8.59 8.57a2 2 0 01-2.83-2.83l8.49-8.48"/></svg>
       </button>
       <div class="composer-text" id="composerText" contenteditable="true" role="textbox" aria-multiline="false" aria-label="Hỏi ChatGPT"></div>
       <button class="reason-chip" type="button" id="reasonChip">
@@ -578,24 +585,35 @@
     }
   });
   composerText.addEventListener('paste', function(e){
+    /* Dán ảnh từ clipboard (Ctrl+V) thì đính kèm ảnh như ChatGPT thật */
+    var cd = e.clipboardData || window.clipboardData;
+    var items = cd && cd.items;
+    if(items){
+      for(var pi = 0; pi < items.length; pi++){
+        if(items[pi].type && items[pi].type.indexOf('image/') === 0){
+          var pf = items[pi].getAsFile();
+          if(pf){ e.preventDefault(); attachFile(pf); return; }
+        }
+      }
+    }
     e.preventDefault();
-    var text = (e.clipboardData || window.clipboardData).getData('text');
+    var text = cd ? cd.getData('text') : '';
     document.execCommand('insertText', false, text.replace(/\n/g,' '));
   });
 
   /* ===== Gửi câu hỏi -> AI gõ câu trả lời sai (nguyên văn) ===== */
-  /* ===== Đính kèm ảnh bằng nút + (giống ChatGPT thật: chọn file, hiện
-     ảnh xem trước trong ô nhập, gửi đi thì ảnh nằm trong tin nhắn) ===== */
+  /* ===== Đính kèm ảnh gốc bằng nút kẹp giấy trong ô nhập (giống ChatGPT
+     thật: bấm nút mở hộp chọn ảnh của máy, chọn xong ảnh hiện thumbnail xem
+     trước ngay trong ô nhập kèm nút × để bỏ; gửi đi thì ảnh gốc nằm trong
+     bong bóng tin nhắn). Cũng nhận ảnh dán Ctrl+V và kéo thả vào ô nhập. ===== */
   var plusBtn = document.getElementById('plusBtn');
   var attachInput = document.getElementById('attachInput');
   var attachBar = document.getElementById('attachBar');
   var attachThumb = document.getElementById('attachThumb');
   var attachName = document.getElementById('attachName');
   var attachedDataUrl = null;
-  plusBtn.addEventListener('click', function(){ attachInput.click(); });
-  attachInput.addEventListener('change', function(){
-    var f = attachInput.files && attachInput.files[0];
-    if(!f) return;
+  function attachFile(f){
+    if(!f || (f.type && f.type.indexOf('image/') !== 0)) return;
     var reader = new FileReader();
     reader.onload = function(){
       attachedDataUrl = String(reader.result || '');
@@ -605,6 +623,16 @@
       composerText.focus();
     };
     reader.readAsDataURL(f);
+  }
+  plusBtn.addEventListener('click', function(){ attachInput.click(); });
+  attachInput.addEventListener('change', function(){
+    attachFile(attachInput.files && attachInput.files[0]);
+  });
+  composerWrap.addEventListener('dragover', function(e){ e.preventDefault(); });
+  composerWrap.addEventListener('drop', function(e){
+    e.preventDefault();
+    var files = e.dataTransfer && e.dataTransfer.files;
+    if(files && files.length) attachFile(files[0]);
   });
   function clearAttachment(){
     attachedDataUrl = null;
