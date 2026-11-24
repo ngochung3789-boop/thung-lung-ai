@@ -180,7 +180,7 @@
   .hd2-input{width:100%;border:2px solid #d3dcee;border-radius:10px;background:#fbfcff;font:inherit;font-size:17.5px;line-height:1.5;color:#14264d;padding:10px 13px;resize:vertical;min-height:58px}
   .hd2-input:focus{outline:none;border-color:#2f7fe0;background:#fff}
   .hd2-panel.p2 .hd2-input:focus{border-color:#0da08c}
-  .hd2-input.large{min-height:190px}
+  .hd2-input.large{min-height:150px}
   .hd2-foot{margin-top:auto;display:flex;justify-content:flex-end;padding-top:4px}
   .hd2-submit{border:0;border-radius:10px;color:#fff;font-size:17.5px;font-weight:800;padding:11px 22px;display:flex;align-items:center;gap:9px}
   .hd2-panel.p1 .hd2-submit{background:#2f7fe0}
@@ -214,6 +214,7 @@
   .hd2-card-line{font-size:16.5px;line-height:1.45;color:#33436b;display:flex;gap:6px;min-width:0;margin:0}
   .hd2-card-line .lbl{font-weight:700;color:#14264d;flex:0 0 auto}
   .hd2-card-line .val{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+  .hd2-card-line.wrap .val{white-space:normal;overflow:visible;text-overflow:clip;word-break:break-word}
   .hd2-card-status .val{font-weight:800}
   .hd2-card.done .hd2-card-status .val{color:#15803d}
   .hd2-card.wait .hd2-card-status .val{color:#b45309}
@@ -666,8 +667,13 @@
           <p class="hd2-sit">&ldquo;Cả nhóm bạn Minh nhờ AI viết hộ bài cảm nhận văn học. Bài xong rất nhanh nhưng cả nhóm nộp bài giống hệt nhau, khi thầy hỏi ý kiến riêng thì không ai trả lời được.&rdquo;</p>
 
           <div class="hd2-q">
-            <p class="hd2-qtext">Cách làm của nhóm Minh gây ra những rủi ro, hậu quả nào? (Ghi ngắn gọn bằng từ khóa):</p>
-            <textarea class="hd2-input large" data-field="a1" rows="7" aria-label="Rủi ro, hậu quả — tình huống 1"></textarea>
+            <p class="hd2-qtext">1. Rủi ro / Hậu quả (từ khóa):</p>
+            <textarea class="hd2-input" data-field="a1" rows="2" aria-label="Rủi ro, hậu quả — tình huống 1"></textarea>
+          </div>
+
+          <div class="hd2-q">
+            <p class="hd2-qtext">2. Quy trình 4 bước làm lại đúng cách:</p>
+            <textarea class="hd2-input large" data-field="a2" rows="6" aria-label="Quy trình 4 bước làm lại đúng cách — tình huống 1"></textarea>
           </div>
 
           <div class="hd2-foot">
@@ -689,8 +695,13 @@
           <p class="hd2-sit">&ldquo;Bạn Hà nhờ AI tìm tài liệu cho bài thuyết trình Lịch sử. AI giới thiệu rất chi tiết một cuốn sách nghe cực hợp lí, nhưng khi thầy kiểm tra thì cuốn sách đó không hề tồn tại.&rdquo;</p>
 
           <div class="hd2-q">
-            <p class="hd2-qtext">Cách làm của bạn Hà gây ra những rủi ro, hậu quả nào? (Ghi ngắn gọn bằng từ khóa):</p>
-            <textarea class="hd2-input large" data-field="a1" rows="7" aria-label="Rủi ro, hậu quả — tình huống 2"></textarea>
+            <p class="hd2-qtext">1. Rủi ro / Hậu quả (từ khóa):</p>
+            <textarea class="hd2-input" data-field="a1" rows="2" aria-label="Rủi ro, hậu quả — tình huống 2"></textarea>
+          </div>
+
+          <div class="hd2-q">
+            <p class="hd2-qtext">2. Quy trình 4 bước làm lại đúng cách:</p>
+            <textarea class="hd2-input large" data-field="a2" rows="6" aria-label="Quy trình 4 bước làm lại đúng cách — tình huống 2"></textarea>
           </div>
 
           <div class="hd2-foot">
@@ -724,7 +735,8 @@
         <div class="hd2-card-head"><span class="hd2-card-name">Nhóm 1</span><span class="hd2-card-sit">Tình huống 1</span></div>
         <div class="hd2-card-body">
           <p class="hd2-card-line hd2-card-status"><span class="lbl">Trạng thái:</span><span class="val">Chưa nộp</span></p>
-          <p class="hd2-card-line"><span class="lbl">Rủi ro:</span><span class="val" data-f="a1"></span></p>
+          <p class="hd2-card-line"><span class="lbl">Rủi ro / Hậu quả:</span><span class="val" data-f="a1"></span></p>
+          <p class="hd2-card-line wrap"><span class="lbl">Quy trình 4 bước:</span><span class="val" data-f="a2"></span></p>
           <p class="hd2-card-line"><span class="lbl">Thời gian làm bài:</span><span class="val" data-f="dur"></span></p>
           <p class="hd2-card-line"><span class="lbl">Giờ nộp:</span><span class="val" data-f="at"></span></p>
           <div class="hd2-card-foot"><label class="hd2-score">Điểm: <input class="hd2-score-input" type="number" min="0" max="10" step="0.5" inputmode="decimal" placeholder="..." aria-label="Điểm thầy chấm cho Nhóm 1"></label></div>
@@ -735,7 +747,8 @@
         <div class="hd2-card-head"><span class="hd2-card-name">Nhóm 2</span><span class="hd2-card-sit">Tình huống 1</span></div>
         <div class="hd2-card-body">
           <p class="hd2-card-line hd2-card-status"><span class="lbl">Trạng thái:</span><span class="val">Chưa nộp</span></p>
-          <p class="hd2-card-line"><span class="lbl">Rủi ro:</span><span class="val" data-f="a1"></span></p>
+          <p class="hd2-card-line"><span class="lbl">Rủi ro / Hậu quả:</span><span class="val" data-f="a1"></span></p>
+          <p class="hd2-card-line wrap"><span class="lbl">Quy trình 4 bước:</span><span class="val" data-f="a2"></span></p>
           <p class="hd2-card-line"><span class="lbl">Thời gian làm bài:</span><span class="val" data-f="dur"></span></p>
           <p class="hd2-card-line"><span class="lbl">Giờ nộp:</span><span class="val" data-f="at"></span></p>
           <div class="hd2-card-foot"><label class="hd2-score">Điểm: <input class="hd2-score-input" type="number" min="0" max="10" step="0.5" inputmode="decimal" placeholder="..." aria-label="Điểm thầy chấm cho Nhóm 2"></label></div>
@@ -746,7 +759,8 @@
         <div class="hd2-card-head"><span class="hd2-card-name">Nhóm 3</span><span class="hd2-card-sit">Tình huống 1</span></div>
         <div class="hd2-card-body">
           <p class="hd2-card-line hd2-card-status"><span class="lbl">Trạng thái:</span><span class="val">Chưa nộp</span></p>
-          <p class="hd2-card-line"><span class="lbl">Rủi ro:</span><span class="val" data-f="a1"></span></p>
+          <p class="hd2-card-line"><span class="lbl">Rủi ro / Hậu quả:</span><span class="val" data-f="a1"></span></p>
+          <p class="hd2-card-line wrap"><span class="lbl">Quy trình 4 bước:</span><span class="val" data-f="a2"></span></p>
           <p class="hd2-card-line"><span class="lbl">Thời gian làm bài:</span><span class="val" data-f="dur"></span></p>
           <p class="hd2-card-line"><span class="lbl">Giờ nộp:</span><span class="val" data-f="at"></span></p>
           <div class="hd2-card-foot"><label class="hd2-score">Điểm: <input class="hd2-score-input" type="number" min="0" max="10" step="0.5" inputmode="decimal" placeholder="..." aria-label="Điểm thầy chấm cho Nhóm 3"></label></div>
@@ -757,7 +771,8 @@
         <div class="hd2-card-head"><span class="hd2-card-name">Nhóm 4</span><span class="hd2-card-sit">Tình huống 2</span></div>
         <div class="hd2-card-body">
           <p class="hd2-card-line hd2-card-status"><span class="lbl">Trạng thái:</span><span class="val">Chưa nộp</span></p>
-          <p class="hd2-card-line"><span class="lbl">Rủi ro:</span><span class="val" data-f="a1"></span></p>
+          <p class="hd2-card-line"><span class="lbl">Rủi ro / Hậu quả:</span><span class="val" data-f="a1"></span></p>
+          <p class="hd2-card-line wrap"><span class="lbl">Quy trình 4 bước:</span><span class="val" data-f="a2"></span></p>
           <p class="hd2-card-line"><span class="lbl">Thời gian làm bài:</span><span class="val" data-f="dur"></span></p>
           <p class="hd2-card-line"><span class="lbl">Giờ nộp:</span><span class="val" data-f="at"></span></p>
           <div class="hd2-card-foot"><label class="hd2-score">Điểm: <input class="hd2-score-input" type="number" min="0" max="10" step="0.5" inputmode="decimal" placeholder="..." aria-label="Điểm thầy chấm cho Nhóm 4"></label></div>
@@ -768,7 +783,8 @@
         <div class="hd2-card-head"><span class="hd2-card-name">Nhóm 5</span><span class="hd2-card-sit">Tình huống 2</span></div>
         <div class="hd2-card-body">
           <p class="hd2-card-line hd2-card-status"><span class="lbl">Trạng thái:</span><span class="val">Chưa nộp</span></p>
-          <p class="hd2-card-line"><span class="lbl">Rủi ro:</span><span class="val" data-f="a1"></span></p>
+          <p class="hd2-card-line"><span class="lbl">Rủi ro / Hậu quả:</span><span class="val" data-f="a1"></span></p>
+          <p class="hd2-card-line wrap"><span class="lbl">Quy trình 4 bước:</span><span class="val" data-f="a2"></span></p>
           <p class="hd2-card-line"><span class="lbl">Thời gian làm bài:</span><span class="val" data-f="dur"></span></p>
           <p class="hd2-card-line"><span class="lbl">Giờ nộp:</span><span class="val" data-f="at"></span></p>
           <div class="hd2-card-foot"><label class="hd2-score">Điểm: <input class="hd2-score-input" type="number" min="0" max="10" step="0.5" inputmode="decimal" placeholder="..." aria-label="Điểm thầy chấm cho Nhóm 5"></label></div>
@@ -779,7 +795,8 @@
         <div class="hd2-card-head"><span class="hd2-card-name">Nhóm 6</span><span class="hd2-card-sit">Tình huống 2</span></div>
         <div class="hd2-card-body">
           <p class="hd2-card-line hd2-card-status"><span class="lbl">Trạng thái:</span><span class="val">Chưa nộp</span></p>
-          <p class="hd2-card-line"><span class="lbl">Rủi ro:</span><span class="val" data-f="a1"></span></p>
+          <p class="hd2-card-line"><span class="lbl">Rủi ro / Hậu quả:</span><span class="val" data-f="a1"></span></p>
+          <p class="hd2-card-line wrap"><span class="lbl">Quy trình 4 bước:</span><span class="val" data-f="a2"></span></p>
           <p class="hd2-card-line"><span class="lbl">Thời gian làm bài:</span><span class="val" data-f="dur"></span></p>
           <p class="hd2-card-line"><span class="lbl">Giờ nộp:</span><span class="val" data-f="at"></span></p>
           <div class="hd2-card-foot"><label class="hd2-score">Điểm: <input class="hd2-score-input" type="number" min="0" max="10" step="0.5" inputmode="decimal" placeholder="..." aria-label="Điểm thầy chấm cho Nhóm 6"></label></div>
@@ -1523,7 +1540,7 @@
   var boardView = document.getElementById('hd2BoardView');
   var boardCount = document.getElementById('hd2BoardCount');
   var submittedCount = document.getElementById('hd2SubmittedCount');
-  var submissions = {}; /* số nhóm -> {a1, dur, at} của lần gửi mới nhất */
+  var submissions = {}; /* số nhóm -> {a1, a2, dur, at} của lần gửi mới nhất */
   var groupStart = {}; /* số nhóm -> mốc giờ bắt đầu làm (khi chọn nhóm / bắt đầu gõ) */
   var currentGroup = 1;
 
@@ -1545,6 +1562,7 @@
       var sub = submissions[card.getAttribute('data-card')];
       var statusVal = card.querySelector('.hd2-card-status .val');
       var v1 = card.querySelector('[data-f="a1"]');
+      var v2 = card.querySelector('[data-f="a2"]');
       var vDur = card.querySelector('[data-f="dur"]');
       var vAt = card.querySelector('[data-f="at"]');
       if(sub){
@@ -1553,6 +1571,7 @@
         statusVal.textContent = 'Đã nộp';
         v1.textContent = sub.a1;
         v1.title = sub.a1;
+        v2.textContent = sub.a2 || '';
         vDur.textContent = sub.dur || '';
         vAt.textContent = sub.at || '';
       } else {
@@ -1561,6 +1580,7 @@
         statusVal.textContent = 'Chưa nộp';
         v1.textContent = '';
         v1.removeAttribute('title');
+        v2.textContent = '';
         vDur.textContent = '';
         vAt.textContent = '';
       }
@@ -1651,14 +1671,20 @@
       }
       var a1 = panel.querySelector('[data-field="a1"]').value.trim();
       if(!a1){
-        msg.textContent = 'Nhóm hãy ghi rủi ro, hậu quả (từ khóa) rồi mới bấm Gửi kết quả.';
+        msg.textContent = 'Nhóm hãy ghi câu 1: Rủi ro / Hậu quả (từ khóa) rồi mới bấm Gửi kết quả.';
+        msg.className = 'hd2-msg warn';
+        return;
+      }
+      var a2 = panel.querySelector('[data-field="a2"]').value.trim();
+      if(!a2){
+        msg.textContent = 'Nhóm hãy ghi câu 2: Quy trình 4 bước làm lại đúng cách rồi mới bấm Gửi kết quả.';
         msg.className = 'hd2-msg warn';
         return;
       }
 
       var nowD = new Date();
       var start = groupStart[currentGroup] || nowD.getTime();
-      submissions[currentGroup] = {a1: a1, dur: fmtDur(nowD.getTime() - start), at: fmtClock(nowD)};
+      submissions[currentGroup] = {a1: a1, a2: a2, dur: fmtDur(nowD.getTime() - start), at: fmtClock(nowD)};
       delete groupStart[currentGroup];
       renderBoard();
 
