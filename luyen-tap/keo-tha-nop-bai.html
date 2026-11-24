@@ -411,14 +411,14 @@
           </div>
         </div>
         <div class="hidden" id="clearConfirm" style="background:var(--red-bg);border:2px solid var(--red);border-radius:12px;padding:12px 14px;margin-bottom:12px">
-          <p style="margin:0 0 10px;font-size:16px;line-height:1.5"><b>Xóa hết kết quả của các nhóm?</b> Bài đã nộp sẽ bị xóa khỏi máy chủ và khỏi bảng này, không khôi phục được. Đề bài và giới hạn thời gian giữ nguyên.</p>
+          <p style="margin:0 0 10px;font-size:16px;line-height:1.5"><b>Xóa hết kết quả của các nhóm?</b> Bài đã nộp sẽ bị xóa khỏi máy chủ và khỏi bảng này, không khôi phục được. Đề bài và giới hạn thời gian giữ nguyên.<br><b>Xóa xong, trang sẽ tự làm mới lại ngay</b> — thầy không cần bấm Cập nhật hay tải lại trang.</p>
           <div style="display:flex;gap:8px;flex-wrap:wrap">
             <button class="btn-ghost" id="clearYesBtn" type="button" style="background:var(--red);border-color:var(--red);color:#fff">Xóa hết ngay</button>
             <button class="btn-ghost" id="clearNoBtn" type="button">Để lại, không xóa</button>
           </div>
         </div>
         <div class="save-msg" id="clearMsg" style="margin:0 0 10px"></div>
-        <p class="rule-note">Xếp hạng tự động: <b>điểm cao xếp trước</b> — hai nhóm <b>bằng điểm thì so thời gian làm bài</b>, nhóm làm nhanh hơn xếp trên. Bảng tự cập nhật ngay khi có nhóm nộp bài, thầy không cần tải lại trang. Chiếu bảng này lên TV cho cả lớp xem.<br>💾 Kết quả được <b>lưu trên máy chủ trong 1 tiếng</b> kể từ lúc nhóm nộp — thầy cứ tải lại trang thoải mái, kết quả vẫn còn. Quá 1 tiếng, kết quả tự hết hạn và tự biến mất khỏi bảng. Muốn xóa sớm hơn thì bấm nút <b>🗑 Xóa hết kết quả</b> ở trên.</p>
+        <p class="rule-note">Xếp hạng tự động: <b>điểm cao xếp trước</b> — hai nhóm <b>bằng điểm thì so thời gian làm bài</b>, nhóm làm nhanh hơn xếp trên. Bảng tự cập nhật ngay khi có nhóm nộp bài, thầy không cần tải lại trang. Chiếu bảng này lên TV cho cả lớp xem.<br>💾 <b>Thời gian lưu mặc định: 1 tiếng</b> kể từ lúc nhóm nộp — thầy cứ tải lại trang thoải mái, kết quả vẫn còn. Quá 1 tiếng, kết quả tự hết hạn và bảng <b>tự làm mới để tự biến mất</b> (kiểm tra mỗi phút), thầy không cần làm gì thêm. Muốn xóa sớm hơn thì bấm nút <b>🗑 Xóa hết kết quả</b> ở trên — <b>xóa xong trang tự làm mới lại ngay</b>.</p>
         <div class="rank-list" id="rankList">
           <div class="empty-note">Chưa có nhóm nào nộp bài.<br>Kết quả sẽ hiện ở đây ngay khi nhóm đầu tiên bấm Nộp bài.</div>
         </div>
@@ -1149,17 +1149,18 @@ function veBangThay(list){
   });
 }
 
-$("refreshBtn").addEventListener("click", function(){
-  if (db){
-    db.ref(ROOT + "/ketqua").once("value").then(function(snap){
-      var v = snap.val() || {};
-      donKetQuaHetHan(v);
-      veBangThay(gopKetQua(Object.keys(v).map(function(k){ return v[k]; })));
-    });
-  } else {
-    veBangThay(gopKetQua([]));
-  }
-});
+/* Tự làm mới bảng: đọc lại kết quả mới nhất từ máy chủ rồi vẽ lại.
+   Dùng sau khi xóa và cho nút Cập nhật — thầy không cần tải lại trang bằng tay. */
+function tuLamMoiBang(){
+  if (!db){ veBangThay(gopKetQua([])); return Promise.resolve(); }
+  return db.ref(ROOT + "/ketqua").once("value").then(function(snap){
+    var v = snap.val() || {};
+    donKetQuaHetHan(v);
+    veBangThay(gopKetQua(Object.keys(v).map(function(k){ return v[k]; })));
+  }).catch(function(){ veBangThay(gopKetQua([])); });
+}
+
+$("refreshBtn").addEventListener("click", function(){ tuLamMoiBang(); });
 
 /* ================= XÓA HẾT KẾT QUẢ =================
    Đã nhập mật khẩu 1 lần ở cổng bảng (teacherUnlocked) nên không hỏi lại mật khẩu,
@@ -1167,6 +1168,7 @@ $("refreshBtn").addEventListener("click", function(){
    Xóa thật trên máy chủ Firebase + xóa bản dự phòng trên máy này, xong báo rõ đã xóa. */
 $("clearBtn").addEventListener("click", function(){
   $("clearMsg").textContent = "";
+  $("clearYesBtn").disabled = false;
   $("clearConfirm").classList.remove("hidden");
   $("clearConfirm").scrollIntoView({ behavior: "smooth", block: "center" });
 });
@@ -1175,20 +1177,28 @@ $("clearNoBtn").addEventListener("click", function(){
 });
 $("clearYesBtn").addEventListener("click", function(){
   $("clearConfirm").classList.add("hidden");
+  $("clearYesBtn").disabled = true;
   xoaDuPhongLocal();
   veBangThay([]);
   if (db){
     db.ref(ROOT + "/ketqua").remove().then(function(){
-      $("clearMsg").textContent = "✓ Đã xóa hết kết quả trên máy chủ — bảng đã trống, các nhóm nộp lại từ đầu được rồi.";
+      $("clearMsg").textContent = "✓ Đã xóa hết kết quả trên máy chủ — trang đang tự làm mới lại…";
       $("clearMsg").style.color = "var(--green)";
-      veBangThay([]);
+      /* Xóa xong thì TỰ LÀM MỚI LẠI: đọc lại từ máy chủ để xác nhận bảng trống,
+         rồi tải lại trang sau 1 giây để trạng thái sạch hẳn như vừa mở mới.
+         Sau khi trang tải lại, thầy nhập lại mật khẩu 1 lần để mở Bảng của thầy. */
+      return tuLamMoiBang();
+    }).then(function(){
+      setTimeout(function(){ location.reload(); }, 1000);
     }).catch(function(err){
+      $("clearYesBtn").disabled = false;
       $("clearMsg").textContent = "⚠ CHƯA XÓA ĐƯỢC TRÊN MÁY CHỦ: " + (err && err.message ? err.message : "không rõ nguyên nhân") + " — thầy kiểm tra mạng rồi bấm Xóa hết kết quả lại nhé. (Bảng và bản dự phòng trên máy này đã xóa.)";
       $("clearMsg").style.color = "var(--red)";
     });
   } else {
-    $("clearMsg").textContent = "✓ Đã xóa kết quả trên máy này. (Đang mất kết nối máy chủ nên chưa xóa được bản trên máy chủ — kết nối lại rồi bấm Xóa hết lần nữa cho chắc.)";
+    $("clearMsg").textContent = "✓ Đã xóa kết quả trên máy này — trang đang tự làm mới lại… (Đang mất kết nối máy chủ nên chưa xóa được bản trên máy chủ — kết nối lại rồi bấm Xóa hết lần nữa cho chắc.)";
     $("clearMsg").style.color = "var(--red)";
+    setTimeout(function(){ location.reload(); }, 1200);
   }
 });
 
@@ -1332,6 +1342,15 @@ if (khoiTaoFirebase()){
 } else {
   veBangThay(gopKetQua([]));
 }
+/* Tự làm mới mỗi phút: kết quả nào đã quá hạn lưu mặc định 1 tiếng thì
+   tự biến mất khỏi bảng (và được dọn trên máy chủ) mà thầy không cần tải lại trang.
+   Bản dự phòng hết hạn trên máy này cũng được dọn cùng lúc. */
+setInterval(function(){
+  var truoc = localResults.length;
+  localResults = localResults.filter(conHanLuu);
+  if (localResults.length !== truoc) luuDuPhongLocal();
+  tuLamMoiBang();
+}, 60000);
 </script>
   </body>
 </html>
