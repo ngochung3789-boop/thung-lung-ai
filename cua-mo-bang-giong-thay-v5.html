@@ -6994,9 +6994,11 @@ function dungThanhPho(){
     sceneCity.add(nhom);
   })();
 
+
+
 /* DOI-DO-HOA #22 (25/11, muc 21): Cong chao nho + hang cay xanh doc
      duong vao tu cong khu toi quang truong (cay phuong / bang lang).
-     Cong chao (0,-12.2) ngay trong cong khu PH1: 2 tru trang cao 4.6m
+     Cong chao (0,-32.5; DOI tu 0,-12.2 ngay 25/11 vi bien nam bi bien cong khu che) giua duong vao: 2 tru trang cao 4.6m
      x=+-2.7, de vang + qua cau vang, dam vang, bien 2 mat 'CHAO MUNG /
      DEN VOI THUNG LUNG AI' y 3.6..4.5 (dat cao de khong che bien cong
      khu), vong hoa tren dam, 2 chau hoa 2 chan tru. Hang cay: 8 cay nho
@@ -7031,9 +7033,9 @@ function dungThanhPho(){
       g.fillText('ĐẾN VỚI THUNG LŨNG AI', 1024, 272);
       return new THREE.CanvasTexture(c);
     }
-    /* --- Cong chao nho (tam 0,-12.2). --- */
+    /* --- Cong chao nho (tam 0,-32.5, DOI tu 0,-12.2 ngay 25/11 - DEMO, CHUA LIVE). --- */
     const cong = new THREE.Group();
-    cong.position.set(0, 0, -12.2);
+    cong.position.set(0, -0.015, -32.5); /* DOI 25/11: DOI CONG CHAO (0,-12.2) -> (0,-32.5) DEMO, CHUA LIVE */
     [-2.7, 2.7].forEach(x=>{
       const de = new THREE.Mesh(new THREE.BoxGeometry(0.7, 0.35, 0.7), vangMat);
       de.position.set(x, YSAN + 0.175, 0); de.castShadow = true; cong.add(de);
@@ -7076,7 +7078,7 @@ function dungThanhPho(){
       }
     });
     nhom.add(cong);
-    /* --- Hang cay phuong / bang lang (8 cay nho). --- */
+    /* --- Hang cay phuong / bang lang (8 cay nho) - DOI THEO CONG CHAO ve (0,-32.5): z -37.5..-28.5, x=+-6, y=0.035 (mat duong). --- */
     function taoCay(loai){
       const cay = new THREE.Group();
       const laMat = new THREE.MeshStandardMaterial({color: loai === 'phuong' ? 0x2F7D32 : 0x3A7D44, roughness:0.85});
@@ -7098,13 +7100,13 @@ function dungThanhPho(){
       return cay;
     }
     const viTriCay = [];
-    [-12, -9, -6, -2.5].forEach((z, i)=>{
+    [-37.5, -34.5, -31.5, -28.5].forEach((z, i)=>{ /* DOI THEO CONG CHAO (0,-32.5) */
       viTriCay.push([-6.0, z, i % 2 === 0 ? 'phuong' : 'banglang']);
       viTriCay.push([6.0, z, i % 2 === 0 ? 'phuong' : 'banglang']);
     });
     viTriCay.forEach(v=>{
       const cay = taoCay(v[2]);
-      cay.position.set(v[0], YSAN, v[1]);
+      cay.position.set(v[0], 0.035, v[1]); /* mat duong tai x=+-6, z -38..-28 do that = 0.035 */
       nhom.add(cay);
     });
 
@@ -20459,6 +20461,7 @@ function capNhatCameraTour(dt){
 v33: SUA BIEN AO SEN - DOI 2 COT RA NGOAI MEP BIEN
 v34: GOP NHA KHO DUNG CU THE THAO MUC 18
 v35: GOP VUON THUOC NAM MUC 19 + QUANG TRUONG GACH HOA VAN MUC 20 + CONG CHAO + HANG CAY MUC 21
+v36: DOI CONG CHAO + HANG CAY RA (0,-32.5) MUC 21
 · v26a: SUA BIEN CONG (dong 1 gioi han 1500px, het cat chu T/H)
 · v26b: TACH CUA SO TRON (nhom cuaSoXe luon hien; sua loi an cua so khi xuong xe)
 · v26c: GIU BONG BONG TRAM (gan lai khi doan dung lai do doi lop bat dong bo) =================
