@@ -6671,6 +6671,447 @@ function dungThanhPho(){
     sceneCity.add(nhom);
   })();
 
+/* DOI-DO-HOA #20 (25/11, muc 19): Vuon thuoc nam / cay duoc lieu cho tiet
+     hoc. Tam (9,46), phia dong khu vui choi + phia bac vuon rau: nen dat
+     13x10, 6 luong (2 hang x 3 cot) moi luong 1 loai cay (Tia to, Kinh
+     gioi, Hung chanh, Sa, Gung, Nghe) + 1 bang ten nho o dau nam luong
+     (ten cay + cong dung 1 dong); bien chinh go 'VUON THUOC NAM' o ngoai
+     hang rao nam, mat ve quang truong; hang rao tre thap co cong mo ve
+     nam; loi di da phang giua 2 hang luong; coi gia thuoc bang da; 2 chau
+     hoa 2 ben cong; 1 cay nho. Khong chan loi doan / lo trinh robot,
+     khong che thap / bien KHOI / san khau khen. Dia hinh = 0. */
+  (function(){
+    const nhom = new THREE.Group();
+    const CX = 9, CZ = 46;
+    const datMat = new THREE.MeshStandardMaterial({color:0x6B4423, roughness:0.95});
+    const luongMat = new THREE.MeshStandardMaterial({color:0x5B3A1E, roughness:0.95});
+    const treMat = new THREE.MeshStandardMaterial({color:0xC8A96A, roughness:0.8});
+    const treDamMat = new THREE.MeshStandardMaterial({color:0xA8894F, roughness:0.8});
+    const goMat = new THREE.MeshStandardMaterial({color:0x8B5A2B, roughness:0.75});
+    const goDamMat = new THREE.MeshStandardMaterial({color:0x6B4423, roughness:0.75});
+    const daMat = new THREE.MeshStandardMaterial({color:0xCFC8BC, roughness:0.9});
+    const daXamMat = new THREE.MeshStandardMaterial({color:0x9CA3AF, roughness:0.9});
+    const vangMat = new THREE.MeshStandardMaterial({color:0xC9A227, roughness:0.35, metalness:0.6});
+    const chauMat = new THREE.MeshStandardMaterial({color:0xB45309, roughness:0.8});
+    const tiaToMat = new THREE.MeshStandardMaterial({color:0x7C3AED, roughness:0.7});
+    const tiaToXanhMat = new THREE.MeshStandardMaterial({color:0x16A34A, roughness:0.7});
+    const kinhGioiMat = new THREE.MeshStandardMaterial({color:0x22C55E, roughness:0.7});
+    const kinhGioiNhatMat = new THREE.MeshStandardMaterial({color:0x86EFAC, roughness:0.7});
+    const hungMat = new THREE.MeshStandardMaterial({color:0x4ADE80, roughness:0.7});
+    const hungDamMat = new THREE.MeshStandardMaterial({color:0x15803D, roughness:0.7});
+    const saMat = new THREE.MeshStandardMaterial({color:0x84CC16, roughness:0.8});
+    const gungMat = new THREE.MeshStandardMaterial({color:0x15803D, roughness:0.7});
+    const gungNonMat = new THREE.MeshStandardMaterial({color:0xA3E635, roughness:0.7});
+    const ngheMat = new THREE.MeshStandardMaterial({color:0x16A34A, roughness:0.7});
+    const ngheHoaMat = new THREE.MeshStandardMaterial({color:0xFACC15, roughness:0.6});
+    const thanMat = new THREE.MeshStandardMaterial({color:0x92400E, roughness:0.9});
+    const mauHoa = [
+      new THREE.MeshStandardMaterial({color:0xEF4444, roughness:0.6}),
+      new THREE.MeshStandardMaterial({color:0xF59E0B, roughness:0.6}),
+      new THREE.MeshStandardMaterial({color:0xEC4899, roughness:0.6})
+    ];
+    let seed = 20;
+    function rnd(){ seed = (seed * 1103515245 + 12345) % 2147483648; return seed / 2147483648; }
+    function them(mesh, x, y, z, rx, ry, rz){
+      mesh.position.set(x, y, z);
+      if(rx) mesh.rotation.x = rx;
+      if(ry) mesh.rotation.y = ry;
+      if(rz) mesh.rotation.z = rz;
+      mesh.castShadow = true; nhom.add(mesh);
+      return mesh;
+    }
+    function hop(w, h, d, mat){ return new THREE.Mesh(new THREE.BoxGeometry(w, h, d), mat); }
+    function cau(r, mat){ return new THREE.Mesh(new THREE.SphereGeometry(r, 10, 8), mat); }
+    /* Texture bang ten nho: nen go + vien vang, ten cay to + cong dung 1 dong. */
+    function textureBangTen(ten, dung){
+      const c = document.createElement('canvas'); c.width = 512; c.height = 288;
+      const g = c.getContext('2d');
+      const grd = g.createLinearGradient(0, 0, 0, 288);
+      grd.addColorStop(0, '#7A4A21'); grd.addColorStop(1, '#5D3517');
+      g.fillStyle = grd; g.fillRect(0, 0, 512, 288);
+      g.strokeStyle = '#C9A227'; g.lineWidth = 10; g.strokeRect(8, 8, 496, 272);
+      g.textAlign = 'center'; g.textBaseline = 'middle';
+      g.fillStyle = '#E8C95A';
+      let fs = 64; g.font = '800 ' + fs + 'px "Be Vietnam Pro", Arial, sans-serif';
+      while (g.measureText(ten).width > 460 && fs > 36) { fs -= 4; g.font = '800 ' + fs + 'px "Be Vietnam Pro", Arial, sans-serif'; }
+      g.fillText(ten, 256, 96);
+      g.fillStyle = 'rgba(232,201,90,0.7)'; g.fillRect(76, 150, 360, 3);
+      g.fillStyle = '#FDF6E3';
+      let fs2 = 40; g.font = '700 ' + fs2 + 'px "Be Vietnam Pro", Arial, sans-serif';
+      while (g.measureText(dung).width > 460 && fs2 > 26) { fs2 -= 2; g.font = '700 ' + fs2 + 'px "Be Vietnam Pro", Arial, sans-serif'; }
+      g.fillText(dung, 256, 212);
+      return new THREE.CanvasTexture(c);
+    }
+    /* Texture bien chinh vuon thuoc nam. */
+    function textureBienThuoc(){
+      const c = document.createElement('canvas'); c.width = 1024; c.height = 576;
+      const g = c.getContext('2d');
+      const grd = g.createLinearGradient(0, 0, 0, 576);
+      grd.addColorStop(0, '#7A4A21'); grd.addColorStop(1, '#5D3517');
+      g.fillStyle = grd; g.fillRect(0, 0, 1024, 576);
+      g.strokeStyle = '#C9A227'; g.lineWidth = 14; g.strokeRect(10, 10, 1004, 556);
+      g.strokeStyle = 'rgba(232,201,90,0.55)'; g.lineWidth = 4; g.strokeRect(26, 26, 972, 524);
+      g.textAlign = 'center'; g.textBaseline = 'middle';
+      g.fillStyle = '#E8C95A';
+      let fsT = 84; g.font = '800 ' + fsT + 'px "Be Vietnam Pro", Arial, sans-serif';
+      while (g.measureText('VƯỜN THUỐC NAM').width > 920 && fsT > 44) { fsT -= 4; g.font = '800 ' + fsT + 'px "Be Vietnam Pro", Arial, sans-serif'; }
+      g.fillText('VƯỜN THUỐC NAM', 512, 86);
+      g.fillStyle = 'rgba(232,201,90,0.7)'; g.fillRect(112, 140, 800, 4);
+      const dong = [
+        'Cây dược liệu quanh ta',
+        'Học sinh tự trồng · Tự chăm sóc',
+        'Nhìn cây · Đọc tên · Nhớ công dụng'
+      ];
+      g.textAlign = 'left';
+      dong.forEach((d, i) => {
+        const y = 226 + i * 100;
+        g.fillStyle = '#E8C95A';
+        g.beginPath(); g.arc(92, y, 14, 0, Math.PI * 2); g.fill();
+        g.fillStyle = '#FDF6E3';
+        let fs = 48; g.font = '800 ' + fs + 'px "Be Vietnam Pro", Arial, sans-serif';
+        while (g.measureText(d).width > 830 && fs > 30) { fs -= 2; g.font = '800 ' + fs + 'px "Be Vietnam Pro", Arial, sans-serif'; }
+        g.fillText(d, 128, y);
+      });
+      return new THREE.CanvasTexture(c);
+    }
+
+    /* --- Nen dat 13x10 + 6 luong. --- */
+    them(hop(13, 0.12, 10, datMat), CX, 0.06, CZ);
+    const luong = [
+      {x: 4.7, z: 44.0, loai: 'tiaTo'},
+      {x: 9.0, z: 44.0, loai: 'kinhGioi'},
+      {x: 13.3, z: 44.0, loai: 'hungChanh'},
+      {x: 4.7, z: 48.2, loai: 'sa'},
+      {x: 9.0, z: 48.2, loai: 'gung'},
+      {x: 13.3, z: 48.2, loai: 'nghe'}
+    ];
+    luong.forEach(L => { them(hop(3.5, 0.28, 0.9, luongMat), L.x, 0.26, L.z); });
+    /* --- Cay: 6 cay/luong, hinh dang rieng tung loai. --- */
+    luong.forEach(L => {
+      for(let i = 0; i < 6; i++){
+        const x = L.x - 1.45 + i * 0.58 + (rnd() - 0.5) * 0.1;
+        const z = L.z + (rnd() - 0.5) * 0.25;
+        if(L.loai === 'tiaTo'){
+          const la1 = them(cau(0.2, tiaToMat), x - 0.08, 0.5, z);
+          la1.scale.set(1, 0.65, 1);
+          const la2 = them(cau(0.18, tiaToXanhMat), x + 0.1, 0.5, z + 0.05);
+          la2.scale.set(1, 0.65, 1);
+        } else if(L.loai === 'kinhGioi'){
+          const la1 = them(cau(0.21, kinhGioiMat), x, 0.52, z);
+          la1.scale.set(1, 0.7, 1);
+          const la2 = them(cau(0.12, kinhGioiNhatMat), x + 0.08, 0.62, z - 0.06);
+          la2.scale.set(1, 0.7, 1);
+        } else if(L.loai === 'hungChanh'){
+          const la1 = them(cau(0.19, hungMat), x - 0.07, 0.5, z);
+          la1.scale.set(1, 0.7, 1);
+          const la2 = them(cau(0.17, hungDamMat), x + 0.09, 0.5, z + 0.04);
+          la2.scale.set(1, 0.7, 1);
+        } else if(L.loai === 'sa'){
+          for(let k = 0; k < 5; k++){
+            const a = (k / 5) * Math.PI * 2;
+            const la = them(hop(0.035, 0.75, 0.07, saMat),
+              x + Math.cos(a) * 0.09, 0.72, z + Math.sin(a) * 0.09,
+              Math.sin(a) * 0.35, 0, -Math.cos(a) * 0.35);
+          }
+        } else if(L.loai === 'gung'){
+          const bui = them(cau(0.21, gungMat), x, 0.52, z);
+          bui.scale.set(1, 0.75, 1);
+          const non = them(cau(0.1, gungNonMat), x + 0.1, 0.62, z - 0.08);
+          non.scale.set(1, 0.8, 1);
+        } else { /* nghe */
+          const bui = them(cau(0.21, ngheMat), x, 0.52, z);
+          bui.scale.set(1, 0.75, 1);
+          them(cau(0.08, ngheHoaMat), x + 0.09, 0.66, z + 0.06);
+        }
+      }
+    });
+    /* --- Bang ten nho o dau nam moi luong, mat ve nam (ve cong/quang truong). --- */
+    const bangTen = [
+      {x: 4.7, z: 43.25, ten: 'TÍA TÔ', dung: 'Trị cảm · Giải độc'},
+      {x: 9.0, z: 43.25, ten: 'KINH GIỚI', dung: 'Trị cảm · Chữa dị ứng'},
+      {x: 13.3, z: 43.25, ten: 'HÚNG CHANH', dung: 'Trị ho · Long đờm'},
+      {x: 4.7, z: 47.45, ten: 'SẢ', dung: 'Giải cảm · Đuổi muỗi'},
+      {x: 9.0, z: 47.45, ten: 'GỪNG', dung: 'Ấm bụng · Chống nôn'},
+      {x: 13.3, z: 47.45, ten: 'NGHỆ', dung: 'Lành vết thương · Đẹp da'}
+    ];
+    bangTen.forEach(B => {
+      [-0.26, 0.26].forEach(dx => {
+        them(hop(0.05, 0.5, 0.05, goDamMat), B.x + dx, 0.25, B.z);
+      });
+      them(hop(0.62, 0.42, 0.04, goDamMat), B.x, 0.52, B.z);
+      const mat = new THREE.MeshStandardMaterial({map: textureBangTen(B.ten, B.dung), roughness: 0.6});
+      const bang = new THREE.Mesh(new THREE.PlaneGeometry(0.58, 0.38), mat);
+      bang.position.set(B.x, 0.52, B.z - 0.03); bang.rotation.y = Math.PI;
+      bang.castShadow = true; nhom.add(bang);
+    });
+    /* --- Hang rao tre thap quanh vuon, cong mo 1.6m giua canh nam. --- */
+    const X0 = 2.5, X1 = 15.5, ZN = 41, ZB = 51;
+    function cocTre(x, z, h){
+      them(new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.035, h, 8), treMat), x, h / 2, z);
+    }
+    for(let x = 3.3; x <= 14.71; x += 0.8){
+      cocTre(x, ZB, 0.65);
+      if(Math.abs(x - 9) >= 0.9) cocTre(x, ZN, 0.65);
+    }
+    for(let z = 41.8; z <= 50.21; z += 0.8){
+      cocTre(X0, z, 0.65);
+      cocTre(X1, z, 0.65);
+    }
+    function thanhNgang(x, y, z, dai, doc){
+      const t = new THREE.Mesh(new THREE.CylinderGeometry(0.035, 0.035, dai, 8), treDamMat);
+      if(doc) t.rotation.x = Math.PI / 2; else t.rotation.z = Math.PI / 2;
+      them(t, x, y, z);
+    }
+    [0.25, 0.5].forEach(y => {
+      thanhNgang(CX, y, ZB, 13, false);
+      thanhNgang(5.35, y, ZN, 6.5, false);
+      thanhNgang(12.65, y, ZN, 6.5, false);
+      thanhNgang(X0, y, CZ, 10, true);
+      thanhNgang(X1, y, CZ, 10, true);
+    });
+    [[X0, ZN], [X1, ZN], [X0, ZB], [X1, ZB]].forEach(p => {
+      them(new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.06, 0.85, 8), treDamMat), p[0], 0.425, p[1]);
+    });
+    [8.2, 9.8].forEach(x => {
+      them(new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.06, 0.95, 8), treDamMat), x, 0.475, ZN);
+    });
+    /* --- Bien chinh go o ngoai hang rao nam, mat ve nam. --- */
+    const SX = 6.6, SZ = 40.7;
+    [-0.95, 0.95].forEach(dx => {
+      them(hop(0.12, 1.9, 0.12, goDamMat), SX + dx, 0.95, SZ);
+      them(hop(0.34, 0.14, 0.34, daMat), SX + dx, 0.07, SZ);
+      them(cau(0.09, vangMat), SX + dx, 1.97, SZ);
+    });
+    them(hop(2.2, 1.2, 0.06, goDamMat), SX, 1.25, SZ);
+    const texBien = textureBienThuoc();
+    const matBien = new THREE.MeshStandardMaterial({map: texBien, roughness: 0.6});
+    const matNamB = new THREE.Mesh(new THREE.PlaneGeometry(2.1, 1.14), matBien);
+    matNamB.position.set(SX, 1.25, SZ - 0.04); matNamB.rotation.y = Math.PI; matNamB.castShadow = true; nhom.add(matNamB);
+    const matBacB = new THREE.Mesh(new THREE.PlaneGeometry(2.1, 1.14), matBien);
+    matBacB.position.set(SX, 1.25, SZ + 0.04); matBacB.castShadow = true; nhom.add(matBacB);
+    /* --- Loi di da phang giua 2 hang luong (z=46.1). --- */
+    [3.4, 5.6, 7.8, 10.2, 12.4, 14.6].forEach(x => {
+      them(new THREE.Mesh(new THREE.CylinderGeometry(0.42, 0.45, 0.07, 10), daMat), x, 0.155, 46.1);
+    });
+    /* --- Coi gia thuoc bang da o goc dong-bac trong vuon. --- */
+    them(new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.26, 0.32, 14), daXamMat), 14.7, 0.28, 50.2);
+    const chay = them(new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.06, 0.7, 8), goDamMat), 14.7, 0.55, 50.2);
+    chay.rotation.z = 0.5;
+    /* --- 2 chau hoa 2 ben cong + 1 cay nho goc tay-bac. --- */
+    [[7.8, 41.4], [10.2, 41.4]].forEach((p, i) => {
+      them(new THREE.Mesh(new THREE.CylinderGeometry(0.22, 0.22, 0.3, 12), chauMat), p[0], 0.15, p[1]);
+      for(let k = 0; k < 3; k++){
+        const a = (k / 3) * Math.PI * 2 + i;
+        them(cau(0.09, mauHoa[(k + i) % 3]), p[0] + Math.cos(a) * 0.12, 0.54, p[1] + Math.sin(a) * 0.12);
+      }
+    });
+    them(new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.07, 1.1, 8), thanMat), 3.2, 0.55, 50.2);
+    const tan = them(cau(0.75, gungMat), 3.2, 1.5, 50.2);
+    tan.scale.set(1, 0.85, 1);
+    them(cau(0.45, ngheMat), 3.2, 2.0, 50.2);
+
+    nhom.traverse(o=>{ o.userData.doiDoHoa = 20; });
+    sceneCity.add(nhom);
+  })();
+
+/* DOI-DO-HOA #21 (25/11, muc 20): Quang truong lat gach hoa van + vong
+     tron giua san (noi tap trung chao co). Lop lat moi 28x28 o y=0.06
+     tren mat san cu: gach 2m xen ke kem / dat nung nhat, moi vien co
+     kim cuong o giua, mach gach nau; dia tron giua san tam sang hon
+     (r 5.58m) quanh dai phun + bon hoa, vong vang + vong do mong; vien
+     navy 1m + chi vang quanh san. Vong vang 3D (5.02..5.45m) vang kim
+     loai o y=0.065 lam vong tron noi ro. Mat phang, khong chan loi
+     doan / lo trinh robot, khong che thap / bien KHOI / san khau khen. */
+  (function(){
+    const nhom = new THREE.Group();
+    function textureQuangTruongMoi(){
+      const c = document.createElement('canvas'); c.width = 1024; c.height = 1024;
+      const g = c.getContext('2d');
+      const T = 1024 / 14; /* vien gach 2m */
+      /* Gach 2m xen ke kem / dat nung nhat. */
+      for(let i = 0; i < 14; i++) for(let j = 0; j < 14; j++){
+        g.fillStyle = ((i + j) % 2 === 0) ? '#EFE3C8' : '#DCA964';
+        g.fillRect(i * T, j * T, T, T);
+      }
+      /* Mach gach. */
+      g.strokeStyle = 'rgba(120,85,40,0.5)'; g.lineWidth = 3;
+      for(let k = 0; k <= 14; k++){
+        g.beginPath(); g.moveTo(k * T, 0); g.lineTo(k * T, 1024); g.stroke();
+        g.beginPath(); g.moveTo(0, k * T); g.lineTo(1024, k * T); g.stroke();
+      }
+      /* Hoa van kim cuong giua moi vien gach. */
+      for(let i = 0; i < 14; i++) for(let j = 0; j < 14; j++){
+        const cx = i * T + T / 2, cy = j * T + T / 2, r = 15;
+        g.beginPath();
+        g.moveTo(cx, cy - r); g.lineTo(cx + r, cy);
+        g.lineTo(cx, cy + r); g.lineTo(cx - r, cy);
+        g.closePath();
+        if((i + j) % 2 === 1){ g.fillStyle = 'rgba(201,162,39,0.9)'; g.fill(); }
+        else { g.strokeStyle = 'rgba(180,140,80,0.8)'; g.lineWidth = 3; g.stroke(); }
+      }
+      /* Dom da mem. */
+      let hat = 987654321;
+      const nn = function(){ hat = (hat * 1664525 + 1013904223) >>> 0; return hat / 4294967296; };
+      for(let i = 0; i < 1800; i++){
+        const a = nn() * Math.PI * 2, r = Math.sqrt(nn()) * 500;
+        const x = 512 + Math.cos(a) * r, y = 512 + Math.sin(a) * r;
+        g.fillStyle = nn() < 0.5 ? 'rgba(255,240,210,0.06)' : 'rgba(90,55,20,0.06)';
+        g.beginPath(); g.arc(x, y, 1 + nn() * 2.6, 0, Math.PI * 2); g.fill();
+      }
+      /* Dia tron giua san tam sang hon (r 5.58m) quanh dai phun + bon hoa. */
+      const dia = g.createRadialGradient(512, 512, 20, 512, 512, 204);
+      dia.addColorStop(0, '#F8EED6'); dia.addColorStop(1, '#EEDCB6');
+      g.fillStyle = dia;
+      g.beginPath(); g.arc(512, 512, 204, 0, Math.PI * 2); g.fill();
+      /* Vong vang (5.14..5.58m) + vong do mong ben trong (r 4.92m). */
+      g.strokeStyle = '#C9A227'; g.lineWidth = 16;
+      g.beginPath(); g.arc(512, 512, 196, 0, Math.PI * 2); g.stroke();
+      g.strokeStyle = '#C0392B'; g.lineWidth = 4;
+      g.beginPath(); g.arc(512, 512, 180, 0, Math.PI * 2); g.stroke();
+      /* Vien navy 1m quanh san + chi vang ben trong. */
+      g.strokeStyle = '#1F2A44'; g.lineWidth = 36;
+      g.strokeRect(18, 18, 988, 988);
+      g.strokeStyle = '#C9A227'; g.lineWidth = 5;
+      g.strokeRect(40, 40, 944, 944);
+      return new THREE.CanvasTexture(c);
+    }
+    /* --- Lop lat gach hoa van 28x28. --- */
+    const lat = new THREE.Mesh(
+      new THREE.PlaneGeometry(28, 28),
+      new THREE.MeshStandardMaterial({map: textureQuangTruongMoi(), roughness: 0.85})
+    );
+    lat.rotation.x = -Math.PI / 2; lat.position.y = 0.06; lat.receiveShadow = true;
+    nhom.add(lat);
+    /* --- Vong vang 3D (5.02..5.45m) vang kim loai, noi tren vong texture. --- */
+    const vong = new THREE.Mesh(
+      new THREE.RingGeometry(5.02, 5.45, 64),
+      new THREE.MeshStandardMaterial({color: 0xC9A227, roughness: 0.35, metalness: 0.6})
+    );
+    vong.rotation.x = -Math.PI / 2; vong.position.y = 0.065; vong.receiveShadow = true;
+    nhom.add(vong);
+
+    nhom.traverse(o=>{ o.userData.doiDoHoa = 21; });
+    sceneCity.add(nhom);
+  })();
+
+/* DOI-DO-HOA #22 (25/11, muc 21): Cong chao nho + hang cay xanh doc
+     duong vao tu cong khu toi quang truong (cay phuong / bang lang).
+     Cong chao (0,-12.2) ngay trong cong khu PH1: 2 tru trang cao 4.6m
+     x=+-2.7, de vang + qua cau vang, dam vang, bien 2 mat 'CHAO MUNG /
+     DEN VOI THUNG LUNG AI' y 3.6..4.5 (dat cao de khong che bien cong
+     khu), vong hoa tren dam, 2 chau hoa 2 chan tru. Hang cay: 8 cay nho
+     cao ~3.2m, x=+-6.0, z=-12,-9,-6,-2.5, xen ke phuong (hoa do) /
+     bang lang (hoa tim). Khong chan loi doan / lo trinh robot / ghe go /
+     hoc sinh dung; khong che thap dong ho / bien KHOI / san khau khen. */
+  (function(){
+    const nhom = new THREE.Group();
+    const YSAN = 0.06; /* mat gach quang truong */
+    const truMat = new THREE.MeshStandardMaterial({color:0xF2E8D5, roughness:0.7});
+    const vangMat = new THREE.MeshStandardMaterial({color:0xC9A227, roughness:0.35, metalness:0.6});
+    const goMat = new THREE.MeshStandardMaterial({color:0x8B6F47, roughness:0.85});
+    const thanMat = new THREE.MeshStandardMaterial({color:0x6B4423, roughness:0.9});
+    const datMat = new THREE.MeshStandardMaterial({color:0x4A3220, roughness:1});
+    /* --- Bien cong chao 2 mat (canvas rieng, ti le 4.8 x 0.9). --- */
+    function textureBienChao(){
+      const c = document.createElement('canvas'); c.width = 2048; c.height = 384;
+      const g = c.getContext('2d');
+      const grd = g.createLinearGradient(0, 0, 0, 384);
+      grd.addColorStop(0, '#1F2A44'); grd.addColorStop(1, '#0B1220');
+      g.fillStyle = grd; g.fillRect(0, 0, 2048, 384);
+      g.strokeStyle = '#C9A227'; g.lineWidth = 22; g.strokeRect(14, 14, 2020, 356);
+      g.strokeStyle = 'rgba(232,201,90,0.55)'; g.lineWidth = 5; g.strokeRect(34, 34, 1980, 316);
+      g.textAlign = 'center'; g.textBaseline = 'middle';
+      g.fillStyle = '#E8C95A';
+      let fs1 = 168; g.font = '800 ' + fs1 + 'px "Be Vietnam Pro", Arial, sans-serif';
+      while (g.measureText('CHÀO MỪNG').width > 1900 && fs1 > 60) { fs1 -= 4; g.font = '800 ' + fs1 + 'px "Be Vietnam Pro", Arial, sans-serif'; }
+      g.fillText('CHÀO MỪNG', 1024, 118);
+      g.fillStyle = '#FDF6E3';
+      let fs2 = 118; g.font = '800 ' + fs2 + 'px "Be Vietnam Pro", Arial, sans-serif';
+      while (g.measureText('ĐẾN VỚI THUNG LŨNG AI').width > 1900 && fs2 > 40) { fs2 -= 4; g.font = '800 ' + fs2 + 'px "Be Vietnam Pro", Arial, sans-serif'; }
+      g.fillText('ĐẾN VỚI THUNG LŨNG AI', 1024, 272);
+      return new THREE.CanvasTexture(c);
+    }
+    /* --- Cong chao nho (tam 0,-12.2). --- */
+    const cong = new THREE.Group();
+    cong.position.set(0, 0, -12.2);
+    [-2.7, 2.7].forEach(x=>{
+      const de = new THREE.Mesh(new THREE.BoxGeometry(0.7, 0.35, 0.7), vangMat);
+      de.position.set(x, YSAN + 0.175, 0); de.castShadow = true; cong.add(de);
+      const tru = new THREE.Mesh(new THREE.BoxGeometry(0.5, 4.6, 0.5), truMat);
+      tru.position.set(x, YSAN + 0.35 + 2.3, 0); tru.castShadow = true; cong.add(tru);
+      const cau = new THREE.Mesh(new THREE.SphereGeometry(0.3, 12, 10), vangMat);
+      cau.position.set(x, YSAN + 4.95 + 0.25, 0); cau.castShadow = true; cong.add(cau);
+    });
+    const dam = new THREE.Mesh(new THREE.BoxGeometry(5.9, 0.45, 0.4), vangMat);
+    dam.position.set(0, YSAN + 4.725, 0); dam.castShadow = true; cong.add(dam);
+    const lungBien = new THREE.Mesh(new THREE.BoxGeometry(4.8, 0.9, 0.08),
+      new THREE.MeshStandardMaterial({color:0x1F2A44, roughness:0.7}));
+    lungBien.position.set(0, YSAN + 4.05, 0); cong.add(lungBien);
+    const texChao = textureBienChao();
+    const bienBac = new THREE.Mesh(new THREE.PlaneGeometry(4.8, 0.9),
+      new THREE.MeshBasicMaterial({map:texChao}));
+    bienBac.position.set(0, YSAN + 4.05, 0.05); cong.add(bienBac);
+    const bienNam = new THREE.Mesh(new THREE.PlaneGeometry(4.8, 0.9),
+      new THREE.MeshBasicMaterial({map:texChao}));
+    bienNam.position.set(0, YSAN + 4.05, -0.05); bienNam.rotation.y = Math.PI; cong.add(bienNam);
+    /* Vong hoa 7 bong tren dam (do / vang xen ke). */
+    const hoaDo = new THREE.MeshStandardMaterial({color:0xE53935, roughness:0.6});
+    const hoaVang = new THREE.MeshStandardMaterial({color:0xF9C74F, roughness:0.6});
+    for(let i = 0; i < 7; i++){
+      const hoa = new THREE.Mesh(new THREE.SphereGeometry(0.12, 10, 8), i % 2 === 0 ? hoaDo : hoaVang);
+      hoa.position.set(-2.4 + i * 0.8, YSAN + 5.01, 0); cong.add(hoa);
+    }
+    /* 2 chau hoa 2 chan tru (ngoai tru). */
+    [-3.35, 3.35].forEach(x=>{
+      const chau = new THREE.Mesh(new THREE.CylinderGeometry(0.28, 0.22, 0.35, 12),
+        new THREE.MeshStandardMaterial({color:0xB5651D, roughness:0.85}));
+      chau.position.set(x, YSAN + 0.175, 0); chau.castShadow = true; cong.add(chau);
+      const bui = new THREE.Mesh(new THREE.SphereGeometry(0.3, 10, 8),
+        new THREE.MeshStandardMaterial({color:0x3E7A34, roughness:0.9}));
+      bui.position.set(x, YSAN + 0.5, 0); bui.scale.y = 0.85; cong.add(bui);
+      for(let i = 0; i < 3; i++){
+        const a = i / 3 * Math.PI * 2 + 0.5;
+        const hoa = new THREE.Mesh(new THREE.SphereGeometry(0.07, 8, 6), i % 2 === 0 ? hoaDo : hoaVang);
+        hoa.position.set(x + Math.cos(a) * 0.2, YSAN + 0.68, Math.sin(a) * 0.2); cong.add(hoa);
+      }
+    });
+    nhom.add(cong);
+    /* --- Hang cay phuong / bang lang (8 cay nho). --- */
+    function taoCay(loai){
+      const cay = new THREE.Group();
+      const laMat = new THREE.MeshStandardMaterial({color: loai === 'phuong' ? 0x2F7D32 : 0x3A7D44, roughness:0.85});
+      const hoaMat = new THREE.MeshStandardMaterial({color: loai === 'phuong' ? 0xE53935 : 0x9B59B6, roughness:0.6});
+      const dat = new THREE.Mesh(new THREE.CircleGeometry(0.55, 16), datMat);
+      dat.rotation.x = -Math.PI / 2; dat.position.y = 0.01; cay.add(dat);
+      const than = new THREE.Mesh(new THREE.CylinderGeometry(0.13, 0.19, 1.5, 8), thanMat);
+      than.position.y = 0.75; than.castShadow = true; cay.add(than);
+      [[0, 2.35, 0, 0.95], [0.55, 2.0, 0.2, 0.65], [-0.5, 2.05, -0.25, 0.6]].forEach(p=>{
+        const la = new THREE.Mesh(new THREE.SphereGeometry(p[3], 12, 10), laMat);
+        la.position.set(p[0], p[1], p[2]); la.castShadow = true; cay.add(la);
+      });
+      for(let i = 0; i < 8; i++){
+        const a = i / 8 * Math.PI * 2 + 0.3;
+        const hoa = new THREE.Mesh(new THREE.SphereGeometry(0.09, 8, 6), hoaMat);
+        hoa.position.set(Math.cos(a) * 0.85, 2.45 + 0.3 * Math.sin(a * 2), Math.sin(a) * 0.85);
+        cay.add(hoa);
+      }
+      return cay;
+    }
+    const viTriCay = [];
+    [-12, -9, -6, -2.5].forEach((z, i)=>{
+      viTriCay.push([-6.0, z, i % 2 === 0 ? 'phuong' : 'banglang']);
+      viTriCay.push([6.0, z, i % 2 === 0 ? 'phuong' : 'banglang']);
+    });
+    viTriCay.forEach(v=>{
+      const cay = taoCay(v[2]);
+      cay.position.set(v[0], YSAN, v[1]);
+      nhom.add(cay);
+    });
+
+    nhom.traverse(o=>{ o.userData.doiDoHoa = 22; });
+    sceneCity.add(nhom);
+  })();
+
 [[-6.5,-13],[6.5,-13],[-6.5,13],[6.5,13]].forEach(p=>{ /* fix5: ghe theo quang truong 28x28 */
     const ghe = new THREE.Group();
     const matGhe = new THREE.Mesh(new THREE.BoxGeometry(2.4, 0.12, 0.65), new THREE.MeshStandardMaterial({color:0x8A7A5A, roughness:0.8}));
@@ -20017,6 +20458,7 @@ function capNhatCameraTour(dt){
 · v32: GOP AO SEN MUC 17
 v33: SUA BIEN AO SEN - DOI 2 COT RA NGOAI MEP BIEN
 v34: GOP NHA KHO DUNG CU THE THAO MUC 18
+v35: GOP VUON THUOC NAM MUC 19 + QUANG TRUONG GACH HOA VAN MUC 20 + CONG CHAO + HANG CAY MUC 21
 · v26a: SUA BIEN CONG (dong 1 gioi han 1500px, het cat chu T/H)
 · v26b: TACH CUA SO TRON (nhom cuaSoXe luon hien; sua loi an cua so khi xuong xe)
 · v26c: GIU BONG BONG TRAM (gan lai khi doan dung lai do doi lop bat dong bo) =================
