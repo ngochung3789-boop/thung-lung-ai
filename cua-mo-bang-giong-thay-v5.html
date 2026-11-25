@@ -7114,6 +7114,739 @@ function dungThanhPho(){
     sceneCity.add(nhom);
   })();
 
+/* DOI-DO-HOA #23 (25/11, muc 22): Khu de xe dap cua hoc sinh gan phan hieu 1.
+     Tam (-23,-11), phia tay quang truong, ngay trong cong khu PH1; nen be tong
+     9.6x5.0m, 6 cot thep, mai ton xanh la nghieng nhe, 2 day gia chu U + 10 xe
+     dap nhieu mau (day bac dau huong bac, day nam dau huong nam); bien go 2 mat
+     'KHU DE XE DAP / Hoc sinh · Phan hieu 1' phia dong, mat ve cong khu; 2 chau
+     hoa + 1 cay nho. Khong chan loi doan qua cong PH1 (cach 18,5m), ben do xe
+     buyt, san khau khen, ghe da, lo trinh robot; hoc sinh dung cach mep bac 1m. */
+  (function(){
+    const nhom = new THREE.Group();
+    const YSAN = 0.04; /* dia hinh tai (-23,-11) */
+    const beMat = new THREE.MeshStandardMaterial({color:0xC9C2B4, roughness:0.95});
+    const thepMat = new THREE.MeshStandardMaterial({color:0x4A6B8A, roughness:0.4, metalness:0.6});
+    const tonMat = new THREE.MeshStandardMaterial({color:0x2E7D32, roughness:0.45, metalness:0.35});
+    const vienMat = new THREE.MeshStandardMaterial({color:0xF2E8D5, roughness:0.7});
+    const vangMat = new THREE.MeshStandardMaterial({color:0xC9A227, roughness:0.35, metalness:0.6});
+    const denMat = new THREE.MeshStandardMaterial({color:0x222222, roughness:0.6});
+    const bacMat = new THREE.MeshStandardMaterial({color:0xC0C0C0, roughness:0.3, metalness:0.7});
+    const goMat = new THREE.MeshStandardMaterial({color:0x8B6F47, roughness:0.85});
+    const laMat = new THREE.MeshStandardMaterial({color:0x3E7A34, roughness:0.9});
+    const chauMat = new THREE.MeshStandardMaterial({color:0xA8542E, roughness:0.8});
+    const thanMat = new THREE.MeshStandardMaterial({color:0x6B4423, roughness:0.9});
+    const datMat = new THREE.MeshStandardMaterial({color:0x4A3220, roughness:1});
+    function them(mesh, x, y, z){
+      mesh.position.set(x, y, z); mesh.castShadow = true; nhom.add(mesh);
+      return mesh;
+    }
+    /* Ong noi 2 diem (khung xe dap). */
+    function ong(p1, p2, r, mat){
+      const a = new THREE.Vector3(p1[0], p1[1], p1[2]);
+      const b = new THREE.Vector3(p2[0], p2[1], p2[2]);
+      const d = new THREE.Vector3().subVectors(b, a);
+      const m = new THREE.Mesh(new THREE.CylinderGeometry(r, r, d.length(), 8), mat);
+      m.position.copy(a).addScaledVector(d, 0.5);
+      m.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), d.clone().normalize());
+      m.castShadow = true; return m;
+    }
+    /* --- Nen + cot + mai. --- */
+    them(new THREE.Mesh(new THREE.BoxGeometry(9.6, 0.1, 5.0), beMat), -23, YSAN + 0.05, -11);
+    [-26.5, -23, -19.5].forEach(x => {
+      [-9.2, -12.8].forEach(z => {
+        them(new THREE.Mesh(new THREE.BoxGeometry(0.18, 2.6, 0.18), thepMat), x, YSAN + 0.1 + 1.3, z);
+      });
+    });
+    const mai = them(new THREE.Mesh(new THREE.BoxGeometry(10.2, 0.12, 5.6), tonMat), -23, YSAN + 2.82, -11);
+    mai.rotation.x = 0.05;
+    them(new THREE.Mesh(new THREE.BoxGeometry(10.2, 0.14, 0.12), vienMat), -23, YSAN + 2.76, -8.26);
+    them(new THREE.Mesh(new THREE.BoxGeometry(10.2, 0.14, 0.12), vienMat), -23, YSAN + 2.9, -13.74);
+    /* --- Xe dap: 2 banh + khung ong + ghi dong + yen (nhu khoi #8). --- */
+    function taoXeDap(mauThan){
+      const g = new THREE.Group();
+      const thanXe = new THREE.MeshStandardMaterial({color:mauThan, roughness:0.5, metalness:0.4});
+      [-0.55, 0.55].forEach(z => {
+        const b = new THREE.Mesh(new THREE.TorusGeometry(0.34, 0.03, 8, 20), denMat);
+        b.position.set(0, 0.34, z); b.rotation.y = Math.PI / 2; b.castShadow = true; g.add(b);
+        const nan = new THREE.Mesh(new THREE.CylinderGeometry(0.015, 0.015, 0.62, 6), bacMat);
+        nan.position.set(0, 0.34, z); nan.rotation.x = Math.PI / 2; g.add(nan);
+      });
+      g.add(ong([0, 0.34, -0.55], [0, 0.85, -0.15], 0.025, thanXe));
+      g.add(ong([0, 0.85, -0.15], [0, 0.82, 0.45], 0.025, thanXe));
+      g.add(ong([0, 0.35, 0.05], [0, 0.34, -0.55], 0.025, thanXe));
+      g.add(ong([0, 0.35, 0.05], [0, 0.85, -0.15], 0.025, thanXe));
+      g.add(ong([0, 0.35, 0.05], [0, 0.7, 0.48], 0.025, thanXe));
+      g.add(ong([0, 0.7, 0.48], [0, 0.34, 0.55], 0.02, bacMat));
+      const ghiDong = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, 0.5, 8), bacMat);
+      ghiDong.rotation.z = Math.PI / 2; ghiDong.position.set(0, 0.95, 0.48); ghiDong.castShadow = true; g.add(ghiDong);
+      const yen = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.04, 0.26), denMat);
+      yen.position.set(0, 0.88, -0.15); yen.castShadow = true; g.add(yen);
+      const banDap = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.04, 0.08), denMat);
+      banDap.position.set(0, 0.35, 0.05); g.add(banDap);
+      return g;
+    }
+    /* --- 2 day gia chu U + 10 xe dap. --- */
+    const mauXe = [0xC0392B, 0x2471A3, 0x1E8449, 0xF39C12, 0x8E44AD, 0x16A085, 0xD35400, 0x2C3E50, 0x00ACC1, 0xF06292];
+    mauXe.forEach((mau, i) => {
+      const dayBac = i < 5;
+      const x = -26.3 + (i % 5) * 1.7;
+      const zXe = dayBac ? -9.9 : -12.1;
+      const zGia = dayBac ? -8.9 : -13.1;
+      const gia = new THREE.Mesh(new THREE.TorusGeometry(0.22, 0.025, 8, 16, Math.PI), bacMat);
+      gia.position.set(x, YSAN + 0.1, zGia); gia.castShadow = true; nhom.add(gia);
+      const xe = taoXeDap(mau);
+      xe.position.set(x, YSAN + 0.1, zXe);
+      xe.rotation.y = dayBac ? (i % 2 === 0 ? 0.06 : -0.06) : Math.PI + (i % 2 === 0 ? 0.06 : -0.06);
+      xe.traverse(o => { o.castShadow = true; }); nhom.add(xe);
+    });
+    /* --- Bien go 2 mat phia dong, mat ve cong khu PH1 (huong +x). --- */
+    [-12.4, -9.6].forEach(z => {
+      them(new THREE.Mesh(new THREE.BoxGeometry(0.12, 1.9, 0.12), goMat), -17.6, YSAN + 0.95, z);
+    });
+    const lungBien = new THREE.Mesh(new THREE.BoxGeometry(0.06, 1.0, 3.2),
+      new THREE.MeshStandardMaterial({color:0x1F4E79, roughness:0.7}));
+    lungBien.position.set(-17.6, YSAN + 2.15, -11); nhom.add(lungBien);
+    const texBien = textureBien('KHU ĐỂ XE ĐẠP', 'Học sinh · Phân hiệu 1', '#1F4E79');
+    const bienDong = new THREE.Mesh(new THREE.PlaneGeometry(3.2, 1.0),
+      new THREE.MeshStandardMaterial({map:texBien, roughness:0.6}));
+    bienDong.position.set(-17.56, YSAN + 2.15, -11); bienDong.rotation.y = Math.PI / 2;
+    bienDong.castShadow = true; nhom.add(bienDong);
+    const bienTay = new THREE.Mesh(new THREE.PlaneGeometry(3.2, 1.0),
+      new THREE.MeshStandardMaterial({map:texBien, roughness:0.6}));
+    bienTay.position.set(-17.64, YSAN + 2.15, -11); bienTay.rotation.y = -Math.PI / 2;
+    bienTay.castShadow = true; nhom.add(bienTay);
+    /* --- 2 chau hoa 2 goc dong cua nen. --- */
+    [[-18.6, -9.0], [-18.6, -13.0]].forEach(p => {
+      them(new THREE.Mesh(new THREE.CylinderGeometry(0.32, 0.24, 0.45, 12), chauMat), p[0], YSAN + 0.32, p[1]);
+      const bui = new THREE.Mesh(new THREE.SphereGeometry(0.3, 10, 8), laMat);
+      bui.position.set(p[0], YSAN + 0.68, p[1]); bui.scale.y = 0.85; bui.castShadow = true; nhom.add(bui);
+      [[0xE74C3C, 0], [0xF1C40F, 0.12], [0xE91E63, -0.12]].forEach(f => {
+        const bong = new THREE.Mesh(new THREE.SphereGeometry(0.11, 8, 6),
+          new THREE.MeshStandardMaterial({color:f[0], roughness:0.7}));
+        bong.position.set(p[0] + f[1], YSAN + 0.95, p[1]); bong.castShadow = true; nhom.add(bong);
+      });
+    });
+    /* --- 1 cay nho goc tay-bac, ngoai nha xe. --- */
+    const cay = new THREE.Group();
+    cay.position.set(-28.3, YSAN, -11);
+    const datCay = new THREE.Mesh(new THREE.CircleGeometry(0.55, 16), datMat);
+    datCay.rotation.x = -Math.PI / 2; datCay.position.y = 0.01; cay.add(datCay);
+    const thanCay = new THREE.Mesh(new THREE.CylinderGeometry(0.13, 0.19, 1.5, 8), thanMat);
+    thanCay.position.y = 0.75; thanCay.castShadow = true; cay.add(thanCay);
+    [[0, 2.35, 0, 0.95], [0.55, 2.0, 0.2, 0.65], [-0.5, 2.05, -0.25, 0.6]].forEach(p=>{
+      const la = new THREE.Mesh(new THREE.SphereGeometry(p[3], 12, 10), laMat);
+      la.position.set(p[0], p[1], p[2]); la.castShadow = true; cay.add(la);
+    });
+    nhom.add(cay);
+
+    nhom.traverse(o=>{ o.userData.doiDoHoa = 23; });
+    sceneCity.add(nhom);
+  })();
+
+/* DOI-DO-HOA #24 (25/11, muc 23): Vuon hoa hong leo + gian hoa giay o tuong
+     rao phia nam gan cong chinh. Doi xung 2 ben cong (0,-99): vuon dong x 9.6..
+     26.4, vuon tay x -26.4..-9.6, dai trong z -98.7..-94; gian hoa giay doc
+     tuong (z=-98.0) + hong leo tren mat tuong + bon hoa thap + bien go 2 mat
+     'VUON HOA HONG LEO / Gian hoa giay · Tuong nam' dau vuon gan cong. Khong
+     chan loi doan (cach truc duong vao >= 9,6m), nha de xe #8 (cach 10,5m),
+     den long #14 (cach >= 6,4m), lo trinh robot. */
+  (function(){
+    const nhom = new THREE.Group();
+    const goMat = new THREE.MeshStandardMaterial({color:0x8B6F47, roughness:0.85});
+    const goDamMat = new THREE.MeshStandardMaterial({color:0x6B4F2A, roughness:0.85});
+    const laMat = new THREE.MeshStandardMaterial({color:0x3E7A34, roughness:0.9});
+    const laDamMat = new THREE.MeshStandardMaterial({color:0x2E7D32, roughness:0.9});
+    const daMat = new THREE.MeshStandardMaterial({color:0xB8B0A0, roughness:0.95});
+    const datMat = new THREE.MeshStandardMaterial({color:0x4A3220, roughness:1});
+    const thanLeoMat = new THREE.MeshStandardMaterial({color:0x4A6B2A, roughness:0.95});
+    const chauMat = new THREE.MeshStandardMaterial({color:0xA8542E, roughness:0.8});
+    const MAU_GIAY = [0xC2185B, 0x8E24AA, 0xF06292, 0xFDF6E3];
+    const MAU_HONG = [0xC0392B, 0xE91E63, 0xF1C40F, 0xE67E22];
+    function them(mesh, x, y, z){
+      mesh.position.set(x, y, z); mesh.castShadow = true; nhom.add(mesh);
+      return mesh;
+    }
+    function bong(mau, x, y, z, r){
+      const m = new THREE.Mesh(new THREE.SphereGeometry(r, 10, 8),
+        new THREE.MeshStandardMaterial({color:mau, roughness:0.7}));
+      m.position.set(x, y, z); m.castShadow = true; nhom.add(m); return m;
+    }
+    function xayMotBen(s){
+      const cx = 18 * s; /* tam vuon: +18 dong, -18 tay */
+      /* --- Gian hoa giay doc tuong (z=-98.0). --- */
+      [-8.4, -5.6, -2.8, 0, 2.8, 5.6, 8.4].forEach(dx => {
+        them(new THREE.Mesh(new THREE.BoxGeometry(0.14, 2.7, 0.14), goMat), cx + dx, 1.35, -98.0);
+      });
+      them(new THREE.Mesh(new THREE.BoxGeometry(17.6, 0.12, 0.12), goDamMat), cx, 2.7, -98.0);
+      them(new THREE.Mesh(new THREE.BoxGeometry(17.6, 0.1, 0.1), goMat), cx, 1.5, -98.0);
+      [-7.0, -4.2, -1.4, 1.4, 4.2, 7.0].forEach(dx => {
+        them(new THREE.Mesh(new THREE.BoxGeometry(0.06, 1.2, 0.06), goMat), cx + dx, 2.1, -98.0);
+      });
+      /* 12 cum hoa giay tren gian: xen ke do cao 2.25 / 1.85. */
+      [-7.7, -6.3, -4.9, -3.5, -2.1, -0.7, 0.7, 2.1, 3.5, 4.9, 6.3, 7.7].forEach((dx, i) => {
+        const y = (i % 2 === 0) ? 2.25 : 1.85;
+        const mau = MAU_GIAY[i % 4];
+        const cum = bong(mau, cx + dx, y, -98.0, 0.38); cum.scale.y = 0.7;
+        bong(mau, cx + dx - 0.3, y - 0.15, -97.9, 0.22);
+        bong(mau, cx + dx + 0.3, y - 0.1, -98.1, 0.22);
+        bong(mau, cx + dx + 0.05, y + 0.2, -98.0, 0.2);
+      });
+      /* 6 cum la xen ke giua cac cum hoa. */
+      [-7.0, -4.2, -1.4, 1.4, 4.2, 7.0].forEach((dx, i) => {
+        const la = new THREE.Mesh(new THREE.SphereGeometry(0.35, 10, 8), laDamMat);
+        la.position.set(cx + dx, (i % 2 === 0) ? 2.5 : 1.7, -98.0);
+        la.scale.y = 0.7; la.castShadow = true; nhom.add(la);
+      });
+      /* --- Hoa hong leo tren mat tuong (z=-98.55). --- */
+      [-7.5, -4.5, -1.5, 1.5, 4.5, 7.5].forEach((dx, i) => {
+        const x = cx + dx;
+        const than = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.03, 2.0, 6), thanLeoMat);
+        than.position.set(x, 1.0, -98.55); than.castShadow = true; nhom.add(than);
+        const la1 = new THREE.Mesh(new THREE.SphereGeometry(0.18, 8, 6), laMat);
+        la1.position.set(x - 0.15, 0.9, -98.5); la1.castShadow = true; nhom.add(la1);
+        const la2 = new THREE.Mesh(new THREE.SphereGeometry(0.18, 8, 6), laMat);
+        la2.position.set(x + 0.15, 1.5, -98.5); la2.castShadow = true; nhom.add(la2);
+        bong(MAU_HONG[i % 4], x - 0.2, 0.7, -98.45, 0.13);
+        bong(MAU_HONG[(i + 1) % 4], x + 0.2, 1.3, -98.45, 0.13);
+        bong(MAU_HONG[(i + 2) % 4], x - 0.18, 1.9, -98.45, 0.13);
+      });
+      /* --- Bon hoa thap truoc gian (z -97.1..-95.5). --- */
+      them(new THREE.Mesh(new THREE.BoxGeometry(17.6, 0.25, 0.18), daMat), cx, 0.125, -95.5);
+      them(new THREE.Mesh(new THREE.BoxGeometry(17.6, 0.25, 0.18), daMat), cx, 0.125, -97.1);
+      them(new THREE.Mesh(new THREE.BoxGeometry(0.18, 0.25, 1.78), daMat), cx - 8.8, 0.125, -96.3);
+      them(new THREE.Mesh(new THREE.BoxGeometry(0.18, 0.25, 1.78), daMat), cx + 8.8, 0.125, -96.3);
+      them(new THREE.Mesh(new THREE.BoxGeometry(17.2, 0.12, 1.4), datMat), cx, 0.14, -96.3);
+      [-8, -6, -4, -2, 0, 2, 4, 6, 8].forEach((dx, i) => {
+        const x = cx + dx;
+        const bui = new THREE.Mesh(new THREE.SphereGeometry(0.32, 10, 8), laMat);
+        bui.position.set(x, 0.45, -96.3); bui.scale.y = 0.75; bui.castShadow = true; nhom.add(bui);
+        bong(MAU_HONG[i % 4], x - 0.15, 0.62, -96.2, 0.11);
+        bong(MAU_HONG[(i + 2) % 4], x + 0.15, 0.72, -96.4, 0.11);
+      });
+      /* --- Bien go 2 mat dau vuon gan cong (x = s*9.8, z=-94.0). --- */
+      const bx = 9.8 * s;
+      [-1.75, 1.75].forEach(dx => {
+        them(new THREE.Mesh(new THREE.BoxGeometry(0.12, 1.9, 0.12), goMat), bx + dx, 0.95, -94.0);
+      });
+      const lungBien = new THREE.Mesh(new THREE.BoxGeometry(3.2, 1.0, 0.06),
+        new THREE.MeshStandardMaterial({color:0x7B2D5E, roughness:0.7}));
+      lungBien.position.set(bx, 2.15, -94.0); nhom.add(lungBien);
+      const texBien = textureBien('VƯỜN HOA HỒNG LEO', 'Giàn hoa giấy · Tường nam', '#7B2D5E');
+      const bienBac = new THREE.Mesh(new THREE.PlaneGeometry(3.2, 1.0),
+        new THREE.MeshStandardMaterial({map:texBien, roughness:0.6}));
+      bienBac.position.set(bx, 2.15, -93.96); bienBac.castShadow = true; nhom.add(bienBac);
+      const bienNam = new THREE.Mesh(new THREE.PlaneGeometry(3.2, 1.0),
+        new THREE.MeshStandardMaterial({map:texBien, roughness:0.6}));
+      bienNam.position.set(bx, 2.15, -94.04); bienNam.rotation.y = Math.PI;
+      bienNam.castShadow = true; nhom.add(bienNam);
+      /* --- 2 chau hoa 2 ben bien. --- */
+      [-2.3, 2.3].forEach(dx => {
+        const px = bx + dx;
+        them(new THREE.Mesh(new THREE.CylinderGeometry(0.32, 0.24, 0.45, 12), chauMat), px, 0.32, -94.0);
+        const bui = new THREE.Mesh(new THREE.SphereGeometry(0.3, 10, 8), laMat);
+        bui.position.set(px, 0.68, -94.0); bui.scale.y = 0.85; bui.castShadow = true; nhom.add(bui);
+        bong(0xE74C3C, px, 0.95, -94.0, 0.11);
+        bong(0xF1C40F, px - 0.12, 0.9, -94.0, 0.11);
+        bong(0xE91E63, px + 0.12, 0.9, -94.0, 0.11);
+      });
+    }
+    xayMotBen(1);
+    xayMotBen(-1);
+
+    nhom.traverse(o=>{ o.userData.doiDoHoa = 24; });
+    sceneCity.add(nhom);
+  })();
+
+/* DOI-DO-HOA #25 (25/11, muc 24): San cau long ngoai troi gan khu the thao (phia bac san bong ro).
+     Tam (73,82): nen xam 19x12m + mat san xanh la 17x10m, truc dai theo x;
+     vach trang day du: bien doc (doi), bien ngang (doi + don), vach giao cau ngan,
+     vach giua, vach giao cau dai (don); luoi giua san cao 1,55m (2 cot thep + luoi
+     trang + bang tren); 2 qua cau long + 2 cay vot nam tren san; 2 ghe go dai phia
+     bac; bien go 2 mat 'SAN CAU LONG' o mep nam quay ve san bong ro + 2 chau hoa
+     2 ben bien. Khong lan san bong ro / tuong dong / tuong bac; khong chan loi doan. */
+  (function(){
+    const nhom = new THREE.Group();
+    const CX = 73, CZ = 82;
+    const sanMat = new THREE.MeshStandardMaterial({color:0x1E8A5A, roughness:0.85});
+    const nenMat = new THREE.MeshStandardMaterial({color:0xCFC8BC, roughness:0.9});
+    const vachMat = new THREE.MeshStandardMaterial({color:0xFFFFFF, roughness:0.6});
+    const thepMat = new THREE.MeshStandardMaterial({color:0x1F2A44, roughness:0.5, metalness:0.4});
+    const luoiMat = new THREE.MeshStandardMaterial({color:0xFFFFFF, roughness:0.6, wireframe:true, transparent:true, opacity:0.85});
+    const cauMat = new THREE.MeshStandardMaterial({color:0xFFFFFF, roughness:0.5});
+    const goMat = new THREE.MeshStandardMaterial({color:0x8B5A2B, roughness:0.75});
+    const vangMat = new THREE.MeshStandardMaterial({color:0xC9A227, roughness:0.35, metalness:0.6});
+    const cotMat = new THREE.MeshStandardMaterial({color:0x4A3226, roughness:0.8});
+    const chauMat = new THREE.MeshStandardMaterial({color:0xA8542E, roughness:0.8});
+    const laMat = new THREE.MeshStandardMaterial({color:0x2E6B2A, roughness:0.9});
+    function them(mesh, x, y, z){
+      mesh.position.set(x, y, z); mesh.castShadow = true; nhom.add(mesh);
+      return mesh;
+    }
+    function bong(mau, x, y, z, r){
+      const b = new THREE.Mesh(new THREE.SphereGeometry(r, 10, 8),
+        new THREE.MeshStandardMaterial({color:mau, roughness:0.6}));
+      b.position.set(x, y, z); b.castShadow = true; nhom.add(b);
+      return b;
+    }
+    /* --- Nen xam vien quanh + mat san xanh la 17x10. --- */
+    them(new THREE.Mesh(new THREE.BoxGeometry(19, 0.1, 12), nenMat), CX, 0.05, CZ);
+    them(new THREE.Mesh(new THREE.BoxGeometry(17, 0.12, 10), sanMat), CX, 0.06, CZ);
+    /* --- Vach trang: bien doc (doi) + bien ngang (doi + don) + vach giao cau. --- */
+    [-6.7, 6.7].forEach(dx => { /* bien doc = duong bien cuoi san, chay doc z */
+      them(new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.02, 6.1), vachMat), CX + dx, 0.13, CZ);
+    });
+    [-3.05, 3.05].forEach(dz => { /* bien ngang doi */
+      them(new THREE.Mesh(new THREE.BoxGeometry(13.4, 0.02, 0.12), vachMat), CX, 0.13, CZ + dz);
+    });
+    [-2.59, 2.59].forEach(dz => { /* bien ngang don */
+      them(new THREE.Mesh(new THREE.BoxGeometry(13.4, 0.02, 0.12), vachMat), CX, 0.13, CZ + dz);
+    });
+    [-1.98, 1.98].forEach(dx => { /* vach giao cau ngan, chay doc z */
+      them(new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.02, 6.1), vachMat), CX + dx, 0.13, CZ);
+    });
+    them(new THREE.Mesh(new THREE.BoxGeometry(3.96, 0.02, 0.12), vachMat), CX, 0.13, CZ); /* vach giua */
+    [-5.94, 5.94].forEach(dx => { /* vach giao cau dai (don), chay doc z */
+      them(new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.02, 5.18), vachMat), CX + dx, 0.13, CZ);
+    });
+    /* --- Luoi giua san: 2 cot thep + luoi trang + bang tren. --- */
+    [-3.05, 3.05].forEach(dz => {
+      them(new THREE.Mesh(new THREE.CylinderGeometry(0.045, 0.045, 1.55, 10), thepMat), CX, 0.775, CZ + dz);
+    });
+    const luoi = them(new THREE.Mesh(new THREE.PlaneGeometry(6.1, 0.76), luoiMat), CX, 1.17, CZ);
+    luoi.rotation.y = Math.PI / 2;
+    them(new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.12, 6.14), vachMat), CX, 1.55, CZ);
+    /* --- 2 qua cau long nam tren san (non trang + nut lie). --- */
+    [[70, 83.5], [76.5, 80.5]].forEach(p => {
+      const non = them(new THREE.Mesh(new THREE.ConeGeometry(0.055, 0.1, 10), cauMat), p[0], 0.12, p[1]);
+      non.rotation.z = Math.PI / 2;
+      them(new THREE.Mesh(new THREE.SphereGeometry(0.035, 10, 8),
+        new THREE.MeshStandardMaterial({color:0xF5DEB3, roughness:0.7})), p[0] + 0.06, 0.12, p[1]);
+    });
+    /* --- 2 cay vot nam tren san (khung oval + day + can). --- */
+    function xayVot(x0, z0, huong){
+      const khung = them(new THREE.Mesh(new THREE.TorusGeometry(0.17, 0.015, 8, 24), thepMat), x0, 0.06, z0);
+      khung.rotation.x = -Math.PI / 2; khung.scale.set(1, 1.3, 1);
+      const day = them(new THREE.Mesh(new THREE.CircleGeometry(0.155, 20), luoiMat), x0, 0.055, z0);
+      day.rotation.x = -Math.PI / 2; day.scale.set(1, 1.3, 1);
+      const can = them(new THREE.Mesh(new THREE.CylinderGeometry(0.018, 0.022, 0.5, 8), goMat), x0 + huong * 0.42, 0.05, z0);
+      can.rotation.z = Math.PI / 2;
+    }
+    xayVot(69.5, 80.3, 1);
+    xayVot(76.8, 83.8, -1);
+    /* --- 2 ghe go dai phia bac san, quay mat ve san. --- */
+    [68, 78].forEach(gx => {
+      them(new THREE.Mesh(new THREE.BoxGeometry(2.2, 0.12, 0.5), goMat), gx, 0.55, CZ + 7);
+      them(new THREE.Mesh(new THREE.BoxGeometry(2.2, 0.6, 0.08), goMat), gx, 0.95, CZ + 7.22);
+      them(new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.5, 0.45), goMat), gx - 0.95, 0.25, CZ + 7);
+      them(new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.5, 0.45), goMat), gx + 0.95, 0.25, CZ + 7);
+    });
+    /* --- Bien go 2 mat 'SAN CAU LONG' o mep nam, mat ve san bong ro (-z).
+         Cot dat NGOAI mep bien (x = CX +- 1.45, bien rong 2.6m) de khoi che chu. --- */
+    const BZ = CZ - 7.8;
+    [-1.45, 1.45].forEach(dx => {
+      them(new THREE.Mesh(new THREE.BoxGeometry(0.12, 1.7, 0.12), cotMat), CX + dx, 0.95, BZ);
+    });
+    const lungBien = them(new THREE.Mesh(new THREE.BoxGeometry(2.7, 0.95, 0.06), vangMat), CX, 1.65, BZ);
+    const texBien = textureBien('SÂN CẦU LÔNG', 'Lưới · Vạch sân · Chơi đôi', '#0E7490');
+    const bienBac = new THREE.Mesh(new THREE.PlaneGeometry(2.6, 0.85),
+      new THREE.MeshStandardMaterial({map:texBien, roughness:0.6}));
+    bienBac.position.set(CX, 1.65, BZ + 0.04); bienBac.castShadow = true; nhom.add(bienBac);
+    const bienNam = new THREE.Mesh(new THREE.PlaneGeometry(2.6, 0.85),
+      new THREE.MeshStandardMaterial({map:texBien, roughness:0.6}));
+    bienNam.position.set(CX, 1.65, BZ - 0.04); bienNam.rotation.y = Math.PI;
+    bienNam.castShadow = true; nhom.add(bienNam);
+    /* --- 2 chau hoa 2 ben bien. --- */
+    [-2.3, 2.3].forEach(dx => {
+      const px = CX + dx;
+      them(new THREE.Mesh(new THREE.CylinderGeometry(0.32, 0.24, 0.45, 12), chauMat), px, 0.32, BZ);
+      const bui = them(new THREE.Mesh(new THREE.SphereGeometry(0.3, 10, 8), laMat), px, 0.68, BZ);
+      bui.scale.y = 0.85;
+      bong(0xE74C3C, px, 0.95, BZ, 0.11);
+      bong(0xF1C40F, px - 0.12, 0.9, BZ, 0.11);
+      bong(0xE91E63, px + 0.12, 0.9, BZ, 0.11);
+    });
+    nhom.traverse(o=>{ o.userData.doiDoHoa = 25; });
+    sceneCity.add(nhom);
+  })();
+
+/* DOI-DO-HOA #26 (25/11, muc 25): Bang tin / bang vang danh du ngoai troi truoc toa HOI DONG AI.
+     Tam (-30.8,-30), mep dong san chao co, mat quay ve dong (ve quang truong / duong vao):
+     2 tam go dung canh nhau doc theo z — tam nam 'BANG TIN' (nen go nau), tam bac
+     'BANG VANG DANH DU' (nen navy, sao vang); cot go ngoai mep bien; mai che chu A
+     ngoi do (dinh 3,35m); nen da phang + 2 chau hoa 2 dau ngoai. Khong chan loi doan,
+     khong che toa / bien SAN CHAO CO / cot co / san khau khen. */
+  (function(){
+    const nhom = new THREE.Group();
+    const CX = -30.8, CZ = -30;
+    const goMat = new THREE.MeshStandardMaterial({color:0x6B4F2A, roughness:0.7});
+    const vangMat = new THREE.MeshStandardMaterial({color:0xC9A227, roughness:0.35, metalness:0.6});
+    const ngoiMat = new THREE.MeshStandardMaterial({color:0xB03A2E, roughness:0.8});
+    const daMat = new THREE.MeshStandardMaterial({color:0xCFC8BC, roughness:0.9});
+    const chauMat = new THREE.MeshStandardMaterial({color:0xA8542E, roughness:0.8});
+    const laMat = new THREE.MeshStandardMaterial({color:0x2E6B2A, roughness:0.9});
+    function them(mesh, x, y, z){
+      mesh.position.set(x, y, z); mesh.castShadow = true; nhom.add(mesh);
+      return mesh;
+    }
+    function bong(mau, x, y, z, r){
+      const b = new THREE.Mesh(new THREE.SphereGeometry(r, 10, 8),
+        new THREE.MeshStandardMaterial({color:mau, roughness:0.6}));
+      b.position.set(x, y, z); b.castShadow = true; nhom.add(b);
+      return b;
+    }
+    /* --- Ve ngoi sao 5 canh len canvas (dung cho bang vang). --- */
+    function veSao(g, x, y, r){
+      g.beginPath();
+      for(let i = 0; i < 10; i++){
+        const a = -Math.PI / 2 + i * Math.PI / 5, rr = (i % 2 === 0) ? r : r * 0.42;
+        const px = x + Math.cos(a) * rr, py = y + Math.sin(a) * rr;
+        if(i === 0) g.moveTo(px, py); else g.lineTo(px, py);
+      }
+      g.closePath(); g.fill();
+    }
+    function veBang(tieuDe, cacDong, mauNen1, mauNen2, kieuDau){
+      const c = document.createElement('canvas'); c.width = 1024; c.height = 576;
+      const g = c.getContext('2d');
+      const grd = g.createLinearGradient(0, 0, 0, 576);
+      grd.addColorStop(0, mauNen1); grd.addColorStop(1, mauNen2);
+      g.fillStyle = grd; g.fillRect(0, 0, 1024, 576);
+      g.strokeStyle = '#C9A227'; g.lineWidth = 14; g.strokeRect(10, 10, 1004, 556);
+      g.strokeStyle = 'rgba(232,201,90,0.55)'; g.lineWidth = 4; g.strokeRect(26, 26, 972, 524);
+      g.textAlign = 'center'; g.textBaseline = 'middle';
+      g.fillStyle = '#E8C95A';
+      let fsT = 84; g.font = '800 ' + fsT + 'px "Be Vietnam Pro", Arial, sans-serif';
+      while (g.measureText(tieuDe).width > 920 && fsT > 40) { fsT -= 4; g.font = '800 ' + fsT + 'px "Be Vietnam Pro", Arial, sans-serif'; }
+      g.fillText(tieuDe, 512, 92);
+      g.fillStyle = 'rgba(232,201,90,0.7)'; g.fillRect(112, 146, 800, 4);
+      g.textAlign = 'left';
+      cacDong.forEach((d, i) => {
+        const y = 236 + i * 104;
+        g.fillStyle = '#E8C95A';
+        if(kieuDau === 'sao') veSao(g, 96, y, 22);
+        else { g.beginPath(); g.arc(96, y, 14, 0, Math.PI * 2); g.fill(); }
+        g.fillStyle = '#FDF6E3';
+        let fs = 46; g.font = '800 ' + fs + 'px "Be Vietnam Pro", Arial, sans-serif';
+        while (g.measureText(d).width > 820 && fs > 28) { fs -= 2; g.font = '800 ' + fs + 'px "Be Vietnam Pro", Arial, sans-serif'; }
+        g.fillText(d, 140, y);
+      });
+      return new THREE.CanvasTexture(c);
+    }
+    /* --- Nen da phang duoi bang. --- */
+    them(new THREE.Mesh(new THREE.BoxGeometry(3.6, 0.08, 7.2), daMat), CX, 0.04, CZ);
+    /* --- 3 cot go: 2 cot ngoai (z = CZ +- 3.05) + 1 cot giua (z = CZ), deu nam NGOAI
+         mep tam bien (tam rong 2,8m, mep o CZ +- 1.45 va khe giua -30.15..-29.85). --- */
+    [-3.05, 0, 3.05].forEach(dz => {
+      them(new THREE.Mesh(new THREE.BoxGeometry(0.14, 3.0, 0.14), goMat), CX, 1.5, CZ + dz);
+    });
+    /* --- Dam ngang noi dinh cot (do mai che). --- */
+    them(new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.14, 6.3), goMat), CX, 2.95, CZ);
+    /* --- 2 tam bien: tam nam BANG TIN (nen go), tam bac BANG VANG DANH DU (nen navy).
+         Mat dong (ve quang truong) rotation.y = PI/2, mat tay rotation.y = -PI/2. --- */
+    const tam = [
+      {cz: CZ - 1.55, tex: veBang('BẢNG TIN',
+        ['Lịch chào cờ · Lịch trực tuần', 'Sinh hoạt CLB AI · Buổi tối', 'Thông báo · Tin trường · Lịch thi'],
+        '#7A4A21', '#5D3517', 'tron')},
+      {cz: CZ + 1.55, tex: veBang('BẢNG VÀNG DANH DỰ',
+        ['Học sinh tiêu biểu tuần', 'Lớp sạch đẹp · Nề nếp tốt', 'Đội trực nhật xuất sắc'],
+        '#1F2A44', '#0B1220', 'sao')}
+    ];
+    tam.forEach(t => {
+      them(new THREE.Mesh(new THREE.BoxGeometry(0.06, 1.7, 2.92), vangMat), CX, 1.55, t.cz);
+      const matDong = new THREE.Mesh(new THREE.PlaneGeometry(2.8, 1.575),
+        new THREE.MeshBasicMaterial({map:t.tex}));
+      matDong.position.set(CX + 0.04, 1.55, t.cz); matDong.rotation.y = Math.PI / 2;
+      matDong.castShadow = true; nhom.add(matDong);
+      const matTay = new THREE.Mesh(new THREE.PlaneGeometry(2.8, 1.575),
+        new THREE.MeshBasicMaterial({map:t.tex}));
+      matTay.position.set(CX - 0.04, 1.55, t.cz); matTay.rotation.y = -Math.PI / 2;
+      matTay.castShadow = true; nhom.add(matTay);
+    });
+    /* --- Mai che chu A ngoi do: dinh (CX, 3.35), mai (CX +- 1.05, 2.95). --- */
+    const maiDong = them(new THREE.Mesh(new THREE.BoxGeometry(1.15, 0.06, 6.9), ngoiMat), CX + 0.525, 3.15, CZ);
+    maiDong.rotation.z = -0.364;
+    const maiTay = them(new THREE.Mesh(new THREE.BoxGeometry(1.15, 0.06, 6.9), ngoiMat), CX - 0.525, 3.15, CZ);
+    maiTay.rotation.z = 0.364;
+    them(new THREE.Mesh(new THREE.BoxGeometry(0.14, 0.1, 6.9), vangMat), CX, 3.38, CZ);
+    /* --- 2 chau hoa 2 dau ngoai (z = CZ +- 3.6), ngoai cot ngoai. --- */
+    [-3.6, 3.6].forEach(dz => {
+      const px = CX, pz = CZ + dz;
+      them(new THREE.Mesh(new THREE.CylinderGeometry(0.32, 0.24, 0.45, 12), chauMat), px, 0.32, pz);
+      const bui = them(new THREE.Mesh(new THREE.SphereGeometry(0.3, 10, 8), laMat), px, 0.68, pz);
+      bui.scale.y = 0.85;
+      bong(0xE74C3C, px, 0.95, pz, 0.11);
+      bong(0xF1C40F, px - 0.12, 0.9, pz, 0.11);
+      bong(0xE91E63, px + 0.12, 0.9, pz, 0.11);
+    });
+    nhom.traverse(o=>{ o.userData.doiDoHoa = 26; });
+    sceneCity.add(nhom);
+  })();
+
+/* DOI-DO-HOA #27 (26/11, muc 26): Nha ve sinh cong cong gan khu the thao.
+     Tam (27.5,15), dong-bac san bong chuyen, mat tien quay ve NAM (ve san):
+     nen be tong + than nha 5x3,5m tuong kem, mai chu A ngoi do (dinh 3,55m);
+     2 cua NAM (xanh) / NU (hong) + bien ten tren moi cua; 2 cua so cao 2 ben
+     hong; ong thong hoi; bien go 2 mat 'NHA VE SINH' truoc san; 2 chau hoa
+     2 ben cua + 2 phien da truoc cua. Khong chan loi doan / lo trinh robot,
+     khong che thap / bien KHOI / san khau khen; cach via he x=22,5 dung 1m. */
+  (function(){
+    const nhom = new THREE.Group();
+    const CX = 27.5, CZ = 15;
+    const kemMat = new THREE.MeshStandardMaterial({color:0xF5E9C8, roughness:0.85});
+    const xanhLaMat = new THREE.MeshStandardMaterial({color:0x2E7D5B, roughness:0.8});
+    const ngoiMat = new THREE.MeshStandardMaterial({color:0xB03A2E, roughness:0.8});
+    const beTongMat = new THREE.MeshStandardMaterial({color:0xCFC8BC, roughness:0.9});
+    const goMat = new THREE.MeshStandardMaterial({color:0x6B4F2A, roughness:0.7});
+    const vangMat = new THREE.MeshStandardMaterial({color:0xC9A227, roughness:0.35, metalness:0.6});
+    const chauMat = new THREE.MeshStandardMaterial({color:0xA8542E, roughness:0.8});
+    const laMat = new THREE.MeshStandardMaterial({color:0x2E6B2A, roughness:0.9});
+    const trangMat = new THREE.MeshStandardMaterial({color:0xFDF6E3, roughness:0.7});
+    const kinhMat = new THREE.MeshStandardMaterial({color:0x9FD8EF, roughness:0.15, metalness:0.4});
+    function them(mesh, x, y, z){
+      mesh.position.set(x, y, z); mesh.castShadow = true; nhom.add(mesh);
+      return mesh;
+    }
+    function bong(mau, x, y, z, r){
+      const b = new THREE.Mesh(new THREE.SphereGeometry(r, 10, 8),
+        new THREE.MeshStandardMaterial({color:mau, roughness:0.6}));
+      b.position.set(x, y, z); b.castShadow = true; nhom.add(b);
+      return b;
+    }
+    function veChu(w, h, dong1, dong2, mauNen, mauChu){
+      const c = document.createElement('canvas'); c.width = w; c.height = h;
+      const g = c.getContext('2d');
+      g.fillStyle = mauNen; g.fillRect(0, 0, w, h);
+      g.strokeStyle = '#C9A227'; g.lineWidth = 8; g.strokeRect(6, 6, w - 12, h - 12);
+      g.textAlign = 'center'; g.textBaseline = 'middle';
+      g.fillStyle = mauChu;
+      let fs = 92; g.font = '800 ' + fs + 'px "Be Vietnam Pro", Arial, sans-serif';
+      while (g.measureText(dong1).width > w - 60 && fs > 30) { fs -= 4; g.font = '800 ' + fs + 'px "Be Vietnam Pro", Arial, sans-serif'; }
+      g.fillText(dong1, w / 2, dong2 ? h * 0.32 : h / 2);
+      if (dong2) {
+        let fs2 = 44; g.font = '700 ' + fs2 + 'px "Be Vietnam Pro", Arial, sans-serif';
+        while (g.measureText(dong2).width > w - 60 && fs2 > 24) { fs2 -= 2; g.font = '700 ' + fs2 + 'px "Be Vietnam Pro", Arial, sans-serif'; }
+        g.fillText(dong2, w / 2, h * 0.72);
+      }
+      const t = new THREE.CanvasTexture(c); t.anisotropy = 4;
+      return t;
+    }
+    /* --- Nen be tong (dinh y=0,14, cao hon mat phang y=0,1 o (24,18)). --- */
+    them(new THREE.Mesh(new THREE.BoxGeometry(6.4, 0.14, 4.6), beTongMat), CX, 0.07, CZ);
+    /* --- Than nha 5x3,5m, cao 2,6m (day y=0,14, dinh y=2,74) + chan tuong. --- */
+    them(new THREE.Mesh(new THREE.BoxGeometry(5.0, 2.6, 3.5), kemMat), CX, 1.44, CZ);
+    them(new THREE.Mesh(new THREE.BoxGeometry(5.1, 0.25, 3.6), xanhLaMat), CX, 0.265, CZ);
+    /* --- Mai chu A ngoi do: 2 tam nghieng, dinh y=3,55, mai y=2,74, vuon ra 0,25m. --- */
+    const gocMai = Math.atan2(0.81, 2.0);
+    const maiNam = them(new THREE.Mesh(new THREE.BoxGeometry(5.5, 0.06, 2.2), ngoiMat), CX, 3.15, CZ - 0.95);
+    maiNam.rotation.x = -gocMai;
+    const maiBac = them(new THREE.Mesh(new THREE.BoxGeometry(5.5, 0.06, 2.2), ngoiMat), CX, 3.15, CZ + 0.95);
+    maiBac.rotation.x = gocMai;
+    them(new THREE.Mesh(new THREE.BoxGeometry(5.5, 0.1, 0.12), vangMat), CX, 3.56, CZ);
+    /* --- Hoi dau xom 2 dau (tam giac, mat kem, DoubleSide). --- */
+    const hinhHoi = new THREE.Shape();
+    hinhHoi.moveTo(-1.75, 2.74); hinhHoi.lineTo(1.75, 2.74); hinhHoi.lineTo(0, 3.55); hinhHoi.closePath();
+    const hoiMat = new THREE.MeshStandardMaterial({color:0xF5E9C8, roughness:0.85, side:THREE.DoubleSide});
+    [25.01, 29.99].forEach((x, i) => {
+      const hoi = new THREE.Mesh(new THREE.ShapeGeometry(hinhHoi), hoiMat);
+      hoi.position.set(x, 0, CZ); hoi.rotation.y = (i === 0) ? -Math.PI / 2 : Math.PI / 2;
+      hoi.castShadow = true; nhom.add(hoi);
+    });
+    /* --- 2 cua mat nam (z=13,25): NAM xanh o x=26,4 — NU hong o x=28,6.
+         Khung trang sau cua, cua noi truoc khung 0,03m. --- */
+    const cua = [
+      {x: 26.4, mau: 0x2E6DB4, chu: 'NAM', nenChu: '#2E6DB4'},
+      {x: 28.6, mau: 0xE86A92, chu: 'NỮ', nenChu: '#D14D72'}
+    ];
+    cua.forEach(c => {
+      them(new THREE.Mesh(new THREE.BoxGeometry(1.05, 2.1, 0.05), trangMat), c.x, 1.19, 13.24);
+      them(new THREE.Mesh(new THREE.BoxGeometry(0.95, 2.0, 0.06),
+        new THREE.MeshStandardMaterial({color:c.mau, roughness:0.6})), c.x, 1.14, 13.20);
+      const bang = new THREE.Mesh(new THREE.PlaneGeometry(0.7, 0.35),
+        new THREE.MeshBasicMaterial({map: veChu(256, 128, c.chu, null, c.nenChu, '#FFFFFF')}));
+      bang.position.set(c.x, 2.42, 13.16); bang.rotation.y = Math.PI;
+      bang.castShadow = true; nhom.add(bang);
+      const tay = new THREE.Mesh(new THREE.SphereGeometry(0.05, 10, 8), vangMat);
+      tay.position.set(c.x + 0.36, 1.1, 13.15); tay.castShadow = true; nhom.add(tay);
+    });
+    /* --- 2 cua so cao 2 ben hong dong/tay (y=1,9). --- */
+    [-1, 1].forEach(h => {
+      them(new THREE.Mesh(new THREE.BoxGeometry(0.05, 0.8, 1.0), trangMat), CX + h * 2.51, 1.9, CZ);
+      them(new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.7, 0.9), kinhMat), CX + h * 2.52, 1.9, CZ);
+    });
+    /* --- Cua so cao mat bac (do mat bac khoi trang). --- */
+    them(new THREE.Mesh(new THREE.BoxGeometry(1.0, 0.8, 0.05), trangMat), CX, 1.9, CZ + 1.76);
+    them(new THREE.Mesh(new THREE.BoxGeometry(0.9, 0.7, 0.06), kinhMat), CX, 1.9, CZ + 1.77);
+    /* --- Ong thong hoi tren mai (x=28,9, dinh mai). --- */
+    them(new THREE.Mesh(new THREE.CylinderGeometry(0.09, 0.09, 0.7, 10),
+      new THREE.MeshStandardMaterial({color:0x8A8D91, roughness:0.5, metalness:0.5})), 28.9, 3.85, CZ);
+    them(new THREE.Mesh(new THREE.SphereGeometry(0.12, 10, 8),
+      new THREE.MeshStandardMaterial({color:0x8A8D91, roughness:0.5, metalness:0.5})), 28.9, 4.22, CZ);
+    /* --- Bien go 2 mat truoc san (z=11,9), mat ve nam (ve san bong chuyen).
+         Cot go NGOAI mep bien (bien rong 2,4m, mep x = CX +- 1,2; cot o +- 1,45). --- */
+    [-1.45, 1.45].forEach(dx => {
+      them(new THREE.Mesh(new THREE.BoxGeometry(0.12, 2.2, 0.12), goMat), CX + dx, 1.1, 11.9);
+    });
+    them(new THREE.Mesh(new THREE.BoxGeometry(2.5, 1.0, 0.06), vangMat), CX, 1.5, 11.9);
+    const texBien = veChu(1024, 384, 'NHÀ VỆ SINH', 'Nam · Nữ · Giữ vệ sinh chung', '#5D3517', '#FDF6E3');
+    const matNam = new THREE.Mesh(new THREE.PlaneGeometry(2.4, 0.9),
+      new THREE.MeshBasicMaterial({map: texBien}));
+    matNam.position.set(CX, 1.5, 11.86); matNam.rotation.y = Math.PI;
+    matNam.castShadow = true; nhom.add(matNam);
+    const matBac = new THREE.Mesh(new THREE.PlaneGeometry(2.4, 0.9),
+      new THREE.MeshBasicMaterial({map: texBien}));
+    matBac.position.set(CX, 1.5, 11.94);
+    matBac.castShadow = true; nhom.add(matBac);
+    them(new THREE.Mesh(new THREE.BoxGeometry(2.5, 0.08, 0.1), vangMat), CX, 2.04, 11.9);
+    /* --- 2 chau hoa 2 ben cua (25.6,12.9) + (29.4,12.9). --- */
+    [25.6, 29.4].forEach(px => {
+      them(new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.22, 0.4, 12), chauMat), px, 0.34, 12.9);
+      const bui = them(new THREE.Mesh(new THREE.SphereGeometry(0.28, 10, 8), laMat), px, 0.64, 12.9);
+      bui.scale.y = 0.85;
+      bong(0xE74C3C, px, 0.9, 12.9, 0.1);
+      bong(0xF1C40F, px - 0.11, 0.85, 12.9, 0.1);
+      bong(0xE91E63, px + 0.11, 0.85, 12.9, 0.1);
+    });
+    /* --- 2 phien da truoc 2 cua. --- */
+    [26.4, 28.6].forEach(px => {
+      them(new THREE.Mesh(new THREE.BoxGeometry(1.0, 0.06, 0.6), beTongMat), px, 0.05, 12.5);
+    });
+    nhom.traverse(o=>{ o.userData.doiDoHoa = 27; });
+    sceneCity.add(nhom);
+  })();
+
+/* DOI-DO-HOA #28 (26/11, mục 27): Bãi đỗ xe ô tô có mái che gần cổng chính.
+     Tâm (-22,-80), phía tây cổng chính, đối xứng nhà để xe #8; nền bê tông
+     16.8×6.2m, mái tôn xanh lá nghiêng nhẹ, 6 cột thép, mặt mở hướng bắc về
+     quảng trường. 4 ô đỗ (mỗi ô 4,2m) + 4 ô tô nhiều màu, đầu xe hướng bắc;
+     biển gỗ 2 mặt 'BÃI ĐỖ XE Ô TÔ · Giáo viên · Khách đến trường' 2 cột trước
+     mái; 2 chậu hoa 2 góc trước + 1 cây nhỏ góc tây-bắc. Không chắn cổng
+     chính, đường đi bộ, lối đoàn, đường vòng nam và tường nam. */
+  (function(){
+    const nhom = new THREE.Group();
+    const CX = -22, CZ = -80;
+    const beMat = new THREE.MeshStandardMaterial({color:0xC9C2B4, roughness:0.95});
+    const thepMat = new THREE.MeshStandardMaterial({color:0x4A6B8A, roughness:0.4, metalness:0.6});
+    const tonMat = new THREE.MeshStandardMaterial({color:0x2E7D5B, roughness:0.45, metalness:0.35});
+    const vienMat = new THREE.MeshStandardMaterial({color:0xF2E8D5, roughness:0.7});
+    const vangMat = new THREE.MeshStandardMaterial({color:0xC9A227, roughness:0.35, metalness:0.6});
+    const denMat = new THREE.MeshStandardMaterial({color:0x222222, roughness:0.6});
+    const bacMat = new THREE.MeshStandardMaterial({color:0xC0C0C0, roughness:0.3, metalness:0.7});
+    const laMat = new THREE.MeshStandardMaterial({color:0x3E7A34, roughness:0.9});
+    const chauMat = new THREE.MeshStandardMaterial({color:0xA8542E, roughness:0.8});
+    const goMat = new THREE.MeshStandardMaterial({color:0x6B4F2A, roughness:0.7});
+    const vachMat = new THREE.MeshStandardMaterial({color:0xFFFFFF, roughness:0.7});
+    const kinhMat = new THREE.MeshStandardMaterial({color:0x2A3F54, roughness:0.15, metalness:0.5});
+    function them(mesh, x, y, z){
+      mesh.position.set(x, y, z); mesh.castShadow = true; nhom.add(mesh);
+      return mesh;
+    }
+    function veChu(w, h, dong1, dong2, mauNen, mauChu){
+      const c = document.createElement('canvas'); c.width = w; c.height = h;
+      const g = c.getContext('2d');
+      g.fillStyle = mauNen; g.fillRect(0, 0, w, h);
+      g.strokeStyle = '#C9A227'; g.lineWidth = 8; g.strokeRect(6, 6, w - 12, h - 12);
+      g.textAlign = 'center'; g.textBaseline = 'middle';
+      g.fillStyle = mauChu;
+      let fs = 92; g.font = '800 ' + fs + 'px "Be Vietnam Pro", Arial, sans-serif';
+      while (g.measureText(dong1).width > w - 60 && fs > 30) { fs -= 4; g.font = '800 ' + fs + 'px "Be Vietnam Pro", Arial, sans-serif'; }
+      g.fillText(dong1, w / 2, dong2 ? h * 0.32 : h / 2);
+      if (dong2) {
+        let fs2 = 44; g.font = '700 ' + fs2 + 'px "Be Vietnam Pro", Arial, sans-serif';
+        while (g.measureText(dong2).width > w - 60 && fs2 > 24) { fs2 -= 2; g.font = '700 ' + fs2 + 'px "Be Vietnam Pro", Arial, sans-serif'; }
+        g.fillText(dong2, w / 2, h * 0.72);
+      }
+      const t = new THREE.CanvasTexture(c); t.anisotropy = 4;
+      return t;
+    }
+    /* --- Nen be tong 16.8x6.2m + 6 cot thep + mai ton xanh la. ---
+       Cot dung ranh o do; hang sau 2 cot (x -26.2/-17.8, z=-82.4), hang truoc 2 cot (x -26.2/-17.8, z=-77.6) — bo ca 2 cot giua (truoc + sau) de khoi che mat nam bien khi nhin tu cong chinh. */
+    them(new THREE.Mesh(new THREE.BoxGeometry(16.8, 0.1, 6.2), beMat), CX, 0.05, CZ);
+    [-26.2, -17.8].forEach(x => {
+      them(new THREE.Mesh(new THREE.BoxGeometry(0.22, 3.0, 0.22), thepMat), x, 1.6, -82.4);
+    });
+    [-26.2, -17.8].forEach(x => {
+      them(new THREE.Mesh(new THREE.BoxGeometry(0.22, 3.0, 0.22), thepMat), x, 1.6, -77.6);
+    });
+    const mai = them(new THREE.Mesh(new THREE.BoxGeometry(17.4, 0.12, 6.8), tonMat), CX, 3.18, CZ);
+    mai.rotation.x = 0.06;
+    them(new THREE.Mesh(new THREE.BoxGeometry(17.4, 0.14, 0.12), vienMat), CX, 3.12, -76.62);
+    them(new THREE.Mesh(new THREE.BoxGeometry(17.4, 0.14, 0.12), vienMat), CX, 3.32, -83.38);
+    /* --- Vach ke o do (3 vach doc giua 4 o, dai 5m, tren nen). --- */
+    [-26.2, -22, -17.8].forEach(x => {
+      them(new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.02, 5.0), vachMat), x, 0.11, -79.5);
+    });
+    /* --- O to: than + cabin kinh + 4 banh + den truoc/hau + guong. ---
+       Dau xe huong bac (+z); tam o x -28.3/-24.1/-19.9/-15.7, tam z -79.5. */
+    function taoOTo(mauThan){
+      const g = new THREE.Group();
+      const thanMat = new THREE.MeshStandardMaterial({color:mauThan, roughness:0.45, metalness:0.4});
+      const than = new THREE.Mesh(new THREE.BoxGeometry(1.8, 0.55, 4.4), thanMat);
+      than.position.set(0, 0.55, 0); than.castShadow = true; g.add(than);
+      const cabin = new THREE.Mesh(new THREE.BoxGeometry(1.6, 0.5, 2.2), kinhMat);
+      cabin.position.set(0, 1.05, -0.2); cabin.castShadow = true; g.add(cabin);
+      const mui = new THREE.Mesh(new THREE.BoxGeometry(1.62, 0.06, 2.0), thanMat);
+      mui.position.set(0, 1.32, -0.2); mui.castShadow = true; g.add(mui);
+      [-0.85, 0.85].forEach(x => {
+        [-1.45, 1.45].forEach(z => {
+          const b = new THREE.Mesh(new THREE.CylinderGeometry(0.32, 0.32, 0.2, 14), denMat);
+          b.rotation.z = Math.PI / 2; b.position.set(x, 0.32, z); b.castShadow = true; g.add(b);
+        });
+      });
+      [-0.6, 0.6].forEach(x => {
+        const den = new THREE.Mesh(new THREE.BoxGeometry(0.28, 0.12, 0.05),
+          new THREE.MeshStandardMaterial({color:0xFFF2B0, roughness:0.2, emissive:0x554400}));
+        den.position.set(x, 0.6, 2.21); g.add(den);
+        const hau = new THREE.Mesh(new THREE.BoxGeometry(0.28, 0.1, 0.05),
+          new THREE.MeshStandardMaterial({color:0xC0392B, roughness:0.3, emissive:0x330000}));
+        hau.position.set(x, 0.6, -2.21); g.add(hau);
+      });
+      [-0.85, 0.85].forEach(x => {
+        const guong = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.08, 0.18), denMat);
+        guong.position.set(x, 1.0, 0.75); guong.castShadow = true; g.add(guong);
+      });
+      return g;
+    }
+    const mauOTo = [0xC0392B, 0xF5F5F5, 0x2471A3, 0x2C3E50];
+    const tamO = [-28.3, -24.1, -19.9, -15.7];
+    mauOTo.forEach((mau, i) => {
+      const xe = taoOTo(mau);
+      xe.position.set(tamO[i], 0.1, -79.5);
+      xe.traverse(o => { o.castShadow = true; });
+      nhom.add(xe);
+    });
+    /* --- Bien go 2 mat truoc mai (z=-76.9), mat ve bac (ve quang truong).
+         Cot go NGOAI mep bien (bien rong 3,6m, mep x = CX +- 1,8; cot o +- 2,05). --- */
+    [-2.05, 2.05].forEach(dx => {
+      them(new THREE.Mesh(new THREE.BoxGeometry(0.12, 3.0, 0.12), goMat), CX + dx, 1.5, -76.9);
+    });
+    them(new THREE.Mesh(new THREE.BoxGeometry(3.7, 1.22, 0.06), vangMat), CX, 2.35, -76.9);
+    const texBien = veChu(1024, 320, 'BÃI ĐỖ XE Ô TÔ', 'Giáo viên · Khách đến trường', '#1F4E79', '#FDF6E3');
+    const matBac = new THREE.Mesh(new THREE.PlaneGeometry(3.6, 1.12),
+      new THREE.MeshBasicMaterial({map: texBien}));
+    matBac.position.set(CX, 2.35, -76.86);
+    matBac.castShadow = true; nhom.add(matBac);
+    const matNam = new THREE.Mesh(new THREE.PlaneGeometry(3.6, 1.12),
+      new THREE.MeshBasicMaterial({map: texBien}));
+    matNam.position.set(CX, 2.35, -76.94); matNam.rotation.y = Math.PI;
+    matNam.castShadow = true; nhom.add(matNam);
+    /* --- 2 chau hoa 2 goc truoc. --- */
+    [[-29.4, -77.2], [-14.6, -77.2]].forEach(p => {
+      them(new THREE.Mesh(new THREE.CylinderGeometry(0.32, 0.24, 0.45, 12), chauMat), p[0], 0.32, p[1]);
+      [[0xE74C3C, 0], [0xF1C40F, 0.12], [0xE91E63, -0.12]].forEach(f => {
+        const bong = new THREE.Mesh(new THREE.SphereGeometry(0.11, 8, 6),
+          new THREE.MeshStandardMaterial({color:f[0], roughness:0.7}));
+        bong.position.set(p[0] + f[1], 0.68, p[1]); bong.castShadow = true; nhom.add(bong);
+      });
+    });
+    /* --- 1 cay nho goc tay-bac (-29.6,-82.6): than + 3 tan la. --- */
+    them(new THREE.Mesh(new THREE.CylinderGeometry(0.09, 0.13, 1.1, 8), goMat), -29.6, 0.65, -82.6);
+    [[0, 1.5, 0, 0.55], [-0.3, 1.25, 0.1, 0.4], [0.3, 1.3, -0.1, 0.42]].forEach(t => {
+      const tan = them(new THREE.Mesh(new THREE.SphereGeometry(t[3], 10, 8), laMat), -29.6 + t[0], t[1], -82.6 + t[2]);
+      tan.scale.y = 0.85;
+    });
+    nhom.traverse(o=>{ o.userData.doiDoHoa = 28; });
+    sceneCity.add(nhom);
+  })();
+
 [[-6.5,-13],[6.5,-13],[-6.5,13],[6.5,13]].forEach(p=>{ /* fix5: ghe theo quang truong 28x28 */
     const ghe = new THREE.Group();
     const matGhe = new THREE.Mesh(new THREE.BoxGeometry(2.4, 0.12, 0.65), new THREE.MeshStandardMaterial({color:0x8A7A5A, roughness:0.8}));
@@ -20462,6 +21195,7 @@ v33: SUA BIEN AO SEN - DOI 2 COT RA NGOAI MEP BIEN
 v34: GOP NHA KHO DUNG CU THE THAO MUC 18
 v35: GOP VUON THUOC NAM MUC 19 + QUANG TRUONG GACH HOA VAN MUC 20 + CONG CHAO + HANG CAY MUC 21
 v36: DOI CONG CHAO + HANG CAY RA (0,-32.5) MUC 21
+v37: GOP 6 MON: KHU DE XE DAP #22 + VUON HONG LEO #23 + SAN CAU LONG #24 + BANG VANG #25 + NHA VE SINH #26 + BAI DO XE O TO #27
 · v26a: SUA BIEN CONG (dong 1 gioi han 1500px, het cat chu T/H)
 · v26b: TACH CUA SO TRON (nhom cuaSoXe luon hien; sua loi an cua so khi xuong xe)
 · v26c: GIU BONG BONG TRAM (gan lai khi doan dung lai do doi lop bat dong bo) =================
