@@ -564,7 +564,7 @@
     </div>
     <p class="keo-live-status" id="keoLiveStatus">Đã nộp: 0/6 nhóm</p>
     <div class="keo-live-grid" id="keoLiveGrid"></div>
-    <p class="keo-live-note">Bảng hiện cả quá trình làm bài: khi nhóm đang kéo thẻ mà chưa nộp, từng thẻ đang nằm ở ô nào hiện ngay trong thẻ của nhóm đó với nhãn “Đang kéo…” và cập nhật mỗi lần nhóm kéo, thả hay đổi thẻ. Khi nhóm bấm “Nộp câu trả lời”, thẻ chuyển sang kết quả đã nộp: điểm, số câu đúng, thời gian làm và từng đáp án.</p>
+    <p class="keo-live-note">Bảng hiện cả quá trình làm bài: khi nhóm đang kéo thẻ mà chưa nộp, từng thẻ đang nằm ở ô nào hiện ngay trong thẻ của nhóm đó với nhãn “Đang kéo…” và cập nhật mỗi lần nhóm kéo, thả hay đổi thẻ. Khi nhóm bấm “Nộp câu trả lời”, thẻ chuyển sang kết quả đã nộp: điểm, số câu đúng, thời gian làm và từng đáp án. Nếu nhóm đã nộp rồi lại vào kéo tiếp, bảng luôn hiện bản mới hơn: nháp mới hơn thì hiện “Đang kéo…”, bài nộp mới hơn thì hiện “Đã nộp”.</p>
   </div>
 </div>
 
@@ -2741,7 +2741,9 @@ Viết lại bằng hiểu biết của mình</textarea>
         [{q, chon}, ...]. Đáp án đúng để chấm quá trình lấy từ nhánh
         hd3-bai4/keotha/debai (items: q → a); chưa có debai thì dùng đề
         mặc định của app kéo thả.
-     Ưu tiên hiển thị mỗi thẻ: đã nộp (ketqua) > đang kéo (nhap) > chưa làm. ===== */
+     Hiển thị mỗi thẻ theo bản MỚI HƠN — so mốc giờ máy chủ t của 2 nhánh:
+     nháp mới hơn bài nộp thì hiện "Đang kéo", bài nộp mới hơn nháp thì
+     hiện "Đã nộp"; chưa có cả hai bản thì hiện "Chưa nộp". ===== */
   var KEO_ROOT = 'hd3-bai4/keotha';
   var KEO_LIVE_CONFIG = {
     apiKey: "AIzaSyA0GfN_myC2bvAq5TQWPd5mBIZnESR8_EI",
@@ -2874,7 +2876,7 @@ Viết lại bằng hiểu biết của mình</textarea>
     var head = document.createElement('p');
     head.className = 'keo-slots-head';
     var upd = Number(draft.t) ? fmtHien(new Date(Number(draft.t))) : '';
-    head.textContent = 'Đã đặt ' + placed + '/' + slots.length + ' thẻ — chưa nộp' + (upd ? ' · cập nhật ' + upd : '');
+    head.textContent = 'Đã đặt ' + placed + '/' + slots.length + ' thẻ — đang làm' + (upd ? ' · cập nhật ' + upd : '');
     c.slots.appendChild(head);
     slots.forEach(function(s){
       var row = document.createElement('p');
@@ -2905,7 +2907,12 @@ Viết lại bằng hiểu biết của mình</textarea>
       if(!c) continue;
       var rec = ketquaData['Nhóm ' + g];
       var draft = nhapData['Nhóm ' + g];
-      if((!rec || typeof rec !== 'object') && draft && typeof draft === 'object'){
+      var coRec = !!(rec && typeof rec === 'object');
+      var coDraft = !!(draft && typeof draft === 'object');
+      /* Hiện bản MỚI HƠN theo mốc giờ máy chủ (trường t của 2 nhánh):
+         nháp mới hơn bài nộp thì hiện "Đang kéo" — kể cả khi nhóm đã có
+         bài nộp cũ rồi vào kéo lại; bài nộp mới hơn nháp thì hiện "Đã nộp". */
+      if(coDraft && (!coRec || (Number(draft.t) || 0) > (Number(rec.t) || 0))){
         dangKeo++;
         renderDoing(c, draft);
         continue;
