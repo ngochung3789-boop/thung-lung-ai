@@ -2001,6 +2001,15 @@ Viết lại bằng hiểu biết của mình</textarea>
   var liveDb = null;
   var liveData = {};       /* số nhóm -> bản ghi live trên kho chung */
   var livePushed = {};     /* số nhóm -> chuỗi nội dung đã đẩy gần nhất (tránh đẩy trùng) */
+  var liveMine = {};       /* số nhóm -> cửa sổ này ĐÃ THẬT SỰ gõ chữ cho nhóm đó chưa.
+                              Nháp (drafts) chỉ có chữ gõ ngay trên máy này, không nạp từ
+                              kho chung về — nên một cửa sổ mới mở luôn mang nháp RỖNG của
+                              2 nhóm đang gán cho 2 khung (mặc định Nhóm 1 và Nhóm 4).
+                              Nếu cứ đẩy các nháp đó lên khi chọn nhóm / đổi nhóm thì cửa sổ
+                              mới sẽ ghi đè nháp rỗng lên kho chung và XÓA MẤT nháp thật của
+                              nhóm khác trên mọi máy (sự cố 22:54: mở cửa sổ khác chọn
+                              Nhóm 2 là nháp Nhóm 1 biến mất). Vì vậy chỉ nhóm nào cửa sổ
+                              này đã gõ thật mới được đẩy lên. */
   var liveTimers = {};     /* số nhóm -> hẹn giờ chống dồn khi gõ */
   var liveConnEl = document.getElementById('hd2LiveConn');
   var liveCountEl = document.getElementById('hd2LiveCount');
@@ -2017,6 +2026,10 @@ Viết lại bằng hiểu biết của mình</textarea>
     var fire = function(){
       var d = drafts[g];
       if(!d) return;
+      /* Cửa sổ này chưa từng gõ chữ cho nhóm này -> TUYỆT ĐỐI không đẩy:
+         nháp local của nhóm đó ở đây chỉ là bản rỗng/mặc định, đẩy lên là
+         xóa mất nháp thật của nhóm trên kho chung (và trên mọi máy khác) */
+      if(!liveMine[g]) return;
       var key = (d.a1 || '') + '\n' + (d.a2 || '');
       if(livePushed[g] === key) return;
       livePushed[g] = key;
@@ -2226,7 +2239,7 @@ Viết lại bằng hiểu biết của mình</textarea>
       var side = panel ? (panel.getAttribute('data-panel') === '1' ? 1 : 2) : sideOf(currentGroup);
       if(panel) savePanel(side);
       ensureStart(currentGroup);
-      if(panelGroup[side]) draftT[panelGroup[side]] = Date.now();
+      if(panelGroup[side]){ draftT[panelGroup[side]] = Date.now(); liveMine[panelGroup[side]] = true; }
       /* Gõ tới đâu đẩy nháp lên kho chung tới đó để bảng chung trên máy thầy
          hiện ngay chữ đang gõ; trên chính máy này bảng cũng cập nhật ngay */
       if(panelGroup[side]) pushLive(panelGroup[side], false);
