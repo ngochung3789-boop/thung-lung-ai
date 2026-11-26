@@ -8625,6 +8625,209 @@ function dungThanhPho(){
     sceneCity.add(nhom);
   })();
 
+/* DOI-DO-HOA #34 (26/11, mục 33): Góc trưng bày tranh học sinh ngoài trời
+     gần thư viện. Tâm (69,-48), ô x 65..73, z -51..-45 — phía nam thư viện:
+     nền lát gạch 8×6m + bảng tranh lớn 2 tấm phía bắc (tranh 'Núi quê em' +
+     'Hoa mặt trời') + biển tên trên đỉnh + 2 giá vẽ phía trước (tranh 'Ngôi
+     nhà của em' + 'Bướm và hoa') + 2 ghế gỗ ngồi xem + biển gỗ 2 mặt 'GÓC
+     TRƯNG BÀY TRANH' ở mép nam + 2 chậu hoa + 1 cây nhỏ + 2 phiến đá nối
+     đường vòng nam. Không chắn lối đoàn, không che tháp / biển KHỐI. */
+  (function(){
+    const nhom = new THREE.Group();
+    const CX = 69, CZ = -48;
+    const gachMat = new THREE.MeshStandardMaterial({color:0xD8CDB8, roughness:0.9});
+    const trangMat = new THREE.MeshStandardMaterial({color:0xFFFFFF, roughness:0.6});
+    const goMat = new THREE.MeshStandardMaterial({color:0x8B5A2B, roughness:0.75});
+    const goDamMat = new THREE.MeshStandardMaterial({color:0x6B4423, roughness:0.75});
+    const goNhatMat = new THREE.MeshStandardMaterial({color:0xC89B6A, roughness:0.75});
+    const vangMat = new THREE.MeshStandardMaterial({color:0xC9A227, roughness:0.35, metalness:0.6});
+    const laMat = new THREE.MeshStandardMaterial({color:0x3E7A34, roughness:0.9});
+    const chauMat = new THREE.MeshStandardMaterial({color:0xA8542E, roughness:0.8});
+    const daMat = new THREE.MeshStandardMaterial({color:0xCFC8BC, roughness:0.9});
+    function them(mesh, x, y, z){
+      mesh.position.set(x, y, z); mesh.castShadow = true; nhom.add(mesh);
+      return mesh;
+    }
+    function veChu(w, h, dong1, dong2, mauNen, mauChu){
+      const c = document.createElement('canvas'); c.width = w; c.height = h;
+      const g = c.getContext('2d');
+      g.fillStyle = mauNen; g.fillRect(0, 0, w, h);
+      g.strokeStyle = '#C9A227'; g.lineWidth = 8; g.strokeRect(6, 6, w - 12, h - 12);
+      g.textAlign = 'center'; g.textBaseline = 'middle';
+      g.fillStyle = mauChu;
+      let fs = 92; g.font = '800 ' + fs + 'px "Be Vietnam Pro", Arial, sans-serif';
+      while (g.measureText(dong1).width > w - 60 && fs > 30) { fs -= 4; g.font = '800 ' + fs + 'px "Be Vietnam Pro", Arial, sans-serif'; }
+      g.fillText(dong1, w / 2, dong2 ? h * 0.32 : h / 2);
+      if (dong2) {
+        let fs2 = 44; g.font = '700 ' + fs2 + 'px "Be Vietnam Pro", Arial, sans-serif';
+        while (g.measureText(dong2).width > w - 60 && fs2 > 24) { fs2 -= 2; g.font = '700 ' + fs2 + 'px "Be Vietnam Pro", Arial, sans-serif'; }
+        g.fillText(dong2, w / 2, h * 0.72);
+      }
+      const t = new THREE.CanvasTexture(c); t.anisotropy = 4;
+      return t;
+    }
+    /* Ve 1 buc tranh hoc sinh don gian len canvas 512x384 + ten tranh o duoi. */
+    function veTranh(loai, ten){
+      const c = document.createElement('canvas'); c.width = 512; c.height = 384;
+      const g = c.getContext('2d');
+      g.fillStyle = '#BFE3F2'; g.fillRect(0, 0, 512, 384);
+      g.fillStyle = '#FFF6C9'; g.fillRect(0, 330, 512, 54);
+      g.fillStyle = '#7EC850'; g.fillRect(0, 300, 512, 30);
+      if (loai === 'nui') {
+        g.fillStyle = '#FFD93D'; g.beginPath(); g.arc(430, 70, 38, 0, Math.PI * 2); g.fill();
+        g.fillStyle = '#5B8C5A'; g.beginPath(); g.moveTo(0, 300); g.lineTo(150, 110); g.lineTo(300, 300); g.closePath(); g.fill();
+        g.fillStyle = '#7FB069'; g.beginPath(); g.moveTo(180, 300); g.lineTo(340, 140); g.lineTo(512, 300); g.closePath(); g.fill();
+        g.fillStyle = '#FFFFFF'; g.beginPath(); g.moveTo(150, 110); g.lineTo(120, 155); g.lineTo(180, 155); g.closePath(); g.fill();
+        g.fillStyle = '#E2725B'; g.fillRect(210, 240, 60, 60);
+        g.fillStyle = '#8B4513'; g.beginPath(); g.moveTo(195, 240); g.lineTo(240, 200); g.lineTo(285, 240); g.closePath(); g.fill();
+      } else if (loai === 'hoa') {
+        g.fillStyle = '#FFD93D'; g.beginPath(); g.arc(80, 60, 32, 0, Math.PI * 2); g.fill();
+        [[130, 210], [256, 180], [380, 215]].forEach(p => {
+          g.strokeStyle = '#2E7D32'; g.lineWidth = 8;
+          g.beginPath(); g.moveTo(p[0], 300); g.lineTo(p[0], p[1] + 30); g.stroke();
+          g.fillStyle = '#6B4423'; g.beginPath(); g.arc(p[0], p[1], 30, 0, Math.PI * 2); g.fill();
+          g.fillStyle = '#FFC93C';
+          for (let i = 0; i < 12; i++) {
+            const a = i * Math.PI / 6;
+            g.beginPath(); g.ellipse(p[0] + Math.cos(a) * 38, p[1] + Math.sin(a) * 38, 16, 9, a, 0, Math.PI * 2); g.fill();
+          }
+        });
+      } else if (loai === 'nha') {
+        g.fillStyle = '#FFF3B0'; g.beginPath(); g.arc(430, 70, 34, 0, Math.PI * 2); g.fill();
+        g.fillStyle = '#F4D35E'; g.fillRect(180, 200, 150, 100);
+        g.fillStyle = '#E2725B'; g.beginPath(); g.moveTo(165, 200); g.lineTo(255, 140); g.lineTo(345, 200); g.closePath(); g.fill();
+        g.fillStyle = '#8B4513'; g.fillRect(240, 250, 30, 50);
+        g.fillStyle = '#7FB3D5'; g.fillRect(195, 220, 35, 35); g.fillRect(280, 220, 35, 35);
+        g.fillStyle = '#5B8C5A'; g.beginPath(); g.arc(120, 230, 45, 0, Math.PI * 2); g.fill();
+        g.fillStyle = '#6B4423'; g.fillRect(112, 260, 16, 40);
+        g.fillStyle = '#E91E63'; g.beginPath(); g.arc(400, 270, 12, 0, Math.PI * 2); g.fill();
+        g.beginPath(); g.arc(430, 285, 12, 0, Math.PI * 2); g.fill();
+      } else { /* buom */
+        g.fillStyle = '#FFD93D'; g.beginPath(); g.arc(80, 60, 32, 0, Math.PI * 2); g.fill();
+        [[180, 180, '#E91E63'], [330, 150, '#3F51B5']].forEach(p => {
+          g.fillStyle = p[2];
+          g.beginPath(); g.ellipse(p[0] - 28, p[1] - 12, 30, 20, -0.5, 0, Math.PI * 2); g.fill();
+          g.beginPath(); g.ellipse(p[0] + 28, p[1] - 12, 30, 20, 0.5, 0, Math.PI * 2); g.fill();
+          g.beginPath(); g.ellipse(p[0] - 22, p[1] + 18, 22, 14, 0.4, 0, Math.PI * 2); g.fill();
+          g.beginPath(); g.ellipse(p[0] + 22, p[1] + 18, 22, 14, -0.4, 0, Math.PI * 2); g.fill();
+          g.fillStyle = '#333333'; g.fillRect(p[0] - 4, p[1] - 25, 8, 55);
+        });
+        g.fillStyle = '#E91E63'; g.beginPath(); g.arc(120, 285, 10, 0, Math.PI * 2); g.fill();
+        g.fillStyle = '#F1C40F'; g.beginPath(); g.arc(400, 290, 10, 0, Math.PI * 2); g.fill();
+      }
+      g.fillStyle = 'rgba(0,0,0,0.55)'; g.fillRect(0, 330, 512, 54);
+      g.fillStyle = '#FFFFFF'; g.font = '700 30px "Be Vietnam Pro", Arial, sans-serif';
+      g.textAlign = 'center'; g.textBaseline = 'middle';
+      g.fillText(ten, 256, 357);
+      const t = new THREE.CanvasTexture(c); t.anisotropy = 4;
+      return t;
+    }
+    /* --- Nen lat gach 8 x 6m (x 65..73, z -51..-45) + vien trang. --- */
+    them(new THREE.Mesh(new THREE.BoxGeometry(8, 0.12, 6), gachMat), CX, 0.06, CZ);
+    them(new THREE.Mesh(new THREE.BoxGeometry(8, 0.02, 0.12), trangMat), CX, 0.13, -50.94);
+    them(new THREE.Mesh(new THREE.BoxGeometry(8, 0.02, 0.12), trangMat), CX, 0.13, -45.06);
+    them(new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.02, 6), trangMat), 65.06, 0.13, CZ);
+    them(new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.02, 6), trangMat), 72.94, 0.13, CZ);
+    /* --- Bang tranh lon doc phia bac nen (z=-45.6): 3 cot go NGOAI mep tam
+         (cot x=65.6 / 69 / 72.4; tam trai x 65.8..68.2, tam phai x 69.8..72.2). --- */
+    [65.6, 69, 72.4].forEach(x => {
+      them(new THREE.Mesh(new THREE.BoxGeometry(0.12, 2.5, 0.12), goMat), x, 0.12 + 1.25, -45.6);
+    });
+    them(new THREE.Mesh(new THREE.BoxGeometry(6.9, 0.1, 0.1), vangMat), CX, 2.42, -45.6);
+    const texTen = veChu(1408, 128, 'GÓC TRƯNG BÀY TRANH HỌC SINH', null, '#5D3517', '#FDF6E3');
+    const tenNam = new THREE.Mesh(new THREE.PlaneGeometry(5.6, 0.5),
+      new THREE.MeshBasicMaterial({map: texTen}));
+    tenNam.position.set(CX, 2.42, -45.66); tenNam.rotation.y = Math.PI;
+    tenNam.castShadow = true; nhom.add(tenNam);
+    const tenBac = new THREE.Mesh(new THREE.PlaneGeometry(5.6, 0.5),
+      new THREE.MeshBasicMaterial({map: texTen}));
+    tenBac.position.set(CX, 2.42, -45.54);
+    tenBac.castShadow = true; nhom.add(tenBac);
+    /* 2 tam tranh: lung go + mat tranh (mat nam z=-45.64 xoay PI, mat bac z=-45.56). */
+    [['nui', 'Núi quê em · 7A', 67], ['hoa', 'Hoa mặt trời · 8B', 71]].forEach(t => {
+      them(new THREE.Mesh(new THREE.BoxGeometry(2.4, 1.6, 0.06), goDamMat), t[2], 1.35, -45.6);
+      const tex = veTranh(t[0], t[1]);
+      const mNam = new THREE.Mesh(new THREE.PlaneGeometry(2.2, 1.4),
+        new THREE.MeshBasicMaterial({map: tex}));
+      mNam.position.set(t[2], 1.35, -45.64); mNam.rotation.y = Math.PI;
+      mNam.castShadow = true; nhom.add(mNam);
+      const mBac = new THREE.Mesh(new THREE.PlaneGeometry(2.2, 1.4),
+        new THREE.MeshBasicMaterial({map: tex}));
+      mBac.position.set(t[2], 1.35, -45.56);
+      mBac.castShadow = true; nhom.add(mBac);
+    });
+    /* --- 2 gia ve truoc bang (x=67/71, z=-47.5), bang nghieng 15 do mat ve nam.
+         SUA 26/11: ban dau ca nhom xoay -0.26 lam tranh quay ve bac (chi thay
+         lung go tu phia nam) — nay chi nghieng nhom con 'nghieng' chua bang +
+         tranh, tranh xoay PI de mat ve nam (ve ghe ngoi xem). --- */
+    [['nha', 'Ngôi nhà của em · 6C', 67], ['buom', 'Bướm và hoa · 7B', 71]].forEach(t => {
+      const gv = new THREE.Group();
+      gv.position.set(t[2], 0.12, -47.5);
+      const nghieng = new THREE.Group();
+      nghieng.position.set(0, 0.95, 0); nghieng.rotation.x = 0.26;
+      const lung = new THREE.Mesh(new THREE.BoxGeometry(1.1, 0.85, 0.05), goNhatMat);
+      lung.castShadow = true; nghieng.add(lung);
+      const tranh = new THREE.Mesh(new THREE.PlaneGeometry(1.0, 0.75),
+        new THREE.MeshBasicMaterial({map: veTranh(t[0], t[1])}));
+      tranh.position.set(0, 0, -0.031); tranh.rotation.y = Math.PI;
+      tranh.castShadow = true; nghieng.add(tranh);
+      const doTranh = new THREE.Mesh(new THREE.BoxGeometry(1.0, 0.06, 0.08), goDamMat);
+      doTranh.position.set(0, -0.4, -0.06); doTranh.castShadow = true; nghieng.add(doTranh);
+      gv.add(nghieng);
+      const chanT1 = new THREE.Mesh(new THREE.BoxGeometry(0.06, 1.5, 0.06), goMat);
+      chanT1.position.set(-0.45, 0.62, -0.05); chanT1.rotation.x = 0.12; chanT1.castShadow = true; gv.add(chanT1);
+      const chanT2 = new THREE.Mesh(new THREE.BoxGeometry(0.06, 1.5, 0.06), goMat);
+      chanT2.position.set(0.45, 0.62, -0.05); chanT2.rotation.x = 0.12; chanT2.castShadow = true; gv.add(chanT2);
+      const chanS = new THREE.Mesh(new THREE.BoxGeometry(0.06, 1.45, 0.06), goMat);
+      chanS.position.set(0, 0.6, 0.42); chanS.rotation.x = -0.55; chanS.castShadow = true; gv.add(chanS);
+      nhom.add(gv);
+    });
+    /* --- 2 ghe go dai phia nam nen (z=-49.6), mat ve bac (ngoi xem tranh). --- */
+    [67, 71].forEach(x => {
+      them(new THREE.Mesh(new THREE.BoxGeometry(1.8, 0.08, 0.45), goMat), x, 0.52, -49.6);
+      them(new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.36, 0.4), goDamMat), x - 0.7, 0.3, -49.6);
+      them(new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.36, 0.4), goDamMat), x + 0.7, 0.3, -49.6);
+      them(new THREE.Mesh(new THREE.BoxGeometry(1.8, 0.35, 0.05), goMat), x, 0.93, -49.88);
+    });
+    /* --- Bien go 2 mat o mep nam nen (z=-50.7), cot NGOAI mep bien
+         (bien rong 2.2m doc x: mep 67.9/70.1; cot o 67.75/70.25). --- */
+    them(new THREE.Mesh(new THREE.BoxGeometry(0.12, 1.9, 0.12), goMat), 67.75, 0.12 + 0.95, -50.7);
+    them(new THREE.Mesh(new THREE.BoxGeometry(0.12, 1.9, 0.12), goMat), 70.25, 0.12 + 0.95, -50.7);
+    them(new THREE.Mesh(new THREE.BoxGeometry(2.3, 0.95, 0.06), vangMat), CX, 1.45, -50.7);
+    const texBien = veChu(1024, 384, 'GÓC TRƯNG BÀY TRANH', 'Tranh học sinh · Ngắm · Bình chọn', '#5D3517', '#FDF6E3');
+    const matNam = new THREE.Mesh(new THREE.PlaneGeometry(2.2, 0.85),
+      new THREE.MeshBasicMaterial({map: texBien}));
+    matNam.position.set(CX, 1.45, -50.74); matNam.rotation.y = Math.PI;
+    matNam.castShadow = true; nhom.add(matNam);
+    const matBac = new THREE.Mesh(new THREE.PlaneGeometry(2.2, 0.85),
+      new THREE.MeshBasicMaterial({map: texBien}));
+    matBac.position.set(CX, 1.45, -50.66);
+    matBac.castShadow = true; nhom.add(matBac);
+    them(new THREE.Mesh(new THREE.BoxGeometry(2.3, 0.08, 0.1), vangMat), CX, 1.97, -50.7);
+    /* --- 2 chau hoa 2 ben bien (66.2,-50.7) + (71.8,-50.7). --- */
+    [[66.2, -50.7], [71.8, -50.7]].forEach(p => {
+      them(new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.22, 0.4, 12), chauMat), p[0], 0.32, p[1]);
+      const bui = them(new THREE.Mesh(new THREE.SphereGeometry(0.28, 10, 8), laMat), p[0], 0.64, p[1]);
+      bui.scale.y = 0.85;
+      [[0xE74C3C, 0], [0xF1C40F, -0.11], [0xE91E63, 0.11]].forEach(f => {
+        const bong = new THREE.Mesh(new THREE.SphereGeometry(0.1, 10, 8),
+          new THREE.MeshStandardMaterial({color:f[0], roughness:0.6}));
+        bong.position.set(p[0] + f[1], 0.9, p[1]); bong.castShadow = true; nhom.add(bong);
+      });
+    });
+    /* --- 1 cay nho mep tay nen (65.35,-48.5 — doi ve nam de tan khoi che mep tam tranh). --- */
+    them(new THREE.Mesh(new THREE.CylinderGeometry(0.09, 0.13, 1.1, 8), goMat), 65.35, 0.55, -48.5);
+    [[0, 1.5, 0, 0.55], [-0.3, 1.25, 0.1, 0.4], [0.3, 1.3, -0.1, 0.42]].forEach(t => {
+      const tan = them(new THREE.Mesh(new THREE.SphereGeometry(t[3], 10, 8), laMat), 65.35 + t[0], t[1], -48.5 + t[2]);
+      tan.scale.y = 0.85;
+    });
+    /* --- 2 phien da noi nen voi duong vong nam (68,-52.2) + (70,-52.2). --- */
+    them(new THREE.Mesh(new THREE.BoxGeometry(0.9, 0.06, 0.7), daMat), 68, 0.03, -52.2);
+    them(new THREE.Mesh(new THREE.BoxGeometry(0.9, 0.06, 0.7), daMat), 70, 0.03, -52.2);
+    nhom.traverse(o=>{ o.userData.doiDoHoa = 34; });
+    sceneCity.add(nhom);
+  })();
+
 [[-6.5,-13],[6.5,-13],[-6.5,13],[6.5,13]].forEach(p=>{ /* fix5: ghe theo quang truong 28x28 */
     const ghe = new THREE.Group();
     const matGhe = new THREE.Mesh(new THREE.BoxGeometry(2.4, 0.12, 0.65), new THREE.MeshStandardMaterial({color:0x8A7A5A, roughness:0.8}));
@@ -21975,6 +22178,7 @@ v35: GOP VUON THUOC NAM MUC 19 + QUANG TRUONG GACH HOA VAN MUC 20 + CONG CHAO + 
 v36: DOI CONG CHAO + HANG CAY RA (0,-32.5) MUC 21
 v37: GOP 6 MON: KHU DE XE DAP #22 + VUON HONG LEO #23 + SAN CAU LONG #24 + BANG VANG #25 + NHA VE SINH #26 + BAI DO XE O TO #27
 v38: GOP 5 MON: GOC STEM #28 + VUON HUONG DUONG #29 + KHU TAP THE DUC #30 + KHU RUA TAY #31 + MAI CHE CHO XE BUYT #32
+v39: GOC TRUNG BAY TRANH HOC SINH #33
 · v26a: SUA BIEN CONG (dong 1 gioi han 1500px, het cat chu T/H)
 · v26b: TACH CUA SO TRON (nhom cuaSoXe luon hien; sua loi an cua so khi xuong xe)
 · v26c: GIU BONG BONG TRAM (gan lai khi doan dung lai do doi lop bat dong bo) =================
