@@ -1000,7 +1000,7 @@ Viết lại bằng hiểu biết của mình</textarea>
   <div class="bell-main">
     <section class="bell-stage" aria-label="Khu vực bấm chuông">
       <p class="bell-status" id="bellStatus">Sẵn sàng bấm chuông!</p>
-      <div class="bell-clock" id="bellClock">0,00 <span>giây</span></div>
+      <div class="bell-clock" id="bellClock">--:--:-- <span>giờ hiện tại</span></div>
       <button class="bell-btn" type="button" id="bellBtn" aria-label="Bấm chuông">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 8a6 6 0 10-12 0c0 7-3 8-3 8h18s-3-1-3-8"/><path d="M10.3 21a2 2 0 003.4 0"/></svg>
       </button>
@@ -1992,8 +1992,8 @@ Viết lại bằng hiểu biết của mình</textarea>
 <script>
 (function(){
   /* ===== BẤM CHUÔNG: chuông luôn sẵn sàng ngay khi mở tab (không cần bước mở đầu) ->
-     đồng hồ chạy -> nhóm chọn tên rồi bấm chuông -> ghi thời gian của từng nhóm
-     -> Bảng của thầy xếp hạng nhanh nhất lên đầu ===== */
+     đồng hồ hiện GIỜ THẬT của đồng hồ hệ thống -> nhóm chọn tên rồi bấm chuông ->
+     ghi đúng giờ thật lúc bấm của từng nhóm -> Bảng của thầy xếp nhóm bấm sớm nhất lên đầu ===== */
   var againBtn = document.getElementById('bellAgainBtn');
   var bellBtn = document.getElementById('bellBtn');
   var statusEl = document.getElementById('bellStatus');
@@ -2004,10 +2004,9 @@ Viết lại bằng hiểu biết của mình</textarea>
   var gbtns = document.querySelectorAll('.bell-gbtn');
 
   var currentGroup = 1;
-  var running = false;      /* đồng hồ của vòng này đang chạy chưa (tự chạy ngay khi mở tab) */
-  var startAt = 0;          /* mốc performance.now() lúc vòng bắt đầu */
-  var tickId = null;
-  var results = {};         /* số nhóm -> thời gian bấm (ms) tính từ lúc vòng bắt đầu */
+  var running = false;      /* chuông của vòng này đang mở chưa (mở ngay khi mở tab) */
+  var tickId = null;        /* nhịp cập nhật đồng hồ giờ thật, 2 lần mỗi giây */
+  var results = {};         /* số nhóm -> {at: mốc giờ bấm (ms epoch, để xếp thứ tự), gio: "HH:MM:SS" giờ thật lúc bấm} */
 
   /* ===== ĐỒNG BỘ FIREBASE — dùng đúng project hd3-bai4 như app Kéo thả nộp bài
      và app Bấm chuông HĐ3 của thầy (KHÔNG dùng Apps Script).
@@ -2015,8 +2014,8 @@ Viết lại bằng hiểu biết của mình</textarea>
      không đụng nhánh keotha (kéo thả) hay buzzer (HĐ3) cũ.
      Luồng: mở tab là chuông tự mở ngay (trạng thái mở chuông lên Firebase),
      điện thoại các nhóm mở cùng link thấy chuông đã sẵn sàng; nhóm bấm chuông ->
-     lượt bấm (nhóm, thời gian từ lúc vòng bắt đầu, giờ bấm) đẩy lên Firebase ngay;
-     Bảng của thầy tự cập nhật theo thời gian thực, xếp nhanh nhất lên đầu.
+     lượt bấm (nhóm, giờ thật lúc bấm, mốc giờ máy chủ) đẩy lên Firebase ngay;
+     Bảng của thầy tự cập nhật theo thời gian thực, xếp nhóm bấm sớm nhất lên đầu.
      Mất mạng / không kết nối được Firebase thì tab vẫn chạy 1 màn hình như trước. ===== */
   var FB_ROOT = 'hd3-bai4/bamchuong-taosinh';
   var FB_CONFIG = {
@@ -2046,22 +2045,24 @@ Viết lại bằng hiểu biết của mình</textarea>
     connEl.textContent = txt;
     connEl.className = 'bell-conn' + (state === true ? ' ok' : state === false ? ' err' : '');
   }
-  function startClock(elapsedMs){
+  /* Đồng hồ GIỜ THẬT: chỉ hiện giờ hiện tại của đồng hồ hệ thống (HH:MM:SS),
+     cập nhật theo từng giây — không phải đồng hồ bấm giờ chạy liên tục.
+     Đồng hồ này không bao giờ dừng: đủ 6 nhóm bấm xong nó vẫn hiện giờ thật. */
+  function startClock(){
     running = true;
-    startAt = performance.now() - Math.max(0, elapsedMs || 0);
+    paintClock();
     if(tickId) clearInterval(tickId);
-    tickId = setInterval(function(){ paintClock(performance.now() - startAt); }, 31);
+    tickId = setInterval(paintClock, 500);
   }
   function stopClock(){
-    if(tickId){ clearInterval(tickId); tickId = null; }
+    /* Giữ hàm cho các chỗ gọi cũ: đồng hồ giờ thật thì không dừng lại được. */
   }
   function resetRound(){
     running = false;
     roundLive = false;
     moLuc = 0;
     results = {};
-    stopClock();
-    paintClock(0);
+    paintClock();
   }
 
   /* Nghe lượt bấm của vòng hiện tại: máy nào bấm thì mọi máy thấy ngay trên Bảng của thầy */
@@ -2076,19 +2077,17 @@ Viết lại bằng hiểu biết của mình</textarea>
       Object.keys(v).forEach(function(k){
         var g = parseInt(String(k).replace('nhom', ''), 10);
         var rec = v[k];
-        if(!(g >= 1 && g <= 6) || !rec || rec.ms == null) return;
-        var ms = Number(rec.ms);
-        if(results[g] == null || ms < results[g]){ results[g] = ms; changed = true; }
+        if(!(g >= 1 && g <= 6) || !rec) return;
+        /* Mốc giờ bấm để xếp thứ tự: ưu tiên giờ máy chủ (t); bản ghi cũ chỉ có ms
+           tính từ lúc mở vòng thì cộng với mốc mở vòng (moLuc) ra giờ thật. */
+        var at = Number(rec.t) || (moLuc && rec.ms != null ? moLuc + Number(rec.ms) : 0) || Date.now();
+        /* gio hiển thị được chèn vào HTML của Bảng của thầy nên CHỈ nhận đúng mẫu
+           HH:MM:SS; giá trị lạ trên máy chủ (ai cũng ghi được vào nhánh chung này)
+           thì bỏ, tự sinh lại giờ từ mốc giờ bấm cho an toàn. */
+        var gio = /^\d{2}:\d{2}:\d{2}$/.test(rec.gio || '') ? rec.gio : fmtClockTime(new Date(at));
+        if(results[g] == null || at < results[g].at){ results[g] = {at: at, gio: gio}; changed = true; }
       });
-      if(changed){
-        if(rungCount() >= 6 && tickId){
-          stopClock();
-          var maxMs = 0;
-          Object.keys(results).forEach(function(g){ if(results[g] > maxMs) maxMs = results[g]; });
-          paintClock(maxMs);
-        }
-        paint();
-      }
+      if(changed) paint();
     });
   }
 
@@ -2121,7 +2120,7 @@ Viết lại bằng hiểu biết của mình</textarea>
       if(v.mo){
         roundLive = true;
         moLuc = Number(v.moLuc) || 0;
-        startClock(moLuc ? nowServer() - moLuc : 0);
+        startClock();
       } else {
         phatTrangThaiMo();                     /* vòng chưa mở: tự mở ngay, không chờ ai hô */
       }
@@ -2153,15 +2152,9 @@ Viết lại bằng hiểu biết của mình</textarea>
     ngheLuotBam();
   }
 
-  /* Thời gian dạng giây, 2 chữ số phần thập phân, dấu phẩy: 1240ms -> "1,24 giây" */
-  function fmtSec(ms){
-    return (Math.max(0, ms) / 1000).toFixed(2).replace('.', ',');
-  }
-  function fmtTime(ms){
-    return fmtSec(ms) + ' giây';
-  }
-  function paintClock(ms){
-    clockEl.innerHTML = fmtSec(ms) + ' <span>giây</span>';
+  /* Đồng hồ lớn giữa sân khấu: GIỜ THẬT hiện tại, dạng HH:MM:SS */
+  function paintClock(){
+    clockEl.innerHTML = fmtClockTime(new Date()) + ' <span>giờ hiện tại</span>';
   }
   function rungCount(){
     return Object.keys(results).length;
@@ -2194,8 +2187,8 @@ Viết lại bằng hiểu biết của mình</textarea>
 
   function renderRank(){
     var arr = Object.keys(results).map(function(g){
-      return {g: parseInt(g, 10), ms: results[g]};
-    }).sort(function(a, b){ return a.ms - b.ms; });
+      return {g: parseInt(g, 10), at: results[g].at, gio: results[g].gio};
+    }).sort(function(a, b){ return a.at - b.at; });
     countEl.textContent = 'Đã bấm: ' + arr.length + '/6 nhóm';
     if(!arr.length){
       rankEl.innerHTML = '<li class="bell-rank-empty">Chưa có nhóm nào bấm chuông.</li>';
@@ -2205,7 +2198,7 @@ Viết lại bằng hiểu biết của mình</textarea>
       return '<li class="bell-rank-row' + (i === 0 ? ' first' : '') + '">' +
         '<span class="bell-rank-no">' + (i + 1) + '</span>' +
         '<span class="bell-rank-name">Nhóm ' + r.g + '</span>' +
-        '<span class="bell-rank-time">' + fmtTime(r.ms) + '</span>' +
+        '<span class="bell-rank-time">' + r.gio + '</span>' +
         (i === 0 ? '<span class="bell-rank-badge">Nhanh nhất</span>' : '') +
         '</li>';
     }).join('');
@@ -2225,11 +2218,11 @@ Viết lại bằng hiểu biết của mình</textarea>
       statusEl.textContent = 'Đã đủ 6 nhóm bấm chuông!';
       noteEl.innerHTML = 'Vòng này đã xong. Bấm <b>Chơi lại</b> để bắt đầu vòng bấm mới.';
     } else if(hasRung){
-      statusEl.textContent = 'Nhóm ' + currentGroup + ' đã bấm: ' + fmtTime(mine);
-      noteEl.innerHTML = 'Nhóm ' + currentGroup + ' đã ghi thời gian. Chọn nhóm khác ở phía trên để bấm tiếp.';
+      statusEl.textContent = 'Nhóm ' + currentGroup + ' đã bấm lúc ' + mine.gio;
+      noteEl.innerHTML = 'Nhóm ' + currentGroup + ' đã ghi giờ bấm <b>' + mine.gio + '</b>. Chọn nhóm khác ở phía trên để bấm tiếp.';
     } else {
       statusEl.textContent = 'Nhóm ' + currentGroup + ' — bấm chuông đi!';
-      noteEl.innerHTML = 'Đang tính giờ cho <b>Nhóm ' + currentGroup + '</b> — bấm chuông càng nhanh càng tốt!';
+      noteEl.innerHTML = 'Chuông đang mở cho <b>Nhóm ' + currentGroup + '</b> — bấm chuông là ghi đúng <b>giờ thật</b> lúc bấm!';
     }
     gbtns.forEach(function(b){
       var g = parseInt(b.getAttribute('data-group'), 10);
@@ -2250,24 +2243,19 @@ Viết lại bằng hiểu biết của mình</textarea>
 
   bellBtn.addEventListener('click', function(){
     if(!running || results[currentGroup] != null) return;
-    var ms = performance.now() - startAt;
-    /* Có đồng bộ thì tính giờ theo mốc giờ máy chủ lúc vòng bắt đầu, để mọi máy khớp nhau */
-    var msGui = (db && moLuc) ? Math.max(0, nowServer() - moLuc) : ms;
-    results[currentGroup] = msGui;
+    /* Ghi GIỜ THẬT lúc bấm: giờ trên đồng hồ máy này; mốc xếp thứ tự lấy theo
+       giờ máy chủ Firebase khi có đồng bộ để mọi máy khớp nhau. */
+    var gioBam = fmtClockTime(new Date());
+    results[currentGroup] = {at: nowServer(), gio: gioBam};
     ding();
-    /* Đẩy lượt bấm lên Firebase ngay: tên nhóm, thời gian từ lúc vòng bắt đầu, giờ bấm.
+    /* Đẩy lượt bấm lên Firebase ngay: tên nhóm, giờ thật lúc bấm, mốc giờ máy chủ.
        Transaction giữ lượt bấm ĐẦU TIÊN của nhóm trong vòng này. */
     if(db){
-      var gioBam = fmtClockTime(new Date());
       var vongBam = round;
       db.ref(FB_ROOT + '/luotbam/' + vongBam + '/nhom' + currentGroup).transaction(function(cur){
         if(cur) return;
-        return { ms: Math.round(msGui), gio: gioBam, t: firebase.database.ServerValue.TIMESTAMP };
+        return { gio: gioBam, t: firebase.database.ServerValue.TIMESTAMP };
       }).catch(function(){});
-    }
-    if(rungCount() >= 6){
-      stopClock();
-      paintClock(msGui);
     }
     paint();
   });
@@ -2276,7 +2264,7 @@ Viết lại bằng hiểu biết của mình</textarea>
     round = round + 1;               /* vòng mới — lượt bấm ghi sang nhánh vòng mới */
     resetRound();
     roundLive = true;                /* vòng mới mở chuông ngay, không chờ bước bắt đầu */
-    startClock(0);
+    startClock();
     if(db){
       ngheLuotBam();
       phatTrangThaiMo();
@@ -2284,11 +2272,11 @@ Viết lại bằng hiểu biết của mình</textarea>
     paint();
   });
 
-  /* Mở tab là chuông sẵn sàng ngay: đồng hồ tự chạy từ lúc mở, không cần ai hô bắt đầu.
-     Khi Firebase nối được, ngheTrangThai sẽ căn lại đồng hồ theo mốc máy chủ chung. */
-  paintClock(0);
+  /* Mở tab là chuông sẵn sàng ngay: đồng hồ hiện giờ thật ngay từ lúc mở,
+     không cần ai hô bắt đầu. Đồng hồ chỉ hiện giờ thật, không đếm thời gian bấm. */
+  paintClock();
   roundLive = true;
-  startClock(0);
+  startClock();
   paint();
   khoiTaoFirebase();
 })();
