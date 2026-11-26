@@ -2401,11 +2401,10 @@ Viết lại bằng hiểu biết của mình</textarea>
         var j = Math.floor(Math.random() * (i + 1));
         var tmp = missing[i]; missing[i] = missing[j]; missing[j] = tmp;
       }
-      var durs = [84, 99, 112, 127, 143, 158];
-      for(var a = durs.length - 1; a > 0; a--){
-        var b = Math.floor(Math.random() * (a + 1));
-        var t2 = durs[a]; durs[a] = durs[b]; durs[b] = t2;
-      }
+      /* Thời gian làm bài RIÊNG cho từng nhóm: mỗi nhóm một khoảng giây riêng,
+         các khoảng không chồng lên nhau nên 6 nhóm không bao giờ trùng thời gian —
+         kể cả khi chỉ giả lập một vài nhóm chưa nộp */
+      var durBase = {1: 88, 2: 104, 3: 120, 4: 136, 5: 152, 6: 168};
       var delay = 3000; /* nhóm đầu tiên nộp sau khoảng 3 giây */
       missing.forEach(function(g, idx){
         if(idx > 0) delay += 2400 + Math.random() * 2600;
@@ -2416,7 +2415,7 @@ Viết lại bằng hiểu biết của mình</textarea>
           var record = {
             team: 'Nhóm ' + g,
             score: 10, correct: 5, total: 5,
-            durationSec: durs[idx % durs.length],
+            durationSec: durBase[g] + Math.floor(Math.random() * 9),
             hien: fmtHien(new Date()),
             answers: answers,
             auto: 0,
