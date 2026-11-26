@@ -369,8 +369,17 @@
   .suno-chips button:hover{background:#303034}
   .suno-lyrics-head{display:flex;align-items:center;justify-content:space-between;color:#e8e8ea;font-size:14.5px;font-weight:600;margin:20px 2px 10px}
   .suno-lyrics-tools{color:#8b8b90;display:flex;gap:12px;font-size:13px;font-weight:400}
-  .suno-prompt{width:100%;flex:0 0 240px;border:0;border-radius:6px;background:#ffffff;color:#111;font-size:15.5px;line-height:1.55;padding:14px;resize:none;font-family:inherit}
+  .suno-prompt{width:100%;height:100%;border:0;border-radius:6px;background:#ffffff;color:#111;font-size:15.5px;line-height:1.55;padding:14px;resize:none;font-family:inherit}
   .suno-prompt:focus{outline:2px solid #f97316;outline-offset:1px}
+  /* Bảng gợi ý câu lệnh Suno: gõ chữ "T" là hiện câu lệnh mẫu, bấm để chọn —
+     giống gợi ý ở tab ChatGPT. Nằm ngay trên ô nhập, nền tối theo giao diện Suno. */
+  .suno-prompt-wrap{position:relative;flex:0 0 240px}
+  .suno-suggest{position:absolute;left:0;right:0;bottom:calc(100% + 8px);background:#26262a;border:1px solid #3d3d42;border-radius:14px;box-shadow:0 14px 40px rgba(0,0,0,.5);padding:8px;z-index:40;animation:fade .18s ease;text-align:left}
+  .suno-suggest-head{font-size:12.5px;color:#a1a1a6;font-weight:600;padding:4px 10px 6px}
+  .suno-suggest-item{display:flex;gap:11px;width:100%;border:0;background:transparent;color:#fff;padding:11px 10px;border-radius:10px;font-size:15.5px;line-height:1.5;text-align:left;align-items:flex-start;min-height:44px}
+  .suno-suggest-item:hover{background:rgba(255,255,255,.09)}
+  .suno-suggest-item .ic{width:19px;height:19px;flex-basis:19px;color:#fb923c;margin-top:2px}
+  .suno-suggest-item .rest{color:#a1a1a6}
   .suno-create-row{display:flex;gap:10px;align-items:center;margin-top:16px}
   .suno-trash{width:46px;height:46px;flex:0 0 46px;border-radius:50%;border:0;background:#26262a;color:#c9c9cc;display:grid;place-items:center}
   .suno-trash:hover{background:#303034}
@@ -442,7 +451,7 @@
     .suno-nav-sub{border-top:0}
     .suno-upgrade{margin-top:10px}
     .suno-create{width:auto;flex:0 0 auto;border-right:0;border-bottom:1px solid #1e1e20;overflow:visible}
-    .suno-prompt{flex-basis:180px}
+    .suno-prompt-wrap{flex-basis:180px}
     .suno-lib{overflow:visible}
     .suno-disc-wrap,.suno-disc{width:210px;height:210px}
     .suno-banner-title{font-size:22px}
@@ -660,6 +669,14 @@
       <span>⌄&ensp;Lời bài hát</span>
       <span class="suno-lyrics-tools"><span>⤢</span><span>▥</span><span>▢</span></span>
     </div>
+    <div class="suno-prompt-wrap">
+      <div class="suno-suggest hidden" id="sunoSuggest" role="listbox" aria-label="Gợi ý câu lệnh">
+        <div class="suno-suggest-head">Gợi ý câu lệnh — bấm để chọn</div>
+        <button class="suno-suggest-item" type="button" id="sunoSuggestItem" role="option">
+          <svg class="ic" viewBox="0 0 24 24"><path d="M9 18V6l10-2v11"/><circle cx="6.5" cy="18" r="2.5"/><circle cx="16.5" cy="15" r="2.5"/></svg>
+          <span id="sunoSuggestText"></span>
+        </button>
+      </div>
     <textarea class="suno-prompt" id="sunoPrompt" aria-label="Lời bài hát">Yo! Chào mừng đến với giờ học của lớp 8A
 Trường Phổ thông Dân tộc Bán trú THCS Cao Minh
 Hôm nay mình học AI tạo sinh — Let's go!
@@ -692,6 +709,7 @@ Viết lại bằng hiểu biết của mình
 Dùng AI văn minh, dùng bằng cái đầu của mình
 Tự làm trước, mở rộng sau, kiểm chứng kĩ
 Viết lại bằng hiểu biết của mình</textarea>
+    </div>
     <div class="suno-create-row">
       <button class="suno-trash" type="button" id="sunoClear" aria-label="Xóa lời bài hát" title="Xóa hết">
         <svg class="ic" viewBox="0 0 24 24"><path d="M4 7h16M9 7V5h6v2M6 7l1 13h10l1-13M10 11v6M14 11v6"/></svg>
@@ -1585,6 +1603,54 @@ Viết lại bằng hiểu biết của mình</textarea>
   document.getElementById('sunoClear').addEventListener('click', function(){
     promptBox.value = '';
     promptBox.focus();
+    updateSunoSuggest();
+  });
+
+  /* ===== Gợi ý câu lệnh Suno, giống gợi ý ở tab ChatGPT: gõ chữ "T" (hoặc
+     gõ tiếp "Tạo", "Tạo 1 bài…" — khớp theo đoạn đầu câu, gõ không dấu vẫn
+     khớp) thì bảng gợi ý hiện câu lệnh mẫu; bấm vào là điền đầy đủ vào ô. ===== */
+  var SUNO_CMD = 'Tạo 1 bài hát về học sinh lớp 8A đam mê nghiên cứu học Trí tuệ nhân tạo AI';
+  var suggestBox = document.getElementById('sunoSuggest');
+  var suggestItem = document.getElementById('sunoSuggestItem');
+  var suggestText = document.getElementById('sunoSuggestText');
+  function normSuno(s){
+    return (s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/đ/g, 'd').replace(/\s+/g, ' ').trim();
+  }
+  var SUNO_CMD_NORM = normSuno(SUNO_CMD);
+  function updateSunoSuggest(){
+    var t = normSuno(promptBox.value);
+    var show = t.length > 0 && SUNO_CMD_NORM.indexOf(t) === 0 && promptBox.value.trim() !== SUNO_CMD;
+    if(show){
+      /* Phần đã gõ hiện trắng đậm, phần còn lại hiện mờ — nhìn là biết
+         bấm vào sẽ điền nốt cả câu, như gợi ý của ChatGPT. Độ dài phần đã
+         gõ tính trên bản bỏ dấu nên có thể lệch 1 ký tự, chỉ là hiển thị. */
+      var typedLen = Math.min(SUNO_CMD.length, promptBox.value.replace(/\s+/g, ' ').trim().length);
+      suggestText.innerHTML = '';
+      var done = document.createElement('span');
+      done.textContent = SUNO_CMD.slice(0, typedLen);
+      var rest = document.createElement('span');
+      rest.className = 'rest';
+      rest.textContent = SUNO_CMD.slice(typedLen);
+      suggestText.appendChild(done);
+      suggestText.appendChild(rest);
+    }
+    suggestBox.classList.toggle('hidden', !show);
+  }
+  promptBox.addEventListener('input', updateSunoSuggest);
+  promptBox.addEventListener('focus', updateSunoSuggest);
+  promptBox.addEventListener('blur', function(){
+    /* Trễ 1 nhịp để cú bấm vào gợi ý kịp chạy trước khi bảng ẩn đi */
+    setTimeout(function(){ suggestBox.classList.add('hidden'); }, 150);
+  });
+  promptBox.addEventListener('keydown', function(e){
+    if(e.key === 'Escape'){ suggestBox.classList.add('hidden'); }
+  });
+  suggestItem.addEventListener('mousedown', function(e){ e.preventDefault(); });
+  suggestItem.addEventListener('click', function(){
+    promptBox.value = SUNO_CMD;
+    suggestBox.classList.add('hidden');
+    promptBox.focus();
+    try { promptBox.setSelectionRange(SUNO_CMD.length, SUNO_CMD.length); } catch(err){}
   });
 
   /* ===== Trình phát: phát đúng file nhạc của thầy (1 phút 56 giây) ===== */
