@@ -601,6 +601,7 @@ function ngheDe(){
         placements = [null, null, null, null, null];
         selectedCard = null;
         veLai();
+        dayNhapLive();
       } else if (khac && !team){
         veLai();
       }
@@ -732,9 +733,11 @@ function vaoLamBai(tenNhom){
   $("play").classList.remove("hidden");
   batDauTinhGio();
   veLai();
+  dayNhapLive();
   window.scrollTo({ top: 0, behavior: "smooth" });
 }
 $("renameLink").addEventListener("click", function(){
+  xoaNhapLive();
   dungTinhGio();
   $("play").classList.add("hidden");
   $("result").classList.add("hidden");
@@ -991,12 +994,45 @@ function datThe(cardId, slotIdx){
   for (var i = 0; i < 5; i++) if (placements[i] === cardId) placements[i] = null;
   placements[slotIdx] = cardId;
   veLai();
+  dayNhapLive();
+}
+
+/* ================= XEM LIVE: ĐẨY NHÁP LÊN MÁY CHỦ ================= */
+/* Thầy mở "Xem live" trong trang giả lập sẽ thấy từng nhóm đang kéo thẻ tới đâu.
+   Mỗi lần nhóm kéo/thả/đổi một thẻ (kể cả bấm Làm lại hay vào làm), app đẩy ngay
+   bản nháp hiện tại lên nhánh hd3-bai4/keotha/nhap/Nhóm N — chỉ là vị trí thẻ
+   đang đặt, KHÔNG chấm điểm, KHÔNG ghi kết quả. Khi nhóm bấm Nộp và kết quả
+   đã lên máy chủ thì xóa nháp (bảng live chuyển sang hiện kết quả đã nộp).
+   Nháp gửi im lặng: mất mạng thì thôi, không báo lỗi ra màn hình để khỏi
+   làm phiền các em. Chống dồn 400ms để không gửi quá dày. */
+var lanDayNhapCuoi = 0;
+function dayNhapLive(){
+  if (!db || !team || submitted) return;
+  var bayGio = Date.now();
+  if (bayGio - lanDayNhapCuoi < 400) return;
+  lanDayNhapCuoi = bayGio;
+  var slots = {};
+  var daDat = 0;
+  for (var i = 0; i < 5; i++){
+    var cid = placements[i];
+    slots[quiz[i].q] = (cid === null || cid === undefined) ? "" : quiz[cid].a;
+    if (cid !== null && cid !== undefined) daDat++;
+  }
+  db.ref(ROOT + "/nhap/" + khoaDoi(team)).set({
+    team: team, slots: slots, placed: daDat, total: 5,
+    t: firebase.database.ServerValue.TIMESTAMP
+  }).catch(function(){ /* nháp chỉ để xem live — lỗi thì bỏ qua */ });
+}
+function xoaNhapLive(){
+  if (!db || !team) return;
+  db.ref(ROOT + "/nhap/" + khoaDoi(team)).remove().catch(function(){});
 }
 
 $("resetBtn").addEventListener("click", function(){
   placements = [null, null, null, null, null];
   selectedCard = null;
   veLai();
+  dayNhapLive();
 });
 
 /* ================= NỘP BÀI + CHẤM ĐIỂM ================= */
@@ -1080,6 +1116,7 @@ function nopBai(tuDong){
       .then(function(){
         oLuu.style.background = "var(--green-bg)"; oLuu.style.color = "var(--green)";
         oLuu.textContent = "✓ Đã lưu lên máy chủ — thầy tải lại trang vẫn xem được kết quả này (lưu trong 1 tiếng).";
+        xoaNhapLive();
       })
       .catch(function(err){
         var chiTiet = err && (err.code || err.message) ? (err.code ? err.code + " — " : "") + (err.message || "") : "không rõ nguyên nhân";
@@ -1101,6 +1138,7 @@ $("againBtn").addEventListener("click", function(){
   $("play").classList.remove("hidden");
   batDauTinhGio();
   veLai();
+  dayNhapLive();
   window.scrollTo({ top: 0, behavior: "smooth" });
 });
 
