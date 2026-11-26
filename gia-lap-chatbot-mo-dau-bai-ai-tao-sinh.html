@@ -153,12 +153,63 @@
   /* Nút 📊 nhỏ, mờ ở góc dưới phải của tab Hoạt động 1 — nhìn như nút thống kê thường */
   .keo-sim-btn{position:absolute;right:10px;bottom:10px;z-index:5;width:38px;height:38px;border-radius:10px;border:1px solid rgba(0,0,0,.08);background:rgba(255,255,255,.75);font-size:17px;line-height:1;display:grid;place-items:center;padding:0;opacity:.45}
   .keo-sim-btn:hover{opacity:1;background:#fff}
+  /* Nút Xem live của Hoạt động 1: nút rõ ràng ở góc trên phải của tab (khác hẳn nút 📊 bí mật) */
+  .keo-live-btn{position:absolute;top:10px;right:10px;z-index:6;border:2px solid #17457e;background:#17457e;color:#fff;font-size:15.5px;font-weight:700;border-radius:999px;padding:8px 15px;display:flex;align-items:center;gap:8px;box-shadow:0 4px 14px rgba(23,69,126,.3)}
+  .keo-live-btn:hover{background:#123a6e}
+  .keo-live-btn .cnt{background:#fff;color:#17457e;border-radius:999px;padding:1px 9px;font-size:14px;font-weight:800}
+  .live-dot{width:9px;height:9px;border-radius:50%;background:#f87171;flex:0 0 9px;animation:livePulse 1.4s ease-in-out infinite}
+  @keyframes livePulse{0%,100%{opacity:1}50%{opacity:.25}}
+  @media (prefers-reduced-motion: reduce){.live-dot,.hd2-live-dot{animation:none}}
+  /* Bảng xem live của Hoạt động 1: phủ trọn tab, hiện bài nộp của 6 nhóm theo thời gian thực */
+  .keo-live-panel{position:absolute;inset:0;z-index:7;background:linear-gradient(135deg,#dbeafe 0%,#e6e6fb 55%,#d9f2ec 100%);color:#14264d;overflow-y:auto;padding:20px 22px 24px;display:flex;flex-direction:column}
+  .keo-live-head{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+  .keo-live-head h3{margin:0;font-size:24px;font-weight:800;color:#1b2a5e}
+  .keo-live-conn{font-size:15px;font-weight:700;color:#5b6b8c}
+  .keo-live-conn.ok{color:#157347}
+  .keo-live-conn.err{color:#b45309}
+  .keo-live-close{margin-left:auto;border:2px solid #17457e;background:#fff;color:#17457e;font-size:15.5px;font-weight:700;border-radius:10px;padding:9px 15px;min-height:44px}
+  .keo-live-close:hover{background:#eaf2fd}
+  .keo-live-status{margin:14px 0 0;font-size:18px;font-weight:800;color:#157347}
+  .keo-live-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:14px}
+  .keo-live-note{margin:16px 0 0;font-size:15px;line-height:1.5;color:#5b6b8c;max-width:900px}
+  @media (max-width:1180px){.keo-live-grid{grid-template-columns:1fr 1fr}}
+  @media (max-width:700px){.keo-live-grid{grid-template-columns:1fr}.keo-live-panel{padding:14px 12px 18px}.keo-live-head h3{font-size:20px}}
+  /* Thẻ nhóm dùng chung cho 2 bảng xem live (HĐ1 + HĐ2) */
+  .live-card{background:#fff;border-radius:14px;overflow:hidden;box-shadow:0 6px 20px rgba(27,42,94,.12);display:flex;flex-direction:column}
+  .live-card-head{color:#fff;padding:10px 15px;display:flex;align-items:center;justify-content:space-between;gap:10px;background:linear-gradient(90deg,#2f7fe0,#38a1f2)}
+  .live-card.s2 .live-card-head{background:linear-gradient(90deg,#0da08c,#2cc4a6)}
+  .live-card-name{font-size:19px;font-weight:800}
+  .live-pill{border-radius:999px;padding:3px 11px;font-size:13.5px;font-weight:800;white-space:nowrap;background:rgba(255,255,255,.3);color:#fff}
+  .live-card.done .live-pill{background:#16a34a}
+  .live-card.doing .live-pill{background:#d97706}
+  .live-card-body{padding:12px 15px 14px;display:flex;flex-direction:column;gap:7px;flex:1}
+  .live-line{font-size:16px;line-height:1.45;color:#33436b;display:flex;gap:6px;margin:0;min-width:0}
+  .live-line .lbl{font-weight:700;color:#14264d;flex:0 0 auto}
+  .live-line .val{white-space:pre-wrap;word-break:break-word;min-width:0}
+  .live-line .val.dim{color:#8a97ad;font-style:italic}
+  .live-ans{display:flex;flex-direction:column;gap:4px;margin:2px 0 0}
+  .live-ans-row{font-size:15px;line-height:1.4;color:#33436b;display:flex;gap:6px;margin:0}
+  .live-ans-row .mark{flex:0 0 auto;font-weight:800}
+  .live-ans-row.ok .mark{color:#15803d}
+  .live-ans-row.no .mark{color:#b91c1c}
+  /* HĐ1 xem live — quá trình kéo (chưa nộp): từng ô chức năng + thẻ đang nằm trong ô.
+     Ô còn trống vẽ nét đứt mờ; ô đã có thẻ vẽ nền xanh nhạt, kèm dấu ✓/✗ theo đáp án. */
+  .keo-slots{display:flex;flex-direction:column;gap:5px}
+  .keo-slots-head{font-size:15px;font-weight:700;color:#b45309;margin:0 0 2px}
+  .keo-slot{display:flex;gap:7px;align-items:baseline;font-size:15px;line-height:1.4;color:#33436b;border:1.5px dashed #c3cfe8;border-radius:9px;padding:6px 9px;background:#fbfcff;margin:0}
+  .keo-slot.filled{border-style:solid;border-color:#9cc3f5;background:#eef5ff}
+  .keo-slot .slot-q{font-weight:700;color:#14264d;flex:0 0 auto}
+  .keo-slot .slot-card{font-weight:700;color:#1d4ed8;word-break:break-word;min-width:0}
+  .keo-slot .slot-card.empty{color:#8a97ad;font-weight:400;font-style:italic}
+  .keo-slot .mark{flex:0 0 auto;font-weight:800}
+  .keo-slot.ok .mark{color:#15803d}
+  .keo-slot.no .mark{color:#b91c1c}
 
   /* ===== Tab 4: HOẠT ĐỘNG 2 — PHIẾU HỌC TẬP SỐ 2, tự luận 6 nhóm + Bảng của thầy ===== */
   .hd2-view{flex:1;min-height:0;display:flex;flex-direction:column;background:linear-gradient(135deg,#dbeafe 0%,#e6e6fb 55%,#d9f2ec 100%);color:#14264d}
   .hd2-head{position:relative;padding:20px 18px 4px;text-align:center}
   .hd2-title{font-size:31px;font-weight:800;color:#1b2a5e;margin:0;letter-spacing:.01em;text-transform:uppercase}
-  .hd2-side-btns{position:absolute;top:16px;right:18px;display:flex;align-items:center;gap:10px}
+  .hd2-side-btns{position:absolute;top:16px;right:18px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:flex-end}
   .hd2-timer{display:flex;align-items:center;gap:7px;background:#fff3e6;border:2px solid #f6c48a;color:#e8710a;font-size:20px;font-weight:800;border-radius:999px;padding:7px 16px;font-variant-numeric:tabular-nums}
   .hd2-timer.done{color:#b91c1c;border-color:#f3a3a3;background:#fdecec}
   .hd2-board-btn{border:2px solid #17457e;background:#17457e;color:#fff;font-size:16.5px;font-weight:700;border-radius:999px;padding:9px 16px;display:flex;align-items:center;gap:8px}
@@ -267,6 +318,21 @@
   .hd2-key-box p{margin:5px 0;font-size:16.5px;line-height:1.55;color:#33436b}
   .hd2-key-box b{color:#14264d}
   .hd2-key-proc{margin-top:16px;background:#eaf7ee;border:2px solid #8fd6a4;border-radius:12px;padding:13px 16px;font-size:17.5px;line-height:1.55;color:#14532d}
+  /* Nút Xem live ở đầu tab Hoạt động 2 + vùng xem live nằm trong Bảng của thầy:
+     6 thẻ nhóm hiện nguyên văn chữ các nhóm đang gõ, cập nhật theo thời gian thực */
+  .hd2-live-btn{border:2px solid #17457e;background:#fff;color:#17457e;font-size:16.5px;font-weight:700;border-radius:999px;padding:9px 16px;display:flex;align-items:center;gap:8px;min-height:44px}
+  .hd2-live-btn:hover{background:#eaf2fd}
+  .hd2-live-btn .cnt{background:#17457e;color:#fff;border-radius:999px;padding:1px 10px;font-size:15px;font-weight:800}
+  .hd2-live-dot{width:9px;height:9px;border-radius:50%;background:#dc2626;flex:0 0 9px;animation:livePulse 1.4s ease-in-out infinite}
+  .hd2-liveview{margin-top:22px}
+  .hd2-live-head{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+  .hd2-live-head h3{margin:0;font-size:22px;font-weight:800;color:#1b2a5e;display:flex;align-items:center;gap:9px}
+  .hd2-live-conn{font-size:15px;font-weight:700;color:#5b6b8c}
+  .hd2-live-conn.ok{color:#157347}
+  .hd2-live-conn.err{color:#b45309}
+  .hd2-live-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:14px}
+  @media (max-width:1180px){.hd2-live-grid{grid-template-columns:1fr 1fr}}
+  @media (max-width:700px){.hd2-live-grid{grid-template-columns:1fr}}
   @media (max-width:1180px){
     .hd2-bv-grid{grid-template-columns:1fr 1fr}
     .hd2-key-grid{grid-template-columns:1fr}
@@ -489,6 +555,17 @@
 <div class="keo-view hidden" id="viewKeo">
   <iframe id="keoFrame" title="App kéo thả nộp bài" data-src="https://ngochung3789-boop.github.io/thung-lung-ai/luyen-tap/keo-tha-nop-bai.html" loading="lazy"></iframe>
   <button class="keo-sim-btn" type="button" id="keoSimBtn" aria-label="Thống kê" title="Thống kê">📊</button>
+  <button class="keo-live-btn" type="button" id="keoLiveBtn"><span class="live-dot"></span>👁 Xem live <span class="cnt" id="keoLiveCount">0/6</span></button>
+  <div class="keo-live-panel hidden" id="keoLivePanel">
+    <div class="keo-live-head">
+      <h3>Xem live — Hoạt động 1 (Kéo thả)</h3>
+      <span class="keo-live-conn" id="keoLiveConn">Đang kết nối…</span>
+      <button class="keo-live-close" type="button" id="keoLiveClose">✕ Đóng</button>
+    </div>
+    <p class="keo-live-status" id="keoLiveStatus">Đã nộp: 0/6 nhóm</p>
+    <div class="keo-live-grid" id="keoLiveGrid"></div>
+    <p class="keo-live-note">Bảng hiện cả quá trình làm bài: khi nhóm đang kéo thẻ mà chưa nộp, từng thẻ đang nằm ở ô nào hiện ngay trong thẻ của nhóm đó với nhãn “Đang kéo…” và cập nhật mỗi lần nhóm kéo, thả hay đổi thẻ. Khi nhóm bấm “Nộp câu trả lời”, thẻ chuyển sang kết quả đã nộp: điểm, số câu đúng, thời gian làm và từng đáp án.</p>
+  </div>
 </div>
 
 <div class="app" id="viewChat">
@@ -783,6 +860,7 @@ Viết lại bằng hiểu biết của mình</textarea>
     <h2 class="hd2-title">Phiếu học tập số 2 - Thảo luận 6 nhóm</h2>
     <div class="hd2-side-btns">
       <button class="hd2-sim-btn" type="button" id="hd2SimBtn" aria-label="Thống kê" title="Thống kê">📊</button>
+      <button class="hd2-live-btn" type="button" id="hd2LiveBtn"><span class="hd2-live-dot"></span>👁 Xem live <span class="cnt" id="hd2LiveCount">0/6</span></button>
       <button class="hd2-board-btn" type="button" id="hd2BoardBtn">Bảng của thầy <span class="cnt" id="hd2BoardCount">0/6</span></button>
       <span class="hd2-timer" id="hd2Timer" role="timer" title="Đồng hồ đếm ngược — bấm để đặt lại 03:00">
         <svg class="ic sm" viewBox="0 0 24 24"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 2.5M9 2.5h6"/></svg>
@@ -892,6 +970,14 @@ Viết lại bằng hiểu biết của mình</textarea>
         </button>
         <button class="hd2-bv-back" type="button" id="hd2BackBtn">← Quay lại phiếu</button>
       </div>
+    </div>
+
+    <div class="hd2-liveview hidden" id="hd2LiveView">
+      <div class="hd2-live-head">
+        <h3><span class="hd2-live-dot"></span> Các nhóm đang làm — xem trực tiếp</h3>
+        <span class="hd2-live-conn" id="hd2LiveConn">Đang kết nối…</span>
+      </div>
+      <div class="hd2-live-grid" id="hd2LiveGrid"></div>
     </div>
 
     <div class="hd2-bv-grid" id="hd2CardGrid">
@@ -1858,6 +1944,197 @@ Viết lại bằng hiểu biết của mình</textarea>
   });
   renderBoard();
 
+  /* ===== XEM LIVE QUÁ TRÌNH — đồng bộ qua Firebase (project hd3-bai4, nhánh
+     riêng hd3-bai4/xemlive/hd2): chữ HS gõ trong phiếu được đẩy lên kho chung
+     (gõ tới đâu đẩy tới đó, chống dồn 600ms) để máy thầy thấy ngay từng nhóm
+     đang viết gì trong vùng "Các nhóm đang làm — xem trực tiếp". Khi nhóm bấm
+     Gửi kết quả, bản nộp cũng lên kho chung nên Bảng của thầy trên máy thầy
+     nhận được bài nộp thật từ điện thoại các nhóm (trước đây bài nộp chỉ nằm
+     trên đúng máy đã bấm Gửi). Mất mạng / không nối được Firebase thì phiếu
+     vẫn chạy 1 máy như trước, không lỗi. ===== */
+  var LIVE_ROOT = 'hd3-bai4/xemlive/hd2';
+  var LIVE_CONFIG = {
+    apiKey: "AIzaSyA0GfN_myC2bvAq5TQWPd5mBIZnESR8_EI",
+    authDomain: "hd3-bai4.firebaseapp.com",
+    databaseURL: "https://hd3-bai4-default-rtdb.asia-southeast1.firebasedatabase.app",
+    projectId: "hd3-bai4",
+    storageBucket: "hd3-bai4.firebasestorage.app",
+    messagingSenderId: "1082513446758",
+    appId: "1:1082513446758:web:c3bd58e33e78d8d7341aa7"
+  };
+  var liveDb = null;
+  var liveData = {};       /* số nhóm -> bản ghi live trên kho chung */
+  var livePushed = {};     /* số nhóm -> chuỗi nội dung đã đẩy gần nhất (tránh đẩy trùng) */
+  var liveTimers = {};     /* số nhóm -> hẹn giờ chống dồn khi gõ */
+  var liveConnEl = document.getElementById('hd2LiveConn');
+  var liveCountEl = document.getElementById('hd2LiveCount');
+  var liveGrid = document.getElementById('hd2LiveGrid');
+  var liveView = document.getElementById('hd2LiveView');
+  var liveCards = {};
+
+  function liveSetConn(txt, state){
+    if(!liveConnEl) return;
+    liveConnEl.textContent = txt;
+    liveConnEl.className = 'hd2-live-conn' + (state === true ? ' ok' : state === false ? ' err' : '');
+  }
+  function buildLiveCards(){
+    if(!liveGrid || liveCards[1]) return;
+    for(var g = 1; g <= 6; g++){
+      var card = document.createElement('article');
+      card.className = 'live-card' + (g >= 4 ? ' s2' : '');
+      var head = document.createElement('div');
+      head.className = 'live-card-head';
+      var nm = document.createElement('span');
+      nm.className = 'live-card-name';
+      nm.textContent = 'Nhóm ' + g;
+      var pill = document.createElement('span');
+      pill.className = 'live-pill';
+      pill.textContent = 'Chưa bắt đầu';
+      head.appendChild(nm);
+      head.appendChild(pill);
+      var body = document.createElement('div');
+      body.className = 'live-card-body';
+      var vals = {};
+      [['Câu 1:', 'v1'], ['Câu 2:', 'v2'], ['Cập nhật:', 'vT']].forEach(function(cfg){
+        var p = document.createElement('p');
+        p.className = 'live-line';
+        var l = document.createElement('span');
+        l.className = 'lbl';
+        l.textContent = cfg[0];
+        var v = document.createElement('span');
+        v.className = 'val dim';
+        v.textContent = '—';
+        p.appendChild(l);
+        p.appendChild(v);
+        body.appendChild(p);
+        vals[cfg[1]] = v;
+      });
+      card.appendChild(head);
+      card.appendChild(body);
+      liveGrid.appendChild(card);
+      liveCards[g] = {card: card, pill: pill, v1: vals.v1, v2: vals.v2, vT: vals.vT};
+    }
+  }
+  function liveStatusOf(rec){
+    if(rec && rec.nop) return 'done';
+    if(rec && ((rec.a1 || '').trim() || (rec.a2 || '').trim())) return 'doing';
+    return 'wait';
+  }
+  function renderLive(){
+    buildLiveCards();
+    var active = 0;
+    for(var g = 1; g <= 6; g++){
+      var c = liveCards[g];
+      if(!c) continue;
+      var rec = liveData[g];
+      var st = liveStatusOf(rec);
+      if(st !== 'wait') active++;
+      c.card.classList.toggle('done', st === 'done');
+      c.card.classList.toggle('doing', st === 'doing');
+      c.pill.textContent = st === 'done' ? 'Đã nộp ✓' : st === 'doing' ? 'Đang làm…' : 'Chưa bắt đầu';
+      var a1 = rec ? (rec.a1 || '') : '';
+      var a2 = rec ? (rec.a2 || '') : '';
+      c.v1.textContent = a1 || '—';
+      c.v1.classList.toggle('dim', !a1);
+      c.v2.textContent = a2 || '—';
+      c.v2.classList.toggle('dim', !a2);
+      var upd = '';
+      if(rec){
+        if(rec.t) upd = fmtClock(new Date(Number(rec.t)));
+        else if(rec.at) upd = rec.at;
+        if(st === 'done' && rec.dur) upd += ' · làm bài ' + rec.dur;
+      }
+      c.vT.textContent = upd || '—';
+      c.vT.classList.toggle('dim', !upd);
+    }
+    if(liveCountEl) liveCountEl.textContent = active + '/6';
+  }
+  /* Đẩy nháp đang gõ của 1 nhóm lên kho chung: gõ thì chống dồn 600ms,
+     chuyển nhóm / đổi nhóm thì đẩy ngay (ngay = true) */
+  function pushLive(g, ngay){
+    if(!liveDb) return;
+    var fire = function(){
+      var d = drafts[g];
+      if(!d) return;
+      var key = (d.a1 || '') + '\n' + (d.a2 || '');
+      if(livePushed[g] === key) return;
+      livePushed[g] = key;
+      liveDb.ref(LIVE_ROOT + '/nhom' + g).update({
+        a1: d.a1 || '', a2: d.a2 || '',
+        t: firebase.database.ServerValue.TIMESTAMP
+      }).catch(function(){});
+    };
+    if(ngay){ clearTimeout(liveTimers[g]); fire(); return; }
+    clearTimeout(liveTimers[g]);
+    liveTimers[g] = setTimeout(fire, 600);
+  }
+  /* Đẩy bản nộp chính thức của 1 nhóm lên kho chung để máy thầy nhận được */
+  function pushLiveSubmit(g, sub){
+    if(!liveDb || !sub) return;
+    livePushed[g] = (sub.a1 || '') + '\n' + (sub.a2 || '');
+    liveDb.ref(LIVE_ROOT + '/nhom' + g).set({
+      a1: sub.a1 || '', a2: sub.a2 || '', nop: 1,
+      dur: sub.dur || '', at: sub.at || '',
+      t: firebase.database.ServerValue.TIMESTAMP
+    }).catch(function(){});
+  }
+  function liveInit(){
+    if(typeof firebase === 'undefined' || !firebase.database){
+      liveSetConn('⚠ Chưa tải được thư viện đồng bộ — kiểm tra mạng để xem live.', false);
+      return;
+    }
+    try {
+      if(!firebase.apps.length) firebase.initializeApp(LIVE_CONFIG);
+      liveDb = firebase.database();
+    } catch(e){
+      liveDb = null;
+      liveSetConn('⚠ Không kết nối được kho chung — phiếu vẫn làm được trên máy này.', false);
+      return;
+    }
+    liveDb.ref('.info/connected').on('value', function(snap){
+      if(snap.val() === true) liveSetConn('● Đã kết nối — chữ các nhóm gõ trên điện thoại hiện về đây ngay.', true);
+      else liveSetConn('⚠ Mất kết nối — đang chờ nối lại…', false);
+    });
+    liveDb.ref(LIVE_ROOT).on('value', function(snap){
+      var v = snap.val() || {};
+      liveData = {};
+      Object.keys(v).forEach(function(k){
+        var g = parseInt(String(k).replace('nhom', ''), 10);
+        var rec = v[k];
+        if(!(g >= 1 && g <= 6) || !rec) return;
+        /* Nội dung từ kho chung (ai mở link cũng ghi được) chỉ hiển thị bằng
+           textContent và chỉ nhận đúng kiểu chuỗi/số — không chèn HTML */
+        var ld = {
+          a1: typeof rec.a1 === 'string' ? rec.a1 : '',
+          a2: typeof rec.a2 === 'string' ? rec.a2 : '',
+          nop: rec.nop ? 1 : 0,
+          dur: typeof rec.dur === 'string' ? rec.dur : '',
+          at: /^\d{2}:\d{2}:\d{2}$/.test(rec.at || '') ? rec.at : '',
+          t: Number(rec.t) || 0
+        };
+        liveData[g] = ld;
+        /* Bài nộp thật từ điện thoại các nhóm -> đưa vào Bảng của thầy */
+        if(ld.nop && (!submissions[g] || submissions[g].at !== ld.at)){
+          submissions[g] = {a1: ld.a1, a2: ld.a2, dur: ld.dur, at: ld.at};
+          renderBoard();
+        }
+      });
+      renderLive();
+    });
+  }
+  /* Nút Xem live ở đầu tab: mở Bảng của thầy và hiện vùng xem live */
+  document.getElementById('hd2LiveBtn').addEventListener('click', function(){
+    renderBoard();
+    view.classList.add('show-board');
+    boardView.classList.remove('hidden');
+    liveView.classList.remove('hidden');
+    renderLive();
+    liveView.scrollIntoView({block: 'start'});
+  });
+  buildLiveCards();
+  renderLive();
+  liveInit();
+
   /* ===== Nút 📊 nhỏ cạnh nút Bảng của thầy: bấm vào là cả 6 nhóm lần lượt
      "nộp bài" lên Bảng của thầy — nhóm đầu hiện sau khoảng 3 giây, các nhóm
      sau cách nhau thêm vài giây, hiện lần lượt cho tự nhiên. Đáp án của mỗi
@@ -1943,6 +2220,8 @@ Viết lại bằng hiểu biết của mình</textarea>
     if(g !== currentGroup){
       savePanel(1);
       savePanel(2);
+      pushLive(panelGroup[1], true);
+      pushLive(panelGroup[2], true);
       currentGroup = g;
       loadPanel(sideOf(g), g);
       document.querySelectorAll('.hd2-msg').forEach(function(m){
@@ -1972,6 +2251,8 @@ Viết lại bằng hiểu biết của mình</textarea>
   document.getElementById('hd2ChangeBtn').addEventListener('click', function(){
     savePanel(1);
     savePanel(2);
+    pushLive(panelGroup[1], true);
+    pushLive(panelGroup[2], true);
     view.classList.add('gated');
   });
   paintPanels();
@@ -1979,8 +2260,11 @@ Viết lại bằng hiểu biết của mình</textarea>
   document.querySelectorAll('.hd2-input').forEach(function(inp){
     inp.addEventListener('input', function(){
       var panel = inp.closest('.hd2-panel');
-      if(panel) savePanel(panel.getAttribute('data-panel') === '1' ? 1 : 2);
+      var side = panel ? (panel.getAttribute('data-panel') === '1' ? 1 : 2) : sideOf(currentGroup);
+      if(panel) savePanel(side);
       ensureStart(currentGroup);
+      /* Gõ tới đâu đẩy nháp lên kho chung tới đó để máy thầy xem live */
+      if(panelGroup[side]) pushLive(panelGroup[side], false);
     });
   });
 
@@ -2041,6 +2325,8 @@ Viết lại bằng hiểu biết của mình</textarea>
       submissions[currentGroup] = {a1: a1, a2: a2, dur: fmtDur(nowD.getTime() - start), at: fmtClock(nowD)};
       delete groupStart[currentGroup];
       renderBoard();
+      /* Đẩy bản nộp lên kho chung: máy thầy mở cùng link sẽ thấy bài nộp ngay */
+      pushLiveSubmit(currentGroup, submissions[currentGroup]);
 
       msg.textContent = 'Đã gửi lúc ' + submissions[currentGroup].at + '! Nhóm ' + currentGroup + ' làm bài trong ' + submissions[currentGroup].dur + '. Kết quả đã hiện ở Bảng của thầy.';
       msg.className = 'hd2-msg ok';
@@ -2427,6 +2713,295 @@ Viết lại bằng hiểu biết của mình</textarea>
       });
     }).catch(function(){ keoSimRunning = false; });
   });
+})();
+</script>
+
+<script>
+(function(){
+  /* ===== HOẠT ĐỘNG 1 — XEM LIVE QUÁ TRÌNH KÉO THẺ: nút "👁 Xem live" ở góc
+     trên phải của tab mở bảng theo dõi trực tiếp. Bảng nghe HAI nhánh của
+     project hd3-bai4:
+     1) hd3-bai4/keotha/ketqua — bài ĐÃ NỘP (như trước): nhóm nào bấm
+        "Nộp câu trả lời" là thẻ hiện điểm, số câu đúng, thời gian làm,
+        giờ nộp và từng đáp án.
+     2) hd3-bai4/keotha/nhap — BẢN NHÁP quá trình kéo, để thấy từng thẻ đang
+        nằm ở ô nào TRƯỚC khi nhóm nộp. App kéo thả cần ghi lên nhánh này
+        mỗi lần nhóm kéo/thả/đổi một thẻ. Định dạng bản ghi tại
+        hd3-bai4/keotha/nhap/Nhóm {n} (n = 1..6):
+          {
+            team: "Nhóm 1",
+            slots: { "<tên chức năng>": "<tên thẻ trong ô>" hoặc "" },
+            placed: <số ô đã có thẻ>,
+            total: 5,
+            t: <mốc giờ máy chủ Firebase, mili-giây>
+          }
+        Khóa của slots là đúng tên chức năng trong đề (trường q của nhánh
+        debai), giá trị là tên thẻ đang nằm trong ô đó (trường a), ô còn
+        trống thì để "" hoặc null. Bảng cũng chấp nhận slots dạng mảng
+        [{q, chon}, ...]. Đáp án đúng để chấm quá trình lấy từ nhánh
+        hd3-bai4/keotha/debai (items: q → a); chưa có debai thì dùng đề
+        mặc định của app kéo thả.
+     Ưu tiên hiển thị mỗi thẻ: đã nộp (ketqua) > đang kéo (nhap) > chưa làm. ===== */
+  var KEO_ROOT = 'hd3-bai4/keotha';
+  var KEO_LIVE_CONFIG = {
+    apiKey: "AIzaSyA0GfN_myC2bvAq5TQWPd5mBIZnESR8_EI",
+    authDomain: "hd3-bai4.firebaseapp.com",
+    databaseURL: "https://hd3-bai4-default-rtdb.asia-southeast1.firebasedatabase.app",
+    projectId: "hd3-bai4",
+    storageBucket: "hd3-bai4.firebasestorage.app",
+    messagingSenderId: "1082513446758",
+    appId: "1:1082513446758:web:c3bd58e33e78d8d7341aa7"
+  };
+  var panel = document.getElementById('keoLivePanel');
+  var grid = document.getElementById('keoLiveGrid');
+  var statusEl = document.getElementById('keoLiveStatus');
+  var connEl = document.getElementById('keoLiveConn');
+  var countEl = document.getElementById('keoLiveCount');
+  var cards = {};
+  /* Dữ liệu 2 nhánh + đáp án để chấm quá trình kéo */
+  var ketquaData = {};
+  var nhapData = {};
+  var DE_MAC_DINH_KEO_LIVE = [
+    { q: "Tạo video", a: "Runway" },
+    { q: "Tạo nhạc", a: "Suno AI" },
+    { q: "Tạo mã lập trình", a: "Github Copilot" },
+    { q: "Tạo hình ảnh", a: "DALL-E" },
+    { q: "Tạo và trò chuyện bằng văn bản", a: "ChatGPT" }
+  ];
+  var quizKey = DE_MAC_DINH_KEO_LIVE;
+
+  function setConn(txt, state){
+    if(!connEl) return;
+    connEl.textContent = txt;
+    connEl.className = 'keo-live-conn' + (state === true ? ' ok' : state === false ? ' err' : '');
+  }
+  function fmtDurSec(sec){
+    var s = Math.max(0, Math.round(Number(sec) || 0));
+    return String(Math.floor(s / 60)).padStart(2, '0') + ':' + String(s % 60).padStart(2, '0');
+  }
+  function fmtHien(d){
+    function p(n){ return ('0' + n).slice(-2); }
+    return p(d.getHours()) + ':' + p(d.getMinutes()) + ':' + p(d.getSeconds());
+  }
+  function buildCards(){
+    if(!grid || cards[1]) return;
+    for(var g = 1; g <= 6; g++){
+      var card = document.createElement('article');
+      card.className = 'live-card';
+      var head = document.createElement('div');
+      head.className = 'live-card-head';
+      var nm = document.createElement('span');
+      nm.className = 'live-card-name';
+      nm.textContent = 'Nhóm ' + g;
+      var pill = document.createElement('span');
+      pill.className = 'live-pill';
+      pill.textContent = 'Chưa nộp';
+      head.appendChild(nm);
+      head.appendChild(pill);
+      var body = document.createElement('div');
+      body.className = 'live-card-body';
+      var statsBox = document.createElement('div');
+      statsBox.style.display = 'flex';
+      statsBox.style.flexDirection = 'column';
+      statsBox.style.gap = '7px';
+      var vals = {};
+      [['Điểm:', 'score'], ['Đúng:', 'correct'], ['Thời gian làm:', 'dur'], ['Giờ nộp:', 'at']].forEach(function(cfg){
+        var p = document.createElement('p');
+        p.className = 'live-line';
+        var l = document.createElement('span');
+        l.className = 'lbl';
+        l.textContent = cfg[0];
+        var v = document.createElement('span');
+        v.className = 'val dim';
+        v.textContent = '—';
+        p.appendChild(l);
+        p.appendChild(v);
+        statsBox.appendChild(p);
+        vals[cfg[1]] = v;
+      });
+      body.appendChild(statsBox);
+      /* Khung quá trình kéo: hiện khi nhóm chưa nộp nhưng đã có bản nháp */
+      var slotsBox = document.createElement('div');
+      slotsBox.className = 'keo-slots hidden';
+      body.appendChild(slotsBox);
+      var ansBox = document.createElement('div');
+      ansBox.className = 'live-ans';
+      body.appendChild(ansBox);
+      card.appendChild(head);
+      card.appendChild(body);
+      grid.appendChild(card);
+      cards[g] = {card: card, pill: pill, stats: statsBox, slots: slotsBox, score: vals.score, correct: vals.correct, dur: vals.dur, at: vals.at, ans: ansBox};
+    }
+  }
+  /* Chuẩn hoá bản nháp của 1 nhóm thành danh sách ô theo thứ tự đề:
+     mỗi phần tử {q: tên chức năng, chon: tên thẻ trong ô ('' nếu trống), a: đáp án đúng} */
+  function normSlots(rec){
+    var map = {};
+    var s = rec && rec.slots;
+    if(Array.isArray(s)){
+      var coQ = s.some(function(it){ return it && typeof it.q === 'string'; });
+      if(coQ){
+        s.forEach(function(it){
+          if(it && typeof it.q === 'string') map[it.q] = (typeof it.chon === 'string') ? it.chon : '';
+        });
+      } else {
+        /* Mảng chuỗi theo thứ tự ô: ghép với thứ tự chức năng của đề */
+        s.forEach(function(v, i){
+          if(quizKey[i]) map[quizKey[i].q] = (typeof v === 'string') ? v : '';
+        });
+      }
+    } else if(s && typeof s === 'object'){
+      Object.keys(s).forEach(function(k){ map[k] = (typeof s[k] === 'string') ? s[k] : ''; });
+    }
+    var out = [];
+    quizKey.forEach(function(it){
+      out.push({q: it.q, chon: map[it.q] || '', a: it.a});
+      delete map[it.q];
+    });
+    Object.keys(map).forEach(function(k){ out.push({q: k, chon: map[k], a: null}); });
+    return out;
+  }
+  function renderDoing(c, draft){
+    var slots = normSlots(draft);
+    var placed = slots.filter(function(s){ return !!s.chon; }).length;
+    c.card.classList.remove('done');
+    c.card.classList.add('doing');
+    c.pill.textContent = 'Đang kéo…';
+    c.stats.style.display = 'none';
+    c.ans.innerHTML = '';
+    c.slots.classList.remove('hidden');
+    c.slots.innerHTML = '';
+    var head = document.createElement('p');
+    head.className = 'keo-slots-head';
+    var upd = Number(draft.t) ? fmtHien(new Date(Number(draft.t))) : '';
+    head.textContent = 'Đã đặt ' + placed + '/' + slots.length + ' thẻ — chưa nộp' + (upd ? ' · cập nhật ' + upd : '');
+    c.slots.appendChild(head);
+    slots.forEach(function(s){
+      var row = document.createElement('p');
+      var dung = s.a != null && s.chon !== '' && s.chon === s.a;
+      row.className = 'keo-slot' + (s.chon ? ' filled' : '') + (s.chon ? (dung ? ' ok' : ' no') : '');
+      var q = document.createElement('span');
+      q.className = 'slot-q';
+      q.textContent = s.q + ':';
+      row.appendChild(q);
+      var cardEl = document.createElement('span');
+      cardEl.className = 'slot-card' + (s.chon ? '' : ' empty');
+      cardEl.textContent = s.chon || '— ô trống —';
+      row.appendChild(cardEl);
+      if(s.chon){
+        var mark = document.createElement('span');
+        mark.className = 'mark';
+        mark.textContent = dung ? '✓' : '✗';
+        row.appendChild(mark);
+      }
+      c.slots.appendChild(row);
+    });
+  }
+  function renderKeoLive(){
+    buildCards();
+    var n = 0, dangKeo = 0;
+    for(var g = 1; g <= 6; g++){
+      var c = cards[g];
+      if(!c) continue;
+      var rec = ketquaData['Nhóm ' + g];
+      var draft = nhapData['Nhóm ' + g];
+      if((!rec || typeof rec !== 'object') && draft && typeof draft === 'object'){
+        dangKeo++;
+        renderDoing(c, draft);
+        continue;
+      }
+      c.card.classList.remove('doing');
+      c.stats.style.display = 'flex';
+      c.slots.classList.add('hidden');
+      c.slots.innerHTML = '';
+      if(!rec || typeof rec !== 'object'){
+        c.card.classList.remove('done');
+        c.pill.textContent = 'Chưa nộp';
+        c.score.textContent = '—'; c.score.classList.add('dim');
+        c.correct.textContent = '—'; c.correct.classList.add('dim');
+        c.dur.textContent = '—'; c.dur.classList.add('dim');
+        c.at.textContent = '—'; c.at.classList.add('dim');
+        c.ans.innerHTML = '';
+        continue;
+      }
+      n++;
+      c.card.classList.add('done');
+      c.pill.textContent = 'Đã nộp ✓';
+      /* Mọi giá trị từ kho chung chỉ hiển thị bằng textContent + ép kiểu số */
+      var score = Number(rec.score);
+      c.score.textContent = isFinite(score) ? String(score) + ' điểm' : '—';
+      c.score.classList.toggle('dim', !isFinite(score));
+      var correct = Number(rec.correct), total = Number(rec.total);
+      c.correct.textContent = (isFinite(correct) && isFinite(total)) ? correct + '/' + total + ' câu' : '—';
+      c.correct.classList.toggle('dim', !(isFinite(correct) && isFinite(total)));
+      c.dur.textContent = rec.durationSec != null ? fmtDurSec(rec.durationSec) : '—';
+      c.dur.classList.toggle('dim', rec.durationSec == null);
+      var at = /^\d{2}:\d{2}:\d{2}$/.test(rec.hien || '') ? rec.hien : (Number(rec.t) ? fmtHien(new Date(Number(rec.t))) : '');
+      c.at.textContent = at || '—';
+      c.at.classList.toggle('dim', !at);
+      c.ans.innerHTML = '';
+      if(Array.isArray(rec.answers)){
+        rec.answers.forEach(function(it){
+          if(!it || typeof it.q !== 'string') return;
+          var row = document.createElement('p');
+          row.className = 'live-ans-row ' + (it.ok === true ? 'ok' : 'no');
+          var mark = document.createElement('span');
+          mark.className = 'mark';
+          mark.textContent = it.ok === true ? '✓' : '✗';
+          var txt = document.createElement('span');
+          txt.textContent = it.q + ' → ' + (typeof it.chon === 'string' ? it.chon : '');
+          row.appendChild(mark);
+          row.appendChild(txt);
+          c.ans.appendChild(row);
+        });
+      }
+    }
+    statusEl.textContent = 'Đã nộp: ' + n + '/6 nhóm' + (dangKeo ? ' · Đang kéo: ' + dangKeo + ' nhóm' : '');
+    if(countEl) countEl.textContent = n + '/6';
+  }
+  function keoLiveInit(){
+    if(typeof firebase === 'undefined' || !firebase.database){
+      setConn('⚠ Chưa tải được thư viện đồng bộ — kiểm tra mạng để xem live.', false);
+      return;
+    }
+    var db = null;
+    try {
+      if(!firebase.apps.length) firebase.initializeApp(KEO_LIVE_CONFIG);
+      db = firebase.database();
+    } catch(e){
+      setConn('⚠ Không kết nối được kho chung.', false);
+      return;
+    }
+    db.ref('.info/connected').on('value', function(snap){
+      if(snap.val() === true) setConn('● Đã kết nối — hiện cả quá trình kéo lẫn bài đã nộp.', true);
+      else setConn('⚠ Mất kết nối — đang chờ nối lại…', false);
+    });
+    /* Đề hiện tại của thầy (nếu có) để biết đáp án đúng mà chấm quá trình kéo */
+    db.ref(KEO_ROOT + '/debai').on('value', function(snap){
+      var d = snap.val();
+      if(d && Array.isArray(d.items) && d.items.length === 5 &&
+        d.items.every(function(it){ return it && it.q && it.a; })) quizKey = d.items;
+      renderKeoLive();
+    });
+    /* Nhánh nháp: app kéo thả ghi mỗi lần nhóm kéo/thả/đổi thẻ — bảng cập nhật ngay */
+    db.ref(KEO_ROOT + '/nhap').on('value', function(snap){
+      nhapData = snap.val() || {};
+      renderKeoLive();
+    });
+    db.ref(KEO_ROOT + '/ketqua').on('value', function(snap){
+      ketquaData = snap.val() || {};
+      renderKeoLive();
+    });
+  }
+  document.getElementById('keoLiveBtn').addEventListener('click', function(){
+    panel.classList.remove('hidden');
+  });
+  document.getElementById('keoLiveClose').addEventListener('click', function(){
+    panel.classList.add('hidden');
+  });
+  buildCards();
+  renderKeoLive();
+  keoLiveInit();
 })();
 </script>
 </body>
