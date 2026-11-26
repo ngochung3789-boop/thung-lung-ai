@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Điểm danh &amp; Tài liệu — SHCM Cụm 1 lần 1 · Khối 8</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+<script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
+<style>
+:root{
+  --navy:#0f2a4a; --indigo:#1e40af; --blue:#2563eb;
+  --teal:#0d9488; --teal-d:#0f766e; --gold:#f59e0b; --gold-d:#b45309;
+  --bg:#eef2f7; --card:#ffffff; --ink:#12233d; --muted:#5b6b82; --line:#e3e9f2;
+  --green:#16a34a; --green-bg:#e7f7ee; --red:#dc2626; --red-bg:#fdecec;
+  --radius:18px; --shadow:0 10px 30px rgba(15,42,74,.10); --shadow-sm:0 4px 14px rgba(15,42,74,.08);
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;font-family:"Be Vietnam Pro",system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;background:var(--bg);color:var(--ink);line-height:1.55}
+a{color:var(--indigo)}
+.wrap{max-width:920px;margin:0 auto;padding:0 14px 48px}
+.hero{margin:10px auto 0;max-width:920px;border-radius:16px;overflow:hidden;box-shadow:var(--shadow-sm);
+  background:linear-gradient(135deg,#0f2a4a 0%,#1e40af 55%,#0d9488 100%);color:#fff;position:relative}
+.hero::after{content:"";position:absolute;inset:auto 0 0 0;height:5px;background:linear-gradient(90deg,#f59e0b,#fbbf24,#0d9488,#2563eb)}
+
+.hero-in{padding:14px 16px 16px;display:flex;gap:14px;align-items:center;flex-wrap:wrap}
+.badge{display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.35);
+  padding:4px 10px;border-radius:999px;font-size:11px;font-weight:700;letter-spacing:.4px;text-transform:uppercase}
+.badge .dot{width:8px;height:8px;border-radius:50%;background:#fbbf24}
+.hero h1{margin:8px 0 4px;font-size:clamp(19px,4.6vw,25px);line-height:1.2;font-weight:900;letter-spacing:-.3px}
+.hero h1 span{color:#fde68a}
+.hero p.sub{margin:0;font-size:13.5px;opacity:.94;max-width:560px}
+.hero-line{margin-top:8px;font-size:13px;opacity:.95}
+.hero-line b{color:#fde68a}
+
+.summary-line{font-size:14px;color:var(--muted);margin-top:12px}
+.summary-line b{color:var(--ink)}
+.progress{height:8px;background:#e6ebf2;border-radius:999px;overflow:hidden;margin-top:12px}
+.progress i{display:block;height:100%;width:0%;background:linear-gradient(90deg,#2563eb,#0d9488);border-radius:999px;transition:width .5s}
+.conn{margin-top:10px;font-size:13px;color:var(--muted);display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.conn .ok{color:var(--green);font-weight:700}.conn .warn{color:var(--gold-d);font-weight:700}
+/* bước 1-2-3 đã bỏ cho gọn */
+.footnav{margin-top:16px;display:grid;gap:8px}
+.linkbtn{border:1px solid var(--line);background:#fff;border-radius:12px;padding:12px 14px;font:inherit;font-size:14.5px;font-weight:600;color:var(--indigo);cursor:pointer;text-align:left}
+.linkbtn:hover{border-color:var(--indigo)}
+.panel{display:none}.panel.on{display:block}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow-sm);padding:16px}
+.card h2{margin:0 0 4px;font-size:19px;color:var(--navy)}
+.card .hint{margin:0 0 14px;color:var(--muted);font-size:14px}
+.notice{border-radius:14px;padding:13px 14px;font-size:14.5px;margin:0 0 14px;border:1px solid}
+.notice.blue{background:#eff6ff;border-color:#bfdbfe;color:#1e3a8a}
+.notice.green{background:var(--green-bg);border-color:#bbf7d0;color:#14532d}
+.notice.amber{background:#fffbeb;border-color:#fde68a;color:#78350f}
+.notice.red{background:var(--red-bg);border-color:#fecaca;color:#7f1d1d}
+.notice b{font-weight:800}
+.search{width:100%;padding:14px 16px;border:2px solid var(--line);border-radius:14px;font:inherit;font-size:16px;outline:none;background:#fff}
+.search:focus{border-color:var(--indigo);box-shadow:0 0 0 4px rgba(37,99,235,.15)}
+.select{width:100%;padding:12px;border:2px solid var(--line);border-radius:12px;font:inherit;font-size:15px;background:#fff;margin-top:12px}
+.list{margin-top:12px;display:grid;gap:10px}
+.person{display:flex;gap:12px;align-items:center;background:#fff;border:1px solid var(--line);border-radius:14px;padding:11px 13px;cursor:pointer;text-align:left;width:100%;font:inherit;transition:.15s}
+.person:hover{border-color:var(--indigo);box-shadow:var(--shadow-sm)}
+.person.sel{border-color:var(--indigo);background:#eff6ff;box-shadow:0 0 0 3px rgba(37,99,235,.15)}
+.person.done{opacity:.78;cursor:default;background:#f8fafc}
+.person.done:hover{border-color:var(--line);box-shadow:none}
+.avatar{flex:0 0 42px;width:42px;height:42px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:14px;background:#eef2ff;color:var(--navy)}
+.avatar.nl{background:#e0e7ff;color:#1e40af}
+.avatar.pn{background:#f3e8ff;color:#7c3aed}
+.avatar.bt{background:#ccfbf1;color:#0f766e}
+.avatar.cm{background:#fef3c7;color:#92400e}
+.person .nm{font-weight:800;font-size:16px;color:var(--navy);line-height:1.3}
+.person .meta{font-size:13px;color:var(--muted);margin-top:2px}
+.tag{margin-left:auto;flex:0 0 auto;font-size:12px;font-weight:800;padding:6px 10px;border-radius:999px;background:#eef2f7;color:#475569;white-space:nowrap}
+.tag.done{background:var(--green-bg);color:#166534}
+.empty{padding:22px;text-align:center;color:var(--muted);border:1.5px dashed var(--line);border-radius:16px;background:#fff}
+.confirm{margin-top:14px;border:2px solid var(--indigo);background:#eff6ff;border-radius:16px;padding:16px}
+.confirm h3{margin:0 0 4px;color:var(--navy);font-size:17px}
+.confirm p{margin:4px 0;color:#334155;font-size:14.5px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border:0;border-radius:14px;padding:14px 20px;font:inherit;font-weight:800;font-size:16px;cursor:pointer;width:100%}
+.btn.primary{background:linear-gradient(135deg,#1e40af,#0d9488);color:#fff;box-shadow:0 8px 20px rgba(30,64,175,.30)}
+.btn.primary:disabled{opacity:.55;cursor:not-allowed;box-shadow:none}
+.btn.ghost{background:#fff;border:1.5px solid var(--line);color:var(--navy);width:auto;padding:11px 16px;font-size:14.5px}
+.btn.gold{background:linear-gradient(135deg,#d97706,#f59e0b);color:#fff}
+.btn.danger{background:#fff;border:1.5px solid #fecaca;color:var(--red)}
+.btnrow{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}
+.btnrow .btn{flex:1;min-width:160px}
+.doctabs{display:flex;gap:8px;margin-bottom:12px}
+.doctab{flex:1;padding:11px;border-radius:12px;border:1.5px solid var(--line);background:#fff;font:inherit;font-weight:800;font-size:14.5px;color:var(--muted);cursor:pointer}
+.doctab.on{background:var(--teal);border-color:var(--teal);color:#fff}
+.doc h3{color:var(--navy);font-size:17px;margin:18px 0 6px;padding-top:14px;border-top:1px solid var(--line)}
+.doc h3:first-child{border-top:0;padding-top:0;margin-top:0}
+.doc h4{color:var(--indigo);margin:14px 0 5px;font-size:15px}
+.doc p,.doc li{font-size:14.5px;color:#24344d}
+.doc ul,.doc ol{padding-left:20px;margin:6px 0}
+.doc table{width:100%;border-collapse:collapse;font-size:13.5px;margin:10px 0}
+.doc th{background:var(--navy);color:#fff;padding:9px 10px;text-align:left;font-size:13px}
+.doc td{border:1px solid var(--line);padding:8px 10px;vertical-align:top}
+.doc tr:nth-child(even) td{background:#f8fafc}
+.kv{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:10px 0}
+.kv div{background:#f8fafc;border:1px solid var(--line);border-radius:12px;padding:10px 12px;font-size:13.5px}
+.kv b{display:block;font-size:12px;text-transform:uppercase;letter-spacing:.4px;color:var(--muted)}
+.timeline{margin:10px 0;padding:0;list-style:none}
+.timeline li{display:flex;gap:10px;padding:9px 0;border-bottom:1px dashed var(--line);font-size:14.5px}
+.timeline li:last-child{border-bottom:0}
+.timeline b{flex:0 0 108px;color:var(--indigo)}
+.locked{text-align:center;padding:26px 12px}
+.locked .big{font-size:44px}
+.locked h3{color:var(--navy);margin:8px 0 4px}
+.tblwrap{overflow-x:auto;border:1px solid var(--line);border-radius:14px;margin-top:12px}
+table.tbl{width:100%;border-collapse:collapse;font-size:13.5px;min-width:640px}
+.tbl th{background:var(--navy);color:#fff;padding:10px;text-align:left}
+.tbl td{border-top:1px solid var(--line);padding:9px 10px;vertical-align:top}
+.tbl tr:nth-child(even) td{background:#f8fafc}
+.pill-ok{display:inline-block;background:var(--green-bg);color:#166534;font-weight:800;font-size:12px;padding:4px 9px;border-radius:999px}
+.pill-no{display:inline-block;background:#fef2f2;color:#991b1b;font-weight:800;font-size:12px;padding:4px 9px;border-radius:999px}
+.foot{margin-top:16px;text-align:center;color:var(--muted);font-size:12.5px}
+@media(min-width:700px){
+  .hero-in{flex-wrap:nowrap}
+  .tabs{top:8px}
+}
+@media(max-width:640px){
+  .hero-in{padding:12px 14px 14px}
+  .kv{grid-template-columns:1fr}
+  .timeline b{flex-basis:92px}
+}
+</style>
+</head>
+<body>
+<div class="hero"><div class="hero-in">
+  <div style="flex:1;min-width:260px">
+    <span class="badge"><span class="dot"></span> Sinh hoạt chuyên môn · Cụm số 1 · Lần 1</span>
+    <h1>Điểm danh<br><span>SHCM Cụm 1 · Khối 8</span></h1>
+    <p class="sub">Tìm tên mình, bấm <b>Xác nhận</b> — xong là xem được tài liệu buổi sinh hoạt.</p>
+    <p class="hero-line"><b>13h30 · Thứ Sáu, 27/11/2026</b> · PTDTBT THCS Cao Minh — Phân hiệu II · 36 giáo viên · 4 trường</p>
+  </div>
+</div></div>
+
+<div class="wrap">
+  <div class="summary-line">Đã điểm danh: <b><span id="stCo">0</span>/36</b> · còn <b id="stVang">36</b> chưa điểm danh · <b id="stPct">0%</b></div>
+  <div class="progress"><i id="bar"></i></div>
+  <div class="conn"><span id="connText">⏳ Đang kết nối dữ liệu chung…</span><span id="myState"></span></div>
+
+  <section class="panel on" id="panel-diemdanh">
+    <div class="card">
+      <div id="bannerMine"></div>
+      <h2>Tìm tên mình</h2>
+      <p class="hint">Gõ tên không dấu vẫn tìm được. Mỗi tên chỉ điểm danh 1 lần.</p>
+      <input class="search" id="search" placeholder="🔍 Gõ tên mình… ví dụ: Mai Phuong, Ngoc Hung, Thu Thao" oninput="renderList()">
+      <select class="select" id="truongSelect" onchange="setFilter(this.value)" aria-label="Chọn trường"></select>
+      <div class="list" id="list"></div>
+      <div id="confirmBox"></div>
+    </div>
+  </section>
+
+  <section class="panel" id="panel-tailieu">
+    <div class="card">
+      <div id="docLock"></div>
+      <div id="docBody" style="display:none">
+        <h2>Tài liệu buổi sinh hoạt chuyên môn</h2>
+        <p class="hint">Sau khi điểm danh, thầy / cô xem toàn bộ tài liệu dưới đây. Bản gốc .docx thầy Hưng phát kèm theo link này.</p>
+        <div class="btnrow" style="margin-top:0">
+          <button class="btn ghost" onclick="taiDocx('khbg')">⬇ Tải KHBD Bài 3 (.docx)</button>
+          <button class="btn ghost" onclick="taiDocx('tb')">⬇ Tải Thông báo SHCM (.docx)</button>
+        </div>
+        <div class="doctabs" style="margin-top:14px">
+          <button class="doctab on" id="dt-khbg" onclick="showDoc('khbg')">📘 Kế hoạch bài dạy — Bài 3</button>
+          <button class="doctab" id="dt-tb" onclick="showDoc('tb')">📣 Thông báo tổ chức</button>
+        </div>
+
+        <div class="doc" id="doc-khbg">
+          <h3>PHẦN A — TƯ DUY LẤY CON NGƯỜI LÀM TRUNG TÂM · BÀI 3: NGUY CƠ RÒ RỈ DỮ LIỆU CÁ NHÂN</h3>
+          <div class="kv">
+            <div><b>Trường</b>PTDTBT THCS Cao Minh</div>
+            <div><b>Giáo viên</b>Hoàng Thị Mai Phương</div>
+            <div><b>Môn · Lớp</b>Chuyên đề Giáo dục AI — Lớp 8 · Tiết PPCT 3</div>
+            <div><b>Thời lượng</b>1 tiết · 45 phút (14h00–14h45, 27/11/2026)</div>
+          </div>
+          <h3>I. Mục tiêu</h3>
+          <h4>1. Kiến thức — 2 mã YCCĐ theo QĐ 2422</h4>
+          <ul>
+            <li><b>8.A2.1:</b> Giải thích được việc một số hệ thống, dịch vụ dùng AI có thể thu thập, phân tích và sử dụng dữ liệu cá nhân (vị trí, thói quen, hình ảnh, giọng nói, sở thích…) để kiểm soát hành vi, gây ảnh hưởng hoặc thao túng quyết định của con người.</li>
+            <li><b>8.A2.2:</b> Nhận biết được hiện tượng dùng AI để kiểm soát người dùng (dùng dữ liệu không minh bạch, quảng cáo bám đuổi, định hướng thông tin một chiều, thao túng suy nghĩ, làm mất quyền kiểm soát thông tin cá nhân).</li>
+          </ul>
+          <h4>2. Năng lực</h4>
+          <ul>
+            <li><b>Tự chủ &amp; tự học:</b> Tự theo dõi thói quen dùng mạng; vận dụng 5 câu hỏi tự kiểm tra; tự đánh giá bằng 1 dòng ghi vào vở nhóm cuối tiết.</li>
+            <li><b>Giao tiếp &amp; hợp tác:</b> Thảo luận nhóm, xây dựng sơ đồ, nhận xét chéo theo bảng kiểm.</li>
+            <li><b>Giải quyết vấn đề &amp; sáng tạo:</b> Nhận diện dấu hiệu bị AI dẫn dắt, đề xuất cách ứng phó an toàn.</li>
+            <li><b>Năng lực đặc thù AI (NLa):</b> Phân biệt dữ liệu chủ động cung cấp với dữ liệu hành vi; giải thích vòng lặp dữ liệu; nhận diện đề xuất một chiều, theo dõi không minh bạch, thao túng quyết định; giữ quyền chủ động làm chủ quyết định.</li>
+          </ul>
+          <h4>3. Phẩm chất</h4>
+          <ul><li><b>Trách nhiệm:</b> Bảo vệ dữ liệu của mình, không cung cấp thông tin cá nhân của người khác.</li>
+          <li><b>Trung thực:</b> Kiểm chứng thông tin từ nhiều nguồn, không tin mù quáng nội dung AI đề xuất.</li></ul>
+          <h3>II. Thiết bị dạy học &amp; học liệu</h3>
+          <p><b>Giáo viên:</b> Tivi / máy chiếu, máy tính; slide (Hình 1.13 sơ đồ vòng lặp 7 bước, Bảng 6 khái niệm, Bảng 5 câu hỏi tự kiểm tra, Bảng kiểm đánh giá); phiếu tình huống.</p>
+          <p><b>Học sinh:</b> Vở ghi cá nhân, vở nhóm.</p>
+          <h3>III. Tiến trình dạy học — 45 phút</h3>
+          <h4>1. Mở đầu (5 phút): AI — Người bạn hiểu em hay người đang theo dõi em?</h4>
+          <p>Tình huống bạn Nam tìm giày thể thao rồi liên tục thấy quảng cáo giày, video bóng đá, game đúng sở thích. 2 câu hỏi nhanh: Vì sao nền tảng biết Nam thích gì? Nếu mọi hoạt động đều bị ghi lại thì điều gì có thể xảy ra?</p>
+          <h4>2. Hình thành kiến thức (19 phút)</h4>
+          <p><b>2.1 — Dữ liệu cá nhân &amp; nguy cơ rò rỉ (9 phút).</b> Tình huống bạn An tải app chỉnh sửa ảnh miễn phí, bấm “Đồng ý tất cả” quyền danh bạ, ảnh, vị trí, SĐT, micro, GPS — rồi nhận quảng cáo lạ, ảnh xuất hiện nơi không mong muốn.</p>
+          <table><tr><th>Dữ liệu chủ động cung cấp</th><th>Dữ liệu hành vi (sinh ra khi sử dụng)</th></tr>
+          <tr><td>Họ tên, ảnh đại diện, giọng nói, thông tin đăng ký, SĐT, GPS, câu hỏi gửi chatbot AI.</td><td>Thời gian dừng xem video, vị trí thường đi qua, nội dung tìm kiếm, quảng cáo đã nhấn, cách phản hồi đề xuất.</td></tr></table>
+          <p><b>6 khái niệm cốt lõi:</b> Dữ liệu hành vi · Hồ sơ người dùng · Theo dõi không minh bạch · Đề xuất một chiều · Thao túng quyết định · Mất kiểm soát dữ liệu cá nhân.</p>
+          <p><b>2.2 — Vòng lặp 7 bước &amp; 4 nguy cơ (10 phút).</b> 1. Người dùng tương tác → 2. App thu thập dữ liệu hành vi → 3. AI phân tích sở thích, thói quen → 4. Dự đoán nội dung dễ quan tâm → 5. Đề xuất nội dung / quảng cáo phù hợp → 6. Người dùng tiếp tục tương tác → 7. Dữ liệu mới lại dùng để đề xuất tiếp.</p>
+          <p><b>4 nguy cơ chính:</b> (1) Theo dõi không minh bạch · (2) Đề xuất một chiều (“vòng lặp nội dung”) · (3) Thao túng suy nghĩ, hành động · (4) Mất quyền kiểm soát dữ liệu (không rõ lưu bao lâu, ai truy cập, có dùng huấn luyện AI không, có xóa được không).</p>
+          <h4>3. Luyện tập (14 phút): 5 câu hỏi tự kiểm tra</h4>
+          <ol>
+            <li>Vì sao ứng dụng liên tục đề xuất nội dung này cho mình?</li>
+            <li>Mình có đang xem một loại nội dung quá nhiều không?</li>
+            <li>Ứng dụng có yêu cầu quyền truy cập không cần thiết không?</li>
+            <li>Mình có thể tắt, bỏ qua hoặc thay đổi đề xuất không?</li>
+            <li>Thông tin này có cần kiểm chứng từ nguồn khác không?</li>
+          </ol>
+          <p>Tình huống: HS xem video “học nhanh không cần đọc sách” rồi bị đề xuất video tương tự + quảng cáo khóa học “giỏi ngay” thúc bấm link nhập họ tên, SĐT, tên trường. <b>Cách đối phó:</b> Dừng lại, không bấm link lạ, không nhập họ tên / SĐT / trường; tắt quyền không cần thiết; kiểm chứng nhiều nguồn; báo cha mẹ / thầy cô.</p>
+          <h4>4. Vận dụng &amp; tự đánh giá (7 phút)</h4>
+          <p>Mỗi HS viết 1 câu cam kết: “Từ hôm nay, khi sử dụng các ứng dụng có AI, em sẽ…”, và ghi 1 dòng tự đánh giá vào vở nhóm theo 3 mức: [A] Hiểu rõ, tự áp dụng được 5 câu hỏi · [B] Hiểu cơ bản, cần xem lại bảng khái niệm · [C] Còn băn khoăn phần…</p>
+          <h3>IV. Đánh giá quá trình — Bảng kiểm 4 tiêu chí</h3>
+          <table><tr><th>Tiêu chí</th><th>Mức Đạt</th><th>Cần bổ sung</th></tr>
+          <tr><td>1. Phân biệt loại dữ liệu (HĐ 2.1)</td><td>Nêu đúng ít nhất 2 ví dụ mỗi loại.</td><td>Còn nhầm lẫn giữa hai loại.</td></tr>
+          <tr><td>2. Sơ đồ vòng lặp 7 bước (HĐ 2.2)</td><td>Điền đúng các bước, giải thích được tính vòng lặp.</td><td>Thiếu bước / chưa nêu vòng lặp.</td></tr>
+          <tr><td>3. Vận dụng 5 câu hỏi (HĐ 3)</td><td>Chỉ ra đúng dấu hiệu cảnh giác dựa trên ≥ 3 câu hỏi.</td><td>Phân tích chung chung, chưa gắn câu hỏi.</td></tr>
+          <tr><td>4. Đề xuất cách đối phó (HĐ 3)</td><td>Đủ hành động bảo vệ (không nhập tin, tắt quyền, báo người lớn).</td><td>Thiếu bước kiểm tra quyền / báo người lớn.</td></tr></table>
+          <p style="color:#5b6b82;font-size:13px">Người soạn: Hoàng Thị Mai Phương · Tổ trưởng chuyên môn: Triệu Thị Nam · Không tổ chức bài thi hay chấm điểm riêng; đánh giá quá trình bằng nhận xét (QĐ 2422, CV 5588).</p>
+        </div>
+
+        <div class="doc" id="doc-tb" style="display:none">
+          <h3>THÔNG BÁO — Tổ chức SHCM Cụm số 1 lần 1 · Khối 8</h3>
+          <p>Trường PTDTBT THCS Cao Minh trân trọng thông báo và kính mời đại biểu, giáo viên các trường trong Nhóm 1 tham dự buổi SHCM Cụm lần 1 – Khối 8, năm học 2026–2027.</p>
+          <div class="kv">
+            <div><b>Thời gian</b>13h30, Thứ Sáu 27/11/2026<br>Khai mạc 13h45 · Tiết dạy 14h00</div>
+            <div><b>Địa điểm</b>PTDTBT THCS Cao Minh — Phân hiệu II, Thôn Cao Tân, xã Cao Minh, Thái Nguyên</div>
+            <div><b>Căn cứ</b>CV 3639 &amp; 4699/SGDĐT-GDTrH; KH 90/KH-SHCMC1; KH 31/KH-THCSCM</div>
+            <div><b>Ký duyệt</b>KT. Hiệu trưởng — Phó Hiệu trưởng Hà Thị Tươi</div>
+          </div>
+          <h3>Chương trình làm việc</h3>
+          <ul class="timeline">
+            <li><b>13h30–13h45</b><span>Đón tiếp đại biểu, <b>điểm danh</b> thành phần tham dự; phát tài liệu và chia sẻ mã QR KHBD.</span></li>
+            <li><b>13h45–13h55</b><span>Ổn định tổ chức, tuyên bố lý do, giới thiệu đại biểu; quán triệt nguyên tắc dự giờ theo hướng nghiên cứu bài học (không xếp loại giờ dạy).</span></li>
+            <li><b>14h00–14h45</b><span>Dạy thể nghiệm 01 tiết Giáo dục AI lớp 8 — “Tư duy lấy con người làm trung tâm”; dự giờ, quan sát, ghi chép minh chứng học tập của HS.</span></li>
+            <li><b>14h45–16h00</b><span>Thảo luận, phân tích rút kinh nghiệm; góp ý hoàn thiện KHBD và học liệu số dùng chung của Cụm.</span></li>
+            <li><b>16h00–16h15</b><span>Kết luận buổi SHCM, thống nhất mốc hoàn thiện hồ sơ, bế mạc.</span></li>
+          </ul>
+          <h3>Thành phần mời</h3>
+          <p>Đại diện BGH phụ trách chỉ đạo nhóm Khối 8 và toàn thể giáo viên được phân công của 04 đơn vị (36 giáo viên theo danh sách đính kèm): Nghiên Loan 12 · Pác Nặm 02 · Bằng Thành 16 · Cao Minh 06.</p>
+          <h3>Lưu ý</h3>
+          <p>BGH các trường thông báo để GV có tên tham dự đầy đủ, đúng giờ. GV mang theo điện thoại thông minh hoặc laptop để quét mã QR nhận tài liệu, phiếu quan sát và tham gia tương tác học liệu số.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="panel" id="panel-btc">
+    <div class="card">
+      <h2>Bảng điểm danh — dành cho BTC (thầy Hưng)</h2>
+      <p class="hint">Số liệu cập nhật trực tiếp theo thời gian thực khi giáo viên điểm danh trên điện thoại của họ. Mở trang này trên laptop để chiếu / xuất báo cáo.</p>
+      <div class="btnrow" style="margin-top:0">
+        <button class="btn primary" onclick="xuatExcel('all')">⬇ Xuất Excel — Đủ 36 người (Có mặt + Vắng)</button>
+      </div>
+      <div class="btnrow">
+        <button class="btn gold" onclick="xuatExcel('co')">⬇ Chỉ danh sách Có mặt</button>
+        <button class="btn ghost" onclick="xuatExcel('vang')">⬇ Chỉ danh sách Vắng mặt</button>
+      </div>
+      <div class="btnrow">
+        <button class="btn ghost" onclick="taiLai()">↻ Làm mới số liệu</button>
+        <button class="btn danger" onclick="datLaiDiemDanh()">↺ Đặt lại điểm danh - xóa hết về 0/36 (cần mật khẩu)</button>
+      </div>
+      <p class="hint" style="margin-top:12px">File Excel gồm: STT · Họ và tên · Chuyên môn · Đơn vị công tác · Điểm trường / Phân hiệu · Trạng thái (Có mặt / Vắng mặt) · Giờ điểm danh. Tên file: <b>Diem_danh_SHCM_Cum1_Khoi8_2026-11-27.xlsx</b> — gồm 3 sheet: đủ 36 người, chỉ có mặt, chỉ vắng mặt.</p>
+      <div class="tblwrap"><table class="tbl"><thead><tr><th>STT</th><th>Họ và tên</th><th>Đơn vị · Điểm trường</th><th>Trạng thái</th><th>Giờ điểm danh</th></tr></thead><tbody id="tblBody"></tbody></table></div>
+    </div>
+  </section>
+
+  <div class="footnav">
+    <button class="linkbtn" id="backBtn" style="display:none" onclick="showTab('diemdanh')">← Quay lại điểm danh</button>
+    <button class="linkbtn" onclick="showTab('tailieu')">📄 Xem tài liệu buổi sinh hoạt</button>
+    <button class="linkbtn" onclick="showTab('btc')">📊 Dành cho BTC: bảng điểm danh &amp; xuất Excel</button>
+  </div>
+  <p class="foot">SHCM Cụm 1 · Khối 8 · 27/11/2026 · Trường PTDTBT THCS Cao Minh — Mỗi tên chỉ điểm danh 1 lần. Quét lại mã QR chỉ xem được tài liệu và danh sách điểm danh.</p>
+</div>
+
+<script>
+"use strict";
+var DS=[
+{id:1,ten:"Dương Ngọc Chuyên",cm:"ĐH Thể chất",dv:"PTDTBT THCS Nghiên Loan",dt:"Phân hiệu I",truong:"nl"},
+{id:2,ten:"Sái Thị Son",cm:"ĐH Tiếng Anh",dv:"PTDTBT THCS Nghiên Loan",dt:"Phân hiệu I",truong:"nl"},
+{id:3,ten:"Ma Thị Thùy",cm:"ĐH Âm nhạc",dv:"PTDTBT THCS Nghiên Loan",dt:"Trường chính",truong:"nl"},
+{id:4,ten:"Lưu Tuấn Điệp",cm:"ĐH Mĩ thuật",dv:"PTDTBT THCS Nghiên Loan",dt:"Trường chính",truong:"nl"},
+{id:5,ten:"Phùng Văn Tiến",cm:"ĐH GDTC",dv:"PTDTBT THCS Nghiên Loan",dt:"Trường chính",truong:"nl"},
+{id:6,ten:"Dương Thị Hạt",cm:"ĐH Tiếng Anh",dv:"PTDTBT THCS Nghiên Loan",dt:"Trường chính",truong:"nl"},
+{id:7,ten:"Hoàng Thị Trang",cm:"ĐH Văn",dv:"PTDTBT THCS Nghiên Loan",dt:"Trường chính",truong:"nl"},
+{id:8,ten:"Chu Thị Hiền",cm:"ĐH Anh",dv:"PTDTBT THCS Nghiên Loan",dt:"Trường chính",truong:"nl"},
+{id:9,ten:"Trần Thị Diệu Linh",cm:"ĐH Anh",dv:"PTDTBT THCS Nghiên Loan",dt:"Phân hiệu II",truong:"nl"},
+{id:10,ten:"Nguyễn Thị Chiên",cm:"ĐH Anh",dv:"PTDTBT THCS Nghiên Loan",dt:"Phân hiệu II",truong:"nl"},
+{id:11,ten:"Cà Thị Thao",cm:"ĐH Âm nhạc",dv:"PTDTBT THCS Nghiên Loan",dt:"Phân hiệu II",truong:"nl"},
+{id:12,ten:"Lê Văn Hoạt",cm:"ĐH GDTC",dv:"PTDTBT THCS Nghiên Loan",dt:"Phân hiệu II",truong:"nl"},
+{id:13,ten:"Nguyễn Thị Tuyền",cm:"ĐH Văn",dv:"PTDTNT THCS Pác Nặm",dt:"Trường chính",truong:"pn"},
+{id:14,ten:"Hà Thị Thu",cm:"ĐH Văn",dv:"PTDTNT THCS Pác Nặm",dt:"Trường chính",truong:"pn"},
+{id:15,ten:"Ma Thị Phương Thảo",cm:"TS GDCT",dv:"PTDTBT THCS Bằng Thành",dt:"Trường chính",truong:"bt"},
+{id:16,ten:"Nông Thị Vững",cm:"ĐH Âm nhạc",dv:"PTDTBT THCS Bằng Thành",dt:"Trường chính",truong:"bt"},
+{id:17,ten:"Bế Thị Hồng Ngâm",cm:"ĐH Toán - Tin",dv:"PTDTBT THCS Bằng Thành",dt:"Trường chính",truong:"bt"},
+{id:18,ten:"Triệu Thị Xuân",cm:"ĐH Văn - Sử",dv:"PTDTBT THCS Bằng Thành",dt:"Trường chính",truong:"bt"},
+{id:19,ten:"Lý Thị Thoan",cm:"ĐH Sinh",dv:"PTDTBT THCS Bằng Thành",dt:"Phân hiệu Nà Lại",truong:"bt"},
+{id:20,ten:"Lý Văn Cấp",cm:"ĐH Văn - Địa",dv:"PTDTBT THCS Bằng Thành",dt:"Phân hiệu Nà Lại",truong:"bt"},
+{id:21,ten:"Nguyễn Thu Ngân",cm:"ĐH Sinh - Hóa",dv:"PTDTBT THCS Bằng Thành",dt:"Phân hiệu Nà Lại",truong:"bt"},
+{id:22,ten:"Đặng Viết Toàn",cm:"ĐH Toán",dv:"PTDTBT THCS Bằng Thành",dt:"Phân hiệu Nà Lại",truong:"bt"},
+{id:23,ten:"Nông Thị Hiểu",cm:"ĐH Âm nhạc",dv:"PTDTBT THCS Bằng Thành",dt:"Phân hiệu Nhạn Môn",truong:"bt"},
+{id:24,ten:"Dương Thị Lệ",cm:"ĐH Toán - Lí",dv:"PTDTBT THCS Bằng Thành",dt:"Phân hiệu Nhạn Môn",truong:"bt"},
+{id:25,ten:"Mông Thị Tuyết",cm:"ĐH Văn - Địa",dv:"PTDTBT THCS Bằng Thành",dt:"Phân hiệu Nhạn Môn",truong:"bt"},
+{id:26,ten:"Chu Thị Huyến",cm:"ĐH Văn - Sử",dv:"PTDTBT THCS Bằng Thành",dt:"Phân hiệu Nhạn Môn",truong:"bt"},
+{id:27,ten:"Lường Văn Đồng",cm:"ĐH Văn - Địa",dv:"PTDTBT THCS Bằng Thành",dt:"Phân hiệu Giáo Hiệu",truong:"bt"},
+{id:28,ten:"Hà Thị Nết",cm:"ĐH Văn",dv:"PTDTBT THCS Bằng Thành",dt:"Phân hiệu Giáo Hiệu",truong:"bt"},
+{id:29,ten:"Trung Ngọc Tiến",cm:"ĐH ÂN - MT",dv:"PTDTBT THCS Bằng Thành",dt:"Phân hiệu Giáo Hiệu",truong:"bt"},
+{id:30,ten:"Hoàng Thị Trang",cm:"ĐH Toán - Tin",dv:"PTDTBT THCS Bằng Thành",dt:"Phân hiệu Giáo Hiệu",truong:"bt"},
+{id:31,ten:"Hoàng Thị Mai Phương",cm:"ĐH Toán - Tin",dv:"PTDTBT THCS Cao Minh",dt:"Trường chính",truong:"cm"},
+{id:32,ten:"Triệu Thị Duyên",cm:"ĐH Ngữ văn",dv:"PTDTBT THCS Cao Minh",dt:"Phân hiệu II",truong:"cm"},
+{id:33,ten:"Phạm Ngọc Hưng",cm:"ĐH CNTT",dv:"PTDTBT THCS Cao Minh",dt:"Trường chính",truong:"cm"},
+{id:34,ten:"Vương Thị Sư",cm:"ĐH GDCD",dv:"PTDTBT THCS Cao Minh",dt:"Phân hiệu I",truong:"cm"},
+{id:35,ten:"Nông Thị Hương Sen",cm:"ĐH Ngữ văn",dv:"PTDTBT THCS Cao Minh",dt:"Phân hiệu II",truong:"cm"},
+{id:36,ten:"Hoàng Minh Tuệ",cm:"ĐH Toán",dv:"PTDTBT THCS Cao Minh",dt:"Phân hiệu I",truong:"cm"}
+];
+var TRUONG={all:"Tất cả 36 GV",nl:"Nghiên Loan (12)",pn:"Pác Nặm (2)",bt:"Bằng Thành (16)",cm:"Cao Minh (6)"};
+var FIREBASE_CONFIG={apiKey:"AIzaSyA0GfN_myC2bvAq5TQWPd5mBIZnESR8_EI",authDomain:"hd3-bai4.firebaseapp.com",databaseURL:"https://hd3-bai4-default-rtdb.asia-southeast1.firebasedatabase.app",projectId:"hd3-bai4",storageBucket:"hd3-bai4.firebasestorage.app",messagingSenderId:"1082513446758",appId:"1:1082513446758:web:c3bd58e33e78d8d7341aa7"};
+var ROOT="hd3-bai4/shcm-cum1-khoi8/diemdanh";
+var db=null, fbOK=false;
+var daDiem={};
+var filter="all", selectedId=null, myId=null;
+try{ myId=localStorage.getItem("shcm-cum1-khoi8-mine")||null; }catch(e){}
+function gioHien(){ var d=new Date(); function p(n){return (n<10?"0":"")+n;} return p(d.getHours())+":"+p(d.getMinutes())+" · "+p(d.getDate())+"/"+p(d.getMonth()+1)+"/"+d.getFullYear(); }
+function gioNgan(g){ return g?String(g).split(" · ")[0]:""; }
+function boDau(s){ s=(s||"").toLowerCase(); s=s.normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/đ/g,"d"); return s; }
+function initials(name){ var p=name.trim().split(/\s+/); return (p[p.length-2]?p[p.length-2][0]:"")+(p[p.length-1]?p[p.length-1][0]:""); }
+function khoiTaoFirebase(){
+  if(typeof firebase==="undefined"||!firebase.database){ setConn(false,"Không tải được thư viện Firebase — kiểm tra mạng rồi tải lại trang."); return; }
+  try{
+    if(!firebase.apps.length) firebase.initializeApp(FIREBASE_CONFIG);
+    db=firebase.database();
+    db.ref(".info/connected").on("value",function(s){
+      if(s.val()===true){ fbOK=true; setConn(true,"Đã kết nối dữ liệu chung — điểm danh đồng bộ thời gian thực cho cả 4 trường."); }
+      else { fbOK=false; setConn(false,"Mất kết nối mạng chung — điểm danh tạm lưu trên máy này, có mạng sẽ đồng bộ lại."); }
+    });
+    db.ref(ROOT).on("value",function(snap){
+      var sv=snap.val()||{};
+      var loc=docLocal();
+      daDiem=Object.assign({},loc,sv);
+      Object.keys(loc).forEach(function(k){ if(!sv[k]) db.ref(ROOT+"/"+k).set(loc[k]); });
+      renderAll();
+    },
+      function(err){ setConn(false,"Không đọc được dữ liệu chung ("+err.message+")."); });
+  }catch(e){ setConn(false,"Không kết nối được Firebase: "+e.message); }
+}
+function setConn(ok,msg){
+  var el=document.getElementById("connText");
+  el.innerHTML=(ok?'<span class="ok">● Đã kết nối</span> ':'<span class="warn">● Chưa kết nối chung</span> ')+msg;
+}
+function docLocal(){ try{ return JSON.parse(localStorage.getItem("shcm-cum1-khoi8-local")||"{}"); }catch(e){ return {}; } }
+function daDiemDanh(id){ return !!daDiem[String(id)]; }
+function showTab(t){
+  document.querySelectorAll(".panel").forEach(function(p){ p.classList.remove("on"); });
+  document.getElementById("panel-"+t).classList.add("on");
+  var back=document.getElementById("backBtn");
+  if(back) back.style.display=(t==="diemdanh")?"none":"block";
+  if(t==="btc") renderTable();
+  window.scrollTo({top:0,behavior:"smooth"});
+}
+function showDoc(k){
+  document.getElementById("dt-khbg").classList.toggle("on",k==="khbg");
+  document.getElementById("dt-tb").classList.toggle("on",k==="tb");
+  document.getElementById("doc-khbg").style.display=k==="khbg"?"block":"none";
+  document.getElementById("doc-tb").style.display=k==="tb"?"block":"none";
+}
+function taiDocx(k){
+  /* Bản .docx gốc thầy Hưng phát kèm qua Zalo/Drive. Nút này tải ngay nội dung đầy đủ đã hiện trên trang, dạng file Word (.doc) mở được bằng Word/WPS. */
+  var el=document.getElementById(k==="khbg"?"doc-khbg":"doc-tb");
+  var ten=k==="khbg"?"KHBG_Lop_8_Bai_03_Nguy_co_ro_ri_du_lieu_ca_nhan.doc":"Thong_bao_SHCM_Cum1_Lan1_Khoi8_CaoMinh.doc";
+  var html='<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word"><head><meta charset="utf-8"><title>'+ten+'</title></head><body>'+el.innerHTML+'</body></html>';
+  var blob=new Blob(["\ufeff"+html],{type:"application/msword"});
+  var a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download=ten; document.body.appendChild(a); a.click(); a.remove();
+}
+function renderChips(){
+  var sel=document.getElementById("truongSelect"); if(!sel) return;
+  var h="";
+  Object.keys(TRUONG).forEach(function(k){
+    h+='<option value="'+k+'"'+(filter===k?" selected":"")+'>'+TRUONG[k]+'</option>';
+  });
+  sel.innerHTML=h;
+}
+function setFilter(k){ filter=k; selectedId=null; renderChips(); renderList(); renderConfirm(); }
+function renderList(){
+  var q=boDau(document.getElementById("search").value.trim());
+  var box=document.getElementById("list"); var html="", n=0;
+  DS.forEach(function(gv){
+    if(filter!=="all"&&gv.truong!==filter) return;
+    if(q&&boDau(gv.ten+" "+gv.dv+" "+gv.dt).indexOf(q)<0) return;
+    n++;
+    var done=daDiemDanh(gv.id);
+    var mine=myId&&String(myId)===String(gv.id);
+    html+='<button class="person'+(selectedId===gv.id?" sel":"")+(done?" done":"")+'" onclick="chonNguoi('+gv.id+')">'
+      +'<span class="avatar '+gv.truong+'">'+initials(gv.ten)+'</span>'
+      +'<span><span class="nm">'+gv.id+'. '+gv.ten+'</span><br><span class="meta">'+gv.cm+' · '+gv.dv+' — '+gv.dt+'</span></span>'
+      +'<span class="tag '+(done?"done":"")+'">'+(done?("✓ Đã điểm danh "+gioNgan(daDiem[String(gv.id)]&&daDiem[String(gv.id)].gio)):"Chọn")+'</span></button>';
+  });
+  box.innerHTML=html||'<div class="empty">Không tìm thấy tên phù hợp. Thử gõ không dấu, ví dụ: <b>Mai Phuong</b>.</div>';
+}
+function chonNguoi(id){ selectedId=id; renderList(); renderConfirm(); document.getElementById("confirmBox").scrollIntoView({behavior:"smooth",block:"nearest"}); }
+function renderConfirm(){
+  var box=document.getElementById("confirmBox");
+  if(!selectedId){ box.innerHTML=""; return; }
+  var gv=DS.find(function(x){return x.id===selectedId;});
+  var rec=daDiem[String(selectedId)];
+  if(rec){
+    box.innerHTML='<div class="confirm" style="border-color:#16a34a;background:#f0fdf4"><h3>✓ Tên này đã điểm danh</h3>'
+      +'<p><b>'+gv.ten+'</b> — '+gv.dv+' · '+gv.dt+'<br>Đã điểm danh lúc <b>'+rec.gio+'</b>. Mỗi tên chỉ điểm danh 1 lần nên không điểm danh thêm được.</p>'
+      +'<div class="btnrow"><button class="btn primary" onclick="moTaiLieu()">📄 Xem tài liệu buổi SHCM</button>'
+      +'<button class="btn ghost" onclick="showTab(\'btc\')">📊 Xem danh sách điểm danh</button></div></div>';
+    return;
+  }
+  box.innerHTML='<div class="confirm"><h3>Xác nhận điểm danh</h3>'
+    +'<p><b>'+gv.id+'. '+gv.ten+'</b><br>'+gv.cm+' · '+gv.dv+' — '+gv.dt+'</p>'
+    +'<p style="color:#475569">Bấm xác nhận là tên này được ghi nhận <b>1 lần duy nhất</b> vào danh sách chung. Quét lại mã QR sau đó chỉ xem được tài liệu, không điểm danh thêm.</p>'
+    +'<button class="btn primary" id="btnXacNhan" onclick="xacNhanDiemDanh()">✓ Xác nhận — Tôi là '+gv.ten+'</button>'
+    +'<div class="btnrow"><button class="btn ghost" onclick="selectedId=null;renderList();renderConfirm()">← Chọn tên khác</button></div></div>';
+}
+function moTaiLieu(){ showTab("tailieu"); }
+function capNhatTrangThaiCaNhan(){
+  var banner=document.getElementById("bannerMine");
+  var lock=document.getElementById("docLock");
+  var body=document.getElementById("docBody");
+  var mineRec=myId&&daDiem[String(myId)]?daDiem[String(myId)]:null;
+  if(mineRec){
+    var gv=DS.find(function(x){return String(x.id)===String(myId);});
+    banner.innerHTML='<div class="notice green"><b>✓ Bạn đã điểm danh lúc '+mineRec.gio+'.</b><br>'+(gv?gv.ten+" — "+gv.dv+" · "+gv.dt:"")+'<br>Lần quét sau chỉ xem được tài liệu và danh sách điểm danh — không điểm danh thêm được.</div>';
+    lock.innerHTML=""; body.style.display="block";
+    document.getElementById("myState").innerHTML='· <b style="color:#166534">Bạn: '+(gv?gv.ten:"")+' ✓</b>';
+  }else{
+    banner.innerHTML="";
+    lock.innerHTML='<div class="locked"><div class="big">🔒</div><h3>Tài liệu sẽ mở sau khi điểm danh</h3><p style="color:#5b6b82;max-width:420px;margin:0 auto">Thầy / cô chọn đúng tên mình ở trên và bấm <b>Xác nhận điểm danh</b> — tài liệu KHBD + Thông báo sẽ hiện ra ngay.<br>Nếu đã điểm danh rồi mà trang này vẫn khóa, hãy bấm lại đúng tên mình ở tab Điểm danh.</p></div>';
+    body.style.display="none";
+    document.getElementById("myState").innerHTML="";
+  }
+}
+function renderStats(){
+  var co=Object.keys(daDiem).length;
+  document.getElementById("stCo").textContent=co;
+  document.getElementById("stVang").textContent=36-co;
+  document.getElementById("stPct").textContent=Math.round(co/36*100)+"%";
+  document.getElementById("bar").style.width=(co/36*100)+"%";
+}
+function renderTable(){
+  var tb=document.getElementById("tblBody"); var h="";
+  DS.forEach(function(gv){
+    var r=daDiem[String(gv.id)];
+    h+="<tr><td>"+gv.id+"</td><td><b>"+gv.ten+"</b><br><span style='color:#5b6b82'>"+gv.cm+"</span></td><td>"+gv.dv+"<br><span style='color:#5b6b82'>"+gv.dt+"</span></td><td>"+(r?'<span class="pill-ok">✓ Có mặt</span>':'<span class="pill-no">Vắng mặt</span>')+"</td><td>"+(r?r.gio:"—")+"</td></tr>";
+  });
+  tb.innerHTML=h;
+}
+function renderAll(){ renderStats(); renderList(); renderConfirm(); renderTable(); capNhatTrangThaiCaNhan(); }
+function xacNhanDiemDanh(){
+  if(!selectedId) return;
+  var gv=DS.find(function(x){return x.id===selectedId;});
+  var btn=document.getElementById("btnXacNhan");
+  if(btn){ btn.disabled=true; btn.textContent="⏳ Đang ghi nhận…"; }
+  var banGhi={id:gv.id,ten:gv.ten,cm:gv.cm,dv:gv.dv,dt:gv.dt,gio:gioHien(),ts:Date.now()};
+  function xong(){
+    try{ localStorage.setItem("shcm-cum1-khoi8-mine",String(gv.id)); }catch(e){}
+    myId=String(gv.id);
+    daDiem[String(gv.id)]=banGhi;
+    renderAll();
+    showTab("tailieu");
+    alert("✓ Điểm danh thành công!\n"+gv.ten+" — "+gioHien()+"\nTài liệu buổi SHCM đã mở. Quét lại mã QR sau này chỉ xem được tài liệu.");
+  }
+  function daCoNguoiDiem(){
+    alert("Tên này đã có người điểm danh trước rồi ("+(daDiem[String(gv.id)]?daDiem[String(gv.id)].gio:"")+") nên không điểm danh thêm được. Thầy / cô bấm lại đúng tên mình để xem tài liệu.");
+    renderAll();
+  }
+  if(db&&fbOK){
+    db.ref(ROOT+"/"+gv.id).transaction(function(cur){
+      if(cur) return;
+      return banGhi;
+    },function(err,committed){
+      if(err){ alert("Lỗi kết nối: "+err.message+" — thử lại sau vài giây."); if(btn){btn.disabled=false;btn.textContent="✓ Xác nhận — Tôi là "+gv.ten;} return; }
+      if(!committed){ daCoNguoiDiem(); return; }
+      xong();
+    });
+  }else{
+    if(daDiemDanh(gv.id)){ daCoNguoiDiem(); return; }
+    try{ var loc=JSON.parse(localStorage.getItem("shcm-cum1-khoi8-local")||"{}"); loc[String(gv.id)]=banGhi; localStorage.setItem("shcm-cum1-khoi8-local",JSON.stringify(loc)); }catch(e){}
+    xong();
+  }
+}
+function duLieuXuat(loai){
+  var rows=[];
+  DS.forEach(function(gv){
+    var r=daDiem[String(gv.id)];
+    var tt=r?"Có mặt":"Vắng mặt";
+    if(loai==="co"&&!r) return;
+    if(loai==="vang"&&r) return;
+    rows.push({"STT":gv.id,"Họ và tên":gv.ten,"Chuyên môn":gv.cm,"Đơn vị công tác":gv.dv,"Điểm trường / Phân hiệu":gv.dt,"Trạng thái":tt,"Giờ điểm danh":r?r.gio:""});
+  });
+  return rows;
+}
+function xuatExcel(loai){
+  var ten=loai==="co"?"Diem_danh_SHCM_Cum1_Khoi8_2026-11-27_CHI_CO_MAT.xlsx":loai==="vang"?"Diem_danh_SHCM_Cum1_Khoi8_2026-11-27_CHI_VANG_MAT.xlsx":"Diem_danh_SHCM_Cum1_Khoi8_2026-11-27.xlsx";
+  var all=duLieuXuat("all"), co=duLieuXuat("co"), vang=duLieuXuat("vang");
+  try{
+    if(typeof XLSX==="undefined") throw new Error("no-xlsx");
+    var wb=XLSX.utils.book_new();
+    var wsAll=XLSX.utils.json_to_sheet(all);
+    wsAll["!cols"]=[{wch:6},{wch:24},{wch:16},{wch:30},{wch:20},{wch:12},{wch:22}];
+    XLSX.utils.book_append_sheet(wb,wsAll,"Diem danh du 36");
+    XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(co),"Co mat ("+co.length+")");
+    XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(vang),"Vang mat ("+vang.length+")");
+    XLSX.writeFile(wb,ten);
+  }catch(e){
+    var rows=loai==="all"?all:(loai==="co"?co:vang);
+    var csv="STT,Ho va ten,Chuyen mon,Don vi cong tac,Diem truong / Phan hieu,Trang thai,Gio diem danh\n"
+      +rows.map(function(r){ return [r["STT"],'"'+r["Họ và tên"]+'"','"'+r["Chuyên môn"]+'"','"'+r["Đơn vị công tác"]+'"','"'+r["Điểm trường / Phân hiệu"]+'"','"'+r["Trạng thái"]+'"','"'+r["Giờ điểm danh"]+'"'].join(","); }).join("\n");
+    var blob=new Blob(["\ufeff"+csv],{type:"text/csv;charset=utf-8"});
+    var a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download=ten.replace(".xlsx",".csv"); a.click();
+  }
+}
+function taiLai(){ if(db){ db.ref(ROOT).once("value").then(function(s){ daDiem=s.val()||{}; renderAll(); }); } renderAll(); }
+function datLaiDiemDanh(){
+  var mk=prompt("Nhập mật khẩu đặt lại điểm danh:");
+  if(mk===null) return;
+  if(mk!=="1@"){ alert("Sai mật khẩu - không xóa gì cả."); return; }
+  if(!confirm("XÓA TOÀN BỘ điểm danh của 36 giáo viên và làm lại từ đầu?\nChỉ bấm OK khi thầy muốn làm lại (ví dụ sau buổi thử).")) return;
+  if(db) db.ref(ROOT).remove();
+  daDiem={}; try{ localStorage.removeItem("shcm-cum1-khoi8-mine"); localStorage.removeItem("shcm-cum1-khoi8-local"); }catch(e){}
+  myId=null; selectedId=null; renderAll(); showTab("diemdanh");
+  alert("Đã đặt lại: danh sách về 0/36. Mọi người điểm danh lại từ đầu.");
+}
+/* Mã QR thầy in/chiếu riêng từ link này; trong trang không hiện mã nữa cho đỡ rối. */
+var loc0=docLocal(); Object.keys(loc0).forEach(function(k){ if(!daDiem[k]) daDiem[k]=loc0[k]; });
+renderChips(); renderAll(); khoiTaoFirebase();
+(function(){
+  var h=(location.hash||"").replace("#","");
+  if(h==="tailieu"||h==="btc") showTab(h);
+})();
+</script>
+</body>
+</html>
