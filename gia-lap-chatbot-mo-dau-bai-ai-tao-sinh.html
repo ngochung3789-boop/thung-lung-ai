@@ -284,9 +284,6 @@
   .bell-head{position:relative;padding:20px 18px 4px;text-align:center}
   .bell-title{font-size:31px;font-weight:800;color:#1b2a5e;margin:0;letter-spacing:.01em;text-transform:uppercase}
   .bell-teacher-btns{position:absolute;top:16px;right:18px;display:flex;align-items:center;gap:10px}
-  .bell-start-btn{border:0;background:#e8710a;color:#fff;font-size:17px;font-weight:800;border-radius:999px;padding:11px 20px;min-height:48px;box-shadow:0 4px 14px rgba(232,113,10,.35)}
-  .bell-start-btn:hover{background:#d15f04}
-  .bell-start-btn:disabled{background:#b6c2d9;box-shadow:none;cursor:not-allowed}
   .bell-again-btn{border:2px solid #17457e;background:#fff;color:#17457e;font-size:16px;font-weight:700;border-radius:999px;padding:9px 18px;min-height:48px}
   .bell-again-btn:hover{background:#eaf2fd}
   .bell-groups{display:flex;justify-content:center;gap:10px;flex-wrap:wrap;padding:14px 18px 2px}
@@ -987,7 +984,6 @@ Viết lại bằng hiểu biết của mình</textarea>
   <div class="bell-head">
     <h2 class="bell-title">Bấm chuông đăng ký trả lời</h2>
     <div class="bell-teacher-btns">
-      <button class="bell-start-btn" type="button" id="bellStartBtn">Thầy hô bắt đầu</button>
       <button class="bell-again-btn" type="button" id="bellAgainBtn">Chơi lại</button>
     </div>
   </div>
@@ -1003,12 +999,12 @@ Viết lại bằng hiểu biết của mình</textarea>
 
   <div class="bell-main">
     <section class="bell-stage" aria-label="Khu vực bấm chuông">
-      <p class="bell-status" id="bellStatus">Chờ thầy hô...</p>
+      <p class="bell-status" id="bellStatus">Sẵn sàng bấm chuông!</p>
       <div class="bell-clock" id="bellClock">0,00 <span>giây</span></div>
-      <button class="bell-btn" type="button" id="bellBtn" disabled aria-label="Bấm chuông">
+      <button class="bell-btn" type="button" id="bellBtn" aria-label="Bấm chuông">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 8a6 6 0 10-12 0c0 7-3 8-3 8h18s-3-1-3-8"/><path d="M10.3 21a2 2 0 003.4 0"/></svg>
       </button>
-      <p class="bell-note" id="bellNote">Chọn tên nhóm của mình ở phía trên, chờ thầy hô rồi bấm chuông thật nhanh!</p>
+      <p class="bell-note" id="bellNote">Chọn tên nhóm của mình ở phía trên rồi bấm chuông thật nhanh!</p>
       <p class="bell-conn" id="bellConn">Đang kết nối đồng bộ…</p>
     </section>
 
@@ -1995,9 +1991,9 @@ Viết lại bằng hiểu biết của mình</textarea>
 
 <script>
 (function(){
-  /* ===== BẤM CHUÔNG: thầy hô bắt đầu -> đồng hồ chạy -> nhóm chọn tên rồi bấm chuông
-     -> ghi thời gian của từng nhóm -> Bảng của thầy xếp hạng nhanh nhất lên đầu ===== */
-  var startBtn = document.getElementById('bellStartBtn');
+  /* ===== BẤM CHUÔNG: chuông luôn sẵn sàng ngay khi mở tab (không cần bước mở đầu) ->
+     đồng hồ chạy -> nhóm chọn tên rồi bấm chuông -> ghi thời gian của từng nhóm
+     -> Bảng của thầy xếp hạng nhanh nhất lên đầu ===== */
   var againBtn = document.getElementById('bellAgainBtn');
   var bellBtn = document.getElementById('bellBtn');
   var statusEl = document.getElementById('bellStatus');
@@ -2008,18 +2004,18 @@ Viết lại bằng hiểu biết của mình</textarea>
   var gbtns = document.querySelectorAll('.bell-gbtn');
 
   var currentGroup = 1;
-  var running = false;      /* thầy đã hô bắt đầu chưa */
-  var startAt = 0;          /* mốc performance.now() lúc thầy hô */
+  var running = false;      /* đồng hồ của vòng này đang chạy chưa (tự chạy ngay khi mở tab) */
+  var startAt = 0;          /* mốc performance.now() lúc vòng bắt đầu */
   var tickId = null;
-  var results = {};         /* số nhóm -> thời gian bấm (ms) tính từ lúc thầy hô */
+  var results = {};         /* số nhóm -> thời gian bấm (ms) tính từ lúc vòng bắt đầu */
 
   /* ===== ĐỒNG BỘ FIREBASE — dùng đúng project hd3-bai4 như app Kéo thả nộp bài
      và app Bấm chuông HĐ3 của thầy (KHÔNG dùng Apps Script).
      Dữ liệu của tab này nằm ở nhánh RIÊNG "hd3-bai4/bamchuong-taosinh",
      không đụng nhánh keotha (kéo thả) hay buzzer (HĐ3) cũ.
-     Luồng: thầy bấm "Thầy hô bắt đầu" -> trạng thái mở chuông lên Firebase,
-     điện thoại các nhóm mở cùng link thấy chuông đã mở; nhóm bấm chuông ->
-     lượt bấm (nhóm, thời gian từ lúc thầy hô, giờ bấm) đẩy lên Firebase ngay;
+     Luồng: mở tab là chuông tự mở ngay (trạng thái mở chuông lên Firebase),
+     điện thoại các nhóm mở cùng link thấy chuông đã sẵn sàng; nhóm bấm chuông ->
+     lượt bấm (nhóm, thời gian từ lúc vòng bắt đầu, giờ bấm) đẩy lên Firebase ngay;
      Bảng của thầy tự cập nhật theo thời gian thực, xếp nhanh nhất lên đầu.
      Mất mạng / không kết nối được Firebase thì tab vẫn chạy 1 màn hình như trước. ===== */
   var FB_ROOT = 'hd3-bai4/bamchuong-taosinh';
@@ -2036,8 +2032,8 @@ Viết lại bằng hiểu biết của mình</textarea>
   var db = null;
   var serverOffset = 0;   /* độ lệch giờ máy này so với giờ máy chủ Firebase (ms) */
   var round = 1;          /* số vòng hiện tại — đồng bộ qua Firebase */
-  var roundLive = false;  /* vòng này đã được thầy hô mở chưa (chỉ gộp lượt bấm khi đã mở) */
-  var moLuc = 0;          /* mốc giờ máy chủ lúc thầy hô của vòng này (ms), 0 = chưa rõ */
+  var roundLive = false;  /* vòng này đã mở chuông chưa (chỉ gộp lượt bấm khi đã mở) */
+  var moLuc = 0;          /* mốc giờ máy chủ lúc vòng này bắt đầu (ms), 0 = chưa rõ */
   var pressesRef = null;
 
   function nowServer(){ return Date.now() + serverOffset; }
@@ -2096,16 +2092,28 @@ Viết lại bằng hiểu biết của mình</textarea>
     });
   }
 
-  /* Nghe trạng thái chuông: thầy hô ở máy nào thì mọi máy mở chuông theo,
-     thầy bấm Chơi lại thì mọi máy về trạng thái chờ của vòng mới */
+  /* Đẩy trạng thái mở chuông của vòng hiện tại lên Firebase để mọi máy cùng link
+     dùng chung một mốc bắt đầu. Chỉ ghi khi vòng chưa mở — máy nào thấy trước ghi trước. */
+  function phatTrangThaiMo(){
+    if(!db) return;
+    var upd = {};
+    upd['trangthai'] = {
+      vong: round, mo: true,
+      moLuc: firebase.database.ServerValue.TIMESTAMP
+    };
+    db.ref(FB_ROOT).update(upd).catch(function(){});
+  }
+
+  /* Nghe trạng thái chuông: máy nào mở tab thì chuông tự mở cho mọi máy;
+     bấm Chơi lại ở máy nào thì mọi máy sang vòng mới và mở chuông ngay */
   function ngheTrangThai(){
     if(!db) return;
     db.ref(FB_ROOT + '/trangthai').on('value', function(snap){
       var v = snap.val();
-      if(!v) return;
+      if(!v){ phatTrangThaiMo(); paint(); return; }
       var vong = Number(v.vong) || 1;
       if(vong < round) return;                 /* trạng thái của vòng cũ — bỏ qua */
-      if(vong > round){                        /* vòng mới: dọn sạch, chờ hô lại */
+      if(vong > round){                        /* vòng mới: dọn sạch, mở chuông ngay */
         round = vong;
         resetRound();
         ngheLuotBam();
@@ -2113,9 +2121,9 @@ Viết lại bằng hiểu biết của mình</textarea>
       if(v.mo){
         roundLive = true;
         moLuc = Number(v.moLuc) || 0;
-        if(!running) startClock(moLuc ? nowServer() - moLuc : 0);
-      } else if(running){
-        resetRound();
+        startClock(moLuc ? nowServer() - moLuc : 0);
+      } else {
+        phatTrangThaiMo();                     /* vòng chưa mở: tự mở ngay, không chờ ai hô */
       }
       paint();
     });
@@ -2210,18 +2218,17 @@ Viết lại bằng hiểu biết của mình</textarea>
     bellBtn.disabled = !running || hasRung;
     bellBtn.classList.toggle('armed', running && !hasRung);
     bellBtn.classList.toggle('rung', hasRung);
-    startBtn.disabled = running;
     if(!running){
-      statusEl.textContent = 'Chờ thầy hô...';
-      noteEl.innerHTML = 'Chọn tên nhóm của mình ở phía trên, chờ thầy hô rồi bấm chuông thật nhanh!';
+      statusEl.textContent = 'Sẵn sàng bấm chuông!';
+      noteEl.innerHTML = 'Chọn tên nhóm của mình ở phía trên rồi bấm chuông thật nhanh!';
     } else if(allDone){
       statusEl.textContent = 'Đã đủ 6 nhóm bấm chuông!';
-      noteEl.innerHTML = 'Vòng này đã xong. Thầy bấm <b>Chơi lại</b> để bắt đầu vòng bấm mới.';
+      noteEl.innerHTML = 'Vòng này đã xong. Bấm <b>Chơi lại</b> để bắt đầu vòng bấm mới.';
     } else if(hasRung){
       statusEl.textContent = 'Nhóm ' + currentGroup + ' đã bấm: ' + fmtTime(mine);
       noteEl.innerHTML = 'Nhóm ' + currentGroup + ' đã ghi thời gian. Chọn nhóm khác ở phía trên để bấm tiếp.';
     } else {
-      statusEl.textContent = 'Thầy đã hô — Nhóm ' + currentGroup + ' bấm chuông đi!';
+      statusEl.textContent = 'Nhóm ' + currentGroup + ' — bấm chuông đi!';
       noteEl.innerHTML = 'Đang tính giờ cho <b>Nhóm ' + currentGroup + '</b> — bấm chuông càng nhanh càng tốt!';
     }
     gbtns.forEach(function(b){
@@ -2241,32 +2248,14 @@ Viết lại bằng hiểu biết của mình</textarea>
     });
   });
 
-  startBtn.addEventListener('click', function(){
-    if(running) return;
-    roundLive = true;
-    startClock(0);
-    /* Đẩy trạng thái mở chuông lên Firebase: các máy khác mở cùng link thấy chuông đã mở ngay.
-       Ghi 1 lần nguyên tử kèm xóa lượt bấm cũ của vòng này (nếu có) cho sạch. */
-    if(db){
-      var upd = {};
-      upd['trangthai'] = {
-        vong: round, mo: true,
-        moLuc: firebase.database.ServerValue.TIMESTAMP
-      };
-      upd['luotbam/' + round] = null;
-      db.ref(FB_ROOT).update(upd).catch(function(){});
-    }
-    paint();
-  });
-
   bellBtn.addEventListener('click', function(){
     if(!running || results[currentGroup] != null) return;
     var ms = performance.now() - startAt;
-    /* Có đồng bộ thì tính giờ theo mốc giờ máy chủ lúc thầy hô, để mọi máy khớp nhau */
+    /* Có đồng bộ thì tính giờ theo mốc giờ máy chủ lúc vòng bắt đầu, để mọi máy khớp nhau */
     var msGui = (db && moLuc) ? Math.max(0, nowServer() - moLuc) : ms;
     results[currentGroup] = msGui;
     ding();
-    /* Đẩy lượt bấm lên Firebase ngay: tên nhóm, thời gian từ lúc thầy hô, giờ bấm.
+    /* Đẩy lượt bấm lên Firebase ngay: tên nhóm, thời gian từ lúc vòng bắt đầu, giờ bấm.
        Transaction giữ lượt bấm ĐẦU TIÊN của nhóm trong vòng này. */
     if(db){
       var gioBam = fmtClockTime(new Date());
@@ -2286,14 +2275,20 @@ Viết lại bằng hiểu biết của mình</textarea>
   againBtn.addEventListener('click', function(){
     round = round + 1;               /* vòng mới — lượt bấm ghi sang nhánh vòng mới */
     resetRound();
+    roundLive = true;                /* vòng mới mở chuông ngay, không chờ bước bắt đầu */
+    startClock(0);
     if(db){
-      db.ref(FB_ROOT + '/trangthai').set({ vong: round, mo: false, moLuc: 0 }).catch(function(){});
       ngheLuotBam();
+      phatTrangThaiMo();
     }
     paint();
   });
 
+  /* Mở tab là chuông sẵn sàng ngay: đồng hồ tự chạy từ lúc mở, không cần ai hô bắt đầu.
+     Khi Firebase nối được, ngheTrangThai sẽ căn lại đồng hồ theo mốc máy chủ chung. */
   paintClock(0);
+  roundLive = true;
+  startClock(0);
   paint();
   khoiTaoFirebase();
 })();
