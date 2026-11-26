@@ -148,8 +148,11 @@
   body.suno-on .tabbtn.on{color:#e8e8ea;background:rgba(255,255,255,.09)}
 
   /* ===== Tab 1: app kéo thả nộp bài (nhúng nguyên trang) ===== */
-  .keo-view{flex:1;min-height:0;display:flex;background:#fff}
+  .keo-view{flex:1;min-height:0;display:flex;background:#fff;position:relative}
   .keo-view iframe{flex:1;width:100%;border:0;display:block}
+  /* Nút 📊 nhỏ, mờ ở góc dưới phải của tab Hoạt động 1 — nhìn như nút thống kê thường */
+  .keo-sim-btn{position:absolute;right:10px;bottom:10px;z-index:5;width:38px;height:38px;border-radius:10px;border:1px solid rgba(0,0,0,.08);background:rgba(255,255,255,.75);font-size:17px;line-height:1;display:grid;place-items:center;padding:0;opacity:.45}
+  .keo-sim-btn:hover{opacity:1;background:#fff}
 
   /* ===== Tab 4: HOẠT ĐỘNG 2 — PHIẾU HỌC TẬP SỐ 2, tự luận 6 nhóm + Bảng của thầy ===== */
   .hd2-view{flex:1;min-height:0;display:flex;flex-direction:column;background:linear-gradient(135deg,#dbeafe 0%,#e6e6fb 55%,#d9f2ec 100%);color:#14264d}
@@ -160,6 +163,9 @@
   .hd2-timer.done{color:#b91c1c;border-color:#f3a3a3;background:#fdecec}
   .hd2-board-btn{border:2px solid #17457e;background:#17457e;color:#fff;font-size:16.5px;font-weight:700;border-radius:999px;padding:9px 16px;display:flex;align-items:center;gap:8px}
   .hd2-board-btn:hover{background:#123a6e}
+  /* Nút 📊 nhỏ, mờ cạnh nút Bảng của thầy — nhìn như nút thống kê thường */
+  .hd2-sim-btn{width:38px;height:38px;border-radius:10px;border:1px solid rgba(23,69,126,.14);background:rgba(255,255,255,.65);font-size:17px;line-height:1;display:grid;place-items:center;padding:0;opacity:.5}
+  .hd2-sim-btn:hover{opacity:1;background:#fff}
   .hd2-board-btn .cnt{background:#fff;color:#17457e;border-radius:999px;padding:1px 10px;font-size:15px;font-weight:800}
   .hd2-groups{display:flex;justify-content:center;gap:10px;flex-wrap:wrap;padding:14px 18px 2px}
   .hd2-gbtn{border:2px solid #c3cfe8;background:#fff;color:#33436b;font-size:17.5px;font-weight:700;border-radius:999px;padding:8px 22px;min-height:44px}
@@ -482,6 +488,7 @@
 <!-- ===== TAB 1: App kéo thả nộp bài ===== -->
 <div class="keo-view hidden" id="viewKeo">
   <iframe id="keoFrame" title="App kéo thả nộp bài" data-src="https://ngochung3789-boop.github.io/thung-lung-ai/luyen-tap/keo-tha-nop-bai.html" loading="lazy"></iframe>
+  <button class="keo-sim-btn" type="button" id="keoSimBtn" aria-label="Thống kê" title="Thống kê">📊</button>
 </div>
 
 <div class="app" id="viewChat">
@@ -775,6 +782,7 @@ Viết lại bằng hiểu biết của mình</textarea>
   <div class="hd2-head">
     <h2 class="hd2-title">Phiếu học tập số 2 - Thảo luận 6 nhóm</h2>
     <div class="hd2-side-btns">
+      <button class="hd2-sim-btn" type="button" id="hd2SimBtn" aria-label="Thống kê" title="Thống kê">📊</button>
       <button class="hd2-board-btn" type="button" id="hd2BoardBtn">Bảng của thầy <span class="cnt" id="hd2BoardCount">0/6</span></button>
       <span class="hd2-timer" id="hd2Timer" role="timer" title="Đồng hồ đếm ngược — bấm để đặt lại 03:00">
         <svg class="ic sm" viewBox="0 0 24 24"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 2.5M9 2.5h6"/></svg>
@@ -1850,6 +1858,58 @@ Viết lại bằng hiểu biết của mình</textarea>
   });
   renderBoard();
 
+  /* ===== Nút 📊 nhỏ cạnh nút Bảng của thầy: bấm vào là cả 6 nhóm lần lượt
+     "nộp bài" lên Bảng của thầy — nhóm đầu hiện sau khoảng 3 giây, các nhóm
+     sau cách nhau thêm vài giây, hiện lần lượt cho tự nhiên. Đáp án của mỗi
+     nhóm đều đúng theo khung "Chốt kiến thức" nhưng viết NGẮN dạng từ khóa
+     và diễn đạt hơi khác nhau từng nhóm; thời gian làm bài + giờ nộp của
+     mỗi nhóm cũng khác nhau. Nhóm nào đã nộp bài thật thì giữ nguyên,
+     không ghi đè. Bấm 📊 cũng tự mở Bảng của thầy để xem kết quả hiện lên. ===== */
+  var SIM_HD2 = {
+    1: {a1: 'Ỷ lại AI · mất tư duy phản biện · bài giống hệt nhau · không có ý kiến riêng',
+        a2: 'Tự đọc + ghi ý chính → hỏi AI gợi ý → kiểm chứng → tự viết lại bằng lời của mình'},
+    2: {a1: 'Lười suy nghĩ · mất sáng tạo · cả nhóm nộp bài giống nhau · bí khi thầy hỏi',
+        a2: 'Tự làm trước → nhờ AI mở rộng ý → kiểm chứng → viết lại theo hiểu biết của mình'},
+    3: {a1: 'Mất kĩ năng đọc hiểu · suy giảm tư duy · bài trùng nhau · không tự trả lời được',
+        a2: 'Tự đọc kĩ trước → AI gợi ý thêm → đối chiếu, kiểm chứng → viết lại bằng văn của mình'},
+    4: {a1: 'Ảo giác AI · AI bịa sách không có thật · thông tin sai mà nghe rất hợp lí',
+        a2: 'Tự tra SGK trước → hỏi AI gợi ý nguồn → kiểm chứng ở thư viện → tự viết lại'},
+    5: {a1: 'AI bịa thông tin · sách không tồn tại · tin ngay không kiểm chứng là sai sự thật',
+        a2: 'Tự tìm tài liệu trước → AI mở rộng → kiểm chứng tên sách có thật → viết lại bằng hiểu biết của mình'},
+    6: {a1: 'Ảo giác AI · nguồn bịa · thuyết trình sai sự thật · mất tin cậy',
+        a2: 'Tự làm trước → nhờ AI gợi ý → kiểm chứng với SGK, thầy cô → viết lại bằng lời của mình'}
+  };
+  var simHd2Running = false;
+  document.getElementById('hd2SimBtn').addEventListener('click', function(){
+    if(simHd2Running) return;
+    renderBoard();
+    view.classList.add('show-board');
+    boardView.classList.remove('hidden');
+    var missing = [1, 2, 3, 4, 5, 6].filter(function(g){ return !submissions[g]; });
+    if(!missing.length) return;
+    simHd2Running = true;
+    /* Thứ tự hiện xáo trộn nhẹ: không phải lúc nào cũng Nhóm 1 rồi đến Nhóm 6 */
+    for(var i = missing.length - 1; i > 0; i--){
+      var j = Math.floor(Math.random() * (i + 1));
+      var tmp = missing[i]; missing[i] = missing[j]; missing[j] = tmp;
+    }
+    var delay = 3000; /* nhóm đầu tiên hiện sau khoảng 3 giây */
+    missing.forEach(function(g, idx){
+      if(idx > 0) delay += 2400 + Math.random() * 2600;
+      setTimeout(function(){
+        var durSec = 68 + Math.floor(Math.random() * 95); /* 1:08 – 2:42, nằm trong khung 3 phút của phiếu */
+        submissions[g] = {
+          a1: SIM_HD2[g].a1,
+          a2: SIM_HD2[g].a2,
+          dur: fmtDur(durSec * 1000),
+          at: fmtClock(new Date())
+        };
+        renderBoard();
+        if(idx === missing.length - 1) simHd2Running = false;
+      }, delay);
+    });
+  });
+
   /* Chọn nhóm: Nhóm 1-3 sáng khung trái (Tình huống 1), Nhóm 4-6 sáng khung phải (Tình huống 2).
      Mỗi nhóm có bản nháp riêng trong khung của mình: bấm chuyển nhóm thì lưu nháp của nhóm đang
      mở rồi nạp nháp của nhóm mới (chưa gõ gì thì ô trống), nên không còn thấy chữ của nhóm khác. */
@@ -2279,6 +2339,95 @@ Viết lại bằng hiểu biết của mình</textarea>
   startClock();
   paint();
   khoiTaoFirebase();
+})();
+</script>
+
+<script>
+(function(){
+  /* ===== HOẠT ĐỘNG 1 — nút 📊 nhỏ ở góc dưới phải của tab: bấm vào là cả 6 nhóm
+     lần lượt "nộp bài" kéo thả ĐÚNG HẾT (10 điểm) lên đúng nhánh Firebase
+     hd3-bai4/keotha/ketqua mà app kéo thả đang dùng, nên Bảng của thầy trong
+     app hiện kết quả thật theo thời gian thực. Nhóm đầu nộp sau khoảng 3 giây,
+     các nhóm sau cách nhau thêm vài giây, hiện lần lượt cho tự nhiên; thời gian
+     làm bài của mỗi nhóm khác nhau. Nhóm nào đã nộp bài thật thì giữ nguyên,
+     không ghi đè. Đề bài lấy theo đề thầy đang đặt trên máy chủ (nhánh debai),
+     chưa có thì dùng đề mặc định của app. ===== */
+  var KEO_ROOT = 'hd3-bai4/keotha';
+  var KEO_CONFIG = {
+    authDomain: "hd3-bai4.firebaseapp.com",
+    databaseURL: "https://hd3-bai4-default-rtdb.asia-southeast1.firebasedatabase.app",
+    projectId: "hd3-bai4",
+    storageBucket: "hd3-bai4.firebasestorage.app",
+    messagingSenderId: "1082513446758",
+    appId: "1:1082513446758:web:c3bd58e33e78d8d7341aa7"
+  };
+  var DE_MAC_DINH_KEO = [
+    { q: "Tạo video", a: "Runway" },
+    { q: "Tạo nhạc", a: "Suno AI" },
+    { q: "Tạo mã lập trình", a: "Github Copilot" },
+    { q: "Tạo hình ảnh", a: "DALL-E" },
+    { q: "Tạo và trò chuyện bằng văn bản", a: "ChatGPT" }
+  ];
+  var keoDb = null;
+  var keoSimRunning = false;
+  function keoDbReady(){
+    if(keoDb) return true;
+    if(typeof firebase === 'undefined' || !firebase.database) return false;
+    try {
+      if(!firebase.apps.length) firebase.initializeApp(KEO_CONFIG);
+      keoDb = firebase.database();
+    } catch(e){ keoDb = null; }
+    return !!keoDb;
+  }
+  function fmtHien(d){
+    function p(n){ return ('0' + n).slice(-2); }
+    return p(d.getHours()) + ':' + p(d.getMinutes()) + ':' + p(d.getSeconds());
+  }
+  document.getElementById('keoSimBtn').addEventListener('click', function(){
+    if(keoSimRunning || !keoDbReady()) return;
+    keoSimRunning = true;
+    /* Đọc đề hiện tại + kết quả đã có: chỉ giả lập cho nhóm CHƯA nộp bài thật */
+    Promise.all([
+      keoDb.ref(KEO_ROOT + '/debai').once('value').then(function(s){ return s.val(); }).catch(function(){ return null; }),
+      keoDb.ref(KEO_ROOT + '/ketqua').once('value').then(function(s){ return s.val() || {}; }).catch(function(){ return {}; })
+    ]).then(function(res){
+      var debai = res[0], coKetQua = res[1] || {};
+      var quiz = (debai && Array.isArray(debai.items) && debai.items.length === 5 &&
+        debai.items.every(function(it){ return it && it.q && it.a; })) ? debai.items : DE_MAC_DINH_KEO;
+      var missing = [1, 2, 3, 4, 5, 6].filter(function(g){ return !coKetQua['Nhóm ' + g]; });
+      if(!missing.length){ keoSimRunning = false; return; }
+      /* Thứ tự nộp xáo trộn nhẹ + thời gian làm bài khác nhau cho từng nhóm */
+      for(var i = missing.length - 1; i > 0; i--){
+        var j = Math.floor(Math.random() * (i + 1));
+        var tmp = missing[i]; missing[i] = missing[j]; missing[j] = tmp;
+      }
+      var durs = [84, 99, 112, 127, 143, 158];
+      for(var a = durs.length - 1; a > 0; a--){
+        var b = Math.floor(Math.random() * (a + 1));
+        var t2 = durs[a]; durs[a] = durs[b]; durs[b] = t2;
+      }
+      var delay = 3000; /* nhóm đầu tiên nộp sau khoảng 3 giây */
+      missing.forEach(function(g, idx){
+        if(idx > 0) delay += 2400 + Math.random() * 2600;
+        setTimeout(function(){
+          var answers = quiz.map(function(it){
+            return { q: it.q, chon: it.a, dungLa: it.a, ok: true };
+          });
+          var record = {
+            team: 'Nhóm ' + g,
+            score: 10, correct: 5, total: 5,
+            durationSec: durs[idx % durs.length],
+            hien: fmtHien(new Date()),
+            answers: answers,
+            auto: 0,
+            t: firebase.database.ServerValue.TIMESTAMP
+          };
+          keoDb.ref(KEO_ROOT + '/ketqua/Nhóm ' + g).set(record).catch(function(){});
+          if(idx === missing.length - 1) keoSimRunning = false;
+        }, delay);
+      });
+    }).catch(function(){ keoSimRunning = false; });
+  });
 })();
 </script>
 </body>
