@@ -253,7 +253,11 @@
     .hd2-gate-btn .gname{font-size:23px}
   }
   .hd2-main{flex:1;min-height:0;display:flex;gap:16px;padding:14px 18px 18px;align-items:stretch}
-  .hd2-panels{flex:1;min-width:0;display:grid;grid-template-columns:1fr 1fr;gap:18px}
+  /* Chỉ hiện ĐÚNG 1 khung tình huống của nhóm đang chọn (Nhóm 1-3: Tình huống 1,
+     Nhóm 4-6: Tình huống 2) — khung còn lại ẩn hẳn (.off), khung đang hiện chiếm
+     trọn chiều rộng phiếu nên lưới chỉ còn 1 cột. */
+  .hd2-panels{flex:1;min-width:0;display:grid;grid-template-columns:1fr;gap:18px}
+  .hd2-panel.off{display:none}
   .hd2-panel{background:#fff;border-radius:18px;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 6px 22px rgba(27,42,94,.10);opacity:.62;transition:opacity .2s ease,box-shadow .2s ease}
   .hd2-panel.active{opacity:1;box-shadow:0 0 0 3.5px #2f6fe4,0 12px 30px rgba(27,42,94,.20)}
   .hd2-panel.p2.active{box-shadow:0 0 0 3.5px #0da08c,0 12px 30px rgba(27,42,94,.20)}
@@ -899,7 +903,7 @@ Viết lại bằng hiểu biết của mình</textarea>
   <div class="hd2-main">
     <div class="hd2-panels">
 
-      <!-- KHUNG TRÁI: Tình huống 1 -->
+      <!-- KHUNG Tình huống 1 — chỉ hiện khi đang chọn Nhóm 1, 2 hoặc 3 -->
       <section class="hd2-panel p1 active" data-panel="1" aria-label="Tình huống 1, nhóm bạn Minh">
         <div class="hd2-panel-head">
           <svg class="ic" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H6a4 4 0 00-4 4v2"/><circle cx="9.5" cy="7.5" r="3.5"/><path d="M22 21v-2a4 4 0 00-3-3.85M15.5 4.15a3.5 3.5 0 010 6.7"/></svg>
@@ -927,7 +931,7 @@ Viết lại bằng hiểu biết của mình</textarea>
         </div>
       </section>
 
-      <!-- KHUNG PHẢI: Tình huống 2 -->
+      <!-- KHUNG Tình huống 2 — chỉ hiện khi đang chọn Nhóm 4, 5 hoặc 6 -->
       <section class="hd2-panel p2" data-panel="2" aria-label="Tình huống 2, bạn Hà">
         <div class="hd2-panel-head">
           <svg class="ic" viewBox="0 0 24 24"><path d="M21 11.5a8.5 8.5 0 01-8.5 8.5c-1.5 0-3-.4-4.2-1.1L3 20l1.1-5.3A8.5 8.5 0 1121 11.5z"/></svg>
@@ -2163,7 +2167,7 @@ Viết lại bằng hiểu biết của mình</textarea>
     });
   });
 
-  /* Chọn nhóm: Nhóm 1-3 sáng khung trái (Tình huống 1), Nhóm 4-6 sáng khung phải (Tình huống 2).
+  /* Chọn nhóm: Nhóm 1-3 chỉ hiện khung Tình huống 1, Nhóm 4-6 chỉ hiện khung Tình huống 2 (khung còn lại ẩn hẳn).
      Mỗi nhóm có bản nháp riêng trong khung của mình: bấm chuyển nhóm thì lưu nháp của nhóm đang
      mở rồi nạp nháp của nhóm mới (chưa gõ gì thì ô trống), nên không còn thấy chữ của nhóm khác. */
   var panels = {
@@ -2187,10 +2191,14 @@ Viết lại bằng hiểu biết của mình</textarea>
     panels[side].querySelector('[data-field="a2"]').value = d.a2;
     panelGroup[side] = g;
   }
+  /* Chỉ hiện khung tình huống của nhóm đang chọn, khung còn lại ẩn hẳn đi —
+     không còn giao diện 2 khung song song; khung đang hiện chiếm trọn chiều rộng. */
   function paintPanels(){
     var side = sideOf(currentGroup);
     panels[1].classList.toggle('active', side === 1);
+    panels[1].classList.toggle('off', side !== 1);
     panels[2].classList.toggle('active', side === 2);
+    panels[2].classList.toggle('off', side !== 2);
   }
   function chonNhom(g){
     if(g !== currentGroup){
@@ -2282,7 +2290,7 @@ Viết lại bằng hiểu biết của mình</textarea>
       var side = panel.getAttribute('data-panel') === '1' ? 1 : 2;
       var inSide = side === 1 ? currentGroup <= 3 : currentGroup >= 4;
       if(!inSide){
-        msg.textContent = 'Nhóm ' + currentGroup + ' thuộc khung tình huống bên ' + (side === 1 ? 'phải' : 'trái') + '. Hãy gửi ở khung đang sáng.';
+        msg.textContent = 'Nhóm ' + currentGroup + ' không thuộc tình huống này. Hãy bấm Đổi nhóm để chọn lại đúng nhóm của mình.';
         msg.className = 'hd2-msg warn';
         return;
       }
