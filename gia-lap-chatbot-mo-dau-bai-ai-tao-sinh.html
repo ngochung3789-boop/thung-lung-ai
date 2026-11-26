@@ -165,6 +165,34 @@
   .hd2-gbtn{border:2px solid #c3cfe8;background:#fff;color:#33436b;font-size:17.5px;font-weight:700;border-radius:999px;padding:8px 22px;min-height:44px}
   .hd2-gbtn:hover{border-color:#2f7fe0}
   .hd2-gbtn.on{background:#2f6fe4;border-color:#2f6fe4;color:#fff;box-shadow:0 4px 14px rgba(47,111,228,.35)}
+  .hd2-change-btn{border:2px dashed #e8710a;background:#fff7ed;color:#c2410c;font-size:16.5px;font-weight:800;border-radius:999px;padding:8px 18px;min-height:44px}
+  .hd2-change-btn:hover{background:#ffedd5}
+  /* Cổng chọn nhóm của Hoạt động 2: mở tab chỉ thấy màn hình chọn nhóm (đầu trang có nút
+     Bảng của thầy vẫn hiện), bấm đúng nhóm mới vào được phiếu — không phải gõ tên.
+     Vào nhầm thì bấm "Đổi nhóm" trong phiếu để quay lại cổng chọn lại. */
+  .hd2-gate{flex:1;min-height:0;display:flex;align-items:center;justify-content:center;padding:18px;overflow-y:auto}
+  .hd2-view:not(.gated) .hd2-gate{display:none}
+  .hd2-view.gated .hd2-groups,.hd2-view.gated .hd2-main{display:none}
+  .hd2-view.show-board .hd2-gate{display:none}
+  .hd2-gate-card{background:#fff;border-radius:20px;box-shadow:0 10px 30px rgba(27,42,94,.14);padding:28px 30px 30px;max-width:780px;width:100%;text-align:center}
+  .hd2-gate-card h3{margin:0 0 8px;font-size:27px;font-weight:800;color:#1b2a5e}
+  .hd2-gate-card p{margin:0 auto 22px;font-size:17.5px;line-height:1.55;color:#5b6b8c;max-width:600px}
+  .hd2-gate-card p b{color:#c2410c}
+  .hd2-gate-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+  .hd2-gate-btn{border:2.5px solid #c3cfe8;background:#fbfcff;border-radius:16px;padding:18px 10px 15px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;min-height:106px;color:#14264d}
+  .hd2-gate-btn .gname{font-size:27px;font-weight:800}
+  .hd2-gate-btn .gsit{font-size:15px;font-weight:600;color:#5b6b8c}
+  .hd2-gate-btn.s1{border-color:#9cc3f5}
+  .hd2-gate-btn.s1:hover{background:#eaf2fd;border-color:#2f7fe0}
+  .hd2-gate-btn.s2{border-color:#8fd8ca}
+  .hd2-gate-btn.s2:hover{background:#e6f7f3;border-color:#0da08c}
+  @media (max-width:700px){
+    .hd2-gate-grid{grid-template-columns:1fr 1fr}
+    .hd2-gate-card{padding:22px 16px 24px}
+    .hd2-gate-card h3{font-size:23px}
+    .hd2-gate-btn{min-height:94px}
+    .hd2-gate-btn .gname{font-size:23px}
+  }
   .hd2-main{flex:1;min-height:0;display:flex;gap:16px;padding:14px 18px 18px;align-items:stretch}
   .hd2-panels{flex:1;min-width:0;display:grid;grid-template-columns:1fr 1fr;gap:18px}
   .hd2-panel{background:#fff;border-radius:18px;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 6px 22px rgba(27,42,94,.10);opacity:.62;transition:opacity .2s ease,box-shadow .2s ease}
@@ -728,7 +756,7 @@ Viết lại bằng hiểu biết của mình</textarea>
 </div>
 
 <!-- ===== TAB 4: HOẠT ĐỘNG 2 — PHIẾU HỌC TẬP SỐ 2, tự luận 6 nhóm + Bảng của thầy ===== -->
-<div class="hd2-view hidden" id="viewHd2">
+<div class="hd2-view hidden gated" id="viewHd2">
   <div class="hd2-head">
     <h2 class="hd2-title">Phiếu học tập số 2 - Thảo luận 6 nhóm</h2>
     <div class="hd2-side-btns">
@@ -740,6 +768,23 @@ Viết lại bằng hiểu biết của mình</textarea>
     </div>
   </div>
 
+  <!-- Cổng chọn nhóm: mở tab chỉ thấy màn hình này, bấm đúng nhóm của mình mới vào được
+       phiếu (không phải gõ tên). Đầu trang phía trên vẫn có nút Bảng của thầy. -->
+  <div class="hd2-gate" id="hd2Gate">
+    <div class="hd2-gate-card">
+      <h3>Em thuộc nhóm nào?</h3>
+      <p>Bấm vào đúng nhóm của mình để vào phiếu thảo luận — không cần gõ tên.<br>Bấm nhầm cũng không sao: vào phiếu rồi bấm nút <b>Đổi nhóm</b> để quay lại chọn lại.</p>
+      <div class="hd2-gate-grid">
+        <button class="hd2-gate-btn s1" type="button" data-group="1"><span class="gname">Nhóm 1</span><span class="gsit">Tình huống 1 · Nhóm Minh</span></button>
+        <button class="hd2-gate-btn s1" type="button" data-group="2"><span class="gname">Nhóm 2</span><span class="gsit">Tình huống 1 · Nhóm Minh</span></button>
+        <button class="hd2-gate-btn s1" type="button" data-group="3"><span class="gname">Nhóm 3</span><span class="gsit">Tình huống 1 · Nhóm Minh</span></button>
+        <button class="hd2-gate-btn s2" type="button" data-group="4"><span class="gname">Nhóm 4</span><span class="gsit">Tình huống 2 · Bạn Hà</span></button>
+        <button class="hd2-gate-btn s2" type="button" data-group="5"><span class="gname">Nhóm 5</span><span class="gsit">Tình huống 2 · Bạn Hà</span></button>
+        <button class="hd2-gate-btn s2" type="button" data-group="6"><span class="gname">Nhóm 6</span><span class="gsit">Tình huống 2 · Bạn Hà</span></button>
+      </div>
+    </div>
+  </div>
+
   <div class="hd2-groups" role="group" aria-label="Chọn nhóm">
     <button class="hd2-gbtn on" type="button" data-group="1">Nhóm 1</button>
     <button class="hd2-gbtn" type="button" data-group="2">Nhóm 2</button>
@@ -747,6 +792,7 @@ Viết lại bằng hiểu biết của mình</textarea>
     <button class="hd2-gbtn" type="button" data-group="4">Nhóm 4</button>
     <button class="hd2-gbtn" type="button" data-group="5">Nhóm 5</button>
     <button class="hd2-gbtn" type="button" data-group="6">Nhóm 6</button>
+    <button class="hd2-change-btn" type="button" id="hd2ChangeBtn" title="Quay lại màn hình chọn nhóm để chọn lại">↩ Đổi nhóm</button>
   </div>
 
   <div class="hd2-main">
@@ -1771,24 +1817,40 @@ Viết lại bằng hiểu biết của mình</textarea>
     panels[1].classList.toggle('active', side === 1);
     panels[2].classList.toggle('active', side === 2);
   }
-  document.querySelectorAll('.hd2-gbtn').forEach(function(btn){
-    btn.addEventListener('click', function(){
-      var g = parseInt(btn.getAttribute('data-group'), 10);
-      if(g === currentGroup) return;
+  function chonNhom(g){
+    if(g !== currentGroup){
       savePanel(1);
       savePanel(2);
       currentGroup = g;
-      document.querySelectorAll('.hd2-gbtn').forEach(function(b){
-        b.classList.toggle('on', b === btn);
-      });
       loadPanel(sideOf(g), g);
       document.querySelectorAll('.hd2-msg').forEach(function(m){
         m.textContent = '';
         m.className = 'hd2-msg';
       });
-      paintPanels();
-      ensureStart(currentGroup);
+    }
+    document.querySelectorAll('.hd2-gbtn').forEach(function(b){
+      b.classList.toggle('on', parseInt(b.getAttribute('data-group'), 10) === currentGroup);
     });
+    paintPanels();
+    ensureStart(currentGroup);
+  }
+  document.querySelectorAll('.hd2-gbtn').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      chonNhom(parseInt(btn.getAttribute('data-group'), 10));
+    });
+  });
+  /* Cổng chọn nhóm: bấm nút nhóm to ở cổng -> vào thẳng phiếu của nhóm đó, không phải gõ tên */
+  document.querySelectorAll('.hd2-gate-btn').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      chonNhom(parseInt(btn.getAttribute('data-group'), 10));
+      view.classList.remove('gated');
+    });
+  });
+  /* Đổi nhóm: lưu nháp đang gõ dở rồi quay lại cổng để chọn lại từ đầu */
+  document.getElementById('hd2ChangeBtn').addEventListener('click', function(){
+    savePanel(1);
+    savePanel(2);
+    view.classList.add('gated');
   });
   paintPanels();
   /* Gõ tới đâu lưu nháp của nhóm sở hữu khung tới đó, đồng thời bắt đầu tính giờ làm bài cho nhóm đang chọn */
@@ -1824,7 +1886,7 @@ Viết lại bằng hiểu biết của mình</textarea>
   /* Bắt đầu đếm khi tab Hoạt động 2 được mở */
   document.querySelectorAll('.tabbtn').forEach(function(b){
     b.addEventListener('click', function(){
-      if(b.getAttribute('data-view') === 'hd2'){ startTimer(); ensureStart(currentGroup); }
+      if(b.getAttribute('data-view') === 'hd2'){ startTimer(); }
     });
   });
 
