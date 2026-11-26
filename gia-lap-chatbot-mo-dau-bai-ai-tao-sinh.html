@@ -1866,18 +1866,18 @@ Viết lại bằng hiểu biết của mình</textarea>
      mỗi nhóm cũng khác nhau. Nhóm nào đã nộp bài thật thì giữ nguyên,
      không ghi đè. Bấm 📊 cũng tự mở Bảng của thầy để xem kết quả hiện lên. ===== */
   var SIM_HD2 = {
-    1: {a1: 'Ỷ lại AI · mất tư duy phản biện · bài giống hệt nhau · không có ý kiến riêng',
-        a2: 'Tự đọc + ghi ý chính → hỏi AI gợi ý → kiểm chứng → tự viết lại bằng lời của mình'},
-    2: {a1: 'Lười suy nghĩ · mất sáng tạo · cả nhóm nộp bài giống nhau · bí khi thầy hỏi',
-        a2: 'Tự làm trước → nhờ AI mở rộng ý → kiểm chứng → viết lại theo hiểu biết của mình'},
-    3: {a1: 'Mất kĩ năng đọc hiểu · suy giảm tư duy · bài trùng nhau · không tự trả lời được',
-        a2: 'Tự đọc kĩ trước → AI gợi ý thêm → đối chiếu, kiểm chứng → viết lại bằng văn của mình'},
-    4: {a1: 'Ảo giác AI · AI bịa sách không có thật · thông tin sai mà nghe rất hợp lí',
-        a2: 'Tự tra SGK trước → hỏi AI gợi ý nguồn → kiểm chứng ở thư viện → tự viết lại'},
-    5: {a1: 'AI bịa thông tin · sách không tồn tại · tin ngay không kiểm chứng là sai sự thật',
-        a2: 'Tự tìm tài liệu trước → AI mở rộng → kiểm chứng tên sách có thật → viết lại bằng hiểu biết của mình'},
-    6: {a1: 'Ảo giác AI · nguồn bịa · thuyết trình sai sự thật · mất tin cậy',
-        a2: 'Tự làm trước → nhờ AI gợi ý → kiểm chứng với SGK, thầy cô → viết lại bằng lời của mình'}
+    1: {a1: 'Ỷ lại AI · mất tư duy phản biện · bài giống hệt nhau',
+        a2: 'Tự đọc, ghi ý chính → AI gợi ý → kiểm chứng → tự viết lại'},
+    2: {a1: 'Lười suy nghĩ · mất sáng tạo · bài các nhóm giống nhau',
+        a2: 'Tự làm trước → AI mở rộng ý → kiểm chứng → viết lại'},
+    3: {a1: 'Mất kĩ năng đọc hiểu · suy giảm tư duy · bài trùng nhau',
+        a2: 'Tự đọc trước → AI gợi ý thêm → kiểm chứng → viết lại bằng văn mình'},
+    4: {a1: 'Ảo giác AI · bịa sách không có thật · thông tin sai',
+        a2: 'Tự tra SGK → AI gợi ý nguồn → kiểm chứng ở thư viện → tự viết lại'},
+    5: {a1: 'AI bịa thông tin · sách không tồn tại · tin ngay là sai',
+        a2: 'Tự tìm tài liệu → AI mở rộng → kiểm chứng sách thật → viết lại'},
+    6: {a1: 'Ảo giác AI · nguồn bịa · thuyết trình sai sự thật',
+        a2: 'Tự làm trước → AI gợi ý → kiểm chứng SGK, thầy cô → viết lại'}
   };
   var simHd2Running = false;
   document.getElementById('hd2SimBtn').addEventListener('click', function(){
