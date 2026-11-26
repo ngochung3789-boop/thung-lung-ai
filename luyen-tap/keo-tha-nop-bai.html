@@ -77,10 +77,6 @@
       #setup{ max-width:560px; margin:10px auto 0; text-align:center; }
       #setup p{ font-size:18px; line-height:1.55; margin:0 0 14px; }
       #setup label{ display:block; font-size:20px; font-weight:800; margin-bottom:8px; text-align:left; }
-      #teamInput{
-        width:100%; font-size:24px; font-weight:700; padding:14px 12px;
-        border:3px solid var(--blue); border-radius:12px; text-align:center; color:var(--ink);
-      }
       .btn-primary{
         width:100%; margin-top:14px; padding:15px;
         font-size:22px; font-weight:800; color:#fff;
@@ -90,11 +86,11 @@
       .btn-primary:disabled{ background:#8fa8c9; cursor:not-allowed; }
       .quick-teams{ display:flex; flex-wrap:wrap; gap:8px; justify-content:center; margin-top:14px; }
       .quick-teams button{
-        border:2px solid var(--blue); background:#fff; color:var(--blue);
-        font-size:17px; font-weight:700; border-radius:999px; padding:8px 16px;
+        border:3px solid var(--blue); background:#fff; color:var(--blue);
+        font-size:26px; font-weight:800; border-radius:16px; padding:16px 28px;
       }
       .quick-teams button:active{ background:var(--blue-soft); }
-      .quick-label{ font-size:15px; color:var(--muted); margin:16px 0 0; }
+      .quick-label{ font-size:20px; font-weight:800; color:var(--ink); margin:16px 0 0; }
 
       /* ---------- Thanh thông tin khi làm bài ---------- */
       .team-bar{
@@ -340,13 +336,10 @@
         <!-- BƯỚC 1 -->
         <div class="card" id="setup">
           <span class="step-tag">BÀI 2 · LỚP 8</span>
-          <span class="step-tag">BƯỚC 1 · NHẬP TÊN NHÓM</span>
-          <p>Bài tập kéo thả của <b>Bài 2 – Lớp 8</b>.<br>Mỗi nhóm dùng <b>1 điện thoại</b> (hoặc 1 máy tính).<br>Nhập tên nhóm rồi bấm <b>“Vào làm bài”</b> — đồng hồ bắt đầu tính giờ từ lúc này.</p>
+          <span class="step-tag">BƯỚC 1 · CHỌN NHÓM</span>
+          <p>Bài tập kéo thả của <b>Bài 2 – Lớp 8</b>.<br>Mỗi nhóm dùng <b>1 điện thoại</b> (hoặc 1 máy tính).<br>Bấm vào <b>tên nhóm của em</b> để vào làm bài — không cần gõ tên. Đồng hồ bắt đầu tính giờ từ lúc này.</p>
           <p class="limit-note" id="limitNote">⏱ Không giới hạn thời gian làm bài.</p>
-          <label for="teamInput">Tên nhóm của em</label>
-          <input type="text" id="teamInput" maxlength="40" placeholder="Ví dụ: Nhóm 1" autocomplete="off" />
-          <button class="btn-primary" id="joinBtn" type="button">Vào làm bài →</button>
-          <p class="quick-label">Hoặc chọn nhanh:</p>
+          <p class="quick-label">Chọn nhóm của em:</p>
           <div class="quick-teams" id="quickTeams"></div>
         </div>
 
@@ -355,7 +348,7 @@
           <div class="team-bar">
             <span class="tname">Nhóm: <span id="teamLabel"></span></span>
             <span class="timer" id="timer">⏱ 0:00</span>
-            <button class="rename" id="renameLink" type="button">Đổi tên nhóm</button>
+            <button class="rename" id="renameLink" type="button">Đổi nhóm</button>
           </div>
 
           <div class="guide">
@@ -711,23 +704,23 @@ function chonCheDo(teacher){
 $("modeStudent").addEventListener("click", function(){ chonCheDo(false); });
 $("modeTeacher").addEventListener("click", function(){ chonCheDo(true); });
 
-/* ================= BƯỚC 1: NHẬP TÊN NHÓM ================= */
+/* ================= BƯỚC 1: CHỌN NHÓM ================= */
 (function taoNutChonNhanh(){
   var box = $("quickTeams");
-  for (var i = 1; i <= 8; i++){
+  for (var i = 1; i <= 6; i++){
     (function(n){
       var b = document.createElement("button");
       b.type = "button";
       b.textContent = "Nhóm " + n;
-      b.addEventListener("click", function(){ $("teamInput").value = "Nhóm " + n; vaoLamBai(); });
+      b.addEventListener("click", function(){ vaoLamBai("Nhóm " + n); });
       box.appendChild(b);
     })(i);
   }
 })();
 
-function vaoLamBai(){
-  var name = $("teamInput").value.trim();
-  if (!name){ $("teamInput").focus(); return; }
+function vaoLamBai(tenNhom){
+  var name = (tenNhom || "").trim();
+  if (!name){ return; }
   team = name;
   submitted = false;
   placements = [null, null, null, null, null];
@@ -741,14 +734,12 @@ function vaoLamBai(){
   veLai();
   window.scrollTo({ top: 0, behavior: "smooth" });
 }
-$("joinBtn").addEventListener("click", vaoLamBai);
-$("teamInput").addEventListener("keydown", function(e){ if (e.key === "Enter") vaoLamBai(); });
 $("renameLink").addEventListener("click", function(){
   dungTinhGio();
   $("play").classList.add("hidden");
+  $("result").classList.add("hidden");
   $("setup").classList.remove("hidden");
-  $("teamInput").value = team;
-  $("teamInput").focus();
+  window.scrollTo({ top: 0, behavior: "smooth" });
 });
 
 /* ================= ĐỒNG HỒ ================= */
