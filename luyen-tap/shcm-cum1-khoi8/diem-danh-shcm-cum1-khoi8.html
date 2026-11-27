@@ -318,6 +318,7 @@ var ROOT="hd3-bai4/shcm-cum1-khoi8/diemdanh";
 var db=null, fbOK=false;
 var daDiem={};
 var filter="all", selectedId=null, myId=null;
+var daTaiXong=false;
 try{ myId=localStorage.getItem("shcm-cum1-khoi8-mine")||null; }catch(e){}
 function gioHien(){ var d=new Date(); function p(n){return (n<10?"0":"")+n;} return p(d.getHours())+":"+p(d.getMinutes())+" · "+p(d.getDate())+"/"+p(d.getMonth()+1)+"/"+d.getFullYear(); }
 function gioNgan(g){ return g?String(g).split(" · ")[0]:""; }
@@ -335,11 +336,11 @@ function khoiTaoFirebase(){
     db.ref(ROOT).on("value",function(snap){
       var sv=snap.val()||{};
       var loc=docLocal();
-      daDiem=Object.assign({},loc,sv);
+      daDiem=Object.assign({},loc,sv); daTaiXong=true;
       Object.keys(loc).forEach(function(k){ if(!sv[k]) db.ref(ROOT+"/"+k).set(loc[k]); });
       renderAll();
     },
-      function(err){ setConn(false,"Không đọc được dữ liệu chung ("+err.message+")."); });
+      function(err){ daTaiXong=true; setConn(false,"Không đọc được dữ liệu chung ("+err.message+")."); renderAll(); });
   }catch(e){ setConn(false,"Không kết nối được Firebase: "+e.message); }
 }
 function setConn(ok,msg){
@@ -406,6 +407,12 @@ function renderConfirm(){
       +'<p><b>'+gv.ten+'</b> — '+gv.dv+' · '+gv.dt+'<br>Đã điểm danh lúc <b>'+rec.gio+'</b>. Mỗi tên chỉ điểm danh 1 lần nên không điểm danh thêm được.</p>'
       +'<div class="btnrow"><button class="btn primary" onclick="moTaiLieu()">📄 Xem tài liệu buổi SHCM</button>'
       +'<button class="btn ghost" onclick="showTab(\'btc\')">📊 Xem danh sách điểm danh</button></div></div>';
+    return;
+  }
+    if(!daTaiXong){
+    box.innerHTML='<div class="confirm"><h3>⏳ Đang tải danh sách điểm danh…</h3>'
+      +'<p style="color:#475569">Trang đang tải danh sách chung — hiện đã tải được <b>'+Object.keys(daDiem).length+'/36</b> người. Chờ vài giây cho tải xong rồi bấm lại tên mình. Nếu đã điểm danh rồi, trang sẽ mở tài liệu, không cần điểm danh lại.</p>'
+      +'<div class="btnrow"><button class="btn ghost" onclick="selectedId=null;renderList();renderConfirm()">← Chọn tên khác</button></div></div>';
     return;
   }
   box.innerHTML='<div class="confirm"><h3>Xác nhận điểm danh</h3>'
@@ -512,7 +519,7 @@ function xuatExcel(loai){
     var a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download=ten.replace(".xlsx",".csv"); a.click();
   }
 }
-function taiLai(){ if(db){ db.ref(ROOT).once("value").then(function(s){ daDiem=s.val()||{}; renderAll(); }); } renderAll(); }
+function taiLai(){ if(db){ db.ref(ROOT).once("value").then(function(s){ daDiem=s.val()||{}; daTaiXong=true; renderAll(); }); } renderAll(); }
 function datLaiDiemDanh(){
   var mk=prompt("Nhập mật khẩu đặt lại điểm danh:");
   if(mk===null) return;
@@ -526,6 +533,7 @@ function datLaiDiemDanh(){
 /* Mã QR thầy in/chiếu riêng từ link này; trong trang không hiện mã nữa cho đỡ rối. */
 var loc0=docLocal(); Object.keys(loc0).forEach(function(k){ if(!daDiem[k]) daDiem[k]=loc0[k]; });
 renderChips(); renderAll(); khoiTaoFirebase();
+setTimeout(function(){ if(!daTaiXong){ daTaiXong=true; renderAll(); } },15000);
 (function(){
   var h=(location.hash||"").replace("#","");
   if(h==="tailieu"||h==="btc") showTab(h);
