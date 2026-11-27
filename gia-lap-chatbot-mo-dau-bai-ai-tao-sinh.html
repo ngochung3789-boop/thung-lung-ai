@@ -187,6 +187,9 @@
   .live-line .lbl{font-weight:700;color:#14264d;flex:0 0 auto}
   .live-line .val{white-space:pre-wrap;word-break:break-word;min-width:0}
   .live-line .val.dim{color:#8a97ad;font-style:italic}
+  /* Dòng đánh giá tự động của Hoạt động 1: Đạt (đúng hết) xanh lá, Không đạt đỏ */
+  .live-line .val.verdict-ok{color:#15803d;font-weight:800}
+  .live-line .val.verdict-no{color:#b91c1c;font-weight:800}
   .live-ans{display:flex;flex-direction:column;gap:4px;margin:2px 0 0}
   .live-ans-row{font-size:15px;line-height:1.4;color:#33436b;display:flex;gap:6px;margin:0}
   .live-ans-row .mark{flex:0 0 auto;font-weight:800}
@@ -313,10 +316,16 @@
   .hd2-card.doing .hd2-card-status .val{color:#d97706}
   .hd2-card.wait .hd2-card-status .val{color:#b45309}
   .hd2-card-foot{margin-top:auto;padding-top:8px;display:flex;align-items:center;justify-content:flex-end;gap:10px;min-height:38px}
-  .hd2-score{display:flex;align-items:center;gap:7px;font-size:16px;font-weight:700;color:#14264d;white-space:nowrap}
-  .hd2-score-input{width:66px;border:2px solid #f0b429;border-radius:8px;background:#fffbeb;font:inherit;font-size:16.5px;font-weight:800;color:#92400e;padding:6px 6px;text-align:center}
-  .hd2-score-input:focus{outline:none;border-color:#d97706;background:#fff}
-  .hd2-score-input::placeholder{color:#d6b98a;font-weight:600}
+  /* Đánh giá của thầy cho Hoạt động 2: 2 nút Đạt / Không đạt, bấm chọn 1 —
+     nút đang chọn tô màu (xanh = Đạt, đỏ = Không đạt), nút còn lại để trắng */
+  .hd2-verdict-lbl{font-size:16px;font-weight:700;color:#14264d;white-space:nowrap}
+  .hd2-verdict{display:flex;gap:7px}
+  .hd2-verdict-btn{border:2px solid #c3cfe8;background:#fff;color:#5b6b8c;font-size:15.5px;font-weight:800;border-radius:999px;padding:7px 16px;min-height:38px;white-space:nowrap}
+  .hd2-verdict-btn:hover{border-color:#94a9d1;color:#14264d}
+  .hd2-verdict-btn.on-dat{background:#16a34a;border-color:#16a34a;color:#fff}
+  .hd2-verdict-btn.on-dat:hover{color:#fff}
+  .hd2-verdict-btn.on-khong{background:#dc2626;border-color:#dc2626;color:#fff}
+  .hd2-verdict-btn.on-khong:hover{color:#fff}
   .hd2-key{margin-top:20px;background:#fff;border:3px solid #157347;border-radius:16px;padding:18px 22px}
   .hd2-key h3{margin:0 0 12px;font-size:22px;color:#157347}
   .hd2-key-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
@@ -568,7 +577,7 @@
     </div>
     <p class="keo-live-status" id="keoLiveStatus">Đã nộp: 0/6 nhóm</p>
     <div class="keo-live-grid" id="keoLiveGrid"></div>
-    <p class="keo-live-note">Một bảng chung duy nhất cho cả 6 nhóm, cùng 1 kiểu thẻ: từng ô chức năng hiện đúng logo công cụ đang nằm trong ô đó, ô trống để trống nét đứt, kèm dấu ✓/✗. Nhóm đang kéo thẻ thì thẻ ghi “Đang kéo…” với số thẻ đã đặt và giờ cập nhật; nhóm bấm “Nộp câu trả lời” thì thẻ chuyển sang “Đã nộp” với điểm, số câu đúng, thời gian làm bài và giờ nộp; nhóm chưa làm gì thì ghi “Chưa làm”. Nếu nhóm đã nộp rồi lại vào kéo tiếp, bảng luôn hiện bản mới hơn.</p>
+    <p class="keo-live-note">Một bảng chung duy nhất cho cả 6 nhóm, cùng 1 kiểu thẻ: từng ô chức năng hiện đúng logo công cụ đang nằm trong ô đó, ô trống để trống nét đứt, kèm dấu ✓/✗. Nhóm đang kéo thẻ thì thẻ ghi “Đang kéo…” với số thẻ đã đặt và giờ cập nhật; nhóm bấm “Nộp câu trả lời” thì thẻ chuyển sang “Đã nộp” với điểm, số câu đúng, đánh giá tự động (đúng hết 5/5 là “Đạt”, đúng ít hơn là “Không đạt”), thời gian làm bài và giờ nộp; nhóm chưa làm gì thì ghi “Chưa làm”. Nếu nhóm đã nộp rồi lại vào kéo tiếp, bảng luôn hiện bản mới hơn.</p>
   </div>
 </div>
 
@@ -989,7 +998,7 @@ Viết lại bằng hiểu biết của mình</textarea>
           <p class="hd2-card-line"><span class="lbl">Thời gian làm bài:</span><span class="val" data-f="dur"></span></p>
           <p class="hd2-card-line"><span class="lbl">Giờ nộp:</span><span class="val" data-f="at"></span></p>
           <p class="hd2-card-line"><span class="lbl">Cập nhật:</span><span class="val" data-f="upd">—</span></p>
-          <div class="hd2-card-foot"><label class="hd2-score">Điểm: <input class="hd2-score-input" type="number" min="0" max="10" step="0.5" inputmode="decimal" placeholder="..." aria-label="Điểm thầy chấm cho Nhóm 1"></label></div>
+          <div class="hd2-card-foot"><span class="hd2-verdict-lbl">Đánh giá:</span><div class="hd2-verdict" role="group" aria-label="Đánh giá của thầy cho Nhóm 1"><button class="hd2-verdict-btn" type="button" data-group="1" data-verdict-btn="dat">Đạt</button><button class="hd2-verdict-btn" type="button" data-group="1" data-verdict-btn="khong">Không đạt</button></div></div>
         </div>
       </article>
 
@@ -1002,7 +1011,7 @@ Viết lại bằng hiểu biết của mình</textarea>
           <p class="hd2-card-line"><span class="lbl">Thời gian làm bài:</span><span class="val" data-f="dur"></span></p>
           <p class="hd2-card-line"><span class="lbl">Giờ nộp:</span><span class="val" data-f="at"></span></p>
           <p class="hd2-card-line"><span class="lbl">Cập nhật:</span><span class="val" data-f="upd">—</span></p>
-          <div class="hd2-card-foot"><label class="hd2-score">Điểm: <input class="hd2-score-input" type="number" min="0" max="10" step="0.5" inputmode="decimal" placeholder="..." aria-label="Điểm thầy chấm cho Nhóm 2"></label></div>
+          <div class="hd2-card-foot"><span class="hd2-verdict-lbl">Đánh giá:</span><div class="hd2-verdict" role="group" aria-label="Đánh giá của thầy cho Nhóm 2"><button class="hd2-verdict-btn" type="button" data-group="2" data-verdict-btn="dat">Đạt</button><button class="hd2-verdict-btn" type="button" data-group="2" data-verdict-btn="khong">Không đạt</button></div></div>
         </div>
       </article>
 
@@ -1015,7 +1024,7 @@ Viết lại bằng hiểu biết của mình</textarea>
           <p class="hd2-card-line"><span class="lbl">Thời gian làm bài:</span><span class="val" data-f="dur"></span></p>
           <p class="hd2-card-line"><span class="lbl">Giờ nộp:</span><span class="val" data-f="at"></span></p>
           <p class="hd2-card-line"><span class="lbl">Cập nhật:</span><span class="val" data-f="upd">—</span></p>
-          <div class="hd2-card-foot"><label class="hd2-score">Điểm: <input class="hd2-score-input" type="number" min="0" max="10" step="0.5" inputmode="decimal" placeholder="..." aria-label="Điểm thầy chấm cho Nhóm 3"></label></div>
+          <div class="hd2-card-foot"><span class="hd2-verdict-lbl">Đánh giá:</span><div class="hd2-verdict" role="group" aria-label="Đánh giá của thầy cho Nhóm 3"><button class="hd2-verdict-btn" type="button" data-group="3" data-verdict-btn="dat">Đạt</button><button class="hd2-verdict-btn" type="button" data-group="3" data-verdict-btn="khong">Không đạt</button></div></div>
         </div>
       </article>
 
@@ -1028,7 +1037,7 @@ Viết lại bằng hiểu biết của mình</textarea>
           <p class="hd2-card-line"><span class="lbl">Thời gian làm bài:</span><span class="val" data-f="dur"></span></p>
           <p class="hd2-card-line"><span class="lbl">Giờ nộp:</span><span class="val" data-f="at"></span></p>
           <p class="hd2-card-line"><span class="lbl">Cập nhật:</span><span class="val" data-f="upd">—</span></p>
-          <div class="hd2-card-foot"><label class="hd2-score">Điểm: <input class="hd2-score-input" type="number" min="0" max="10" step="0.5" inputmode="decimal" placeholder="..." aria-label="Điểm thầy chấm cho Nhóm 4"></label></div>
+          <div class="hd2-card-foot"><span class="hd2-verdict-lbl">Đánh giá:</span><div class="hd2-verdict" role="group" aria-label="Đánh giá của thầy cho Nhóm 4"><button class="hd2-verdict-btn" type="button" data-group="4" data-verdict-btn="dat">Đạt</button><button class="hd2-verdict-btn" type="button" data-group="4" data-verdict-btn="khong">Không đạt</button></div></div>
         </div>
       </article>
 
@@ -1041,7 +1050,7 @@ Viết lại bằng hiểu biết của mình</textarea>
           <p class="hd2-card-line"><span class="lbl">Thời gian làm bài:</span><span class="val" data-f="dur"></span></p>
           <p class="hd2-card-line"><span class="lbl">Giờ nộp:</span><span class="val" data-f="at"></span></p>
           <p class="hd2-card-line"><span class="lbl">Cập nhật:</span><span class="val" data-f="upd">—</span></p>
-          <div class="hd2-card-foot"><label class="hd2-score">Điểm: <input class="hd2-score-input" type="number" min="0" max="10" step="0.5" inputmode="decimal" placeholder="..." aria-label="Điểm thầy chấm cho Nhóm 5"></label></div>
+          <div class="hd2-card-foot"><span class="hd2-verdict-lbl">Đánh giá:</span><div class="hd2-verdict" role="group" aria-label="Đánh giá của thầy cho Nhóm 5"><button class="hd2-verdict-btn" type="button" data-group="5" data-verdict-btn="dat">Đạt</button><button class="hd2-verdict-btn" type="button" data-group="5" data-verdict-btn="khong">Không đạt</button></div></div>
         </div>
       </article>
 
@@ -1054,7 +1063,7 @@ Viết lại bằng hiểu biết của mình</textarea>
           <p class="hd2-card-line"><span class="lbl">Thời gian làm bài:</span><span class="val" data-f="dur"></span></p>
           <p class="hd2-card-line"><span class="lbl">Giờ nộp:</span><span class="val" data-f="at"></span></p>
           <p class="hd2-card-line"><span class="lbl">Cập nhật:</span><span class="val" data-f="upd">—</span></p>
-          <div class="hd2-card-foot"><label class="hd2-score">Điểm: <input class="hd2-score-input" type="number" min="0" max="10" step="0.5" inputmode="decimal" placeholder="..." aria-label="Điểm thầy chấm cho Nhóm 6"></label></div>
+          <div class="hd2-card-foot"><span class="hd2-verdict-lbl">Đánh giá:</span><div class="hd2-verdict" role="group" aria-label="Đánh giá của thầy cho Nhóm 6"><button class="hd2-verdict-btn" type="button" data-group="6" data-verdict-btn="dat">Đạt</button><button class="hd2-verdict-btn" type="button" data-group="6" data-verdict-btn="khong">Không đạt</button></div></div>
         </div>
       </article>
     </div>
@@ -1886,6 +1895,10 @@ Viết lại bằng hiểu biết của mình</textarea>
   var boardCount = document.getElementById('hd2BoardCount');
   var submittedCount = document.getElementById('hd2SubmittedCount');
   var submissions = {}; /* số nhóm -> {a1, a2, dur, at, t} của lần gửi mới nhất */
+  var verdicts = {}; /* số nhóm -> 'dat' | 'khong': đánh giá Đạt / Không đạt thầy bấm
+                        chọn ở Bảng tổng hợp. Lưu TÁCH RIÊNG khỏi dữ liệu nộp bài và
+                        nháp live nên lựa chọn của thầy KHÔNG bị mất khi nhóm khác
+                        nộp bài và bảng vẽ lại. */
   var groupStart = {}; /* số nhóm -> mốc giờ bắt đầu làm (khi chọn nhóm / bắt đầu gõ) */
   var draftT = {}; /* số nhóm -> mốc giờ gõ gần nhất trên máy này (dòng Cập nhật khi bản nháp chưa kịp lên kho chung) */
   var currentGroup = 1;
@@ -1902,7 +1915,8 @@ Viết lại bằng hiểu biết của mình</textarea>
   }
   /* BẢNG CHUNG DUY NHẤT của Hoạt động 2 (Bảng của thầy + Xem live gộp làm một):
      6 thẻ nhóm cùng 1 kiểu — thẻ nào cũng có Trạng thái, Rủi ro / Hậu quả,
-     Quy trình 4 bước, Thời gian làm bài, Giờ nộp, Cập nhật và ô Điểm.
+     Quy trình 4 bước, Thời gian làm bài, Giờ nộp, Cập nhật và 2 nút đánh giá
+     Đạt / Không đạt để thầy bấm chọn (không còn ô nhập điểm số).
      Dữ liệu gộp từ bản nháp live trên kho chung (chữ HS đang gõ), bài đã nộp
      và nháp trên chính máy này (khi chưa kịp đồng bộ):
      - Nhóm đang gõ: hiện nguyên văn chữ đang gõ, trạng thái "Đang làm…".
@@ -1962,6 +1976,14 @@ Viết lại bằng hiểu biết của mình</textarea>
       vDur.textContent = dur;
       vAt.textContent = at;
       if(vUpd) vUpd.textContent = upd;
+      /* Nút đánh giá của thầy: tô màu theo lựa chọn đã lưu trong verdicts —
+         vẽ lại bảng bao nhiêu lần (nhóm khác nộp bài, nháp mới về…) thì
+         lựa chọn vẫn nguyên như cũ */
+      var vd = verdicts[g] || '';
+      card.querySelectorAll('.hd2-verdict-btn').forEach(function(b){
+        var bv = b.getAttribute('data-verdict-btn');
+        b.classList.toggle('on-' + bv, vd === bv);
+      });
     });
     boardCount.textContent = doneN + '/6';
     submittedCount.textContent = 'Đã nộp: ' + doneN + '/6 nhóm';
@@ -1975,6 +1997,14 @@ Viết lại bằng hiểu biết của mình</textarea>
   document.getElementById('hd2BackBtn').addEventListener('click', function(){
     view.classList.remove('show-board');
     boardView.classList.add('hidden');
+  });
+  /* Thầy bấm chọn Đạt / Không đạt cho từng nhóm ở Bảng tổng hợp: lưu vào
+     verdicts rồi vẽ lại bảng để nút được chọn tô màu ngay */
+  document.querySelectorAll('.hd2-verdict-btn').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      verdicts[btn.getAttribute('data-group')] = btn.getAttribute('data-verdict-btn');
+      renderBoard();
+    });
   });
   var chotBtn = document.getElementById('hd2ChotBtn');
   var keyBox = document.getElementById('hd2Key');
@@ -2161,6 +2191,9 @@ Viết lại bằng hiểu biết của mình</textarea>
           at: fmtClock(new Date()),
           t: Date.now()
         };
+        /* Bài mô phỏng làm đúng hết: mặc định đánh giá "Đạt" (thầy vẫn bấm
+           đổi sang "Không đạt" được; thầy đã chọn trước rồi thì giữ nguyên) */
+        if(!verdicts[g]) verdicts[g] = 'dat';
         renderBoard();
         if(idx === missing.length - 1) simHd2Running = false;
       }, delay);
@@ -2854,7 +2887,7 @@ Viết lại bằng hiểu biết của mình</textarea>
       c.slots.appendChild(row);
     });
   }
-  /* Vẽ các dòng thông tin dưới 5 ô: lines = [[nhãn, giá trị, mờ?], ...] */
+  /* Vẽ các dòng thông tin dưới 5 ô: lines = [[nhãn, giá trị, mờ?, lớp CSS thêm cho giá trị], ...] */
   function renderInfo(c, lines){
     c.info.innerHTML = '';
     lines.forEach(function(cfg){
@@ -2864,7 +2897,7 @@ Viết lại bằng hiểu biết của mình</textarea>
       l.className = 'lbl';
       l.textContent = cfg[0];
       var v = document.createElement('span');
-      v.className = 'val' + (cfg[2] ? ' dim' : '');
+      v.className = 'val' + (cfg[2] ? ' dim' : '') + (cfg[3] ? ' ' + cfg[3] : '');
       v.textContent = cfg[1];
       p.appendChild(l);
       p.appendChild(v);
@@ -2972,10 +3005,15 @@ Viết lại bằng hiểu biết của mình</textarea>
       /* Mọi giá trị từ kho chung chỉ hiển thị bằng textContent + ép kiểu số */
       var score = Number(rec.score);
       var correct = Number(rec.correct), total = Number(rec.total);
+      var coDiem = isFinite(correct) && isFinite(total);
+      /* Đánh giá TỰ ĐỘNG theo số câu đúng: đúng hết (5/5) thì "Đạt",
+         đúng ít hơn thì "Không đạt" — điểm số và số câu đúng vẫn hiện như cũ */
+      var datHet = coDiem && total > 0 && correct === total;
       var at = /^\d{2}:\d{2}:\d{2}$/.test(rec.hien || '') ? rec.hien : (Number(rec.t) ? fmtHien(new Date(Number(rec.t))) : '');
       renderInfo(c, [
         ['Điểm:', isFinite(score) ? String(score) + ' điểm' : '—', !isFinite(score)],
-        ['Đúng:', (isFinite(correct) && isFinite(total)) ? correct + '/' + total + ' câu' : '—', !(isFinite(correct) && isFinite(total))],
+        ['Đúng:', coDiem ? correct + '/' + total + ' câu' : '—', !coDiem],
+        ['Đánh giá:', coDiem ? (datHet ? 'Đạt' : 'Không đạt') : '—', !coDiem, coDiem ? (datHet ? 'verdict-ok' : 'verdict-no') : ''],
         ['Thời gian làm:', rec.durationSec != null ? fmtDurSec(rec.durationSec) : '—', rec.durationSec == null],
         ['Giờ nộp:', at || '—', !at]
       ]);
