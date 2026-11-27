@@ -135,7 +135,7 @@ table.tbl{width:100%;border-collapse:collapse;font-size:13.5px;min-width:640px}
   <div style="flex:1;min-width:260px">
     <span class="badge"><span class="dot"></span> Sinh hoạt chuyên môn · Cụm số 1 · Lần 1</span>
     <h1>Điểm danh<br><span>SHCM Cụm 1 · Khối 8</span></h1>
-    <p class="sub">Tìm tên mình, bấm <b>Xác nhận</b> — xong là xem được tài liệu buổi sinh hoạt.</p>
+    <p class="sub">Tài liệu buổi sinh hoạt mở cho tất cả mọi người. Tìm tên mình và bấm <b>Xác nhận</b> để điểm danh.</p>
     <p class="hero-line"><b>13h30 · Thứ Sáu, 27/11/2026</b> · PTDTBT THCS Cao Minh — Phân hiệu II · 36 giáo viên · 4 trường</p>
   </div>
 </div></div>
@@ -162,7 +162,7 @@ table.tbl{width:100%;border-collapse:collapse;font-size:13.5px;min-width:640px}
       <div id="docLock"></div>
       <div id="docBody" style="display:none">
         <h2>Tài liệu buổi sinh hoạt chuyên môn</h2>
-        <p class="hint">Sau khi điểm danh, thầy / cô xem toàn bộ tài liệu dưới đây. Bản gốc .docx thầy Hưng phát kèm theo link này.</p>
+        <p class="hint">Tài liệu mở cho tất cả mọi người — dù đã điểm danh hay chưa đều xem và tải được. Bản gốc .docx thầy Hưng phát kèm theo link này.</p>
         <div class="btnrow" style="margin-top:0">
           <button class="btn ghost" onclick="taiDocx('khbg')">⬇ Tải KHBD Bài 2 (.docx)</button>
           <button class="btn ghost" onclick="taiDocx('tb')">⬇ Tải Thông báo SHCM (.docx)</button>
@@ -269,7 +269,7 @@ table.tbl{width:100%;border-collapse:collapse;font-size:13.5px;min-width:640px}
     <button class="linkbtn" onclick="showTab('tailieu')">📄 Xem tài liệu buổi sinh hoạt</button>
     <button class="linkbtn" onclick="showTab('btc')">📊 Dành cho BTC: bảng điểm danh &amp; xuất Excel</button>
   </div>
-  <p class="foot">SHCM Cụm 1 · Khối 8 · 27/11/2026 · Trường PTDTBT THCS Cao Minh — Mỗi tên chỉ điểm danh 1 lần. Quét lại mã QR chỉ xem được tài liệu và danh sách điểm danh.</p>
+  <p class="foot">SHCM Cụm 1 · Khối 8 · 27/11/2026 · Trường PTDTBT THCS Cao Minh — Mỗi tên chỉ điểm danh 1 lần. Tài liệu mở cho tất cả mọi người.</p>
 </div>
 
 <script>
@@ -417,7 +417,7 @@ function renderConfirm(){
   }
   box.innerHTML='<div class="confirm"><h3>Xác nhận điểm danh</h3>'
     +'<p><b>'+gv.id+'. '+gv.ten+'</b><br>'+gv.cm+' · '+gv.dv+' — '+gv.dt+'</p>'
-    +'<p style="color:#475569">Bấm xác nhận là tên này được ghi nhận <b>1 lần duy nhất</b> vào danh sách chung. Quét lại mã QR sau đó chỉ xem được tài liệu, không điểm danh thêm.</p>'
+    +'<p style="color:#475569">Bấm xác nhận là tên này được ghi nhận <b>1 lần duy nhất</b> vào danh sách chung. Tài liệu thì mở cho tất cả mọi người, không cần điểm danh cũng xem được.</p>'
     +'<button class="btn primary" id="btnXacNhan" onclick="xacNhanDiemDanh()">✓ Xác nhận — Tôi là '+gv.ten+'</button>'
     +'<div class="btnrow"><button class="btn ghost" onclick="selectedId=null;renderList();renderConfirm()">← Chọn tên khác</button></div></div>';
 }
@@ -427,15 +427,13 @@ function capNhatTrangThaiCaNhan(){
   var lock=document.getElementById("docLock");
   var body=document.getElementById("docBody");
   var mineRec=myId&&daDiem[String(myId)]?daDiem[String(myId)]:null;
+  lock.innerHTML=""; body.style.display="block";
   if(mineRec){
     var gv=DS.find(function(x){return String(x.id)===String(myId);});
-    banner.innerHTML='<div class="notice green"><b>✓ Bạn đã điểm danh lúc '+mineRec.gio+'.</b><br>'+(gv?gv.ten+" — "+gv.dv+" · "+gv.dt:"")+'<br>Lần quét sau chỉ xem được tài liệu và danh sách điểm danh — không điểm danh thêm được.</div>';
-    lock.innerHTML=""; body.style.display="block";
+    banner.innerHTML='<div class="notice green"><b>✓ Bạn đã điểm danh lúc '+mineRec.gio+'.</b><br>'+(gv?gv.ten+" — "+gv.dv+" · "+gv.dt:"")+'<br>Không điểm danh thêm được — tài liệu buổi SHCM mở cho tất cả mọi người.</div>';
     document.getElementById("myState").innerHTML='· <b style="color:#166534">Bạn: '+(gv?gv.ten:"")+' ✓</b>';
   }else{
     banner.innerHTML="";
-    lock.innerHTML='<div class="locked"><div class="big">🔒</div><h3>Tài liệu sẽ mở sau khi điểm danh</h3><p style="color:#5b6b82;max-width:420px;margin:0 auto">Thầy / cô chọn đúng tên mình ở trên và bấm <b>Xác nhận điểm danh</b> — tài liệu KHBD + Thông báo sẽ hiện ra ngay.<br>Nếu đã điểm danh rồi mà trang này vẫn khóa, hãy bấm lại đúng tên mình ở tab Điểm danh.</p></div>';
-    body.style.display="none";
     document.getElementById("myState").innerHTML="";
   }
 }
@@ -467,7 +465,7 @@ function xacNhanDiemDanh(){
     daDiem[String(gv.id)]=banGhi;
     renderAll();
     showTab("tailieu");
-    alert("✓ Điểm danh thành công!\n"+gv.ten+" — "+gioHien()+"\nTài liệu buổi SHCM đã mở. Quét lại mã QR sau này chỉ xem được tài liệu.");
+    alert("✓ Điểm danh thành công!\n"+gv.ten+" — "+gioHien()+"\nTài liệu buổi SHCM mở cho tất cả mọi người.");
   }
   function daCoNguoiDiem(){
     alert("Tên này đã có người điểm danh trước rồi ("+(daDiem[String(gv.id)]?daDiem[String(gv.id)].gio:"")+") nên không điểm danh thêm được. Thầy / cô bấm lại đúng tên mình để xem tài liệu.");
