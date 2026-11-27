@@ -1940,7 +1940,31 @@ Viết lại bằng hiểu biết của mình</textarea>
       var vUpd = card.querySelector('[data-f="upd"]');
       var liveText = !!(live && ((live.a1 || '').trim() || (live.a2 || '').trim()));
       var state = 'wait', a1 = '', a2 = '', dur = '', at = '', upd = '—';
-      if(live && live.nop){
+      /* Nhóm ĐÃ NỘP rồi quay lại SỬA bài (xóa chữ cũ đi gõ lại): bản sửa
+         mới nhất phải THẮNG bài đã nộp trên thẻ — kể cả khi nhóm xóa
+         TRẮNG cả 2 ô để làm lại từ đầu. Trước đây thẻ luôn ưu tiên bài
+         đã nộp (nhánh sub đứng trước nhánh nháp, nhánh live "đang làm"
+         lại đòi phải còn chữ) nên xóa/gõ lại không thấy cập nhật gì,
+         bài cũ cứ hiện nguyên trạng thái "Đã nộp". Nguồn sửa nhận biết
+         được từ 2 phía: nháp trên chính máy này (draftT mới hơn giờ nộp)
+         hoặc bản live trên kho chung (t mới hơn giờ nộp, nop đã về 0). */
+      var editA = null, editUpd = '—';
+      var subT = sub ? (Number(sub.t) || 0) : 0;
+      var liveT = live ? (Number(live.t) || 0) : 0;
+      var baseA1 = (live && live.nop) ? (live.a1 || '') : (sub ? (sub.a1 || '') : (live ? (live.a1 || '') : ''));
+      var baseA2 = (live && live.nop) ? (live.a2 || '') : (sub ? (sub.a2 || '') : (live ? (live.a2 || '') : ''));
+      if(draft && draftT[g] && draftT[g] > Math.max(subT, liveT) &&
+         ((draft.a1 || '') !== baseA1 || (draft.a2 || '') !== baseA2)){
+        editA = draft; editUpd = fmtClock(new Date(draftT[g]));
+      } else if(live && !live.nop && sub && liveT > subT &&
+                ((live.a1 || '') !== (sub.a1 || '') || (live.a2 || '') !== (sub.a2 || ''))){
+        editA = live; editUpd = liveT ? fmtClock(new Date(liveT)) : '—';
+      }
+      if(editA){
+        state = 'doing';
+        a1 = editA.a1 || ''; a2 = editA.a2 || '';
+        upd = editUpd;
+      } else if(live && live.nop){
         state = 'done';
         a1 = live.a1 || ''; a2 = live.a2 || '';
         dur = (sub && sub.dur) || live.dur || '';
@@ -2068,12 +2092,14 @@ Viết lại bằng hiểu biết của mình</textarea>
       if(livePushed[g] === key) return;
       livePushed[g] = key;
       var upd = {
-        a1: d.a1 || '', a2: d.a2 || '',
+        a1: d.a1 || '', a2: d.a2 || '', nop: 0,
         t: firebase.database.ServerValue.TIMESTAMP
       };
-      /* Đang gõ chữ (khác bài đã nộp) thì bản ghi quay về chưa nộp, để bảng
-         chung hiện "Đang làm…" với chữ đang gõ thay vì "Đã nộp" */
-      if((d.a1 || '').trim() || (d.a2 || '').trim()) upd.nop = 0;
+      /* Đẩy nháp = đang sửa bài: bản ghi LUÔN quay về chưa nộp (nop = 0),
+         kể cả khi nhóm XÓA TRẮNG cả 2 ô để làm lại từ đầu. Trước đây chỉ
+         đặt nop = 0 khi còn chữ nên hễ xóa hết chữ là bản ghi vẫn mang
+         cờ "đã nộp" cũ, các máy khác cứ hiện bài cũ — xóa để cập nhật
+         lại mà không thấy thay đổi gì. */
       liveDb.ref(LIVE_ROOT + '/nhom' + g).update(upd).catch(function(){});
     };
     if(ngay){ clearTimeout(liveTimers[g]); fire(); return; }
