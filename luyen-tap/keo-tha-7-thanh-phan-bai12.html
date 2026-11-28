@@ -188,6 +188,24 @@
       }
       .slot.over{ border-color:var(--yellow-dark); background:#fff7d6; }
       .slot.filled{ border-style:solid; border-color:var(--blue); background:#fff; }
+      /* Phản hồi đúng/sai ngay khi thả thẻ: ô đúng xanh + ✓, ô sai đỏ + ✗ và rung nhẹ */
+      .slot.filled.slot-dung{ border-color:var(--green); background:var(--green-bg); }
+      .slot.filled.slot-sai{ border-color:var(--red); background:var(--red-bg); }
+      .slot .slot-mark{
+        flex:none; align-self:center; width:34px; height:34px; border-radius:50%;
+        display:inline-flex; align-items:center; justify-content:center;
+        font-size:20px; font-weight:900; color:#fff;
+      }
+      .slot.filled.slot-dung .slot-mark{ background:var(--green); }
+      .slot.filled.slot-sai .slot-mark{ background:var(--red); }
+      @keyframes slot-lac{
+        0%,100%{ transform:translateX(0); }
+        20%{ transform:translateX(-7px); }
+        40%{ transform:translateX(7px); }
+        60%{ transform:translateX(-5px); }
+        80%{ transform:translateX(5px); }
+      }
+      .slot.rung{ animation:slot-lac .5s ease; }
       .slot .q{
         font-size:clamp(16px,3.2vw,19px); font-weight:700; line-height:1.45; margin:0 0 10px;
       }
@@ -497,6 +515,7 @@ var startAt = 0;                     // mốc bắt đầu tính giờ (ms)
 var timerId = null;
 var placements = [null, null, null, null, null, null, null]; // placements[slot] = cardId hoặc null
 var selectedCard = null;             // cardId đang chọn (chạm để đặt)
+var oRungMoi = null;                 // slot vừa thả sai — veLai() rung lại ô này; null = không rung ô nào
 var submitted = false;
 var localResults = [];               // dự phòng: kết quả nộp trên chính máy này (đồng bộ với localStorage)
 
@@ -806,7 +825,12 @@ function veLai(){
 
       /* Cột giữa: ô trống thả thẻ — thuộc về nội dung của hàng này */
       var slot = document.createElement("div");
-      slot.className = "slot" + (placements[funcIdx] !== null ? " filled" : "");
+      /* Trạng thái từng ô tính lại theo vị trí thẻ hiện tại: đúng → xanh + ✓, sai → đỏ + ✗ */
+      var daDat = placements[funcIdx] !== null;
+      var datDung = daDat && placements[funcIdx] === funcIdx;
+      slot.className = "slot" + (daDat ? " filled" : "")
+        + (datDung ? " slot-dung" : (daDat ? " slot-sai" : ""))
+        + ((daDat && !datDung && oRungMoi === funcIdx) ? " rung" : "");
       slot.setAttribute("data-slot", funcIdx);
       slot.setAttribute("role", "button");
       slot.setAttribute("tabindex", "0");
@@ -831,9 +855,15 @@ function veLai(){
         undo.addEventListener("click", function(){
           placements[funcIdx] = null;
           selectedCard = null;
+          oRungMoi = null; /* ô đã trống — hết lượt rung */
           veLai();
         });
         wrap.appendChild(chip);
+        var mark = document.createElement("span");
+        mark.className = "slot-mark";
+        mark.setAttribute("aria-hidden", "true");
+        mark.textContent = (placements[funcIdx] === funcIdx) ? "✓" : "✗";
+        wrap.appendChild(mark);
         wrap.appendChild(undo);
         slot.appendChild(wrap);
       } else {
@@ -940,6 +970,7 @@ function ganKeoTha(chip, cardId){
       } else {
         /* Chạm/click: chọn hoặc bỏ chọn thẻ */
         selectedCard = (selectedCard === cardId) ? null : cardId;
+        oRungMoi = null; /* hết lượt rung của lần thả sai trước */
         veLai();
       }
       dangKeo = false;
@@ -954,6 +985,7 @@ function ganKeoTha(chip, cardId){
     if (e.key === "Enter" || e.key === " "){
       e.preventDefault();
       selectedCard = (selectedCard === cardId) ? null : cardId;
+      oRungMoi = null; /* hết lượt rung của lần thả sai trước */
       veLai();
     }
   });
@@ -995,6 +1027,9 @@ function datThe(cardId, slotIdx){
   /* Nếu thẻ đang ở ô khác thì gỡ khỏi ô đó */
   for (var i = 0; i < 7; i++) if (placements[i] === cardId) placements[i] = null;
   placements[slotIdx] = cardId;
+  /* Phản hồi ngay tại chỗ: thả đúng → ô xanh + ✓; thả sai → ô rung + ✗.
+     Thẻ sai vẫn nằm trong ô (đánh dấu ✗), HS lấy ra bằng nút ✕ hoặc đè thẻ khác lên để sửa — không khóa, không tự trả về. */
+  oRungMoi = (cardId === slotIdx) ? null : slotIdx;
   veLai();
   dayNhapLive();
 }
