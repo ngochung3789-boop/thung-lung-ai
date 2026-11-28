@@ -1660,6 +1660,9 @@ Viết lại bằng hiểu biết của mình</textarea>
   var keoFrame = document.getElementById('keoFrame');
   var keoLoaded = false;
   var tabBtns = document.querySelectorAll('.tabbtn');
+  /* Link rieng tung tab: #hoat-dong-1 | #chatgpt | #suno | #hoat-dong-2 | #bam-chuong */
+  var viewHash = {keo:'hoat-dong-1', chat:'chatgpt', suno:'suno', hd2:'hoat-dong-2', bell:'bam-chuong'};
+  var hashView = {'hoat-dong-1':'keo', 'chatgpt':'chat', 'suno':'suno', 'hoat-dong-2':'hd2', 'bam-chuong':'bell', keo:'keo', chat:'chat', hd2:'hd2', bell:'bell'};
   function showView(name){
     Object.keys(views).forEach(function(k){
       views[k].classList.toggle('hidden', k !== name);
@@ -1672,10 +1675,17 @@ Viết lại bằng hiểu biết của mình</textarea>
       keoLoaded = true;
       keoFrame.src = keoFrame.getAttribute('data-src');
     }
+    try{ history.replaceState(null, '', '#' + (viewHash[name] || name)); }catch(e){}
   }
   tabBtns.forEach(function(b){
     b.addEventListener('click', function(){ showView(b.getAttribute('data-view')); });
   });
+  function moTabTheoLink(){
+    var h = (location.hash || '').replace(/^#/, '');
+    if(hashView[h]){ showView(hashView[h]); }
+  }
+  window.addEventListener('hashchange', moTabTheoLink);
+  moTabTheoLink();
 
   /* ===== SUNO: bấm "Tạo nên" -> chờ ~3 giây -> hiện bài hát đã tạo ===== */
   var createBtn = document.getElementById('sunoCreateBtn');
