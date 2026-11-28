@@ -336,6 +336,43 @@
       }
 
       .foot{ text-align:center; font-size:13.5px; color:#8496b3; padding:0 16px 26px; line-height:1.6; }
+      /* ---------- Chọn chế độ chơi (nhóm / cá nhân) ---------- */
+      #chonCheDoChoi{ max-width:560px; margin:10px auto 0; text-align:center; }
+      #chonCheDoChoi p{ font-size:18px; line-height:1.55; margin:0 0 14px; }
+      .mode-play{ display:flex; gap:10px; }
+      .mode-play button{
+        flex:1; border:3px solid var(--blue); background:#fff; color:var(--blue);
+        font-size:clamp(19px,4.4vw,24px); font-weight:800; border-radius:16px;
+        padding:18px 10px; min-height:88px; line-height:1.35;
+      }
+      .mode-play button:active{ background:var(--blue-soft); }
+      .mode-note{ font-size:15.5px; color:var(--muted); line-height:1.5; margin:14px 0 0; }
+      /* ---------- Nhập họ tên (chế độ cá nhân) ---------- */
+      #nhapTen{ max-width:560px; margin:10px auto 0; text-align:center; }
+      #nhapTen p{ font-size:18px; line-height:1.55; margin:0 0 14px; }
+      #nhapTen label{ display:block; font-size:20px; font-weight:800; margin-bottom:8px; text-align:left; }
+      #nhapTen input{
+        width:100%; font-size:21px; font-weight:700; padding:13px 12px;
+        border:3px solid var(--blue); border-radius:12px; color:var(--ink);
+      }
+      /* ---------- Mục bảng thầy + xem live ---------- */
+      .board-sec{ font-size:clamp(19px,3.8vw,23px); margin:20px 0 10px; color:var(--blue); }
+      .board-sec:first-of-type{ margin-top:4px; }
+      .live-card{
+        display:flex; align-items:center; gap:12px;
+        background:#fff; border-radius:14px; padding:12px 14px;
+        box-shadow:0 3px 12px rgba(11,61,145,.10); border:2px solid transparent;
+      }
+      .live-card.da-nop{ border-color:var(--green); background:#f6fef8; }
+      .live-status{
+        flex:none; font-size:14px; font-weight:900; border-radius:999px; padding:5px 10px;
+        background:var(--blue-soft); color:var(--blue); white-space:nowrap;
+      }
+      .live-card.da-nop .live-status{ background:var(--green-bg); color:var(--green); }
+      .live-kind{
+        display:inline-block; font-size:13px; font-weight:800; border-radius:999px;
+        background:var(--blue-soft); color:var(--blue); padding:2px 9px; margin-left:6px;
+      }
       .hidden{ display:none !important; }
     </style>
   </head>
@@ -343,8 +380,8 @@
 
     <div class="topbar">
       <div class="lesson-badge"><span class="dot"></span> BÀI 12 · LỚP 8</div>
-      <h1>🧩 Kéo thả – Nộp bài theo nhóm</h1>
-      <p class="sub">Hoạt động của <b>Bài 12 – Lớp 8</b>: nối tên thành phần kế hoạch với nội dung đúng. Ghép đúng mỗi ý được <b>1 điểm</b> • 7 ý = tối đa <b>7 điểm</b> • Đội bằng điểm thì đội làm nhanh hơn xếp trên</p>
+      <h1>🧩 Kéo thả – Nộp bài</h1>
+      <p class="sub">Hoạt động của <b>Bài 12 – Lớp 8</b>: nối tên thành phần kế hoạch với nội dung đúng. Chơi <b>theo nhóm</b> hoặc <b>một mình</b> đều được. Ghép đúng mỗi ý được <b>1 điểm</b> • 7 ý = tối đa <b>7 điểm</b> • Bằng điểm thì làm nhanh hơn xếp trên</p>
       <div class="mode-switch" role="group" aria-label="Chọn màn hình">
         <button type="button" id="modeStudent" class="on">👥 Nhóm làm bài</button>
         <button type="button" id="modeTeacher">📊 Bảng của thầy</button>
@@ -357,20 +394,45 @@
       <!-- ================= MÀN HÌNH HỌC SINH ================= -->
       <div id="studentView">
 
+        <!-- CHỌN CÁCH CHƠI -->
+        <div class="card" id="chonCheDoChoi">
+          <span class="step-tag">BÀI 12 · LỚP 8</span>
+          <span class="step-tag">CHỌN CÁCH CHƠI</span>
+          <p>Bài tập kéo thả của <b>Bài 12 – Lớp 8</b>.<br>Em chơi <b>theo nhóm</b> hay <b>một mình</b>?</p>
+          <div class="mode-play">
+            <button type="button" id="btnCheDoNhom">👥<br>Chơi theo nhóm</button>
+            <button type="button" id="btnCheDoCaNhan">🙋<br>Chơi theo cá nhân</button>
+          </div>
+          <p class="mode-note">Cả 2 cách chơi đều giống nhau: nối 7 thành phần với nội dung đúng, mỗi ý đúng 1 điểm, tối đa 7 điểm. Kết quả của nhóm và của cá nhân lưu riêng, bảng của thầy hiện 2 mục riêng.</p>
+        </div>
+
         <!-- BƯỚC 1 -->
-        <div class="card" id="setup">
+        <div class="card hidden" id="setup">
           <span class="step-tag">BÀI 12 · LỚP 8</span>
           <span class="step-tag">BƯỚC 1 · CHỌN NHÓM</span>
           <p>Bài tập kéo thả của <b>Bài 12 – Lớp 8</b>.<br>Mỗi nhóm dùng <b>1 điện thoại</b> (hoặc 1 máy tính).<br>Bấm vào <b>tên nhóm của em</b> để vào làm bài — không cần gõ tên. Đồng hồ bắt đầu tính giờ từ lúc này.</p>
           <p class="limit-note" id="limitNote">⏱ Không giới hạn thời gian làm bài.</p>
           <p class="quick-label">Chọn nhóm của em:</p>
           <div class="quick-teams" id="quickTeams"></div>
+          <button class="btn-reset" id="doiCheDoTuNhom" type="button">← Đổi chế độ chơi</button>
+        </div>
+
+        <!-- NHẬP TÊN (CHẾ ĐỘ CÁ NHÂN) -->
+        <div class="card hidden" id="nhapTen">
+          <span class="step-tag">BÀI 12 · LỚP 8</span>
+          <span class="step-tag">CHƠI THEO CÁ NHÂN</span>
+          <p>Em chơi một mình. Điền <b>họ và tên</b> của em rồi bấm “Vào chơi” — đồng hồ bắt đầu tính giờ từ lúc này.</p>
+          <label for="tenCaNhan">Họ và tên</label>
+          <input type="text" id="tenCaNhan" placeholder="Ví dụ: Hoàng Hà Trâm" autocomplete="off" maxlength="60" />
+          <button class="btn-primary" id="btnVaoChoiCaNhan" type="button">Vào chơi →</button>
+          <div class="lock-msg" id="tenMsg"></div>
+          <button class="btn-reset" id="doiCheDoTuTen" type="button">← Đổi chế độ chơi</button>
         </div>
 
         <!-- BƯỚC 2 -->
         <div id="play" class="hidden">
           <div class="team-bar">
-            <span class="tname">Nhóm: <span id="teamLabel"></span></span>
+            <span class="tname"><span id="teamLabelPrefix">Nhóm: </span><span id="teamLabel"></span></span>
             <span class="timer" id="timer">⏱ 0:00</span>
             <button class="rename" id="renameLink" type="button">Đổi nhóm</button>
           </div>
@@ -421,9 +483,10 @@
         <div id="teacherContent" class="hidden">
         <div class="unlocked-note">🔓 Đã mở khóa — thầy không cần nhập lại mật khẩu trong lần mở trang này.</div>
         <div class="teacher-head">
-          <h2>📊 Kết quả các nhóm — Bài 12 · Lớp 8</h2>
+          <h2>📊 Kết quả — Bài 12 · Lớp 8</h2>
           <div class="teacher-actions">
             <button class="btn-ghost" id="refreshBtn" type="button">↻ Cập nhật</button>
+            <button class="btn-ghost" id="liveBtn" type="button">👁 Xem live</button>
             <button class="btn-ghost" id="clearBtn" type="button" style="border-color:var(--red);color:var(--red)">🗑 Xóa hết kết quả</button>
           </div>
         </div>
@@ -435,9 +498,42 @@
           </div>
         </div>
         <div class="save-msg" id="clearMsg" style="margin:0 0 10px"></div>
-        <p class="rule-note">Xếp hạng tự động: <b>điểm cao xếp trước</b> — hai nhóm <b>bằng điểm thì so thời gian làm bài</b>, nhóm làm nhanh hơn xếp trên. Bảng tự cập nhật ngay khi có nhóm nộp bài, thầy không cần tải lại trang. Chiếu bảng này lên TV cho cả lớp xem.<br>💾 <b>Thời gian lưu mặc định: 1 tiếng</b> kể từ lúc nhóm nộp — thầy cứ tải lại trang thoải mái, kết quả vẫn còn. Quá 1 tiếng, kết quả tự hết hạn và bảng <b>tự làm mới để tự biến mất</b> (kiểm tra mỗi phút), thầy không cần làm gì thêm. Muốn xóa sớm hơn thì bấm nút <b>🗑 Xóa hết kết quả</b> ở trên — <b>xóa xong trang tự làm mới lại ngay</b>.</p>
+        <p class="rule-note">Xếp hạng tự động: <b>điểm cao xếp trước</b> — <b>bằng điểm thì so thời gian làm bài</b>, làm nhanh hơn xếp trên. Bảng tự cập nhật ngay khi có nhóm/bạn nộp bài, thầy không cần tải lại trang. Chiếu bảng này lên TV cho cả lớp xem.<br>💾 <b>Thời gian lưu mặc định: 1 tiếng</b> kể từ lúc nhóm nộp — thầy cứ tải lại trang thoải mái, kết quả vẫn còn. Quá 1 tiếng, kết quả tự hết hạn và bảng <b>tự làm mới để tự biến mất</b> (kiểm tra mỗi phút), thầy không cần làm gì thêm. Muốn xóa sớm hơn thì bấm nút <b>🗑 Xóa hết kết quả</b> của đúng mục đó ở trên — <b>xóa xong trang tự làm mới lại ngay</b>.</p>
+        <div id="liveView" class="hidden">
+          <div class="teacher-head">
+            <h2>👁 Xem live — tiến độ trực tiếp</h2>
+            <div class="teacher-actions">
+              <button class="btn-ghost" id="liveCloseBtn" type="button">✕ Đóng</button>
+            </div>
+          </div>
+          <p class="rule-note">Thẻ nào đang chơi thì hiện số thẻ đã đặt, số cặp đúng tới lúc này và thời gian đã chơi — cập nhật trực tiếp, thầy không cần bấm gì. Ai nộp xong thì thẻ chuyển thành “Đã nộp” kèm điểm.</p>
+          <div class="rank-list" id="liveList">
+            <div class="empty-note">Chưa có ai đang chơi.</div>
+          </div>
+        </div>
+
+        <h3 class="board-sec">👥 Kết quả nhóm</h3>
         <div class="rank-list" id="rankList">
           <div class="empty-note">Chưa có nhóm nào nộp bài.<br>Kết quả sẽ hiện ở đây ngay khi nhóm đầu tiên bấm Nộp bài.</div>
+        </div>
+
+        <h3 class="board-sec">🙋 Kết quả cá nhân</h3>
+        <div class="teacher-head" style="margin-bottom:10px">
+          <p class="rule-note" style="margin:0">Mỗi bạn nộp 1 dòng riêng, xếp hạng giống mục nhóm.</p>
+          <div class="teacher-actions">
+            <button class="btn-ghost" id="clearBtnCaNhan" type="button" style="border-color:var(--red);color:var(--red)">🗑 Xóa hết kết quả cá nhân</button>
+          </div>
+        </div>
+        <div class="hidden" id="clearConfirmCaNhan" style="background:var(--red-bg);border:2px solid var(--red);border-radius:12px;padding:12px 14px;margin-bottom:12px">
+          <p style="margin:0 0 10px;font-size:16px;line-height:1.5"><b>Xóa hết kết quả cá nhân?</b> Bài cá nhân đã nộp sẽ bị xóa khỏi máy chủ và khỏi bảng này, không khôi phục được. Kết quả nhóm giữ nguyên.</p>
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <button class="btn-ghost" id="clearYesBtnCaNhan" type="button" style="background:var(--red);border-color:var(--red);color:#fff">Xóa hết ngay</button>
+            <button class="btn-ghost" id="clearNoBtnCaNhan" type="button">Để lại, không xóa</button>
+          </div>
+        </div>
+        <div class="save-msg" id="clearMsgCaNhan" style="margin:0 0 10px"></div>
+        <div class="rank-list" id="rankListCaNhan">
+          <div class="empty-note">Chưa có bạn nào nộp bài.<br>Kết quả sẽ hiện ở đây ngay khi bạn đầu tiên bấm Nộp bài.</div>
         </div>
 
         <div class="card edit-box">
@@ -476,7 +572,7 @@
 
     </div>
 
-    <p class="foot">Chỉ gửi tên nhóm, đáp án đã ghép, điểm và thời gian làm bài.<br>Không thu thập thông tin cá nhân của học sinh.</p>
+    <p class="foot">Chỉ gửi tên nhóm hoặc họ tên, đáp án đã ghép, điểm và thời gian làm bài.<br>Không thu thập thông tin nào khác của học sinh.</p>
 
 <script>
 /* ================= CẤU HÌNH FIREBASE (dùng chung project hd3-bai4 của thầy) ================= */
@@ -523,33 +619,49 @@ var placements = [null, null, null, null, null, null, null]; // placements[slot]
 var selectedCard = null;             // cardId đang chọn (chạm để đặt)
 var oRungMoi = null;                 // slot vừa thả sai — veLai() rung lại ô này; null = không rung ô nào
 var submitted = false;
+var cheDo = "nhom";                  // "nhom" | "canhan" — cách chơi đã chọn
 var localResults = [];               // dự phòng: kết quả nộp trên chính máy này (đồng bộ với localStorage)
+var localResultsCaNhan = [];         // dự phòng kết quả CÁ NHÂN trên chính máy này (riêng, không lẫn nhóm)
+
+/* Đường dẫn Firebase theo chế độ chơi: nhóm dùng nhánh gốc, cá nhân dùng nhánh con "canhan" */
+function duongDanKetQua(){ return cheDo === "canhan" ? ROOT + "/canhan/ketqua" : ROOT + "/ketqua"; }
+function duongDanNhap(){ return cheDo === "canhan" ? ROOT + "/canhan/nhap" : ROOT + "/nhap"; }
 
 /* ---------- Bản dự phòng trong localStorage của máy nộp ----------
    Mỗi bài nộp đều được ghi thêm 1 bản vào localStorage của chính máy nộp,
    nên máy đó tải lại trang vẫn thấy bài của mình kể cả khi máy chủ lỗi/mất mạng.
    Bản dự phòng cũng chỉ giữ 1 tiếng như trên máy chủ. */
 var KHOA_DU_PHONG = "bai12_keotha_ketqua_du_phong_v1";
-function luuDuPhongLocal(){
+var KHOA_DU_PHONG_CANHAN = "bai12_keotha_ketqua_du_phong_v1_canhan";
+function luuDuPhongMot(khoa, arr){
   try {
-    var conHan = localResults.filter(conHanLuu);
-    localStorage.setItem(KHOA_DU_PHONG, JSON.stringify(conHan));
+    localStorage.setItem(khoa, JSON.stringify((arr || []).filter(conHanLuu)));
   } catch(e){ /* localStorage bị chặn (trình duyệt riêng tư…) thì bỏ qua, máy chủ vẫn là chính */ }
 }
-function taiDuPhongLocal(){
+function taiDuPhongMot(khoa){
   try {
-    var raw = localStorage.getItem(KHOA_DU_PHONG);
-    if (!raw) return;
+    var raw = localStorage.getItem(khoa);
+    if (!raw) return [];
     var arr = JSON.parse(raw);
-    if (Array.isArray(arr)){
-      localResults = arr.filter(function(r){ return r && r.team; }).filter(conHanLuu);
-      luuDuPhongLocal(); /* dọn luôn bản đã quá 1 tiếng khỏi localStorage */
-    }
-  } catch(e){ localResults = []; }
+    if (!Array.isArray(arr)) return [];
+    var ok = arr.filter(function(r){ return r && r.team; }).filter(conHanLuu);
+    luuDuPhongMot(khoa, ok); /* dọn luôn bản đã quá 1 tiếng khỏi localStorage */
+    return ok;
+  } catch(e){ return []; }
+}
+function luuDuPhongLocal(){ luuDuPhongMot(KHOA_DU_PHONG, localResults); }
+function luuDuPhongLocalCaNhan(){ luuDuPhongMot(KHOA_DU_PHONG_CANHAN, localResultsCaNhan); }
+function taiDuPhongLocal(){
+  localResults = taiDuPhongMot(KHOA_DU_PHONG);
+  localResultsCaNhan = taiDuPhongMot(KHOA_DU_PHONG_CANHAN);
 }
 function xoaDuPhongLocal(){
   localResults = [];
   try { localStorage.removeItem(KHOA_DU_PHONG); } catch(e){}
+}
+function xoaDuPhongLocalCaNhan(){
+  localResultsCaNhan = [];
+  try { localStorage.removeItem(KHOA_DU_PHONG_CANHAN); } catch(e){}
 }
 var gioiHanGiay = 0;                 // giới hạn thời gian thầy đặt (giây); 0 = không giới hạn
 var thuTuHang = [0, 1, 2, 3, 4, 5, 6];     // thứ tự các hàng (theo nội dung) trong lượt làm này
@@ -644,10 +756,10 @@ function conHanLuu(r){
 }
 /* Gộp kết quả trên máy chủ với kết quả dự phòng trên chính máy này (khi mất mạng),
    bỏ trùng theo tên nhóm (bản trên máy chủ thắng) và bỏ bản đã quá 1 tiếng */
-function gopKetQua(list){
+function gopKetQua(list, duPhong){
   var theoNhom = {};
   (list || []).forEach(function(r){ if (r && r.team) theoNhom[khoaDoi(r.team)] = r; });
-  localResults.forEach(function(r){
+  (duPhong || localResults).forEach(function(r){
     var k = khoaDoi(r.team);
     if (!theoNhom[k]) theoNhom[k] = r;
   });
@@ -668,16 +780,29 @@ function ngheKetQua(){
   });
 }
 
+/* Nghe kết quả cá nhân cho mục riêng của bảng thầy */
+function ngheKetQuaCaNhan(){
+  if (!db) { veBangThayCaNhan(gopKetQua([], localResultsCaNhan)); return; }
+  db.ref(ROOT + "/canhan/ketqua").on("value", function(snap){
+    var v = snap.val() || {};
+    var list = Object.keys(v).map(function(k){ return v[k]; });
+    donKetQuaHetHan(v, ROOT + "/canhan/ketqua");
+    veBangThayCaNhan(gopKetQua(list, localResultsCaNhan));
+  }, function(){
+    veBangThayCaNhan(gopKetQua([], localResultsCaNhan));
+  });
+}
+
 /* Tự dọn trên máy chủ những kết quả đã quá 1 tiếng (chạy tối đa 1 lần mỗi phút) */
 var lanDonCuoi = 0;
-function donKetQuaHetHan(v){
+function donKetQuaHetHan(v, duongDan){
   var bayGio = Date.now();
   if (bayGio - lanDonCuoi < 60000) return;
   lanDonCuoi = bayGio;
   if (!db || !v) return;
   Object.keys(v).forEach(function(k){
     if (!conHanLuu(v[k])){
-      db.ref(ROOT + "/ketqua/" + k).remove().catch(function(err){
+      db.ref((duongDan || ROOT + "/ketqua") + "/" + k).remove().catch(function(err){
         if (window.console) console.warn("Chưa dọn được kết quả hết hạn trên máy chủ:", err && err.message ? err.message : err);
       });
     }
@@ -746,6 +871,46 @@ $("modeTeacher").addEventListener("click", function(){ chonCheDo(true); });
   }
 })();
 
+/* ================= CHỌN CHẾ ĐỘ CHƠI (NHÓM / CÁ NHÂN) ================= */
+function hienManChonCheDo(){
+  $("chonCheDoChoi").classList.remove("hidden");
+  $("setup").classList.add("hidden");
+  $("nhapTen").classList.add("hidden");
+  $("play").classList.add("hidden");
+  $("result").classList.add("hidden");
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+function chonCheDoChoi(cd){
+  cheDo = cd;
+  $("chonCheDoChoi").classList.add("hidden");
+  if (cd === "nhom"){
+    $("nhapTen").classList.add("hidden");
+    $("setup").classList.remove("hidden");
+  } else {
+    $("setup").classList.add("hidden");
+    $("nhapTen").classList.remove("hidden");
+    $("tenMsg").textContent = "";
+    setTimeout(function(){ $("tenCaNhan").focus(); }, 50);
+  }
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+$("btnCheDoNhom").addEventListener("click", function(){ chonCheDoChoi("nhom"); });
+$("btnCheDoCaNhan").addEventListener("click", function(){ chonCheDoChoi("canhan"); });
+$("doiCheDoTuNhom").addEventListener("click", hienManChonCheDo);
+$("doiCheDoTuTen").addEventListener("click", hienManChonCheDo);
+function vaoChoiCaNhan(){
+  var ten = $("tenCaNhan").value.trim();
+  if (!ten){
+    $("tenMsg").textContent = "Em điền họ và tên rồi bấm “Vào chơi” nhé.";
+    $("tenCaNhan").focus();
+    return;
+  }
+  $("tenMsg").textContent = "";
+  vaoLamBai(ten);
+}
+$("btnVaoChoiCaNhan").addEventListener("click", vaoChoiCaNhan);
+$("tenCaNhan").addEventListener("keydown", function(e){ if (e.key === "Enter") vaoChoiCaNhan(); });
+
 function vaoLamBai(tenNhom){
   var name = (tenNhom || "").trim();
   if (!name){ return; }
@@ -754,8 +919,12 @@ function vaoLamBai(tenNhom){
   placements = [null, null, null, null, null, null, null];
   selectedCard = null;
   xaoTronLai();
+  $("teamLabelPrefix").textContent = cheDo === "canhan" ? "Bạn: " : "Nhóm: ";
   $("teamLabel").textContent = team;
+  $("renameLink").textContent = cheDo === "canhan" ? "Đổi tên" : "Đổi nhóm";
+  $("chonCheDoChoi").classList.add("hidden");
   $("setup").classList.add("hidden");
+  $("nhapTen").classList.add("hidden");
   $("result").classList.add("hidden");
   $("play").classList.remove("hidden");
   batDauTinhGio();
@@ -768,7 +937,14 @@ $("renameLink").addEventListener("click", function(){
   dungTinhGio();
   $("play").classList.add("hidden");
   $("result").classList.add("hidden");
-  $("setup").classList.remove("hidden");
+  if (cheDo === "canhan"){
+    $("nhapTen").classList.remove("hidden");
+    $("setup").classList.add("hidden");
+    setTimeout(function(){ $("tenCaNhan").focus(); }, 50);
+  } else {
+    $("setup").classList.remove("hidden");
+    $("nhapTen").classList.add("hidden");
+  }
   window.scrollTo({ top: 0, behavior: "smooth" });
 });
 
@@ -1049,10 +1225,11 @@ function datThe(cardId, slotIdx){
 
 /* ================= ĐẨY NHÁP LÊN MÁY CHỦ ================= */
 /* Mỗi lần nhóm kéo/thả/đổi một thẻ (kể cả bấm Làm lại hay vào làm), app đẩy ngay
-   bản nháp hiện tại lên nhánh hd3-bai4/bai12-keotha/nhap/Nhóm N — chỉ là vị trí thẻ
-   đang đặt, KHÔNG chấm điểm, KHÔNG ghi kết quả. Khi nhóm bấm Nộp và kết quả
-   đã lên máy chủ thì xóa nháp. (Trang này đứng riêng, chưa có trang "Xem live"
-   nào đọc nháp — nhánh nháp để dành cho bảng live sau này.)
+   bản nháp hiện tại lên nhánh nhap của đúng chế độ đang chơi
+   (nhóm: hd3-bai4/bai12-keotha/nhap/Nhóm N; cá nhân: .../canhan/nhap/Họ tên) —
+   chỉ là vị trí thẻ đang đặt, KHÔNG chấm điểm, KHÔNG ghi kết quả. Khi bấm Nộp
+   và kết quả đã lên máy chủ thì xóa nháp. Bảng "👁 Xem live" của thầy đọc
+   chính nhánh nháp này để hiện tiến độ trực tiếp.
    Nháp gửi im lặng: mất mạng thì thôi, không báo lỗi ra màn hình để khỏi
    làm phiền các em. Chống dồn 400ms để không gửi quá dày. */
 var lanDayNhapCuoi = 0;
@@ -1068,14 +1245,15 @@ function dayNhapLive(){
     slots[quiz[i].q] = (cid === null || cid === undefined) ? "" : quiz[cid].a;
     if (cid !== null && cid !== undefined) daDat++;
   }
-  db.ref(ROOT + "/nhap/" + khoaDoi(team)).set({
+  db.ref(duongDanNhap() + "/" + khoaDoi(team)).set({
     team: team, slots: slots, placed: daDat, total: 7,
+    batDau: startAt, /* mốc vào làm — bảng Xem live dùng để tính "đã chơi bao lâu" */
     t: firebase.database.ServerValue.TIMESTAMP
   }).catch(function(){ /* nháp chỉ để xem live — lỗi thì bỏ qua */ });
 }
 function xoaNhapLive(){
   if (!db || !team) return;
-  db.ref(ROOT + "/nhap/" + khoaDoi(team)).remove().catch(function(){});
+  db.ref(duongDanNhap() + "/" + khoaDoi(team)).remove().catch(function(){});
 }
 
 $("resetBtn").addEventListener("click", function(){
@@ -1147,9 +1325,15 @@ function nopBai(tuDong){
 
   /* Luôn lưu bản dự phòng vào localStorage của máy nộp TRƯỚC,
      để tải lại trang trên máy này vẫn thấy bài của mình dù máy chủ có lỗi */
-  localResults = localResults.filter(function(r){ return r.team !== team; });
-  localResults.push(record);
-  luuDuPhongLocal();
+  if (cheDo === "canhan"){
+    localResultsCaNhan = localResultsCaNhan.filter(function(r){ return r.team !== team; });
+    localResultsCaNhan.push(record);
+    luuDuPhongLocalCaNhan();
+  } else {
+    localResults = localResults.filter(function(r){ return r.team !== team; });
+    localResults.push(record);
+    luuDuPhongLocal();
+  }
 
   hienKetQua();
   var oLuu = $("saveStatus");
@@ -1162,7 +1346,7 @@ function nopBai(tuDong){
     var banLenMayChu = {};
     for (var key in record) banLenMayChu[key] = record[key];
     banLenMayChu.t = firebase.database.ServerValue.TIMESTAMP;
-    db.ref(ROOT + "/ketqua/" + khoaDoi(team)).set(banLenMayChu)
+    db.ref(duongDanKetQua() + "/" + khoaDoi(team)).set(banLenMayChu)
       .then(function(){
         oLuu.style.background = "var(--green-bg)"; oLuu.style.color = "var(--green)";
         oLuu.textContent = "✓ Đã lưu lên máy chủ — thầy tải lại trang vẫn xem được kết quả này (lưu trong 1 tiếng).";
@@ -1193,12 +1377,12 @@ $("againBtn").addEventListener("click", function(){
 });
 
 /* ================= BẢNG CỦA THẦY ================= */
-function veBangThay(list){
-  var box = $("rankList");
+function veBangThay(list, idBox, chuTrong){
+  var box = $(idBox || "rankList");
   /* Chỉ hiện kết quả còn trong hạn lưu 1 tiếng */
   list = (list || []).filter(conHanLuu);
   if (list.length === 0){
-    box.innerHTML = '<div class="empty-note">Chưa có nhóm nào nộp bài.<br>Kết quả sẽ hiện ở đây ngay khi nhóm đầu tiên bấm Nộp bài.<br><span style="font-size:15px">Kết quả được lưu 1 tiếng — tải lại trang vẫn còn; quá 1 tiếng tự hết hạn.</span></div>';
+    box.innerHTML = chuTrong || '<div class="empty-note">Chưa có nhóm nào nộp bài.<br>Kết quả sẽ hiện ở đây ngay khi nhóm đầu tiên bấm Nộp bài.<br><span style="font-size:15px">Kết quả được lưu 1 tiếng — tải lại trang vẫn còn; quá 1 tiếng tự hết hạn.</span></div>';
     return;
   }
   /* Điểm cao trước → bằng điểm thì thời gian làm ngắn hơn trước → vẫn bằng thì nộp sớm hơn trước */
@@ -1228,15 +1412,30 @@ function veBangThay(list){
   });
 }
 
+/* Mục kết quả cá nhân: cùng kiểu xếp hạng, chỉ khác ô chứa và câu trống */
+function veBangThayCaNhan(list){
+  veBangThay(list, "rankListCaNhan", '<div class="empty-note">Chưa có bạn nào nộp bài.<br>Kết quả sẽ hiện ở đây ngay khi bạn đầu tiên bấm Nộp bài.<br><span style="font-size:15px">Kết quả được lưu 1 tiếng — tải lại trang vẫn còn; quá 1 tiếng tự hết hạn.</span></div>');
+}
+
 /* Tự làm mới bảng: đọc lại kết quả mới nhất từ máy chủ rồi vẽ lại.
    Dùng sau khi xóa và cho nút Cập nhật — thầy không cần tải lại trang bằng tay. */
 function tuLamMoiBang(){
-  if (!db){ veBangThay(gopKetQua([])); return Promise.resolve(); }
-  return db.ref(ROOT + "/ketqua").once("value").then(function(snap){
+  if (!db){
+    veBangThay(gopKetQua([], localResults));
+    veBangThayCaNhan(gopKetQua([], localResultsCaNhan));
+    return Promise.resolve();
+  }
+  var pNhom = db.ref(ROOT + "/ketqua").once("value").then(function(snap){
     var v = snap.val() || {};
     donKetQuaHetHan(v);
-    veBangThay(gopKetQua(Object.keys(v).map(function(k){ return v[k]; })));
-  }).catch(function(){ veBangThay(gopKetQua([])); });
+    veBangThay(gopKetQua(Object.keys(v).map(function(k){ return v[k]; }), localResults));
+  }).catch(function(){ veBangThay(gopKetQua([], localResults)); });
+  var pCaNhan = db.ref(ROOT + "/canhan/ketqua").once("value").then(function(snap){
+    var v = snap.val() || {};
+    donKetQuaHetHan(v, ROOT + "/canhan/ketqua");
+    veBangThayCaNhan(gopKetQua(Object.keys(v).map(function(k){ return v[k]; }), localResultsCaNhan));
+  }).catch(function(){ veBangThayCaNhan(gopKetQua([], localResultsCaNhan)); });
+  return Promise.all([pNhom, pCaNhan]);
 }
 
 $("refreshBtn").addEventListener("click", function(){ tuLamMoiBang(); });
@@ -1280,6 +1479,156 @@ $("clearYesBtn").addEventListener("click", function(){
     setTimeout(function(){ location.reload(); }, 1200);
   }
 });
+
+/* ================= XÓA HẾT KẾT QUẢ CÁ NHÂN =================
+   Chỉ xóa mục cá nhân — kết quả nhóm giữ nguyên. */
+$("clearBtnCaNhan").addEventListener("click", function(){
+  $("clearMsgCaNhan").textContent = "";
+  $("clearYesBtnCaNhan").disabled = false;
+  $("clearConfirmCaNhan").classList.remove("hidden");
+  $("clearConfirmCaNhan").scrollIntoView({ behavior: "smooth", block: "center" });
+});
+$("clearNoBtnCaNhan").addEventListener("click", function(){
+  $("clearConfirmCaNhan").classList.add("hidden");
+});
+$("clearYesBtnCaNhan").addEventListener("click", function(){
+  $("clearConfirmCaNhan").classList.add("hidden");
+  $("clearYesBtnCaNhan").disabled = true;
+  xoaDuPhongLocalCaNhan();
+  veBangThayCaNhan([]);
+  if (db){
+    db.ref(ROOT + "/canhan/ketqua").remove().then(function(){
+      $("clearMsgCaNhan").textContent = "✓ Đã xóa hết kết quả cá nhân trên máy chủ — trang đang tự làm mới lại…";
+      $("clearMsgCaNhan").style.color = "var(--green)";
+      return tuLamMoiBang();
+    }).then(function(){
+      setTimeout(function(){ location.reload(); }, 1000);
+    }).catch(function(err){
+      $("clearYesBtnCaNhan").disabled = false;
+      $("clearMsgCaNhan").textContent = "⚠ CHƯA XÓA ĐƯỢC TRÊN MÁY CHỦ: " + (err && err.message ? err.message : "không rõ nguyên nhân") + " — thầy kiểm tra mạng rồi bấm Xóa hết kết quả cá nhân lại nhé. (Bảng và bản dự phòng trên máy này đã xóa.)";
+      $("clearMsgCaNhan").style.color = "var(--red)";
+    });
+  } else {
+    $("clearMsgCaNhan").textContent = "✓ Đã xóa kết quả cá nhân trên máy này — trang đang tự làm mới lại… (Đang mất kết nối máy chủ nên chưa xóa được bản trên máy chủ — kết nối lại rồi bấm Xóa hết lần nữa cho chắc.)";
+    $("clearMsgCaNhan").style.color = "var(--red)";
+    setTimeout(function(){ location.reload(); }, 1200);
+  }
+});
+
+/* ================= XEM LIVE (TIẾN ĐỘ TRỰC TIẾP) =================
+   Bảng live nằm trong Bảng của thầy nên đã khóa bằng mật khẩu bảng thầy.
+   Đọc cả 2 nhánh nhap (nhóm + cá nhân) và cả 2 nhánh ketqua; ai nộp xong thì
+   thẻ hiện "Đã nộp" + điểm, ai đang kéo thì hiện "Đang chơi…" với số thẻ đã
+   đặt, số cặp đúng tới lúc này và thời gian đã chơi. Cập nhật trực tiếp qua
+   listener Firebase; đồng hồ "đã chơi" làm mới mỗi giây khi bảng đang mở. */
+var liveDangMo = false;
+var liveNhom = {};        // key -> nháp nhóm
+var liveCaNhan = {};      // key -> nháp cá nhân
+var liveKqNhom = {};      // key -> kết quả nhóm đã nộp
+var liveKqCaNhan = {};    // key -> kết quả cá nhân đã nộp
+var liveDaNghe = false;
+var liveDongHoId = null;
+function dapAnTheoNoiDung(){
+  var m = {};
+  quiz.forEach(function(it){ m[it.q] = it.a; });
+  return m;
+}
+function demDungTrongNhap(draft){
+  var dapAn = dapAnTheoNoiDung();
+  var dung = 0;
+  var slots = (draft && draft.slots) || {};
+  Object.keys(slots).forEach(function(q){
+    if (slots[q] && dapAn[q] && slots[q] === dapAn[q]) dung++;
+  });
+  return dung;
+}
+function veLive(){
+  var box = $("liveList");
+  if (!db){
+    box.innerHTML = '<div class="empty-note">⚠ Chưa có kết nối máy chủ nên chưa xem live được — thầy kiểm tra mạng rồi bấm “👁 Xem live” lại nhé.</div>';
+    return;
+  }
+  var muc = [];
+  /* Gộp nháp + kết quả của cả 2 chế độ thành 1 danh sách */
+  Object.keys(liveNhom).forEach(function(k){
+    muc.push({ ten: liveNhom[k].team || k, loai: "Nhóm", nhap: liveNhom[k], kq: liveKqNhom[k] });
+  });
+  Object.keys(liveKqNhom).forEach(function(k){
+    if (!liveNhom[k]) muc.push({ ten: liveKqNhom[k].team || k, loai: "Nhóm", nhap: null, kq: liveKqNhom[k] });
+  });
+  Object.keys(liveCaNhan).forEach(function(k){
+    muc.push({ ten: liveCaNhan[k].team || k, loai: "Cá nhân", nhap: liveCaNhan[k], kq: liveKqCaNhan[k] });
+  });
+  Object.keys(liveKqCaNhan).forEach(function(k){
+    if (!liveCaNhan[k]) muc.push({ ten: liveKqCaNhan[k].team || k, loai: "Cá nhân", nhap: null, kq: liveKqCaNhan[k] });
+  });
+  /* Chỉ giữ người còn hạn: đã nộp thì theo hạn 1 tiếng; đang chơi thì nháp mới cập nhật trong 1 tiếng */
+  var bayGio = Date.now();
+  muc = muc.filter(function(e){
+    if (e.kq && conHanLuu(e.kq)) return true;
+    if (e.nhap && typeof e.nhap.t === "number") return (bayGio - e.nhap.t) < THOI_GIAN_LUU_MS;
+    if (e.nhap) return true;
+    return false;
+  });
+  /* Đang chơi lên trước (mới nhất trước), rồi tới đã nộp (mới nộp trước) */
+  function moc(e){ return (e.kq && e.kq.t) || (e.nhap && e.nhap.t) || 0; }
+  muc.sort(function(a, b){
+    var aNop = !!(a.kq && conHanLuu(a.kq));
+    var bNop = !!(b.kq && conHanLuu(b.kq));
+    if (aNop !== bNop) return aNop ? 1 : -1;
+    return moc(b) - moc(a);
+  });
+  if (muc.length === 0){
+    box.innerHTML = '<div class="empty-note">Chưa có ai đang chơi.<br>Khi có nhóm hoặc bạn bắt đầu kéo thẻ, tiến độ sẽ hiện ở đây.</div>';
+    return;
+  }
+  box.innerHTML = "";
+  muc.forEach(function(e){
+    var daNop = !!(e.kq && conHanLuu(e.kq));
+    var row = document.createElement("div");
+    row.className = "live-card" + (daNop ? " da-nop" : "");
+    var giua = "";
+    if (daNop){
+      giua = '<div class="rdetail">Điểm: <b>' + (e.kq.score || 0) + '/7</b> · Đúng ' + (e.kq.correct || 0) + '/7 ý · Thời gian: ' + fmtTime(e.kq.durationSec || 0) + ' · Nộp lúc ' + escapeHtml(e.kq.hien || "") + '</div>';
+    } else {
+      var dat = (e.nhap && typeof e.nhap.placed === "number") ? e.nhap.placed : 0;
+      var dung = demDungTrongNhap(e.nhap);
+      var batDau = (e.nhap && e.nhap.batDau) || (e.nhap && e.nhap.t) || 0;
+      var daChoi = batDau ? fmtTime((bayGio - batDau) / 1000) : "—";
+      giua = '<div class="rdetail">Đã đặt ' + dat + '/7 thẻ · Đúng ' + dung + '/7 tới lúc này · Đã chơi ' + daChoi + '</div>';
+    }
+    row.innerHTML =
+      '<div class="rank-main"><div class="rname">' + escapeHtml(e.ten) + '<span class="live-kind">' + e.loai + '</span></div>' + giua + '</div>' +
+      '<div class="live-status">' + (daNop ? "Đã nộp" : "Đang chơi…") + '</div>';
+    box.appendChild(row);
+  });
+}
+function ngheLive(){
+  if (liveDaNghe || !db) return;
+  liveDaNghe = true;
+  db.ref(ROOT + "/nhap").on("value", function(snap){ liveNhom = snap.val() || {}; veLive(); });
+  db.ref(ROOT + "/canhan/nhap").on("value", function(snap){ liveCaNhan = snap.val() || {}; veLive(); });
+  db.ref(ROOT + "/ketqua").on("value", function(snap){ liveKqNhom = snap.val() || {}; veLive(); });
+  db.ref(ROOT + "/canhan/ketqua").on("value", function(snap){ liveKqCaNhan = snap.val() || {}; veLive(); });
+}
+function moLive(){
+  liveDangMo = true;
+  $("liveView").classList.remove("hidden");
+  $("liveBtn").classList.add("hidden");
+  veLive();
+  ngheLive();
+  if (liveDongHoId) clearInterval(liveDongHoId);
+  liveDongHoId = setInterval(function(){ if (liveDangMo) veLive(); }, 1000);
+  $("liveView").scrollIntoView({ behavior: "smooth", block: "start" });
+}
+function dongLive(){
+  liveDangMo = false;
+  $("liveView").classList.add("hidden");
+  $("liveBtn").classList.remove("hidden");
+  if (liveDongHoId){ clearInterval(liveDongHoId); liveDongHoId = null; }
+}
+$("liveBtn").addEventListener("click", moLive);
+$("liveCloseBtn").addEventListener("click", dongLive);
 
 /* ================= SOẠN ĐỀ ================= */
 function dienFormSuaDe(){
@@ -1417,9 +1766,11 @@ capNhatNhanThoiGian();
 if (khoiTaoFirebase()){
   ngheDe();
   ngheKetQua();
+  ngheKetQuaCaNhan();
   ngheCaiDat();
 } else {
-  veBangThay(gopKetQua([]));
+  veBangThay(gopKetQua([], localResults));
+  veBangThayCaNhan(gopKetQua([], localResultsCaNhan));
 }
 /* Tự làm mới mỗi phút: kết quả nào đã quá hạn lưu mặc định 1 tiếng thì
    tự biến mất khỏi bảng (và được dọn trên máy chủ) mà thầy không cần tải lại trang.
